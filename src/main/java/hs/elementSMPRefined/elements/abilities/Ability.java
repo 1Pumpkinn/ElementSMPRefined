@@ -1,6 +1,5 @@
 package hs.elementSMPRefined.elements.abilities;
 
-import hs.elementPlugin.elements.ElementContext;
 import org.bukkit.entity.Player;
 
 /**
@@ -12,7 +11,7 @@ public interface Ability {
      * @param context The context for the ability execution
      * @return true if the ability was executed successfully, false otherwise
      */
-    boolean execute(ElementContext context);
+    boolean execute(hs.elementSMPRefined.elements.ElementContext context);
     
     /**
      * Get the mana cost for this ability

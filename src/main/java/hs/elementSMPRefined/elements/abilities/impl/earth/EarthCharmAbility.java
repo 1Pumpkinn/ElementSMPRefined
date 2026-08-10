@@ -1,17 +1,17 @@
 package hs.elementSMPRefined.elements.abilities.impl.earth;
 
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
-import hs.elementPlugin.elements.impl.earth.EarthElement;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.elements.impl.earth.EarthElement;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 
 public class EarthCharmAbility extends BaseAbility {
 
-    private final hs.elementPlugin.ElementPlugin plugin;
+    private final hs.elementSMPRefined.ElementSMPRefined plugin;
     
-    public EarthCharmAbility(hs.elementPlugin.ElementPlugin plugin) {
+    public EarthCharmAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
         super("earth_charm", 75, 30, 1);
         this.plugin = plugin;
     }

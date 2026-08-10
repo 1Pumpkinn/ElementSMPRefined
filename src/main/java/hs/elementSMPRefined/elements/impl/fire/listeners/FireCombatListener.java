@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.impl.fire.listeners;
 
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
-import hs.elementPlugin.managers.TrustManager;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

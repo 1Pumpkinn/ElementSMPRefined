@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.elements.abilities.impl.life;
 
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -13,9 +13,9 @@ import org.bukkit.util.Vector;
 
 public class LifeHealingBeamAbility extends BaseAbility {
 
-    private final hs.elementPlugin.ElementPlugin plugin;
+    private final hs.elementSMPRefined.ElementSMPRefined plugin;
     
-    public LifeHealingBeamAbility(hs.elementPlugin.ElementPlugin plugin) {
+    public LifeHealingBeamAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
         super("life_healing_beam", 75, 15, 2);
         this.plugin = plugin;
     }

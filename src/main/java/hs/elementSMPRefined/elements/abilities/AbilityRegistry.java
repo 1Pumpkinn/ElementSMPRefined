@@ -1,15 +1,15 @@
 package hs.elementSMPRefined.elements.abilities;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.elements.abilities.impl.air.*;
-import hs.elementPlugin.elements.abilities.impl.death.*;
-import hs.elementPlugin.elements.abilities.impl.earth.*;
-import hs.elementPlugin.elements.abilities.impl.fire.*;
-import hs.elementPlugin.elements.abilities.impl.frost.*;
-import hs.elementPlugin.elements.abilities.impl.life.*;
-import hs.elementPlugin.elements.abilities.impl.metal.*;
-import hs.elementPlugin.elements.abilities.impl.water.*;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.elements.abilities.impl.air.*;
+import hs.elementSMPRefined.elements.abilities.impl.death.*;
+import hs.elementSMPRefined.elements.abilities.impl.earth.*;
+import hs.elementSMPRefined.elements.abilities.impl.fire.*;
+import hs.elementSMPRefined.elements.abilities.impl.frost.*;
+import hs.elementSMPRefined.elements.abilities.impl.life.*;
+import hs.elementSMPRefined.elements.abilities.impl.metal.*;
+import hs.elementSMPRefined.elements.abilities.impl.water.*;
+import hs.elementSMPRefined.ElementSMPRefined;
 
 import java.util.*;
 
@@ -18,7 +18,7 @@ import java.util.*;
  * Provides type-safe access to abilities and handles registration.
  */
 public final class AbilityRegistry {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Map<ElementType, AbilitySet> abilities = new EnumMap<>(ElementType.class);
 
     /**
@@ -31,7 +31,7 @@ public final class AbilityRegistry {
         }
     }
 
-    public AbilityRegistry(ElementPlugin plugin) {
+    public AbilityRegistry(ElementSMPRefined plugin) {
         this.plugin = plugin;
         registerAll();
     }

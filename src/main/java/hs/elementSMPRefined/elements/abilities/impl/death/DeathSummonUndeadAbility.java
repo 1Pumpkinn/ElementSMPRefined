@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.abilities.impl.death;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Random;
 
 public class DeathSummonUndeadAbility extends BaseAbility {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private static final List<Class<? extends LivingEntity>> UNDEAD_TYPES = List.of(
             Zombie.class, Skeleton.class, Husk.class, Stray.class
     );
@@ -23,7 +23,7 @@ public class DeathSummonUndeadAbility extends BaseAbility {
     public static final String META_FRIENDLY_UNDEAD_UNTIL = "death_summoned_until";
     private final Random random = new Random();
 
-    public DeathSummonUndeadAbility(ElementPlugin plugin) {
+    public DeathSummonUndeadAbility(ElementSMPRefined plugin) {
         super("death_summon_undead", 50, 30, 1);
         this.plugin = plugin;
     }

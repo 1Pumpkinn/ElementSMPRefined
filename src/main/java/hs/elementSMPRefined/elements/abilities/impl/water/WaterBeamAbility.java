@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.elements.abilities.impl.water;
 
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
@@ -16,9 +16,9 @@ import java.util.UUID;
 
 public class WaterBeamAbility extends BaseAbility {
     private final Set<UUID> activeUsers = new HashSet<>();
-    private final hs.elementPlugin.ElementPlugin plugin;
+    private final hs.elementSMPRefined.ElementSMPRefined plugin;
 
-    public WaterBeamAbility(hs.elementPlugin.ElementPlugin plugin) {
+    public WaterBeamAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
         super("water_beam", 50, 15, 2);
         this.plugin = plugin;
     }

@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.elements.impl.frost.listeners;
 
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

@@ -1,17 +1,10 @@
 package hs.elementSMPRefined;
 
-import hs.elementPlugin.commands.*;
-import hs.elementPlugin.data.DataStore;
-import hs.elementPlugin.elements.abilities.AbilityRegistry;
-import hs.elementPlugin.listeners.GUIListener;
-import hs.elementPlugin.listeners.combat.CombatListener;
-import hs.elementPlugin.listeners.item.*;
-import hs.elementPlugin.listeners.player.*;
-import hs.elementPlugin.managers.*;
-import hs.elementPlugin.services.EffectService;
-import hs.elementPlugin.services.ValidationService;
-import hs.elementPlugin.util.bukkit.MetadataHelper;
-import hs.elementPlugin.util.scheduling.TaskScheduler;
+import hs.elementSMPRefined.commands.*;
+import hs.elementSMPRefined.listeners.GUIListener;
+import hs.elementSMPRefined.listeners.player.GameModeListener;
+import hs.elementSMPRefined.listeners.player.PlayerLifecycleListener;
+import hs.elementSMPRefined.managers.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,17 +12,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.logging.Level;
 
 public final class ElementSMPRefined extends JavaPlugin {
-    private DataStore dataStore;
+    private hs.elementSMPRefined.data.DataStore dataStore;
     private ConfigManager configManager;
     private ElementManager elementManager;
     private ManaManager manaManager;
     private TrustManager trustManager;
     private ItemManager itemManager;
-    private AbilityRegistry abilityRegistry;
-    private EffectService effectService;
-    private ValidationService validationService;
-    private TaskScheduler taskScheduler;
-    private MetadataHelper metadataHelper;
+    private hs.elementSMPRefined.elements.abilities.AbilityRegistry abilityRegistry;
+    private hs.elementSMPRefined.services.EffectService effectService;
+    private hs.elementSMPRefined.services.ValidationService validationService;
+    private hs.elementSMPRefined.util.scheduling.TaskScheduler taskScheduler;
+    private hs.elementSMPRefined.util.bukkit.MetadataHelper metadataHelper;
 
     @Override
     public void onEnable() {
@@ -63,7 +56,7 @@ public final class ElementSMPRefined extends JavaPlugin {
     private void initializeCore() {
         getLogger().info("Initializing core components...");
         this.configManager = new ConfigManager(this);
-        this.dataStore = new DataStore(this);
+        this.dataStore = new hs.elementSMPRefined.data.DataStore(this);
         getLogger().info("Core components initialized");
     }
 
@@ -81,9 +74,9 @@ public final class ElementSMPRefined extends JavaPlugin {
     private void initializeServices() {
         getLogger().info("Initializing services...");
 
-        this.effectService = new EffectService(this, elementManager);
-        this.validationService = new ValidationService(trustManager);
-        this.abilityRegistry = new AbilityRegistry(this);
+        this.effectService = new hs.elementSMPRefined.services.EffectService(this, elementManager);
+        this.validationService = new hs.elementSMPRefined.services.ValidationService(trustManager);
+        this.abilityRegistry = new hs.elementSMPRefined.elements.abilities.AbilityRegistry(this);
 
         getLogger().info("Services initialized");
     }
@@ -91,8 +84,8 @@ public final class ElementSMPRefined extends JavaPlugin {
     private void initializeUtilities() {
         getLogger().info("Initializing utilities...");
 
-        this.taskScheduler = new TaskScheduler(this);
-        this.metadataHelper = new MetadataHelper(this);
+        this.taskScheduler = new hs.elementSMPRefined.util.scheduling.TaskScheduler(this);
+        this.metadataHelper = new hs.elementSMPRefined.util.bukkit.MetadataHelper(this);
 
         getLogger().info("Utilities initialized");
     }
@@ -106,7 +99,7 @@ public final class ElementSMPRefined extends JavaPlugin {
     private void registerCommands() {
         getLogger().info("Registering commands...");
 
-        CommandRegistrar.register(this)
+        CommandRegister.register(this)
                 .command("elements", new ElementInfoCommand(this))
                 .command("trust", new TrustCommand(this, trustManager))
                 .command("element", new ElementCommand(this))
@@ -117,18 +110,18 @@ public final class ElementSMPRefined extends JavaPlugin {
         getLogger().info("Commands registered");
     }
 
-    private static class CommandRegistrar {
+    private static class CommandRegister {
         private final ElementSMPRefined plugin;
 
-        private CommandRegistrar(ElementSMPRefined plugin) {
+        private CommandRegister(ElementSMPRefined plugin) {
             this.plugin = plugin;
         }
 
-        static CommandRegistrar register(ElementSMPRefined plugin) {
-            return new CommandRegistrar(plugin);
+        static CommandRegister register(ElementSMPRefined plugin) {
+            return new CommandRegister(plugin);
         }
 
-        CommandRegistrar command(String name, org.bukkit.command.CommandExecutor executor) {
+        CommandRegister command(String name, org.bukkit.command.CommandExecutor executor) {
             var cmd = plugin.getCommand(name);
             if (cmd != null) {
                 cmd.setExecutor(executor);
@@ -147,8 +140,8 @@ public final class ElementSMPRefined extends JavaPlugin {
         pm.registerEvents(new PlayerLifecycleListener(this, elementManager, manaManager, effectService), this);
         pm.registerEvents(effectService, this);
         pm.registerEvents(new GameModeListener(manaManager, configManager), this);
-        pm.registerEvents(new CombatListener(trustManager, elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.ability.AbilityListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.combat.CombatListener(trustManager, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.ability.AbilityListener(this, elementManager), this);
         registerItemListeners(pm);
         pm.registerEvents(new GUIListener(this), this);
         registerElementListeners(pm);
@@ -157,44 +150,44 @@ public final class ElementSMPRefined extends JavaPlugin {
     }
 
     private void registerItemListeners(PluginManager pm) {
-        pm.registerEvents(new hs.elementPlugin.listeners.item.ElementItemUseListener(this, elementManager, itemManager), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.item.ElementItemCraftListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.item.ElementItemDeathListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.item.ElementItemDropListener(this), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.item.ElementItemPickupListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.item.ElementInventoryProtectionListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.item.ElementCombatProjectileListener(itemManager), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.item.RerollerListener(this), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.item.AdvancedRerollerListener(this), this);
-        pm.registerEvents(new hs.elementPlugin.listeners.item.UpgraderListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemUseListener(this, elementManager, itemManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemCraftListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemDeathListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemDropListener(this), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemPickupListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementInventoryProtectionListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementCombatProjectileListener(itemManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.RerollerListener(this), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.AdvancedRerollerListener(this), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.UpgraderListener(this, elementManager), this);
     }
 
     private void registerElementListeners(PluginManager pm) {
-        pm.registerEvents(new hs.elementPlugin.elements.impl.air.listeners.FallDamageListener(elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.air.listeners.AirCombatListener(elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.water.listeners.WaterDrowningImmunityListener(elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.fire.listeners.FireImmunityListener(elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.fire.listeners.FireCombatListener(elementManager, trustManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.fire.listeners.FireballProtectionListener(), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.earth.listeners.EarthCharmListener(elementManager, this), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.earth.listeners.EarthFriendlyMobListener(this, trustManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.earth.listeners.EarthOreDropListener(elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.life.listeners.LifeRegenListener(elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.life.LifeElementCraftListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.death.listeners.DeathRawFoodListener(elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.death.listeners.DeathFriendlyMobListener(this, trustManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.death.DeathElementCraftListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.metal.listeners.MetalArrowImmunityListener(elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.metal.listeners.MetalChainStunListener(), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.frost.listeners.FrostPassiveListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementPlugin.elements.impl.frost.listeners.FrostFrozenPunchListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.air.listeners.FallDamageListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.air.listeners.AirCombatListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.water.listeners.WaterDrowningImmunityListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireImmunityListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireCombatListener(elementManager, trustManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireballProtectionListener(), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthCharmListener(elementManager, this), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthFriendlyMobListener(this, trustManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthOreDropListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.life.listeners.LifeRegenListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.life.LifeElementCraftListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.listeners.DeathRawFoodListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.listeners.DeathFriendlyMobListener(this, trustManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.DeathElementCraftListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.metal.listeners.MetalArrowImmunityListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.metal.listeners.MetalChainStunListener(), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.frost.listeners.FrostFrozenPunchListener(this, elementManager), this);
     }
 
 
     private void registerRecipes() {
         taskScheduler.runLaterSeconds(() -> {
             getLogger().info("Registering recipes...");
-            hs.elementPlugin.recipes.UtilRecipes.registerRecipes(this);
+            hs.elementSMPRefined.recipes.UtilRecipes.registerRecipes(this);
             getLogger().info("Recipes registered");
         }, 1);
     }
@@ -215,16 +208,16 @@ public final class ElementSMPRefined extends JavaPlugin {
         }
     }
 
-    public DataStore getDataStore() { return dataStore; }
+    public hs.elementSMPRefined.data.DataStore getDataStore() { return dataStore; }
     public ConfigManager getConfigManager() { return configManager; }
     public ElementManager getElementManager() { return elementManager; }
     public ManaManager getManaManager() { return manaManager; }
     public TrustManager getTrustManager() { return trustManager; }
     public ItemManager getItemManager() { return itemManager; }
-    public AbilityRegistry getAbilityRegistry() { return abilityRegistry; }
-    public EffectService getEffectService() { return effectService; }
-    public ValidationService getValidationService() { return validationService; }
-    public TaskScheduler getTaskScheduler() { return taskScheduler; }
-    public MetadataHelper getMetadataHelper() { return metadataHelper; }
+    public hs.elementSMPRefined.elements.abilities.AbilityRegistry getAbilityRegistry() { return abilityRegistry; }
+    public hs.elementSMPRefined.services.EffectService getEffectService() { return effectService; }
+    public hs.elementSMPRefined.services.ValidationService getValidationService() { return validationService; }
+    public hs.elementSMPRefined.util.scheduling.TaskScheduler getTaskScheduler() { return taskScheduler; }
+    public hs.elementSMPRefined.util.bukkit.MetadataHelper getMetadataHelper() { return metadataHelper; }
 
 }

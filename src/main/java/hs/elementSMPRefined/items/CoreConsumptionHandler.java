@@ -1,10 +1,10 @@
 package hs.elementSMPRefined.items;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
-import hs.elementPlugin.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
@@ -21,7 +21,7 @@ public final class CoreConsumptionHandler {
     /**
      * Handles consuming Life/Death core items on right-click. Returns true if the event was handled.
      */
-    public static boolean handleCoreConsume(PlayerInteractEvent e, ElementPlugin plugin, ElementManager elements) {
+    public static boolean handleCoreConsume(PlayerInteractEvent e, ElementSMPRefined plugin, ElementManager elements) {
         Player player = e.getPlayer();
         ItemStack inHand = e.getItem();
         if (inHand == null || !ItemUtil.isElementItem(plugin, inHand)) return false;
@@ -60,7 +60,7 @@ public final class CoreConsumptionHandler {
         }
 
         player.sendMessage(ChatColor.GREEN + "You consumed the " +
-                hs.elementPlugin.items.ElementCoreItem.getDisplayName(type) + ChatColor.GREEN + "!");
+                hs.elementSMPRefined.items.ElementCoreItem.getDisplayName(type) + ChatColor.GREEN + "!");
 
         e.setCancelled(true);
         return true;

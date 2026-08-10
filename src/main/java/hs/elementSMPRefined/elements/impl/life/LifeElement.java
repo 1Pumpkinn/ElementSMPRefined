@@ -1,12 +1,12 @@
 package hs.elementSMPRefined.elements.impl.life;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.BaseElement;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.elements.abilities.Ability;
-import hs.elementPlugin.elements.abilities.impl.life.LifeHealingBeamAbility;
-import hs.elementPlugin.elements.abilities.impl.life.LifeRegenAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.BaseElement;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.elements.abilities.Ability;
+import hs.elementSMPRefined.elements.abilities.impl.life.LifeHealingBeamAbility;
+import hs.elementSMPRefined.elements.abilities.impl.life.LifeRegenAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -21,14 +21,14 @@ import java.util.UUID;
 
 public class LifeElement extends BaseElement {
 
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
 
     // Fixed: only ONE passive task map
     private final Map<UUID, BukkitTask> passiveTasks = new HashMap<>();
 
-    public LifeElement(ElementPlugin plugin) {
+    public LifeElement(ElementSMPRefined plugin) {
         super(plugin);
         this.plugin = plugin;
         this.ability1 = new LifeRegenAbility(plugin);

@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.gui;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -23,7 +23,7 @@ public class ElementSelectionGUI {
             ElementType.AIR, ElementType.WATER, ElementType.FIRE, ElementType.EARTH
     };
     
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
     private final Player player;
     private final Inventory inventory;
@@ -34,7 +34,7 @@ public class ElementSelectionGUI {
     private ElementType selectedElement;
     private boolean isAnimating = false;
     
-    public ElementSelectionGUI(ElementPlugin plugin, Player player, boolean isReroll) {
+    public ElementSelectionGUI(ElementSMPRefined plugin, Player player, boolean isReroll) {
         this.plugin = plugin;
         this.elementManager = plugin.getElementManager();
         this.player = player;

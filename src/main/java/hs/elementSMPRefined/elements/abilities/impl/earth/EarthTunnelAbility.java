@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.abilities.impl.earth;
 
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
-import hs.elementPlugin.elements.impl.earth.EarthElement;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.elements.impl.earth.EarthElement;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -48,9 +48,9 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.COAL_BLOCK
     );
 
-    private final hs.elementPlugin.ElementPlugin plugin;
+    private final hs.elementSMPRefined.ElementSMPRefined plugin;
 
-    public EarthTunnelAbility(hs.elementPlugin.ElementPlugin plugin) {
+    public EarthTunnelAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
         super("earth_tunnel", 50, 10, 1);
         this.plugin = plugin;
     }

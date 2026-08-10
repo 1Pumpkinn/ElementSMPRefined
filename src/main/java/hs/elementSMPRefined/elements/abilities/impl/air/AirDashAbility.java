@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.elements.abilities.impl.air;
 
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -12,9 +12,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class AirDashAbility extends BaseAbility {
-    private final hs.elementPlugin.ElementPlugin plugin;
+    private final hs.elementSMPRefined.ElementSMPRefined plugin;
 
-    public AirDashAbility(hs.elementPlugin.ElementPlugin plugin) {
+    public AirDashAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
         super("air_dash", 75, 5, 1);
         this.plugin = plugin;
     }

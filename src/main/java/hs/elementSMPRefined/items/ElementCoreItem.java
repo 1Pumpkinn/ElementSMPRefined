@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.items;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementType;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -41,7 +41,7 @@ public final class ElementCoreItem {
         }
     }
 
-    public static ItemStack createCore(ElementPlugin plugin, ElementType type) {
+    public static ItemStack createCore(ElementSMPRefined plugin, ElementType type) {
         ElementCoreProperties props = properties(type);
         if (props == null) return null;
 

@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.abilities.impl.frost;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -20,12 +20,12 @@ import java.util.Set;
 import java.util.UUID;
 
 public class FrostCircleAbility extends BaseAbility {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Set<UUID> activeCircles = new HashSet<>();
 
     public static final String META_CIRCLE_FROZEN = "frost_freezing_circle";
 
-    public FrostCircleAbility(ElementPlugin plugin) {
+    public FrostCircleAbility(ElementSMPRefined plugin) {
         super("frost_freezing_circle", 50, 10, 1);
         this.plugin = plugin;
     }

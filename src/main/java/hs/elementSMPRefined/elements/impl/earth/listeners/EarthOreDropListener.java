@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.elements.impl.earth.listeners;
 
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;

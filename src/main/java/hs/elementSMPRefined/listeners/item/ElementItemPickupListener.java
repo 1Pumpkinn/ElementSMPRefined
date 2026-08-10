@@ -1,10 +1,10 @@
 package hs.elementSMPRefined.listeners.item;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
-import hs.elementPlugin.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,10 +12,10 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class ElementItemPickupListener implements Listener {
-	private final ElementPlugin plugin;
+	private final ElementSMPRefined plugin;
 	private final ElementManager elements;
 
-	public ElementItemPickupListener(ElementPlugin plugin, ElementManager elements) {
+	public ElementItemPickupListener(ElementSMPRefined plugin, ElementManager elements) {
 		this.plugin = plugin;
 		this.elements = elements;
 	}

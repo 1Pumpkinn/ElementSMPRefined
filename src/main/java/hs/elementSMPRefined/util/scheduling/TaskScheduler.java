@@ -1,14 +1,14 @@
 package hs.elementSMPRefined.util.scheduling;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.config.Constants;
+import hs.elementSMPRefined.config.Constants;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 public final class TaskScheduler {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
 
-    public TaskScheduler(ElementPlugin plugin) {
+    public TaskScheduler(ElementSMPRefined plugin) {
         this.plugin = plugin;
     }
 

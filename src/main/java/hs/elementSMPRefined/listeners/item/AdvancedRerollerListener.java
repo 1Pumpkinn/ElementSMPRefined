@@ -1,9 +1,9 @@
 package hs.elementSMPRefined.listeners.item;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.items.ItemKeys;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.items.ItemKeys;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -18,10 +18,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.Random;
 
 public class AdvancedRerollerListener implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Random random = new Random();
 
-    public AdvancedRerollerListener(ElementPlugin plugin) {
+    public AdvancedRerollerListener(ElementSMPRefined plugin) {
         this.plugin = plugin;
     }
 

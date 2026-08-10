@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.abilities.impl.fire;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Fireball;
@@ -16,9 +16,9 @@ import org.bukkit.util.Vector;
  * Fire element's fireball ability - launches a fireball that damages entities
  */
 public class FireballAbility extends BaseAbility implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
 
-    public FireballAbility(ElementPlugin plugin) {
+    public FireballAbility(ElementSMPRefined plugin) {
         super("fire_fireball", 50, 10, 1);
         this.plugin = plugin;
         // Register this class as a listener

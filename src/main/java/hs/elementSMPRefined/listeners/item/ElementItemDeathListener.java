@@ -1,9 +1,9 @@
 package hs.elementSMPRefined.listeners.item;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,7 +12,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public record ElementItemDeathListener(ElementPlugin plugin, ElementManager elements) implements Listener {
+public record ElementItemDeathListener(ElementSMPRefined plugin, ElementManager elements) implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent e) {
@@ -48,7 +48,7 @@ public record ElementItemDeathListener(ElementPlugin plugin, ElementManager elem
         if (shouldDropCore(currentElement)) {
             plugin.getLogger().info("Player " + e.getEntity().getName() + " died with " + currentElement + " element - dropping core");
 
-            ItemStack coreItem = hs.elementPlugin.items.ElementCoreItem.createCore(plugin, currentElement);
+            ItemStack coreItem = hs.elementSMPRefined.items.ElementCoreItem.createCore(plugin, currentElement);
             if (coreItem != null) {
                 e.getDrops().add(coreItem);
                 plugin.getLogger().info("Added " + currentElement + " core to death drops");

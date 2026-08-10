@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.abilities.impl.metal;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -15,12 +15,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class MetalChainAbility extends BaseAbility {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
 
     // Metadata key for stun tracking
     public static final String META_CHAINED_STUN = "metal_chain_stunned";
 
-    public MetalChainAbility(ElementPlugin plugin) {
+    public MetalChainAbility(ElementSMPRefined plugin) {
         super("metal_chain", 50, 10, 1);
         this.plugin = plugin;
     }

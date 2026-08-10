@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.abilities.impl.frost;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -11,10 +11,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 
 public class FrostPunchAbility extends BaseAbility {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     public static final String META_FROZEN_PUNCH_READY = "frost_frozen_punch_ready";
 
-    public FrostPunchAbility(ElementPlugin plugin) {
+    public FrostPunchAbility(ElementSMPRefined plugin) {
         super("frost_frozen_punch", 75, 10, 2);
         this.plugin = plugin;
     }

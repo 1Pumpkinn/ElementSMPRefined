@@ -1,9 +1,9 @@
 package hs.elementSMPRefined.elements.abilities.impl.air;
 
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
-import hs.elementPlugin.managers.ManaManager;
-import hs.elementPlugin.managers.TrustManager;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.managers.ManaManager;
+import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -11,9 +11,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class AirBlastAbility extends BaseAbility {
-    private final hs.elementPlugin.ElementPlugin plugin;
+    private final hs.elementSMPRefined.ElementSMPRefined plugin;
 
-    public AirBlastAbility(hs.elementPlugin.ElementPlugin plugin) {
+    public AirBlastAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
         super("air_blast", 50, 8, 1);
         this.plugin = plugin;
     }
@@ -65,7 +65,7 @@ public class AirBlastAbility extends BaseAbility {
                 }
                 tick++;
             }
-        }.runTaskTimer(hs.elementPlugin.ElementPlugin.getPlugin(hs.elementPlugin.ElementPlugin.class), 0L, 1L);
+        }.runTaskTimer(hs.elementSMPRefined.ElementSMPRefined.getPlugin(hs.elementSMPRefined.ElementSMPRefined.class), 0L, 1L);
 
         // Launch nearby entities
         for (LivingEntity e : player.getLocation().getNearbyLivingEntities(radius)) {

@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.abilities.impl.fire;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -21,10 +21,10 @@ import java.util.Random;
  * Fire element's meteor shower ability - rains down fireballs from above
  */
 public class MeteorShowerAbility extends BaseAbility implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Random random = new Random();
 
-    public MeteorShowerAbility(ElementPlugin plugin) {
+    public MeteorShowerAbility(ElementSMPRefined plugin) {
         super("fire_meteor_shower", 75, 30, 2);
         this.plugin = plugin;
         // Register this class as a listener

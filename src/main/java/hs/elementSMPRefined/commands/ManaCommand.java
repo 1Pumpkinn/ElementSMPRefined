@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.commands;
 
-import hs.elementPlugin.managers.ConfigManager;
-import hs.elementPlugin.managers.ManaManager;
+import hs.elementSMPRefined.managers.ConfigManager;
+import hs.elementSMPRefined.managers.ManaManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

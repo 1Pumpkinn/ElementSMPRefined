@@ -1,23 +1,23 @@
 package hs.elementSMPRefined.elements.impl.frost;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.BaseElement;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.elements.abilities.Ability;
-import hs.elementPlugin.elements.abilities.impl.frost.FrostCircleAbility;
-import hs.elementPlugin.elements.abilities.impl.frost.FrostPunchAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.BaseElement;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.elements.abilities.Ability;
+import hs.elementSMPRefined.elements.abilities.impl.frost.FrostCircleAbility;
+import hs.elementSMPRefined.elements.abilities.impl.frost.FrostPunchAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class FrostElement extends BaseElement {
     public static final String META_FROZEN_PUNCH_READY = "frost_frozen_punch_ready";
 
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
 
-    public FrostElement(ElementPlugin plugin) {
+    public FrostElement(ElementSMPRefined plugin) {
         super(plugin);
         this.plugin = plugin;
         this.ability1 = new FrostCircleAbility(plugin);

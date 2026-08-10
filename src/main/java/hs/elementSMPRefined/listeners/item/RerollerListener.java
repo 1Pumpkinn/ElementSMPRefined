@@ -1,9 +1,9 @@
 package hs.elementSMPRefined.listeners.item;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.items.ItemKeys;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.items.ItemKeys;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,9 +13,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 public class RerollerListener implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
 
-    public RerollerListener(ElementPlugin plugin) {
+    public RerollerListener(ElementSMPRefined plugin) {
         this.plugin = plugin;
     }
 

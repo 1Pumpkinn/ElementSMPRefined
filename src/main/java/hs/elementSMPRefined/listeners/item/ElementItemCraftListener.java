@@ -1,10 +1,10 @@
 package hs.elementSMPRefined.listeners.item;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.items.ItemKeys;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.items.ItemKeys;
+import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -17,10 +17,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 public class ElementItemCraftListener implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final ElementManager elements;
 
-    public ElementItemCraftListener(ElementPlugin plugin, ElementManager elements) {
+    public ElementItemCraftListener(ElementSMPRefined plugin, ElementManager elements) {
         this.plugin = plugin;
         this.elements = elements;
     }

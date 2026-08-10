@@ -1,6 +1,6 @@
 package hs.elementSMPRefined.items;
 
-import hs.elementPlugin.ElementPlugin;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -16,7 +16,7 @@ public final class  Upgrader2Item {
 
     public static final String KEY = "upgrader_2";
 
-    public static ItemStack make(ElementPlugin plugin) {
+    public static ItemStack make(ElementSMPRefined plugin) {
         ItemStack item = new ItemStack(Material.ECHO_SHARD);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("§bUpgrader II");
@@ -27,7 +27,7 @@ public final class  Upgrader2Item {
         return item;
     }
 
-    public static void registerRecipe(ElementPlugin plugin) {
+    public static void registerRecipe(ElementSMPRefined plugin) {
         try {
             ItemStack result = make(plugin);
             NamespacedKey key = new NamespacedKey(plugin, KEY);

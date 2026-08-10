@@ -1,7 +1,8 @@
 package hs.elementSMPRefined.data;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -12,7 +13,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 public class DataStore {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
 
     private final File playerFile;
     private FileConfiguration playerCfg;
@@ -64,7 +65,7 @@ public class DataStore {
         return new PlayerData(uuid, section);
     }
 
-    public DataStore(ElementPlugin plugin) {
+    public DataStore(ElementSMPRefined plugin) {
         this.plugin = plugin;
         File dataDir = new File(plugin.getDataFolder(), "data");
         if (!dataDir.exists()) {

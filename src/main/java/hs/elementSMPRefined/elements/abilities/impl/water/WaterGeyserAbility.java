@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.elements.abilities.impl.water;
 
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -15,9 +15,9 @@ import org.bukkit.util.Vector;
  */
 public class WaterGeyserAbility extends BaseAbility {
 
-    private final hs.elementPlugin.ElementPlugin plugin;
+    private final hs.elementSMPRefined.ElementSMPRefined plugin;
 
-    public WaterGeyserAbility(hs.elementPlugin.ElementPlugin plugin) {
+    public WaterGeyserAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
         super("water_geyser", 75, 5, 1);
         this.plugin = plugin;
     }

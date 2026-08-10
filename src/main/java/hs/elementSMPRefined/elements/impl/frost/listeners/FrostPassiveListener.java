@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.impl.frost.listeners;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -22,11 +22,11 @@ import java.util.UUID;
  */
 public class FrostPassiveListener implements Listener {
 
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
     private final Set<UUID> frostSpeedPlayers = new HashSet<>();
 
-    public FrostPassiveListener(ElementPlugin plugin, ElementManager elementManager) {
+    public FrostPassiveListener(ElementSMPRefined plugin, ElementManager elementManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         startPassiveEffectTask();

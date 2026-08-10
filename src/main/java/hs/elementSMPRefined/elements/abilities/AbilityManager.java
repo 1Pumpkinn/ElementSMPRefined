@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.abilities;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.ElementType;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.ElementType;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -13,11 +13,11 @@ import java.util.Map;
  * Manages all abilities in the plugin
  */
 public class AbilityManager {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Map<String, Ability> abilities = new HashMap<>();
     private final Map<ElementType, Map<Integer, Ability>> elementAbilities = new HashMap<>();
 
-    public AbilityManager(ElementPlugin plugin) {
+    public AbilityManager(ElementSMPRefined plugin) {
         this.plugin = plugin;
 
         // Initialize maps for each element type

@@ -1,12 +1,12 @@
 package hs.elementSMPRefined.elements.impl.earth;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.BaseElement;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.elements.abilities.Ability;
-import hs.elementPlugin.elements.abilities.impl.earth.EarthCharmAbility;
-import hs.elementPlugin.elements.abilities.impl.earth.EarthTunnelAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.BaseElement;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.elements.abilities.Ability;
+import hs.elementSMPRefined.elements.abilities.impl.earth.EarthCharmAbility;
+import hs.elementSMPRefined.elements.abilities.impl.earth.EarthTunnelAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -17,11 +17,11 @@ public class EarthElement extends BaseElement {
     public static final String META_CHARM_NEXT_UNTIL = "earth_charm_next_until";
     public static final String META_TUNNELING = "earth_tunneling";
 
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
 
-    public EarthElement(ElementPlugin plugin) {
+    public EarthElement(ElementSMPRefined plugin) {
         super(plugin);
         this.plugin = plugin;
         this.ability1 = new EarthTunnelAbility(plugin);

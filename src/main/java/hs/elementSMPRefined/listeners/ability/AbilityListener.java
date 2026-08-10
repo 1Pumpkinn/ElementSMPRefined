@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.listeners.ability;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,11 +19,11 @@ public class AbilityListener implements Listener {
     private static final long CHECK_DELAY_TICKS = 6;
     private static final long CLEANUP_DELAY_TICKS = 2;
 
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final ElementManager elements;
     private final Map<UUID, TapTracker> tapTrackers = new ConcurrentHashMap<>();
 
-    public AbilityListener(ElementPlugin plugin, ElementManager elements) {
+    public AbilityListener(ElementSMPRefined plugin, ElementManager elements) {
         this.plugin = plugin;
         this.elements = elements;
     }

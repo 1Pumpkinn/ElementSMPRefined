@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.elements.abilities.impl.life;
 
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -12,9 +12,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class LifeRegenAbility extends BaseAbility {
 
-    private final hs.elementPlugin.ElementPlugin plugin;
+    private final hs.elementSMPRefined.ElementSMPRefined plugin;
     
-    public LifeRegenAbility(hs.elementPlugin.ElementPlugin plugin) {
+    public LifeRegenAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
         super("life_regen", 50, 20, 1);
         this.plugin = plugin;
     }

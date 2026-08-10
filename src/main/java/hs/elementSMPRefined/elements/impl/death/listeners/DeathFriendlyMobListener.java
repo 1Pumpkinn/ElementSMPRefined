@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.elements.impl.death.listeners;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.managers.TrustManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -14,10 +14,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.UUID;
 
 public class DeathFriendlyMobListener implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final TrustManager trustManager;
 
-    public DeathFriendlyMobListener(ElementPlugin plugin, TrustManager trustManager) {
+    public DeathFriendlyMobListener(ElementSMPRefined plugin, TrustManager trustManager) {
         this.plugin = plugin;
         this.trustManager = trustManager;
         startFollowTask();
@@ -169,7 +169,7 @@ public class DeathFriendlyMobListener implements Listener {
 
             // Check if attacker has Death element
             var pd = plugin.getElementManager().data(attacker.getUniqueId());
-            if (pd == null || pd.getCurrentElement() != hs.elementPlugin.elements.ElementType.DEATH) {
+            if (pd == null || pd.getCurrentElement() != hs.elementSMPRefined.elements.ElementType.DEATH) {
                 return;
             }
 

@@ -1,6 +1,5 @@
 package hs.elementSMPRefined.elements.abilities;
 
-import hs.elementPlugin.elements.ElementContext;
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;
@@ -74,7 +73,7 @@ public abstract class BaseAbility implements Ability {
      * Helper method to check if a target is valid for an ability.
      * Override in subclasses for more complex logic.
      */
-    protected boolean isValidTarget(ElementContext context, org.bukkit.entity.LivingEntity target) {
+    protected boolean isValidTarget(hs.elementSMPRefined.elements.ElementContext context, org.bukkit.entity.LivingEntity target) {
         return !target.equals(context.getPlayer());
     }
 }

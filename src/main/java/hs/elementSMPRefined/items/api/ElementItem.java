@@ -1,9 +1,9 @@
 package hs.elementSMPRefined.items.api;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ConfigManager;
-import hs.elementPlugin.managers.ManaManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ConfigManager;
+import hs.elementSMPRefined.managers.ManaManager;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -12,15 +12,15 @@ import org.bukkit.inventory.ItemStack;
 public interface ElementItem {
     ElementType getElementType();
 
-    ItemStack create(ElementPlugin plugin);
+    ItemStack create(ElementSMPRefined plugin);
 
-    void registerRecipe(ElementPlugin plugin);
+    void registerRecipe(ElementSMPRefined plugin);
 
-    boolean isItem(ItemStack stack, ElementPlugin plugin);
+    boolean isItem(ItemStack stack, ElementSMPRefined plugin);
 
-    boolean handleUse(PlayerInteractEvent e, ElementPlugin plugin, ManaManager mana, ConfigManager config);
+    boolean handleUse(PlayerInteractEvent e, ElementSMPRefined plugin, ManaManager mana, ConfigManager config);
 
-    void handleDamage(EntityDamageByEntityEvent e, ElementPlugin plugin);
+    void handleDamage(EntityDamageByEntityEvent e, ElementSMPRefined plugin);
 
-    default void handleLaunch(ProjectileLaunchEvent e, ElementPlugin plugin, ManaManager mana, ConfigManager config) {}
+    default void handleLaunch(ProjectileLaunchEvent e, ElementSMPRefined plugin, ManaManager mana, ConfigManager config) {}
 }

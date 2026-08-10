@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.managers;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.data.DataStore;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.data.DataStore;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -13,7 +13,7 @@ public class TrustManager {
     private final Map<UUID, Set<UUID>> trusted = new ConcurrentHashMap<>();
     private final Map<UUID, Set<UUID>> pending = new ConcurrentHashMap<>(); // target -> requestors
 
-    public TrustManager(ElementPlugin plugin) {
+    public TrustManager(ElementSMPRefined plugin) {
         this.store = plugin.getDataStore();
     }
 

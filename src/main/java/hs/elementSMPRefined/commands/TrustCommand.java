@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.commands;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.managers.TrustManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.TrustManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -21,10 +21,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class TrustCommand implements CommandExecutor, TabCompleter {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final TrustManager trust;
 
-    public TrustCommand(ElementPlugin plugin, TrustManager trust) {
+    public TrustCommand(ElementSMPRefined plugin, TrustManager trust) {
         this.plugin = plugin;
         this.trust = trust;
     }

@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.elements.impl.earth.listeners;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.managers.TrustManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -14,10 +14,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.UUID;
 
 public class EarthFriendlyMobListener implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final TrustManager trustManager;
 
-    public EarthFriendlyMobListener(ElementPlugin plugin, TrustManager trustManager) {
+    public EarthFriendlyMobListener(ElementSMPRefined plugin, TrustManager trustManager) {
         this.plugin = plugin;
         this.trustManager = trustManager;
         startFollowTask();

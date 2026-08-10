@@ -1,21 +1,21 @@
 package hs.elementSMPRefined.elements.impl.air;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.BaseElement;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.elements.abilities.Ability;
-import hs.elementPlugin.elements.abilities.impl.air.AirBlastAbility;
-import hs.elementPlugin.elements.abilities.impl.air.AirDashAbility;
+import hs.elementSMPRefined.elements.BaseElement;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.elements.abilities.Ability;
+import hs.elementSMPRefined.elements.abilities.impl.air.AirBlastAbility;
+import hs.elementSMPRefined.elements.abilities.impl.air.AirDashAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class AirElement extends BaseElement {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
 
-    public AirElement(ElementPlugin plugin) {
+    public AirElement(ElementSMPRefined plugin) {
         super(plugin);
         this.plugin = plugin;
         this.ability1 = new AirBlastAbility(plugin);

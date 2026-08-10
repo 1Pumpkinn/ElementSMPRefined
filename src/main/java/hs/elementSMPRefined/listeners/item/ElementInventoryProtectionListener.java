@@ -1,9 +1,9 @@
 package hs.elementSMPRefined.listeners.item;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
-import hs.elementPlugin.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,10 +15,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class ElementInventoryProtectionListener implements Listener {
-    private final ElementPlugin plugin;
-    private final ElementManager elements;
+    private final ElementSMPRefined plugin;
+    private final hs.elementSMPRefined.managers.ElementManager elements;
 
-    public ElementInventoryProtectionListener(ElementPlugin plugin, ElementManager elements) {
+    public ElementInventoryProtectionListener(ElementSMPRefined plugin, ElementManager elements) {
         this.plugin = plugin;
         this.elements = elements;
     }

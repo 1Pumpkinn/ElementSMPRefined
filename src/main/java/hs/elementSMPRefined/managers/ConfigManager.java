@@ -1,16 +1,17 @@
 package hs.elementSMPRefined.managers;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.elements.ElementType;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.logging.Level;
 
 public class ConfigManager {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private FileConfiguration config;
 
-    public ConfigManager(ElementPlugin plugin) {
+    public ConfigManager(ElementSMPRefined plugin) {
         this.plugin = plugin;
         try {
             this.config = plugin.getConfig();
@@ -60,7 +61,7 @@ public class ConfigManager {
         }
     }
 
-    public int getAbility2Cost(ElementType type) {
+    public int getAbility2Cost(hs.elementSMPRefined.elements.ElementType type) {
         try {
             String path = "costs." + type.name().toLowerCase() + ".ability2";
             return config.getInt(path, 75);

@@ -1,10 +1,10 @@
 package hs.elementSMPRefined.commands;
 
-import hs.elementSMPRefined.ElementSMPRefined.ElementSMPRefined;
-import hs.elementPlugin.data.DataStore;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.gui.ElementSelectionGUI;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.data.DataStore;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.gui.ElementSelectionGUI;
+import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -17,12 +17,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ElementCommand implements CommandExecutor, TabCompleter {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final DataStore dataStore;
     private final ElementManager elementManager;
     private final Map<String, SubCommand> subCommands;
 
-    public ElementCommand(ElementPlugin plugin) {
+    public ElementCommand(ElementSMPRefined plugin) {
         this.plugin = plugin;
         this.dataStore = plugin.getDataStore();
         this.elementManager = plugin.getElementManager();

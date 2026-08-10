@@ -1,9 +1,9 @@
 package hs.elementSMPRefined.listeners.item;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.managers.ElementManager;
-import hs.elementPlugin.managers.ItemManager;
-import hs.elementPlugin.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.managers.ItemManager;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -11,11 +11,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class ElementItemUseListener implements Listener {
-	private final ElementPlugin plugin;
+	private final ElementSMPRefined plugin;
 	private final ElementManager elements;
 	private final ItemManager itemManager;
 
-	public ElementItemUseListener(ElementPlugin plugin, ElementManager elements, ItemManager itemManager) {
+	public ElementItemUseListener(ElementSMPRefined plugin, ElementManager elements, ItemManager itemManager) {
 		this.plugin = plugin;
 		this.elements = elements;
 		this.itemManager = itemManager;
@@ -29,7 +29,7 @@ public class ElementItemUseListener implements Listener {
 	public void onInteract(PlayerInteractEvent event) {
 		ItemStack inHand = event.getItem();
 		if (inHand != null && isElementItem(inHand)) {
-			if (hs.elementPlugin.items.CoreConsumptionHandler.handleCoreConsume(event, plugin, elements)) return;
+			if (hs.elementSMPRefined.items.CoreConsumptionHandler.handleCoreConsume(event, plugin, elements)) return;
 			itemManager.handleUse(event);
 		}
 	}

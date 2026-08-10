@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.listeners.item;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.items.ItemKeys;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.items.ItemKeys;
+import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -16,10 +16,10 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 public class UpgraderListener implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
 
-    public UpgraderListener(ElementPlugin plugin, ElementManager elementManager) {
+    public UpgraderListener(ElementSMPRefined plugin, ElementManager elementManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
     }

@@ -1,6 +1,6 @@
 package hs.elementSMPRefined.elements.impl.metal.listeners;
 
-import hs.elementPlugin.elements.abilities.impl.metal.MetalChainAbility;
+import hs.elementSMPRefined.elements.abilities.impl.metal.MetalChainAbility;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;

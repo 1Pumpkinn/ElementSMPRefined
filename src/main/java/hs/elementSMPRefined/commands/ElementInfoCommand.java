@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.commands;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -17,7 +17,7 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
 
     private final Map<ElementType, ElementInfo> elementInfoMap;
 
-    public ElementInfoCommand(ElementPlugin plugin) {
+    public ElementInfoCommand(ElementSMPRefined plugin) {
         this.elementInfoMap = initializeElementInfo();
     }
 

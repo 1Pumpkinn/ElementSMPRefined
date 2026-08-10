@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.elements;
 
-import hs.elementPlugin.ElementPlugin;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -9,7 +10,7 @@ import org.bukkit.entity.Player;
  * and reduces code duplication in element implementations.
  */
 public abstract class BaseElement implements Element {
-    protected final ElementPlugin plugin;
+    protected final ElementSMPRefined plugin;
     private final java.util.Set<java.util.UUID> activeAbility1 = new java.util.HashSet<>();
     private final java.util.Set<java.util.UUID> activeAbility2 = new java.util.HashSet<>();
 
@@ -22,11 +23,11 @@ public abstract class BaseElement implements Element {
     public abstract String getAbility2Name();
     public abstract String getAbility2Description();
 
-    public BaseElement(ElementPlugin plugin) {
+    public BaseElement(ElementSMPRefined plugin) {
         this.plugin = plugin;
     }
 
-    public ElementPlugin getPlugin() {
+    public ElementSMPRefined getPlugin() {
         return plugin;
     }
 
@@ -99,7 +100,7 @@ public abstract class BaseElement implements Element {
     /**
      * Check if player has enough mana (without spending it)
      */
-    protected boolean hasMana(Player player, hs.elementPlugin.managers.ManaManager mana, int cost) {
+    protected boolean hasMana(Player player, hs.elementSMPRefined.managers.ManaManager mana, int cost) {
         if (mana.get(player.getUniqueId()).getMana() < cost) {
             player.sendMessage(ChatColor.RED + "Not enough mana (" + cost + ")");
             return false;
@@ -111,7 +112,7 @@ public abstract class BaseElement implements Element {
      * Check if player has enough mana and spend it (deprecated - use hasMana instead)
      */
     @Deprecated
-    protected boolean checkMana(Player player, hs.elementPlugin.managers.ManaManager mana, int cost) {
+    protected boolean checkMana(Player player, hs.elementSMPRefined.managers.ManaManager mana, int cost) {
         if (!mana.spend(player, cost)) {
             player.sendMessage(ChatColor.RED + "Not enough mana (" + cost + ")");
             return false;
@@ -145,7 +146,7 @@ public abstract class BaseElement implements Element {
     /**
      * Helper method to check if target is valid (not player or not trusted)
      */
-    protected boolean isValidTarget(Player player, org.bukkit.entity.LivingEntity target, hs.elementPlugin.managers.TrustManager trust) {
+    protected boolean isValidTarget(Player player, org.bukkit.entity.LivingEntity target, hs.elementSMPRefined.managers.TrustManager trust) {
         if (target.equals(player)) return false;
         if (target instanceof Player other && trust.isTrusted(player.getUniqueId(), other.getUniqueId())) {
             return false;

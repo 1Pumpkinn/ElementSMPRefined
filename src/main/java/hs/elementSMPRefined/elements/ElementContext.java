@@ -1,9 +1,9 @@
 package hs.elementSMPRefined.elements;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.managers.ConfigManager;
-import hs.elementPlugin.managers.ManaManager;
-import hs.elementPlugin.managers.TrustManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ConfigManager;
+import hs.elementSMPRefined.managers.ManaManager;
+import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.Player;
 
 /**
@@ -13,11 +13,11 @@ import org.bukkit.entity.Player;
 public class ElementContext {
     private final Player player;
     private final int upgradeLevel;
-    private final ManaManager manaManager;
-    private final TrustManager trustManager;
-    private final ConfigManager configManager;
+    private final hs.elementSMPRefined.managers.ManaManager manaManager;
+    private final hs.elementSMPRefined.managers.TrustManager trustManager;
+    private final hs.elementSMPRefined.managers.ConfigManager configManager;
     private final ElementType elementType;
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
 
     private ElementContext(Builder builder) {
         this.player = builder.player;
@@ -36,7 +36,7 @@ public class ElementContext {
     public ManaManager getManaManager() { return manaManager; }
     public TrustManager getTrustManager() { return trustManager; }
     public ConfigManager getConfigManager() { return configManager; }
-    public ElementPlugin getPlugin() { return plugin; }
+    public ElementSMPRefined getPlugin() { return plugin; }
 
     // Builder
     public static Builder builder() {
@@ -50,7 +50,7 @@ public class ElementContext {
         private ManaManager manaManager;
         private TrustManager trustManager;
         private ConfigManager configManager;
-        private ElementPlugin plugin;
+        private ElementSMPRefined plugin;
 
         public Builder player(Player player) {
             this.player = player;
@@ -67,22 +67,22 @@ public class ElementContext {
             return this;
         }
 
-        public Builder manaManager(ManaManager manager) {
+        public Builder manaManager(hs.elementSMPRefined.managers.ManaManager manager) {
             this.manaManager = manager;
             return this;
         }
 
-        public Builder trustManager(TrustManager manager) {
+        public Builder trustManager(hs.elementSMPRefined.managers.TrustManager manager) {
             this.trustManager = manager;
             return this;
         }
 
-        public Builder configManager(ConfigManager manager) {
+        public Builder configManager(hs.elementSMPRefined.managers.ConfigManager manager) {
             this.configManager = manager;
             return this;
         }
 
-        public Builder plugin(ElementPlugin plugin) {
+        public Builder plugin(ElementSMPRefined plugin) {
             this.plugin = plugin;
             return this;
         }

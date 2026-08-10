@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.util.bukkit;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.util.time.TimeUtils.Expiration;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.util.time.TimeUtils.Expiration;
 import org.bukkit.entity.Entity;
 import org.bukkit.metadata.FixedMetadataValue;
 
@@ -9,9 +9,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public final class MetadataHelper {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
 
-    public MetadataHelper(ElementPlugin plugin) {
+    public MetadataHelper(ElementSMPRefined plugin) {
         this.plugin = plugin;
     }
 

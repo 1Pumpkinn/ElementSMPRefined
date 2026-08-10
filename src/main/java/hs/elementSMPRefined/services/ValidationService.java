@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.services;
 
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.TrustManager;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 

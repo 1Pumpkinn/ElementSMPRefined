@@ -1,20 +1,20 @@
 package hs.elementSMPRefined.managers;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.config.Constants;
-import hs.elementPlugin.data.DataStore;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.elements.*;
-import hs.elementPlugin.elements.impl.air.AirElement;
-import hs.elementPlugin.elements.impl.death.DeathElement;
-import hs.elementPlugin.elements.impl.earth.EarthElement;
-import hs.elementPlugin.elements.impl.fire.FireElement;
-import hs.elementPlugin.elements.impl.frost.FrostElement;
-import hs.elementPlugin.elements.impl.life.LifeElement;
-import hs.elementPlugin.elements.impl.metal.MetalElement;
-import hs.elementPlugin.elements.impl.water.WaterElement;
-import hs.elementPlugin.services.EffectService;
-import hs.elementPlugin.util.scheduling.TaskScheduler;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.config.Constants;
+import hs.elementSMPRefined.data.DataStore;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.elements.*;
+import hs.elementSMPRefined.elements.impl.air.AirElement;
+import hs.elementSMPRefined.elements.impl.death.DeathElement;
+import hs.elementSMPRefined.elements.impl.earth.EarthElement;
+import hs.elementSMPRefined.elements.impl.fire.FireElement;
+import hs.elementSMPRefined.elements.impl.frost.FrostElement;
+import hs.elementSMPRefined.elements.impl.life.LifeElement;
+import hs.elementSMPRefined.elements.impl.metal.MetalElement;
+import hs.elementSMPRefined.elements.impl.water.WaterElement;
+import hs.elementSMPRefined.services.EffectService;
+import hs.elementSMPRefined.util.scheduling.TaskScheduler;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -27,7 +27,7 @@ public class ElementManager {
             ElementType.AIR, ElementType.WATER, ElementType.FIRE, ElementType.EARTH
     };
 
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final DataStore store;
     private final ManaManager manaManager;
     private final TrustManager trustManager;
@@ -38,7 +38,7 @@ public class ElementManager {
     private final Set<UUID> currentlyRolling = new HashSet<>();
     private final Random random = new Random();
 
-    public ElementManager(ElementPlugin plugin, DataStore store, ManaManager manaManager,
+    public ElementManager(ElementSMPRefined plugin, DataStore store, ManaManager manaManager,
                           TrustManager trustManager, ConfigManager configManager) {
         this.plugin = plugin;
         this.store = store;
@@ -50,7 +50,7 @@ public class ElementManager {
         registerAllElements();
     }
 
-    public ElementPlugin getPlugin() { return plugin; }
+    public ElementSMPRefined getPlugin() { return plugin; }
     public EffectService getEffectService() { return effectService; }
 
     private void registerAllElements() {
@@ -197,7 +197,7 @@ public class ElementManager {
     }
 
     public void giveElementItem(Player player, ElementType type) {
-        var item = hs.elementPlugin.items.ElementCoreItem.createCore(plugin, type);
+        var item = hs.elementSMPRefined.items.ElementCoreItem.createCore(plugin, type);
         if (item != null) {
             player.getInventory().addItem(item);
         }
@@ -220,7 +220,7 @@ public class ElementManager {
         if (oldElement != ElementType.LIFE && oldElement != ElementType.DEATH) return;
         if (!data(player.getUniqueId()).hasElementItem(oldElement)) return;
 
-        var core = hs.elementPlugin.items.ElementCoreItem.createCore(plugin, oldElement);
+        var core = hs.elementSMPRefined.items.ElementCoreItem.createCore(plugin, oldElement);
         if (core != null) {
             player.getInventory().addItem(core);
             player.sendMessage(ChatColor.YELLOW + "Your core has been returned!");

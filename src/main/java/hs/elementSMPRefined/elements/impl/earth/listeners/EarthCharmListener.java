@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.elements.impl.earth.listeners;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.impl.earth.EarthElement;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.impl.earth.EarthElement;
+import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -12,9 +12,9 @@ import org.bukkit.metadata.FixedMetadataValue;
 
 public class EarthCharmListener implements Listener {
     private final ElementManager elements;
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
 
-    public EarthCharmListener(ElementManager elements, ElementPlugin plugin) {
+    public EarthCharmListener(ElementManager elements, ElementSMPRefined plugin) {
         this.elements = elements;
         this.plugin = plugin;
     }

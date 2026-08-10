@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.listeners.item;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -9,9 +9,9 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class ElementItemDropListener implements Listener {
-	private final ElementPlugin plugin;
+	private final ElementSMPRefined plugin;
 
-	public ElementItemDropListener(ElementPlugin plugin) {
+	public ElementItemDropListener(ElementSMPRefined plugin) {
 		this.plugin = plugin;
 	}
 

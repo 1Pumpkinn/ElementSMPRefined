@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.listeners.player;
 
-import hs.elementPlugin.managers.ConfigManager;
-import hs.elementPlugin.managers.ManaManager;
+import hs.elementSMPRefined.managers.ConfigManager;
+import hs.elementSMPRefined.managers.ManaManager;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

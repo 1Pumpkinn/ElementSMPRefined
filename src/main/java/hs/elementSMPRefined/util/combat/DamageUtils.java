@@ -1,6 +1,5 @@
 package hs.elementSMPRefined.util.combat;
 
-import hs.elementPlugin.managers.TrustManager;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -81,7 +80,7 @@ public final class DamageUtils {
     }
 
     public static boolean isValidTarget(Player attacker, LivingEntity target,
-                                        TrustManager trustManager) {
+                                        hs.elementSMPRefined.managers.TrustManager trustManager) {
         if (target.equals(attacker)) return false;
         if (target instanceof org.bukkit.entity.ArmorStand) return false;
 

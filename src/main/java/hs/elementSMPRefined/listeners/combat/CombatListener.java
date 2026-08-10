@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.listeners.combat;
 
-import hs.elementPlugin.managers.ElementManager;
-import hs.elementPlugin.managers.TrustManager;
+import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

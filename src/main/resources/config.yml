@@ -1,0 +1,37 @@
+# Element SMP Configuration
+
+# Mana Settings
+mana:
+  max: 100
+  regen_per_second: 1
+
+# Recipe Settings
+recipes:
+  advanced_reroller_enabled: true
+
+# Ability Costs (tune these to balance gameplay)
+costs:
+  air:
+    ability1: 50
+    ability2: 75
+  water:
+    ability1: 50
+    ability2: 75
+  fire:
+    ability1: 50
+    ability2: 75
+  earth:
+    ability1: 50
+    ability2: 75
+  life:
+    ability1: 50
+    ability2: 75
+  death:
+    ability1: 50
+    ability2: 75
+  metal:
+    ability1: 50
+    ability2: 75
+  frost:
+    ability1: 50
+    ability2: 75

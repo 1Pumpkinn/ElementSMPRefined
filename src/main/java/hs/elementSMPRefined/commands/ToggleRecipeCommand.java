@@ -1,10 +1,10 @@
 package hs.elementSMPRefined.commands;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.items.AdvancedRerollerItem;
-import hs.elementPlugin.items.RerollerItem;
-import hs.elementPlugin.items.Upgrader1Item;
-import hs.elementPlugin.items.Upgrader2Item;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.items.AdvancedRerollerItem;
+import hs.elementSMPRefined.items.RerollerItem;
+import hs.elementSMPRefined.items.Upgrader1Item;
+import hs.elementSMPRefined.items.Upgrader2Item;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ToggleRecipeCommand implements CommandExecutor, TabCompleter {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
 
-    public ToggleRecipeCommand(ElementPlugin plugin) {
+    public ToggleRecipeCommand(ElementSMPRefined plugin) {
         this.plugin = plugin;
     }
 

@@ -1,6 +1,6 @@
 package hs.elementSMPRefined.items;
 
-import hs.elementPlugin.ElementPlugin;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -17,7 +17,7 @@ public final class RerollerItem {
 
     public static final String KEY = "element_reroller";
 
-    public static ItemStack make(ElementPlugin plugin) {
+    public static ItemStack make(ElementSMPRefined plugin) {
         ItemStack item = new ItemStack(Material.HEART_OF_THE_SEA);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Element Reroller");
@@ -31,7 +31,7 @@ public final class RerollerItem {
         return item;
     }
 
-    public static void registerRecipe(ElementPlugin plugin) {
+    public static void registerRecipe(ElementSMPRefined plugin) {
         try {
             ItemStack result = make(plugin);
             NamespacedKey key = new NamespacedKey(plugin, KEY);

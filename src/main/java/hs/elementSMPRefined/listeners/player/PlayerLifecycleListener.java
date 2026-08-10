@@ -1,13 +1,13 @@
 package hs.elementSMPRefined.listeners.player;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.config.Constants;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.gui.ElementSelectionGUI;
-import hs.elementPlugin.managers.ElementManager;
-import hs.elementPlugin.managers.ManaManager;
-import hs.elementPlugin.services.EffectService;
-import hs.elementPlugin.util.scheduling.TaskScheduler;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.config.Constants;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.gui.ElementSelectionGUI;
+import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.managers.ManaManager;
+import hs.elementSMPRefined.services.EffectService;
+import hs.elementSMPRefined.util.scheduling.TaskScheduler;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,13 +18,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 public class PlayerLifecycleListener implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
     private final ManaManager manaManager;
     private final EffectService effectService;
     private final TaskScheduler scheduler;
 
-    public PlayerLifecycleListener(ElementPlugin plugin, ElementManager elementManager,
+    public PlayerLifecycleListener(ElementSMPRefined plugin, ElementManager elementManager,
                                    ManaManager manaManager, EffectService effectService) {
         this.plugin = plugin;
         this.elementManager = elementManager;

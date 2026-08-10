@@ -1,12 +1,12 @@
 package hs.elementSMPRefined.elements.impl.fire;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.BaseElement;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.elements.abilities.Ability;
-import hs.elementPlugin.elements.abilities.impl.fire.FireballAbility;
-import hs.elementPlugin.elements.abilities.impl.fire.MeteorShowerAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.BaseElement;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.elements.abilities.Ability;
+import hs.elementSMPRefined.elements.abilities.impl.fire.FireballAbility;
+import hs.elementSMPRefined.elements.abilities.impl.fire.MeteorShowerAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -16,7 +16,7 @@ public class FireElement extends BaseElement {
     private final Ability ability1;
     private final Ability ability2;
 
-    public FireElement(ElementPlugin plugin) {
+    public FireElement(ElementSMPRefined plugin) {
         super(plugin);
         this.ability1 = new FireballAbility(plugin);
         this.ability2 = new MeteorShowerAbility(plugin);

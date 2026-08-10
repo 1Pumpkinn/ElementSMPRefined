@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.managers;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.items.api.ElementItem;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.items.api.ElementItem;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -12,12 +12,12 @@ import java.util.EnumMap;
 import java.util.Map;
 
 public class ItemManager {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final ManaManager mana;
     private final ConfigManager configManager;
     private final Map<ElementType, ElementItem> items = new EnumMap<>(ElementType.class);
 
-    public ItemManager(ElementPlugin plugin, ManaManager mana, ConfigManager configManager) {
+    public ItemManager(ElementSMPRefined plugin, ManaManager mana, ConfigManager configManager) {
         this.plugin = plugin;
         this.mana = mana;
         this.configManager = configManager;
@@ -54,7 +54,7 @@ public class ItemManager {
      * @return The created ItemStack
      */
     public ItemStack createUpgrader1() {
-        return hs.elementPlugin.items.Upgrader1Item.make(plugin);
+        return hs.elementSMPRefined.items.Upgrader1Item.make(plugin);
     }
     
     /**
@@ -62,6 +62,6 @@ public class ItemManager {
      * @return The created ItemStack
      */
     public ItemStack createUpgrader2() {
-        return hs.elementPlugin.items.Upgrader2Item.make(plugin);
+        return hs.elementSMPRefined.items.Upgrader2Item.make(plugin);
     }
 }

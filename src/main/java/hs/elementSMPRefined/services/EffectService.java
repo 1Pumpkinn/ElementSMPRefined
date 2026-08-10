@@ -1,11 +1,11 @@
 package hs.elementSMPRefined.services;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.config.Constants;
-import hs.elementPlugin.data.PlayerData;
-import hs.elementPlugin.elements.Element;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.managers.ElementManager;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.config.Constants;
+import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.elements.Element;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -26,13 +26,13 @@ import java.util.Map;
  * Single source of truth for all effect-related operations.
  */
 public class EffectService implements Listener {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
 
     // Cache of required effects per element
     private final Map<ElementType, EffectRequirement[]> requiredEffects = new EnumMap<>(ElementType.class);
 
-    public EffectService(ElementPlugin plugin, ElementManager elementManager) {
+    public EffectService(ElementSMPRefined plugin, ElementManager elementManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         initializeRequirements();

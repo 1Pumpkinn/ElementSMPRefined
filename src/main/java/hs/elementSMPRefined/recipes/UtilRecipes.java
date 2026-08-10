@@ -1,13 +1,13 @@
 package hs.elementSMPRefined.recipes;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.items.AdvancedRerollerItem;
-import hs.elementPlugin.items.RerollerItem;
-import hs.elementPlugin.items.Upgrader1Item;
-import hs.elementPlugin.items.Upgrader2Item;
+import hs.elementSMPRefined.items.AdvancedRerollerItem;
+import hs.elementSMPRefined.items.RerollerItem;
+import hs.elementSMPRefined.items.Upgrader1Item;
+import hs.elementSMPRefined.items.Upgrader2Item;
+import hs.elementSMPRefined.ElementSMPRefined;
 
 public class UtilRecipes {
-    public static void registerRecipes(ElementPlugin plugin) {
+    public static void registerRecipes(ElementSMPRefined plugin) {
         Upgrader1Item.registerRecipe(plugin);
         Upgrader2Item.registerRecipe(plugin);
         RerollerItem.registerRecipe(plugin);

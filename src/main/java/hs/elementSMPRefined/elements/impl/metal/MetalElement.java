@@ -1,23 +1,23 @@
 package hs.elementSMPRefined.elements.impl.metal;
 
-import hs.elementPlugin.ElementPlugin;
-import hs.elementPlugin.elements.BaseElement;
-import hs.elementPlugin.elements.ElementContext;
-import hs.elementPlugin.elements.ElementType;
-import hs.elementPlugin.elements.abilities.Ability;
-import hs.elementPlugin.elements.abilities.impl.metal.MetalChainAbility;
-import hs.elementPlugin.elements.abilities.impl.metal.MetalDashAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.elements.BaseElement;
+import hs.elementSMPRefined.elements.ElementContext;
+import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.elements.abilities.Ability;
+import hs.elementSMPRefined.elements.abilities.impl.metal.MetalChainAbility;
+import hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class MetalElement extends BaseElement {
-    private final ElementPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
 
-    public MetalElement(ElementPlugin plugin) {
+    public MetalElement(ElementSMPRefined plugin) {
         super(plugin);
         this.plugin = plugin;
         this.ability1 = new MetalChainAbility(plugin);

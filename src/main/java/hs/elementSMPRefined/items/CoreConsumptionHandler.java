@@ -5,11 +5,14 @@ import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Optional;
 
 public final class CoreConsumptionHandler {
     private CoreConsumptionHandler() {}
@@ -26,7 +29,11 @@ public final class CoreConsumptionHandler {
         ItemStack inHand = e.getItem();
         if (inHand == null || !ItemUtil.isElementItem(plugin, inHand)) return false;
 
-        ElementType type = ItemUtil.getElementType(plugin, inHand);
+        // Use improved API
+        Optional<ElementType> typeOpt = ItemUtil.getElementTypeOptional(plugin, inHand);
+        if (typeOpt.isEmpty()) return false;
+        ElementType type = typeOpt.get();
+
         if (type != ElementType.LIFE && type != ElementType.DEATH) return false;
 
         if (!isRightClick(e.getAction())) return false;
@@ -58,6 +65,10 @@ public final class CoreConsumptionHandler {
                 itemInHand.setAmount(itemInHand.getAmount() - 1);
             }
         }
+
+        // Use improved SoundUtils for feedback
+        SoundUtils.playTo(player, SoundUtils.Element.LIFE);
+        SoundUtils.playTo(player, SoundUtils.Ability.SUCCESS);
 
         player.sendMessage(ChatColor.GREEN + "You consumed the " +
                 hs.elementSMPRefined.items.ElementCoreItem.getDisplayName(type) + ChatColor.GREEN + "!");

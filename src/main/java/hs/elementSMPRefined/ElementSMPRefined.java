@@ -2,6 +2,7 @@ package hs.elementSMPRefined;
 
 import hs.elementSMPRefined.commands.*;
 import hs.elementSMPRefined.listeners.GUIListener;
+import hs.elementSMPRefined.listeners.StatusEffectListener;
 import hs.elementSMPRefined.listeners.player.GameModeListener;
 import hs.elementSMPRefined.listeners.player.PlayerLifecycleListener;
 import hs.elementSMPRefined.managers.*;
@@ -23,6 +24,7 @@ public final class ElementSMPRefined extends JavaPlugin {
     private hs.elementSMPRefined.services.ValidationService validationService;
     private hs.elementSMPRefined.util.scheduling.TaskScheduler taskScheduler;
     private hs.elementSMPRefined.util.bukkit.MetadataHelper metadataHelper;
+    private hs.elementSMPRefined.status.StatusEffectManager statusEffectManager;
 
     @Override
     public void onEnable() {
@@ -46,6 +48,9 @@ public final class ElementSMPRefined extends JavaPlugin {
     public void onDisable() {
         try {
             stopBackgroundTasks();
+            if (statusEffectManager != null) {
+                statusEffectManager.cleanup();
+            }
             saveAllData();
             getLogger().info("ElementPlugin disabled successfully!");
         } catch (Exception e) {
@@ -67,6 +72,7 @@ public final class ElementSMPRefined extends JavaPlugin {
         this.manaManager = new ManaManager(this, dataStore, configManager);
         this.elementManager = new ElementManager(this, dataStore, manaManager, trustManager, configManager);
         this.itemManager = new ItemManager(this, manaManager, configManager);
+        this.statusEffectManager = new hs.elementSMPRefined.status.StatusEffectManager(this);
 
         getLogger().info("Managers initialized");
     }
@@ -142,6 +148,7 @@ public final class ElementSMPRefined extends JavaPlugin {
         pm.registerEvents(new GameModeListener(manaManager, configManager), this);
         pm.registerEvents(new hs.elementSMPRefined.listeners.combat.CombatListener(trustManager, elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.listeners.ability.AbilityListener(this, elementManager), this);
+        pm.registerEvents(new StatusEffectListener(this), this);
         registerItemListeners(pm);
         pm.registerEvents(new GUIListener(this), this);
         registerElementListeners(pm);
@@ -178,7 +185,7 @@ public final class ElementSMPRefined extends JavaPlugin {
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.listeners.DeathFriendlyMobListener(this, trustManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.DeathElementCraftListener(this, elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.metal.listeners.MetalArrowImmunityListener(elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.metal.listeners.MetalChainStunListener(), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.metal.listeners.MetalChainStunListener(this), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener(this, elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.frost.listeners.FrostFrozenPunchListener(this, elementManager), this);
     }
@@ -214,6 +221,7 @@ public final class ElementSMPRefined extends JavaPlugin {
     public ManaManager getManaManager() { return manaManager; }
     public TrustManager getTrustManager() { return trustManager; }
     public ItemManager getItemManager() { return itemManager; }
+    public hs.elementSMPRefined.status.StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
     public hs.elementSMPRefined.elements.abilities.AbilityRegistry getAbilityRegistry() { return abilityRegistry; }
     public hs.elementSMPRefined.services.EffectService getEffectService() { return effectService; }
     public hs.elementSMPRefined.services.ValidationService getValidationService() { return validationService; }

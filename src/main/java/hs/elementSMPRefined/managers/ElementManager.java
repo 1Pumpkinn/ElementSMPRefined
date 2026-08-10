@@ -13,8 +13,9 @@ import hs.elementSMPRefined.elements.impl.frost.FrostElement;
 import hs.elementSMPRefined.elements.impl.life.LifeElement;
 import hs.elementSMPRefined.elements.impl.metal.MetalElement;
 import hs.elementSMPRefined.elements.impl.water.WaterElement;
+import hs.elementSMPRefined.registry.ElementRegistry;
 import hs.elementSMPRefined.services.EffectService;
-import hs.elementSMPRefined.util.scheduling.TaskScheduler;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -33,8 +34,7 @@ public class ElementManager {
     private final TrustManager trustManager;
     private final ConfigManager configManager;
     private final EffectService effectService;
-    private final TaskScheduler scheduler;
-    private final Map<ElementType, Element> registry = new EnumMap<>(ElementType.class);
+    private final ElementRegistry elementRegistry;
     private final Set<UUID> currentlyRolling = new HashSet<>();
     private final Random random = new Random();
 
@@ -45,23 +45,93 @@ public class ElementManager {
         this.manaManager = manaManager;
         this.trustManager = trustManager;
         this.configManager = configManager;
+        this.elementRegistry = new ElementRegistry(plugin);
         this.effectService = new EffectService(plugin, this);
-        this.scheduler = new TaskScheduler(plugin);
         registerAllElements();
     }
 
     public ElementSMPRefined getPlugin() { return plugin; }
     public EffectService getEffectService() { return effectService; }
+    public ElementRegistry getElementRegistry() { return elementRegistry; }
+
+    /**
+     * Get all basic elements that can be rolled initially
+     */
+    public ElementType[] getBasicElements() {
+        return BASIC_ELEMENTS;
+    }
+
+    /**
+     * Get all registered elements
+     */
+    public Collection<Element> getAllElements() {
+        return elementRegistry.getAllElements();
+    }
 
     private void registerAllElements() {
-        registry.put(ElementType.AIR, new AirElement(plugin));
-        registry.put(ElementType.WATER, new WaterElement(plugin));
-        registry.put(ElementType.FIRE, new FireElement(plugin));
-        registry.put(ElementType.EARTH, new EarthElement(plugin));
-        registry.put(ElementType.LIFE, new LifeElement(plugin));
-        registry.put(ElementType.DEATH, new DeathElement(plugin));
-        registry.put(ElementType.METAL, new MetalElement(plugin));
-        registry.put(ElementType.FROST, new FrostElement(plugin));
+        // Register elements using the new registry system
+        elementRegistry.register(new AirElement(plugin), ElementRegistry.ElementData.builder()
+                .displayName("Air")
+                .description("Masters of wind and agility. Air users can reduce fall damage and move with unparalleled grace.")
+                .color("LIGHT_PURPLE")
+                .isBasic(true)
+                .build());
+
+        elementRegistry.register(new WaterElement(plugin), ElementRegistry.ElementData.builder()
+                .displayName("Water")
+                .description("Masters of the seas. Water users can breathe underwater and swim with enhanced speed.")
+                .color("AQUA")
+                .isBasic(true)
+                .build());
+
+        elementRegistry.register(new FireElement(plugin), ElementRegistry.ElementData.builder()
+                .displayName("Fire")
+                .description("Masters of flame and destruction. Fire users are immune to fire damage and can rain destruction from above.")
+                .color("RED")
+                .isBasic(true)
+                .build());
+
+        elementRegistry.register(new EarthElement(plugin), ElementRegistry.ElementData.builder()
+                .displayName("Earth")
+                .description("Masters of the land. Earth users have increased mining speed and protection from environmental hazards.")
+                .color("GREEN")
+                .isBasic(true)
+                .build());
+
+        elementRegistry.register(new LifeElement(plugin), ElementRegistry.ElementData.builder()
+                .displayName("Life")
+                .description("Masters of vitality and healing. Life users have increased health and natural regeneration.")
+                .color("LIGHT_GREEN")
+                .isBasic(false)
+                .requiresUpgrade(true)
+                .build());
+
+        elementRegistry.register(new DeathElement(plugin), ElementRegistry.ElementData.builder()
+                .displayName("Death")
+                .description("Masters of darkness and stealth. Death users can see in the dark and strike with deadly precision.")
+                .color("DARK_GRAY")
+                .isBasic(false)
+                .requiresUpgrade(true)
+                .build());
+
+        elementRegistry.register(new MetalElement(plugin), ElementRegistry.ElementData.builder()
+                .displayName("Metal")
+                .description("Masters of craftsmanship and durability. Metal users have increased mining speed and defense.")
+                .color("GRAY")
+                .isBasic(false)
+                .requiresUpgrade(true)
+                .build());
+
+        elementRegistry.register(new FrostElement(plugin), ElementRegistry.ElementData.builder()
+                .displayName("Frost")
+                .description("Masters of ice and cold. Frost users can slow enemies and freeze them in their tracks.")
+                .color("WHITE")
+                .isBasic(false)
+                .requiresUpgrade(true)
+                .build());
+
+        // Freeze the registry to prevent further modifications
+        elementRegistry.freeze();
     }
 
     public PlayerData data(UUID uuid) {
@@ -69,7 +139,7 @@ public class ElementManager {
     }
 
     public Element get(ElementType type) {
-        return registry.get(type);
+        return elementRegistry.get(type);
     }
 
     public ElementType getPlayerElement(Player player) {
@@ -87,7 +157,7 @@ public class ElementManager {
     public void rollAndAssign(Player player) {
         if (!beginRoll(player)) return;
 
-        player.playSound(player.getLocation(), Sound.UI_TOAST_IN, 1f, 1.2f);
+        SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
         new RollingAnimation(player, BASIC_ELEMENTS)
                 .start(() -> {
@@ -156,7 +226,7 @@ public class ElementManager {
         store.save(pd);
         showElementTitle(player, type, titleText);
         applyUpsides(player);
-        player.getWorld().playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
+        SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
     }
 
     private void handleElementSwitch(Player player, ElementType oldElement) {
@@ -179,7 +249,7 @@ public class ElementManager {
     private boolean useAbility(Player player, int number) {
         PlayerData pd = data(player.getUniqueId());
         ElementType type = pd.getCurrentElement();
-        Element element = registry.get(type);
+        Element element = elementRegistry.get(type);
 
         if (element == null) return false;
 
@@ -200,7 +270,15 @@ public class ElementManager {
         var item = hs.elementSMPRefined.items.ElementCoreItem.createCore(plugin, type);
         if (item != null) {
             player.getInventory().addItem(item);
+            // Track that the player now owns this element item
+            var pd = data(player.getUniqueId());
+            pd.addElementItem(type);
+            store.save(pd);
         }
+    }
+
+    public DataStore getStore() {
+        return store;
     }
 
     private void showElementTitle(Player player, ElementType type, String title) {

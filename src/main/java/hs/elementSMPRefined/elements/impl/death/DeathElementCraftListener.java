@@ -5,10 +5,10 @@ import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -69,7 +69,8 @@ public class DeathElementCraftListener implements Listener {
         plugin.getDataStore().setDeathElementCrafted(true);
         plugin.getDataStore().save(pd);
 
-        p.playSound(p.getLocation(), Sound.UI_TOAST_IN, 1f, 1.2f);
+        SoundUtils.playTo(p, SoundUtils.UI.ROLL);
+        SoundUtils.playTo(p, SoundUtils.Element.DEATH);
 
         Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + "💀 " + p.getName() + " has crafted the Death Element! 💀");
     }

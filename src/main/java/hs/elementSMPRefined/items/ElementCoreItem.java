@@ -23,6 +23,30 @@ public final class ElementCoreItem {
 
     private static ElementCoreProperties properties(ElementType type) {
         switch (type) {
+            case AIR:
+                return new ElementCoreProperties(
+                        Material.FEATHER,
+                        ChatColor.LIGHT_PURPLE,
+                        "Air Element"
+                );
+            case WATER:
+                return new ElementCoreProperties(
+                        Material.PRISMARINE_CRYSTALS,
+                        ChatColor.AQUA,
+                        "Water Element"
+                );
+            case FIRE:
+                return new ElementCoreProperties(
+                        Material.BLAZE_POWDER,
+                        ChatColor.RED,
+                        "Fire Element"
+                );
+            case EARTH:
+                return new ElementCoreProperties(
+                        Material.DIRT,
+                        ChatColor.GREEN,
+                        "Earth Element"
+                );
             case LIFE:
                 return new ElementCoreProperties(
                         Material.REDSTONE_BLOCK,
@@ -35,7 +59,18 @@ public final class ElementCoreItem {
                         ChatColor.DARK_GRAY,
                         "Death Element"
                 );
-            // Add additional cases for future elements below, with or without lore
+            case METAL:
+                return new ElementCoreProperties(
+                        Material.IRON_INGOT,
+                        ChatColor.GRAY,
+                        "Metal Element"
+                );
+            case FROST:
+                return new ElementCoreProperties(
+                        Material.SNOWBALL,
+                        ChatColor.WHITE,
+                        "Frost Element"
+                );
             default:
                 return null;
         }

@@ -1,97 +1,60 @@
 package hs.elementSMPRefined.elements.impl.metal.listeners;
 
-import hs.elementSMPRefined.elements.abilities.impl.metal.MetalChainAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.status.StatusEffectType;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 
+/**
+ * Listener for metal chain stun effects.
+ * Handles knockback prevention and ensures mobs stay stunned.
+ */
 public class MetalChainStunListener implements Listener {
+    private final ElementSMPRefined plugin;
 
-    /**
-     * Prevent stunned players from moving or jumping
-     */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-
-        // Check if player is stunned
-        if (player.hasMetadata(MetalChainAbility.META_CHAINED_STUN)) {
-            long stunUntil = player.getMetadata(MetalChainAbility.META_CHAINED_STUN).get(0).asLong();
-
-            // Check if stun is still active
-            if (System.currentTimeMillis() < stunUntil) {
-                // Cancel ALL movement (horizontal and vertical)
-                if (event.getFrom().getX() != event.getTo().getX() ||
-                        event.getFrom().getY() != event.getTo().getY() ||
-                        event.getFrom().getZ() != event.getTo().getZ()) {
-                    event.setCancelled(true);
-
-                    // Set velocity to zero to prevent all movement including jumping
-                    player.setVelocity(new Vector(0, 0, 0));
-                }
-            } else {
-                // Stun expired, remove metadata
-                player.removeMetadata(MetalChainAbility.META_CHAINED_STUN,
-                        player.getServer().getPluginManager().getPlugin("ElementPlugin"));
-            }
-        }
+    public MetalChainStunListener(ElementSMPRefined plugin) {
+        this.plugin = plugin;
     }
 
     /**
-     * Prevent stunned mobs from moving
+     * Prevent stunned mobs from moving (additional safeguard)
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityMove(EntityMoveEvent event) {
         LivingEntity entity = event.getEntity();
 
-        // Skip players (handled by PlayerMoveEvent)
+        // Skip players (handled by StatusEffectListener)
         if (entity instanceof Player) return;
 
-        // Check if entity is stunned
-        if (entity.hasMetadata(MetalChainAbility.META_CHAINED_STUN)) {
-            long stunUntil = entity.getMetadata(MetalChainAbility.META_CHAINED_STUN).get(0).asLong();
-
-            // Check if stun is still active
-            if (System.currentTimeMillis() < stunUntil) {
-                // Cancel the movement
-                event.setCancelled(true);
-
-                // Set velocity to zero
-                entity.setVelocity(new Vector(0, 0, 0));
-            } else {
-                // Stun expired, remove metadata
-                entity.removeMetadata(MetalChainAbility.META_CHAINED_STUN,
-                        entity.getServer().getPluginManager().getPlugin("ElementPlugin"));
-            }
+        // Check if mob has AI disabled (stunned by metal chain)
+        if (entity instanceof Mob mob && (!mob.isAware() || !mob.hasAI())) {
+            // Cancel the movement and zero out velocity
+            event.setCancelled(true);
+            entity.setVelocity(new Vector(0, 0, 0));
         }
     }
 
     /**
-     * Prevent stunned entities from taking knockback
+     * Prevent stunned entities from taking knockback (metal-specific behavior)
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
-        // Check if entity is stunned
-        if (entity.hasMetadata(MetalChainAbility.META_CHAINED_STUN)) {
-            long stunUntil = entity.getMetadata(MetalChainAbility.META_CHAINED_STUN).get(0).asLong();
-
-            // Check if stun is still active
-            if (System.currentTimeMillis() < stunUntil) {
-                // Cancel velocity changes from damage
-                entity.setVelocity(new Vector(0, 0, 0));
-            } else {
-                // Stun expired, remove metadata
-                entity.removeMetadata(MetalChainAbility.META_CHAINED_STUN,
-                        entity.getServer().getPluginManager().getPlugin("ElementPlugin"));
-            }
+        // Check if entity is stunned by metal chain (using StatusEffectManager for players)
+        if (entity instanceof Player && plugin.getStatusEffectManager().isStunned(entity)) {
+            // Metal chain specifically prevents knockback more aggressively
+            entity.setVelocity(new Vector(0, 0, 0));
+        } else if (entity instanceof Mob mob && (!mob.isAware() || !mob.hasAI())) {
+            // Also prevent knockback for stunned mobs
+            entity.setVelocity(new Vector(0, 0, 0));
         }
     }
 }

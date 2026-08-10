@@ -3,8 +3,8 @@ package hs.elementSMPRefined.elements.abilities.impl.fire;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.elements.ElementContext;
 import hs.elementSMPRefined.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.Sound;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -39,7 +39,7 @@ public class FireballAbility extends BaseAbility implements Listener {
         fireball.setIsIncendiary(false); // Don't set blocks on fire
 
         // Play sound
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BLAZE_SHOOT, 1.0f, 1.0f);
+        SoundUtils.playTo(player, SoundUtils.Element.FIRE);
 
         return true;
     }

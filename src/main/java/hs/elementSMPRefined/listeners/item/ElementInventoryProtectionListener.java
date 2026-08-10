@@ -4,6 +4,7 @@ import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,6 +14,8 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Optional;
 
 public class ElementInventoryProtectionListener implements Listener {
     private final ElementSMPRefined plugin;
@@ -35,6 +38,7 @@ public class ElementInventoryProtectionListener implements Listener {
         if ((cursor != null && isLifeOrDeathCore(cursor)) || (current != null && isLifeOrDeathCore(current))) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "You cannot store Life or Death cores in an Ender Chest!");
+            SoundUtils.playTo(player, SoundUtils.UI.ERROR);
         }
     }
 
@@ -49,12 +53,18 @@ public class ElementInventoryProtectionListener implements Listener {
         if (item != null && isLifeOrDeathCore(item)) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "You cannot store Life or Death cores in an Ender Chest!");
+            SoundUtils.playTo(player, SoundUtils.UI.ERROR);
         }
     }
 
     private boolean isLifeOrDeathCore(ItemStack stack) {
         if (!ItemUtil.isElementItem(plugin, stack)) return false;
-        ElementType type = ItemUtil.getElementType(plugin, stack);
+        
+        // Use improved API
+        Optional<ElementType> typeOpt = ItemUtil.getElementTypeOptional(plugin, stack);
+        if (typeOpt.isEmpty()) return false;
+        
+        ElementType type = typeOpt.get();
         return type == ElementType.LIFE || type == ElementType.DEATH;
     }
 }

@@ -2,6 +2,7 @@ package hs.elementSMPRefined.elements.abilities.impl.water;
 
 import hs.elementSMPRefined.elements.ElementContext;
 import hs.elementSMPRefined.elements.abilities.BaseAbility;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
@@ -27,7 +28,7 @@ public class WaterBeamAbility extends BaseAbility {
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
 
-        player.getWorld().playSound(player.getLocation(), Sound.ITEM_TRIDENT_RIPTIDE_3, 1f, 1.2f);
+        SoundUtils.playTo(player, SoundUtils.Element.WATER);
 
         setActive(player, true);
 
@@ -85,7 +86,7 @@ public class WaterBeamAbility extends BaseAbility {
 									if (le instanceof Player) {
 										player.getWorld().spawnParticle(Particle.SPLASH, hit, 15, 0.3, 0.3, 0.3, 0.2, null, true);
 										player.getWorld().spawnParticle(Particle.BUBBLE_POP, hit, 10, 0.2, 0.2, 0.2, 0.1, null, true);
-                                        player.getWorld().playSound(hit, Sound.ENTITY_PLAYER_SPLASH, 0.8f, 1.5f);
+                                        SoundUtils.playAt(hit, SoundUtils.Movement.LAND);
 
                                         // Create circular water ring effect
                                         for (double angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {

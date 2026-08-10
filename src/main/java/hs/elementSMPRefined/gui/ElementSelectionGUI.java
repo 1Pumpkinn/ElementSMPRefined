@@ -3,10 +3,10 @@ package hs.elementSMPRefined.gui;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -124,7 +124,7 @@ public class ElementSelectionGUI {
         int totalCycles = 20 + random.nextInt(10);
         int slowDownStart = totalCycles - 8;
         
-        player.playSound(player.getLocation(), Sound.UI_TOAST_IN, 1f, 1.2f);
+        SoundUtils.playTo(player, SoundUtils.UI.ROLL);
         
         animationTask = new BukkitRunnable() {
             @Override
@@ -156,9 +156,9 @@ public class ElementSelectionGUI {
                     updateCenterSlot();
                     
                     if (ticksElapsed < slowDownStart) {
-                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.3f, 1.5f);
+                        SoundUtils.playTo(player, SoundUtils.UI.HOVER);
                     } else {
-                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.2f);
+                        SoundUtils.playTo(player, SoundUtils.UI.CLICK);
                     }
                 }
             }
@@ -198,8 +198,8 @@ public class ElementSelectionGUI {
         
         inventory.setItem(13, finalItem);
         
-        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+        SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
+        SoundUtils.playTo(player, SoundUtils.Ability.ACTIVATE);
         
         new BukkitRunnable() {
             @Override

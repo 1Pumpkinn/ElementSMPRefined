@@ -12,4 +12,17 @@ public interface Element {
     boolean ability2(ElementContext context);
 
     void clearEffects(Player player);
+
+    // New methods for improved API
+    String getDisplayName();
+
+    String getDescription();
+
+    String getAbility1Name();
+
+    String getAbility1Description();
+
+    String getAbility2Name();
+
+    String getAbility2Description();
 }

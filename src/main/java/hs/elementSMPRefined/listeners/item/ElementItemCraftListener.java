@@ -5,9 +5,9 @@ import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.CraftItemEvent;
@@ -129,7 +129,7 @@ public class ElementItemCraftListener implements Listener {
         
         pd.setUpgradeLevel(type, level);
         plugin.getDataStore().save(pd);
-        p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
+        SoundUtils.playTo(p, SoundUtils.UI.SUCCESS);
         if (level == 1) {
             p.sendMessage(ChatColor.GREEN + "Unlocked Ability 1 for " + ChatColor.AQUA + type.name());
         } else if (level == 2) {
@@ -200,7 +200,7 @@ public class ElementItemCraftListener implements Listener {
         pd.setCurrentElementUpgradeLevel(0);
         
         plugin.getDataStore().save(pd);
-        p.playSound(p.getLocation(), Sound.UI_TOAST_IN, 1f, 1.2f);
+        SoundUtils.playTo(p, SoundUtils.UI.ROLL);
         p.sendMessage(ChatColor.GREEN + "Crafted element item for " + ChatColor.AQUA + type.name());
         p.sendMessage(ChatColor.YELLOW + "All upgrades reset to None");
     }

@@ -9,32 +9,82 @@ mana:
 recipes:
   advanced_reroller_enabled: true
 
-# Ability Costs (tune these to balance gameplay)
-costs:
+# Status Effect Settings
+status_effects:
+  enabled: true
+  damage_per_tick: true
+  notification_messages: true
+
+# Element Configuration (Data-driven settings)
+elements:
   air:
-    ability1: 50
-    ability2: 75
+    display_name: "Air"
+    description: "Masters of wind and agility. Air users can reduce fall damage and move with unparalleled grace."
+    color: "LIGHT_PURPLE"
+    enabled: true
+    is_basic: true
+    ability1_cost: 50
+    ability2_cost: 75
+
   water:
-    ability1: 50
-    ability2: 75
+    display_name: "Water"
+    description: "Masters of the seas. Water users can breathe underwater and swim with enhanced speed."
+    color: "AQUA"
+    enabled: true
+    is_basic: true
+    ability1_cost: 50
+    ability2_cost: 75
+
   fire:
-    ability1: 50
-    ability2: 75
+    display_name: "Fire"
+    description: "Masters of flame and destruction. Fire users are immune to fire damage and can rain destruction from above."
+    color: "RED"
+    enabled: true
+    is_basic: true
+    ability1_cost: 50
+    ability2_cost: 75
+
   earth:
-    ability1: 50
-    ability2: 75
+    display_name: "Earth"
+    description: "Masters of the land. Earth users have increased mining speed and protection from environmental hazards."
+    color: "GREEN"
+    enabled: true
+    is_basic: true
+    ability1_cost: 50
+    ability2_cost: 75
+
   life:
-    ability1: 50
-    ability2: 75
+    display_name: "Life"
+    description: "Masters of vitality and healing. Life users have increased health and natural regeneration."
+    color: "LIGHT_GREEN"
+    enabled: true
+    is_basic: false
+    ability1_cost: 50
+    ability2_cost: 75
+
   death:
-    ability1: 50
-    ability2: 75
+    display_name: "Death"
+    description: "Masters of darkness and stealth. Death users can see in the dark and strike with deadly precision."
+    color: "DARK_GRAY"
+    enabled: true
+    is_basic: false
+    ability1_cost: 50
+    ability2_cost: 75
+
   metal:
-    ability1: 50
-    ability2: 75
+    display_name: "Metal"
+    description: "Masters of craftsmanship and durability. Metal users have increased mining speed and defense."
+    color: "GRAY"
+    enabled: true
+    is_basic: false
+    ability1_cost: 50
+    ability2_cost: 75
+
   frost:
-    ability1: 50
-    ability2: 75
-
-
-#test
+    display_name: "Frost"
+    description: "Masters of ice and cold. Frost users can slow enemies and freeze them in their tracks."
+    color: "WHITE"
+    enabled: true
+    is_basic: false
+    ability1_cost: 50
+    ability2_cost: 75

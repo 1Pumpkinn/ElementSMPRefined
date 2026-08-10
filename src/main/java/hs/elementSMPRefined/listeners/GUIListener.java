@@ -73,73 +73,70 @@ public class GUIListener implements Listener {
 
         if (item == null || !item.hasItemMeta()) return;
 
-        // Check if this is a Life or Death core specifically
-        boolean isLifeCore = item.getItemMeta().getPersistentDataContainer()
-                .has(ItemKeys.lifeCore(plugin), PersistentDataType.BYTE);
-        boolean isDeathCore = item.getItemMeta().getPersistentDataContainer()
-                .has(ItemKeys.deathCore(plugin), PersistentDataType.BYTE);
+        // Check if this is an element item
+        boolean isElementItem = item.getItemMeta().getPersistentDataContainer()
+                .has(ItemKeys.elementItem(plugin), PersistentDataType.BYTE);
 
-        if (isLifeCore || isDeathCore) {
-            // Only handle right-click actions
-            if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_AIR &&
-                    event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
-                return;
-            }
+        if (!isElementItem) return;
+
+        // Only handle right-click actions
+        if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_AIR &&
+                event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+            return;
         }
 
+        // Get the element type from the item
+        String elementTypeString = item.getItemMeta().getPersistentDataContainer()
+                .get(ItemKeys.elementType(plugin), PersistentDataType.STRING);
 
-            // Get the element type from the item
-            String elementTypeString = item.getItemMeta().getPersistentDataContainer()
-                    .get(ItemKeys.elementType(plugin), PersistentDataType.STRING);
+        if (elementTypeString == null) {
+            player.sendMessage(net.kyori.adventure.text.Component.text("Invalid element item!").color(net.kyori.adventure.text.format.NamedTextColor.RED));
+            return;
+        }
 
-            if (elementTypeString == null) {
-                player.sendMessage(net.kyori.adventure.text.Component.text("Invalid element item!").color(net.kyori.adventure.text.format.NamedTextColor.RED));
+        try {
+            hs.elementSMPRefined.elements.ElementType elementType =
+                    hs.elementSMPRefined.elements.ElementType.valueOf(elementTypeString);
+
+            // Check if player already has this element
+            hs.elementSMPRefined.data.PlayerData pd = plugin.getElementManager().data(player.getUniqueId());
+            if (pd.hasElementItem(elementType)) {
+                player.sendMessage(
+                        net.kyori.adventure.text.Component.text("You already have the ")
+                                .color(net.kyori.adventure.text.format.NamedTextColor.YELLOW)
+                                .append(net.kyori.adventure.text.Component.text(elementType.name(), net.kyori.adventure.text.format.NamedTextColor.GOLD))
+                                .append(net.kyori.adventure.text.Component.text(" core! You cannot consume it again.", net.kyori.adventure.text.format.NamedTextColor.YELLOW))
+                );
                 return;
             }
 
-            try {
-                hs.elementSMPRefined.elements.ElementType elementType =
-                        hs.elementSMPRefined.elements.ElementType.valueOf(elementTypeString);
+            // Apply the element
+            plugin.getElementManager().assignElement(player, elementType);
 
-                // Check if player already has this element
-                hs.elementSMPRefined.data.PlayerData pd = plugin.getElementManager().data(player.getUniqueId());
-                if (pd.hasElementItem(elementType)) {
-                    player.sendMessage(
-                            net.kyori.adventure.text.Component.text("You already have the ")
-                                    .color(net.kyori.adventure.text.format.NamedTextColor.YELLOW)
-                                    .append(net.kyori.adventure.text.Component.text(elementType.name(), net.kyori.adventure.text.format.NamedTextColor.GOLD))
-                                    .append(net.kyori.adventure.text.Component.text(" core! You cannot consume it again.", net.kyori.adventure.text.format.NamedTextColor.YELLOW))
-                    );
-                    return;
-                }
-
-                // Apply the element
-                plugin.getElementManager().assignElement(player, elementType);
-
-                // Consume the element core FIRST before giving new one
-                if (item.getAmount() > 1) {
-                    item.setAmount(item.getAmount() - 1);
+            // Consume the element core FIRST before giving new one
+            if (item.getAmount() > 1) {
+                item.setAmount(item.getAmount() - 1);
+            } else {
+                // Remove from the hand that was used
+                if (event.getHand() == org.bukkit.inventory.EquipmentSlot.HAND) {
+                    player.getInventory().setItemInMainHand(null);
                 } else {
-                    // Remove from the hand that was used
-                    if (event.getHand() == org.bukkit.inventory.EquipmentSlot.HAND) {
-                        player.getInventory().setItemInMainHand(null);
-                    } else {
-                        player.getInventory().setItemInOffHand(null);
-                    }
+                    player.getInventory().setItemInOffHand(null);
                 }
-
-                // Give a new matching core immediately after user consumes one
-                plugin.getElementManager().giveElementItem(player, elementType);
-
-                player.sendMessage(
-                        net.kyori.adventure.text.Component.text("You have chosen ")
-                                .color(net.kyori.adventure.text.format.NamedTextColor.GREEN)
-                                .append(net.kyori.adventure.text.Component.text(elementType.name(), net.kyori.adventure.text.format.NamedTextColor.AQUA))
-                                .append(net.kyori.adventure.text.Component.text(" as your element!", net.kyori.adventure.text.format.NamedTextColor.GREEN))
-                );
-
-            } catch (IllegalArgumentException e) {
-                player.sendMessage(net.kyori.adventure.text.Component.text("Invalid element type!").color(net.kyori.adventure.text.format.NamedTextColor.RED));
             }
+
+            // Give a new matching core immediately after user consumes one
+            plugin.getElementManager().giveElementItem(player, elementType);
+
+            player.sendMessage(
+                    net.kyori.adventure.text.Component.text("You have chosen ")
+                            .color(net.kyori.adventure.text.format.NamedTextColor.GREEN)
+                            .append(net.kyori.adventure.text.Component.text(elementType.name(), net.kyori.adventure.text.format.NamedTextColor.AQUA))
+                            .append(net.kyori.adventure.text.Component.text(" as your element!", net.kyori.adventure.text.format.NamedTextColor.GREEN))
+            );
+
+        } catch (IllegalArgumentException e) {
+            player.sendMessage(net.kyori.adventure.text.Component.text("Invalid element type!").color(net.kyori.adventure.text.format.NamedTextColor.RED));
         }
     }
+}

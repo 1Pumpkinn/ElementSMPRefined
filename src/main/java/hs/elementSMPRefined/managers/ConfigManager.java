@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.managers;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.config.ElementConfiguration;
 import hs.elementSMPRefined.elements.ElementType;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -10,11 +10,13 @@ import java.util.logging.Level;
 public class ConfigManager {
     private final ElementSMPRefined plugin;
     private FileConfiguration config;
+    private ElementConfiguration elementConfiguration;
 
     public ConfigManager(ElementSMPRefined plugin) {
         this.plugin = plugin;
         try {
             this.config = plugin.getConfig();
+            this.elementConfiguration = new ElementConfiguration(config.getConfigurationSection("elements"));
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to load plugin configuration", e);
             throw new RuntimeException("Could not load plugin configuration", e);
@@ -25,6 +27,7 @@ public class ConfigManager {
         try {
             plugin.reloadConfig();
             this.config = plugin.getConfig();
+            this.elementConfiguration = new ElementConfiguration(config.getConfigurationSection("elements"));
             plugin.getLogger().info("Configuration reloaded successfully");
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to reload configuration", e);
@@ -50,45 +53,66 @@ public class ConfigManager {
         }
     }
 
-    // Ability costs
-    public int getAbility1Cost(ElementType type) {
+    // Status effect settings
+    public boolean areStatusEffectsEnabled() {
         try {
-            String path = "costs." + type.name().toLowerCase() + ".ability1";
-            return config.getInt(path, 50);
+            return config.getBoolean("status_effects.enabled", true);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Error reading ability1 cost for " + type + " from config, using default value 50", e);
-            return 50;
+            plugin.getLogger().log(Level.WARNING, "Error reading status_effects.enabled from config, using default value true", e);
+            return true;
         }
     }
 
-    public int getAbility2Cost(hs.elementSMPRefined.elements.ElementType type) {
+    public boolean isStatusEffectDamageEnabled() {
         try {
-            String path = "costs." + type.name().toLowerCase() + ".ability2";
-            return config.getInt(path, 75);
+            return config.getBoolean("status_effects.damage_per_tick", true);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Error reading ability2 cost for " + type + " from config, using default value 75", e);
-            return 75;
+            plugin.getLogger().log(Level.WARNING, "Error reading status_effects.damage_per_tick from config, using default value true", e);
+            return true;
         }
+    }
+
+    public boolean areStatusEffectNotificationsEnabled() {
+        try {
+            return config.getBoolean("status_effects.notification_messages", true);
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Error reading status_effects.notification_messages from config, using default value true", e);
+            return true;
+        }
+    }
+
+    // Element configuration
+    public ElementConfiguration getElementConfiguration() {
+        return elementConfiguration;
+    }
+
+    // Ability costs (data-driven approach)
+    public int getAbility1Cost(ElementType type) {
+        if (elementConfiguration.hasConfig(type)) {
+            return elementConfiguration.getConfig(type).getAbility1Cost();
+        }
+        plugin.getLogger().warning("No configuration found for " + type + ", using default ability1 cost 50");
+        return 50;
+    }
+
+    public int getAbility2Cost(ElementType type) {
+        if (elementConfiguration.hasConfig(type)) {
+            return elementConfiguration.getConfig(type).getAbility2Cost();
+        }
+        plugin.getLogger().warning("No configuration found for " + type + ", using default ability2 cost 75");
+        return 75;
     }
 
     public int getItemUseCost(ElementType type) {
-        try {
-            String path = "costs." + type.name().toLowerCase() + ".item_use";
-            return config.getInt(path, 75);
-        } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Error reading item_use cost for " + type + " from config, using default value 75", e);
-            return 75;
-        }
+        // Item use cost could be added to element configuration in the future
+        // For now, use same as ability1 cost
+        return getAbility1Cost(type);
     }
 
     public int getItemThrowCost(ElementType type) {
-        try {
-            String path = "costs." + type.name().toLowerCase() + ".item_throw";
-            return config.getInt(path, 25);
-        } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Error reading item_throw cost for " + type + " from config, using default value 25", e);
-            return 25;
-        }
+        // Item throw cost could be added to element configuration in the future
+        // For now, use default value
+        return 25;
     }
 
     public boolean isAdvancedRerollerRecipeEnabled() {

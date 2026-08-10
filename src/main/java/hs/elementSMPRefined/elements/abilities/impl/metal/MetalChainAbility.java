@@ -3,6 +3,8 @@ package hs.elementSMPRefined.elements.abilities.impl.metal;
 import hs.elementSMPRefined.elements.ElementContext;
 import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.status.StatusEffectType;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -10,15 +12,13 @@ import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class MetalChainAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
-
-    // Metadata key for stun tracking
-    public static final String META_CHAINED_STUN = "metal_chain_stunned";
 
     public MetalChainAbility(ElementSMPRefined plugin) {
         super("metal_chain", 50, 10, 1);
@@ -69,11 +69,13 @@ public class MetalChainAbility extends BaseAbility {
             }
         }
 
-        // Play sounds
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_CHAIN_PLACE, 1.0f, 0.8f);
-        target.getWorld().playSound(target.getLocation(), Sound.BLOCK_CHAIN_HIT, 1.0f, 1.0f);
-
         final LivingEntity finalTarget = target;
+
+        // Play sounds
+        SoundUtils.playTo(player, SoundUtils.Element.METAL);
+        if (finalTarget instanceof Player) {
+            SoundUtils.playTo((Player) finalTarget, SoundUtils.Combat.HIT);
+        }
 
         // Start chain particle animation and reeling
         new BukkitRunnable() {
@@ -100,30 +102,47 @@ public class MetalChainAbility extends BaseAbility {
                     // Set velocity to zero to stop movement
                     finalTarget.setVelocity(new Vector(0, 0, 0));
 
-                    if (finalTarget instanceof Mob mob) {
-                        mob.setAware(true);
+                    // Apply stun using StatusEffectManager (3 seconds = 60 ticks)
+                    if (finalTarget instanceof Player targetPlayer) {
+                        plugin.getStatusEffectManager().applyStun(targetPlayer, 60);
+                    } else {
+                        // For mobs, stop movement by disabling AI and applying slowness
+                        if (finalTarget instanceof Mob mob) {
+                            // Store original AI state
+                            boolean wasAware = mob.isAware();
+                            
+                            // Disable AI to stop movement
+                            mob.setAware(false);
+                            mob.setAI(false);
+                            
+                            // Apply slowness potion effect to further reduce movement
+                            mob.addPotionEffect(new PotionEffect(
+                                org.bukkit.potion.PotionEffectType.SLOWNESS,
+                                60, // 3 seconds
+                                10, // High amplifier
+                                false, // No particles
+                                false  // No icon
+                            ));
+                            
+                            // Set velocity to zero immediately
+                            finalTarget.setVelocity(new Vector(0, 0, 0));
+                            
+                            // Re-enable AI after 3 seconds
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    if (finalTarget.isValid() && finalTarget instanceof Mob m) {
+                                        m.setAware(wasAware);
+                                        m.setAI(true);
+                                        m.removePotionEffect(PotionEffectType.SLOWNESS);
+                                    }
+                                }
+                            }.runTaskLater(plugin, 60L);
+                        }
                     }
 
-                    // Set metadata for stun duration (3 seconds = 3000ms)
-                    long stunDuration = 3000; // 3 seconds in milliseconds
-                    long stunUntil = System.currentTimeMillis() + stunDuration;
-                    finalTarget.setMetadata(META_CHAINED_STUN, new FixedMetadataValue(plugin, stunUntil));
-
-                    // Schedule metadata removal and re-enable AI after stun expires
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            if (finalTarget.isValid()) {
-                                finalTarget.removeMetadata(META_CHAINED_STUN, plugin);
-                                if (finalTarget instanceof Mob mob) {
-                                    mob.setAware(true);
-                                }
-                            }
-                        }
-                    }.runTaskLater(plugin, 60L); // 3 seconds = 60 ticks
-
                     // Visual/audio feedback for stun
-                    player.getWorld().playSound(targetLoc, Sound.BLOCK_ANVIL_LAND, 1.0f, 2.0f);
+                    player.getWorld().playSound(targetLoc, org.bukkit.Sound.BLOCK_ANVIL_LAND, 1.0f, 2.0f);
                     player.getWorld().spawnParticle(Particle.BLOCK, targetLoc, 30,
                             0.3, 0.5, 0.3, 0.1,
                             org.bukkit.Material.IRON_BLOCK.createBlockData(), true);

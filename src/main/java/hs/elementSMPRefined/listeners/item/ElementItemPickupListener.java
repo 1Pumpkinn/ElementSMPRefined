@@ -5,11 +5,14 @@ import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Optional;
 
 public class ElementItemPickupListener implements Listener {
 	private final ElementSMPRefined plugin;
@@ -25,8 +28,11 @@ public class ElementItemPickupListener implements Listener {
 		if (!(event.getEntity() instanceof Player player)) return;
 		ItemStack stack = event.getItem().getItemStack();
 		if (!ItemUtil.isElementItem(plugin, stack)) return;
-		ElementType type = ItemUtil.getElementType(plugin, stack);
-		if (type == null) return;
+		
+		// Use the improved API
+		Optional<ElementType> typeOpt = ItemUtil.getElementTypeOptional(plugin, stack);
+		if (typeOpt.isEmpty()) return;
+		ElementType type = typeOpt.get();
 
 		if (type == ElementType.LIFE || type == ElementType.DEATH) {
 			return;
@@ -36,6 +42,8 @@ public class ElementItemPickupListener implements Listener {
 		ElementType oldElement = playerData.getCurrentElement();
 		if (oldElement != type) {
 			elements.setElement(player, type);
+			// Play sound feedback using improved SoundUtils
+			SoundUtils.playTo(player, SoundUtils.UI.SELECT);
 		}
 	}
 }

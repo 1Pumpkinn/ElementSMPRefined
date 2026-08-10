@@ -4,6 +4,7 @@ import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -67,7 +68,7 @@ public class AdvancedRerollerListener implements Listener {
 
     private void performAdvancedRoll(Player player, ElementType targetElement) {
         plugin.getElementManager().data(player.getUniqueId());
-        player.playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_IN, 1f, 1.2f);
+        SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
         String[] names = {"METAL", "FROST"};
         int steps = 20;
@@ -119,7 +120,7 @@ public class AdvancedRerollerListener implements Listener {
 
         player.showTitle(title);
         plugin.getElementManager().applyUpsides(player);
-        player.getWorld().playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
+        SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
 
         player.sendMessage(ChatColor.GREEN + "Your element has been rerolled");
     }

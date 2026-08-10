@@ -1,0 +1,20 @@
+package hs.elementSMPRefined.recipes;
+
+import hs.elementPlugin.ElementPlugin;
+import hs.elementPlugin.items.AdvancedRerollerItem;
+import hs.elementPlugin.items.RerollerItem;
+import hs.elementPlugin.items.Upgrader1Item;
+import hs.elementPlugin.items.Upgrader2Item;
+
+public class UtilRecipes {
+    public static void registerRecipes(ElementPlugin plugin) {
+        Upgrader1Item.registerRecipe(plugin);
+        Upgrader2Item.registerRecipe(plugin);
+        RerollerItem.registerRecipe(plugin);
+        
+        if (plugin.getConfigManager().isAdvancedRerollerRecipeEnabled()) {
+            AdvancedRerollerItem.registerRecipe(plugin);
+        }
+    }
+}
+

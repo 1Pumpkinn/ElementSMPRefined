@@ -14,12 +14,21 @@ public class AirElement extends BaseElement {
     private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
+    private hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener fallImpactListener;
 
     public AirElement(ElementSMPRefined plugin) {
         super(plugin);
         this.plugin = plugin;
         this.ability1 = new SlicingWindAbility(plugin);
         this.ability2 = new AirDashAbility(plugin);
+    }
+
+    public void setFallImpactListener(hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener listener) {
+        this.fallImpactListener = listener;
+    }
+
+    public hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener getFallImpactListener() {
+        return fallImpactListener;
     }
 
     @Override
@@ -29,7 +38,7 @@ public class AirElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passive 1: No fall damage (handled in FallDamageListener)
+        // Passive 1: No fall damage (handled in AirFallImpactListener)
         // Passive 2: The further you fall, the further nearby entities get
         // knocked back on landing (handled in AirFallImpactListener)
         // No potion effects needed
@@ -58,7 +67,7 @@ public class AirElement extends BaseElement {
 
     @Override
     public String getDescription() {
-        return "Master the swift and agile power of air to control movement and push enemies.";
+        return "Master the swift and agile power of air. Take no fall damage and knock back enemies with the force of your landing.";
     }
 
     @Override

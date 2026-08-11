@@ -28,6 +28,7 @@ public final class ElementSMPRefined extends JavaPlugin {
     private hs.elementSMPRefined.elements.impl.earth.listeners.EarthFriendlyMobListener earthFriendlyMobListener;
     private hs.elementSMPRefined.elements.impl.death.listeners.DeathFriendlyMobListener deathFriendlyMobListener;
     private hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener;
+    private hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener airFallImpactListener;
     private hs.elementSMPRefined.listeners.GUIListener guiListener;
     private hs.elementSMPRefined.listeners.ability.AbilityListener abilityListener;
     private hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility metalDashAbility;
@@ -176,6 +177,9 @@ public final class ElementSMPRefined extends JavaPlugin {
         playerLifecycleListener.setGuiListener(guiListener);
         playerLifecycleListener.setAbilityListener(abilityListener);
 
+        // Set AirFallImpactListener reference
+        playerLifecycleListener.setAirFallImpactListener(this.airFallImpactListener);
+
         // Get MetalDashAbility from MetalElement
         var metalElement = elementManager.get(hs.elementSMPRefined.elements.ElementType.METAL);
         if (metalElement instanceof hs.elementSMPRefined.elements.impl.metal.MetalElement metalElementImpl) {
@@ -198,7 +202,16 @@ public final class ElementSMPRefined extends JavaPlugin {
     }
 
     private void registerElementListeners(PluginManager pm) {
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.air.listeners.FallDamageListener(elementManager), this);
+        // Create and register Air fall impact listener
+        this.airFallImpactListener = new hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener(this, elementManager);
+        pm.registerEvents(this.airFallImpactListener, this);
+        
+        // Set the listener reference in AirElement
+        var airElement = elementManager.get(hs.elementSMPRefined.elements.ElementType.AIR);
+        if (airElement instanceof hs.elementSMPRefined.elements.impl.air.AirElement airElementImpl) {
+            airElementImpl.setFallImpactListener(this.airFallImpactListener);
+        }
+        
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.air.listeners.AirCombatListener(elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.water.listeners.WaterDrowningImmunityListener(elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireImmunityListener(elementManager), this);

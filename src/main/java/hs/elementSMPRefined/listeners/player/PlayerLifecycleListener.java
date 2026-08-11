@@ -26,6 +26,7 @@ public class PlayerLifecycleListener implements Listener {
     private final EffectService effectService;
     private final TaskScheduler scheduler;
     private hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener;
+    private hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener airFallImpactListener;
     private hs.elementSMPRefined.listeners.GUIListener guiListener;
     private hs.elementSMPRefined.listeners.ability.AbilityListener abilityListener;
     private hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility metalDashAbility;
@@ -41,6 +42,10 @@ public class PlayerLifecycleListener implements Listener {
 
     public void setFrostPassiveListener(hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener) {
         this.frostPassiveListener = frostPassiveListener;
+    }
+
+    public void setAirFallImpactListener(hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener airFallImpactListener) {
+        this.airFallImpactListener = airFallImpactListener;
     }
 
     public void setGuiListener(hs.elementSMPRefined.listeners.GUIListener guiListener) {
@@ -88,6 +93,9 @@ public class PlayerLifecycleListener implements Listener {
         ElementSelectionGUI.removeGUI(playerUuid);
         if (frostPassiveListener != null) {
             frostPassiveListener.onPlayerQuit(playerUuid);
+        }
+        if (airFallImpactListener != null) {
+            airFallImpactListener.cleanupPlayer(playerUuid);
         }
         if (guiListener != null) {
             guiListener.onPlayerQuit(playerUuid);

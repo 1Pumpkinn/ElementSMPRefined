@@ -59,18 +59,48 @@ public class AdvancedRerollerListener implements Listener {
     }
 
     private ElementType determineNewElement(ElementType current) {
-        return switch (current) {
-            case METAL -> ElementType.FROST;
-            case FROST -> ElementType.METAL;
-            default -> random.nextBoolean() ? ElementType.METAL : ElementType.FROST;
-        };
+        ElementType[] advancedElements = plugin.getElementManager().getAdvancedElements();
+        
+        if (advancedElements.length == 0) {
+            // Fallback to default behavior if no advanced elements configured
+            return switch (current) {
+                case METAL -> ElementType.FROST;
+                case FROST -> ElementType.METAL;
+                default -> random.nextBoolean() ? ElementType.METAL : ElementType.FROST;
+            };
+        }
+        
+        // Filter out current element and choose from remaining
+        if (current != null) {
+            ElementType[] available = java.util.Arrays.stream(advancedElements)
+                    .filter(type -> type != current)
+                    .toArray(ElementType[]::new);
+            
+            if (available.length > 0) {
+                return available[random.nextInt(available.length)];
+            }
+        }
+        
+        // If current is null or only one advanced element, return random from all
+        return advancedElements[random.nextInt(advancedElements.length)];
     }
 
     private void performAdvancedRoll(Player player, ElementType targetElement) {
         plugin.getElementManager().data(player.getUniqueId());
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
-        String[] names = {"METAL", "FROST"};
+        ElementType[] advancedElements = plugin.getElementManager().getAdvancedElements();
+        final String[] names;
+        
+        // Fallback to default names if no advanced elements configured
+        if (advancedElements.length == 0) {
+            names = new String[]{"METAL", "FROST"};
+        } else {
+            names = java.util.Arrays.stream(advancedElements)
+                    .map(Enum::name)
+                    .toArray(String[]::new);
+        }
+        
         int steps = 20;
         long interval = 3L;
 
@@ -85,7 +115,7 @@ public class AdvancedRerollerListener implements Listener {
                     return;
                 }
 
-                String name = names[tick % 2];
+                String name = names[tick % names.length];
                 player.sendTitle(
                         ChatColor.GOLD + "Rolling...",
                         ChatColor.AQUA + name,

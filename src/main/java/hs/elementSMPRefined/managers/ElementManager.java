@@ -58,7 +58,52 @@ public class ElementManager {
      * Get all basic elements that can be rolled initially
      */
     public ElementType[] getBasicElements() {
-        return BASIC_ELEMENTS;
+        // Start with default basic elements
+        List<ElementType> basicElements = new ArrayList<>(Arrays.asList(BASIC_ELEMENTS));
+        
+        // Add or remove elements based on configuration
+        for (ElementType type : ElementType.values()) {
+            var config = configManager.getElementConfiguration().getConfig(type);
+            if (config != null) {
+                // If configured as basic, add it (if not already there)
+                if (config.isBasic() && !basicElements.contains(type)) {
+                    basicElements.add(type);
+                }
+                // If configured as not basic and it's in default basics, remove it
+                else if (!config.isBasic() && basicElements.contains(type)) {
+                    basicElements.remove(type);
+                }
+            }
+        }
+        
+        return basicElements.toArray(new ElementType[0]);
+    }
+
+    /**
+     * Get all advanced (non-basic) elements that can be rolled with advanced reroller
+     */
+    public ElementType[] getAdvancedElements() {
+        // Start with default advanced elements
+        List<ElementType> advancedElements = new ArrayList<>(Arrays.asList(
+                ElementType.LIFE, ElementType.DEATH, ElementType.METAL, ElementType.FROST
+        ));
+        
+        // Add or remove elements based on configuration
+        for (ElementType type : ElementType.values()) {
+            var config = configManager.getElementConfiguration().getConfig(type);
+            if (config != null) {
+                // If configured as not basic, add it to advanced (if not already there)
+                if (!config.isBasic() && !advancedElements.contains(type)) {
+                    advancedElements.add(type);
+                }
+                // If configured as basic and it's in default advanced, remove it
+                else if (config.isBasic() && advancedElements.contains(type)) {
+                    advancedElements.remove(type);
+                }
+            }
+        }
+        
+        return advancedElements.toArray(new ElementType[0]);
     }
 
     /**
@@ -166,8 +211,26 @@ public class ElementManager {
                 });
     }
 
+    public void rollAndAssignBasic(Player player) {
+        if (!beginRoll(player)) return;
+
+        SoundUtils.playTo(player, SoundUtils.UI.ROLL);
+
+        new RollingAnimation(player, getBasicElements())
+                .start(() -> {
+                    assignRandomBasicElement(player);
+                    endRoll(player);
+                });
+    }
+
     private void assignRandomElement(Player player) {
         ElementType randomType = BASIC_ELEMENTS[random.nextInt(BASIC_ELEMENTS.length)];
+        assignElementInternal(player, randomType, "Element Assigned!");
+    }
+
+    private void assignRandomBasicElement(Player player) {
+        ElementType[] basicElements = getBasicElements();
+        ElementType randomType = basicElements[random.nextInt(basicElements.length)];
         assignElementInternal(player, randomType, "Element Assigned!");
     }
 

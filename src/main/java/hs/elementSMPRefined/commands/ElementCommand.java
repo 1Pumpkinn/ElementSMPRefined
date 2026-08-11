@@ -4,6 +4,7 @@ import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.DataStore;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.gui.ElementSelectionGUI;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,12 +21,14 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
     private final ElementSMPRefined plugin;
     private final DataStore dataStore;
     private final ElementManager elementManager;
+    private final ConfigManager configManager;
     private final Map<String, SubCommand> subCommands;
 
     public ElementCommand(ElementSMPRefined plugin) {
         this.plugin = plugin;
         this.dataStore = plugin.getDataStore();
         this.elementManager = plugin.getElementManager();
+        this.configManager = plugin.getConfigManager();
         this.subCommands = initializeSubCommands();
     }
 
@@ -34,6 +37,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         commands.put("set", new SetCommand());
         commands.put("debug", new DebugCommand());
         commands.put("roll", new RollCommand());
+        commands.put("config", new ConfigCommand());
         return commands;
     }
 
@@ -63,6 +67,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/element set <player> <element> - Set player's element");
         sender.sendMessage(ChatColor.YELLOW + "/element debug <player> - Debug player's element data");
         sender.sendMessage(ChatColor.YELLOW + "/element roll - Roll for a new element (OP only)");
+        sender.sendMessage(ChatColor.YELLOW + "/element config <action> - Configuration management");
+        sender.sendMessage(ChatColor.GRAY + "  Actions: reload, reset, set <key> <value>, element <element> <key> <value>");
     }
 
     @Override
@@ -79,15 +85,50 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                     if (subCmd.equals("roll")) {
                         yield Collections.emptyList();
                     }
+                    if (subCmd.equals("config")) {
+                        yield List.of("reload", "reset", "set", "element");
+                    }
                     yield getOnlinePlayerNames(args[1]);
                 }
                 yield Collections.emptyList();
             }
-            case 3 -> args[0].equalsIgnoreCase("set") ?
-                    filterStartingWith(getElementNames(), args[2]) :
-                    Collections.emptyList();
+            case 3 -> {
+                String subCmd = args[0].toLowerCase();
+                if (subCmd.equals("set")) {
+                    yield filterStartingWith(getElementNames(), args[2]);
+                }
+                if (subCmd.equals("config") && args[1].equalsIgnoreCase("set")) {
+                    yield getConfigKeys(args[2]);
+                }
+                if (subCmd.equals("config") && args[1].equalsIgnoreCase("element")) {
+                    yield getElementNames(args[2]);
+                }
+                yield Collections.emptyList();
+            }
+            case 4 -> {
+                String subCmd = args[0].toLowerCase();
+                if (subCmd.equals("config") && args[1].equalsIgnoreCase("element")) {
+                    yield getElementConfigKeys(args[3]);
+                }
+                yield Collections.emptyList();
+            }
             default -> Collections.emptyList();
         };
+    }
+
+    private List<String> getConfigKeys(String prefix) {
+        return List.of("mana.max", "mana.regen_per_second", "status_effects.enabled", 
+                "status_effects.damage_per_tick", "status_effects.notification_messages",
+                "recipes.advanced_reroller_enabled").stream()
+                .filter(s -> s.toLowerCase().startsWith(prefix.toLowerCase()))
+                .toList();
+    }
+
+    private List<String> getElementConfigKeys(String prefix) {
+        return List.of("ability1_cost", "ability2_cost", "is_basic", "enabled", "display_name", "description", "color")
+                .stream()
+                .filter(s -> s.toLowerCase().startsWith(prefix.toLowerCase()))
+                .toList();
     }
 
     private List<String> filterStartingWith(Collection<String> options, String prefix) {
@@ -107,6 +148,21 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         return Arrays.stream(ElementType.values())
                 .map(type -> type.name().toLowerCase())
                 .collect(Collectors.toList());
+    }
+
+    private List<String> getElementNames(String prefix) {
+        return Arrays.stream(ElementType.values())
+                .map(type -> type.name().toLowerCase())
+                .filter(name -> name.toLowerCase().startsWith(prefix.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    private Optional<ElementType> parseElementType(String input) {
+        try {
+            return Optional.of(ElementType.valueOf(input.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     private interface SubCommand {
@@ -144,14 +200,6 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                     ChatColor.AQUA + elementType.get().name() + ChatColor.GREEN + " by an admin.");
 
             return true;
-        }
-
-        private Optional<ElementType> parseElementType(String input) {
-            try {
-                return Optional.of(ElementType.valueOf(input.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                return Optional.empty();
-            }
         }
     }
 
@@ -206,6 +254,113 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(ChatColor.GREEN + "Rolling for a new element...");
 
             return true;
+        }
+    }
+
+    private class ConfigCommand implements SubCommand {
+        @Override
+        public boolean execute(CommandSender sender, String[] args) {
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.RED + "Usage: /element config <action>");
+                sender.sendMessage(ChatColor.GRAY + "Actions: reload, reset, set <key> <value>, element <element> <key> <value>");
+                return true;
+            }
+
+            String action = args[1].toLowerCase();
+
+            switch (action) {
+                case "reload" -> {
+                    configManager.reload();
+                    sender.sendMessage(ChatColor.GREEN + "Configuration reloaded successfully!");
+                    break;
+                }
+                case "reset" -> {
+                    configManager.reload();
+                    sender.sendMessage(ChatColor.GREEN + "Configuration reset to file values!");
+                    break;
+                }
+                case "set" -> {
+                    if (args.length < 4) {
+                        sender.sendMessage(ChatColor.RED + "Usage: /element config set <key> <value>");
+                        return true;
+                    }
+                    String key = args[2];
+                    String value = args[3];
+                    
+                    try {
+                        // Try to set the value based on type
+                        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                            configManager.getConfig().set(key, Boolean.parseBoolean(value));
+                        } else {
+                            try {
+                                configManager.getConfig().set(key, Integer.parseInt(value));
+                            } catch (NumberFormatException e) {
+                                configManager.getConfig().set(key, value);
+                            }
+                        }
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.GREEN + "Set " + key + " to " + value);
+                    } catch (Exception e) {
+                        sender.sendMessage(ChatColor.RED + "Error setting value: " + e.getMessage());
+                    }
+                    break;
+                }
+                case "element" -> {
+                    if (args.length < 5) {
+                        sender.sendMessage(ChatColor.RED + "Usage: /element config element <element> <key> <value>");
+                        return true;
+                    }
+                    
+                    Optional<ElementType> elementType = parseElementType(args[2]);
+                    if (elementType.isEmpty()) {
+                        sender.sendMessage(ChatColor.RED + "Invalid element. Valid: " + String.join(", ", getElementNames()));
+                        return true;
+                    }
+                    
+                    String key = args[3];
+                    String value = args[4];
+                    
+                    try {
+                        setElementConfig(sender, elementType.get(), key, value);
+                    } catch (Exception e) {
+                        sender.sendMessage(ChatColor.RED + "Error setting element config: " + e.getMessage());
+                    }
+                    break;
+                }
+                default -> {
+                    sender.sendMessage(ChatColor.RED + "Unknown action: " + action);
+                    sender.sendMessage(ChatColor.GRAY + "Valid actions: reload, reset, set, element");
+                    break;
+                }
+            }
+
+            return true;
+        }
+
+        private void setElementConfig(CommandSender sender, ElementType type, String key, String value) {
+            String configPath = "elements." + type.name().toLowerCase() + "." + key;
+            
+            // Set the value based on type
+            Object typedValue;
+            if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                typedValue = Boolean.parseBoolean(value);
+            } else {
+                try {
+                    typedValue = Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    typedValue = value;
+                }
+            }
+            
+            configManager.getConfig().set(configPath, typedValue);
+            plugin.saveConfig();
+            sender.sendMessage(ChatColor.GREEN + "Set " + type.name() + "." + key + " to " + value);
+            
+            // Reload config to apply changes
+            configManager.reload();
+            
+            // Update the element configuration in memory
+            configManager.getElementConfiguration().setConfigValue(type, key, typedValue);
         }
     }
 }

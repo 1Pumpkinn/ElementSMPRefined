@@ -53,7 +53,7 @@ public class RerollerListener implements Listener {
                 player.getInventory().removeItem(item);
             }
 
-            plugin.getElementManager().rollAndAssign(player);
+            plugin.getElementManager().rollAndAssignBasic(player);
             player.sendMessage(net.kyori.adventure.text.Component.text("Your element has been rerolled!").color(net.kyori.adventure.text.format.NamedTextColor.GREEN));
         }
     }

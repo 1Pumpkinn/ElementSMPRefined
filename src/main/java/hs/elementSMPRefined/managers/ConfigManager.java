@@ -23,6 +23,10 @@ public class ConfigManager {
         }
     }
 
+    public FileConfiguration getConfig() {
+        return config;
+    }
+
     public void reload() {
         try {
             plugin.reloadConfig();
@@ -101,18 +105,6 @@ public class ConfigManager {
         }
         plugin.getLogger().warning("No configuration found for " + type + ", using default ability2 cost 75");
         return 75;
-    }
-
-    public int getItemUseCost(ElementType type) {
-        // Item use cost could be added to element configuration in the future
-        // For now, use same as ability1 cost
-        return getAbility1Cost(type);
-    }
-
-    public int getItemThrowCost(ElementType type) {
-        // Item throw cost could be added to element configuration in the future
-        // For now, use default value
-        return 25;
     }
 
     public boolean isAdvancedRerollerRecipeEnabled() {

@@ -4,7 +4,7 @@ import hs.elementSMPRefined.elements.BaseElement;
 import hs.elementSMPRefined.elements.ElementContext;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
-import hs.elementSMPRefined.elements.abilities.impl.air.AirBlastAbility;
+import hs.elementSMPRefined.elements.abilities.impl.air.SlicingWindAbility;
 import hs.elementSMPRefined.elements.abilities.impl.air.AirDashAbility;
 import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
@@ -18,7 +18,7 @@ public class AirElement extends BaseElement {
     public AirElement(ElementSMPRefined plugin) {
         super(plugin);
         this.plugin = plugin;
-        this.ability1 = new AirBlastAbility(plugin);
+        this.ability1 = new SlicingWindAbility(plugin);
         this.ability2 = new AirDashAbility(plugin);
     }
 
@@ -29,7 +29,9 @@ public class AirElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Upside 1: No fall damage (handled in FallDamageListener)
+        // Passive 1: No fall damage (handled in FallDamageListener)
+        // Passive 2: The further you fall, the further nearby entities get
+        // knocked back on landing (handled in AirFallImpactListener)
         // No potion effects needed
     }
 

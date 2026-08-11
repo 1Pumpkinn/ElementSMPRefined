@@ -42,7 +42,7 @@ public final class AbilityRegistry {
     private void registerAll() {
         // Air
         register(ElementType.AIR,
-                new AirBlastAbility(plugin),
+                new SlicingWindAbility(plugin),
                 new AirDashAbility(plugin)
         );
 

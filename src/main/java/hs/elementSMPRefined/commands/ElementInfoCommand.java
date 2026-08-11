@@ -131,8 +131,12 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
 
         map.put(ElementType.AIR, new ElementInfo(
                 "Masters of the sky and wind",
-                Arrays.asList("No fall damage", "5% chance to apply Slow Falling to enemies (Upgrade II)"),
-                "Air Blast", "Push enemies away with a gust of wind", 50,
+                Arrays.asList(
+                        "No fall damage",
+                        "The further you fall, the further nearby entities are knocked back on landing",
+                        "5% chance to apply Slow Falling to enemies (Upgrade II)"
+                ),
+                "Slicing Wind", "Fire a blade of wind that slices through enemies in a line", 40,
                 "Air Dash", "Dash forward swiftly, pushing enemies aside", 75
         ));
 

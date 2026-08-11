@@ -187,16 +187,14 @@ public final class ElementSMPRefined extends JavaPlugin {
     }
 
     private void registerItemListeners(PluginManager pm) {
-        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemUseListener(this, elementManager, itemManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemCraftListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemInteractionListener(this, elementManager, itemManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemCraftingListener(this, elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemDeathListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemDropListener(this), this);
-        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementItemPickupListener(this, elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementInventoryProtectionListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementCombatProjectileListener(itemManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.listeners.item.RerollerListener(this), this);
-        pm.registerEvents(new hs.elementSMPRefined.listeners.item.AdvancedRerollerListener(this), this);
-        pm.registerEvents(new hs.elementSMPRefined.listeners.item.UpgraderListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.ElementCombatListener(itemManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.RerollerHandler(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.AdvancedRerollerHandler(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.listeners.item.UpgraderHandler(this, elementManager), this);
     }
 
     private void registerElementListeners(PluginManager pm) {

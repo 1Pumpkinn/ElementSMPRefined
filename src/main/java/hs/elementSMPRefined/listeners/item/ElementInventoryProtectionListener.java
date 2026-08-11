@@ -17,9 +17,12 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
+/**
+ * Prevents Life and Death cores from being stored in Ender Chests
+ */
 public class ElementInventoryProtectionListener implements Listener {
     private final ElementSMPRefined plugin;
-    private final hs.elementSMPRefined.managers.ElementManager elements;
+    private final ElementManager elements;
 
     public ElementInventoryProtectionListener(ElementSMPRefined plugin, ElementManager elements) {
         this.plugin = plugin;
@@ -27,45 +30,61 @@ public class ElementInventoryProtectionListener implements Listener {
     }
 
     @EventHandler
-    public void onClick(InventoryClickEvent event) {
+    public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
+        
+        Inventory topInventory = event.getView().getTopInventory();
+        if (!isEnderChest(topInventory)) return;
+
         ItemStack cursor = event.getCursor();
         ItemStack current = event.getCurrentItem();
-        Inventory top = event.getView().getTopInventory();
 
-        if (top == null || top.getType() != InventoryType.ENDER_CHEST) return;
-
-        if ((cursor != null && isLifeOrDeathCore(cursor)) || (current != null && isLifeOrDeathCore(current))) {
-            event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You cannot store Life or Death cores in an Ender Chest!");
-            SoundUtils.playTo(player, SoundUtils.UI.ERROR);
+        if (isProtectedItem(cursor) || isProtectedItem(current)) {
+            cancelWithMessage(event, player);
         }
     }
 
     @EventHandler
-    public void onDrag(InventoryDragEvent event) {
+    public void onInventoryDrag(InventoryDragEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
+        
+        Inventory topInventory = event.getView().getTopInventory();
+        if (!isEnderChest(topInventory)) return;
+
         ItemStack item = event.getOldCursor();
-        Inventory top = event.getView().getTopInventory();
-
-        if (top == null || top.getType() != InventoryType.ENDER_CHEST) return;
-
-        if (item != null && isLifeOrDeathCore(item)) {
-            event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You cannot store Life or Death cores in an Ender Chest!");
-            SoundUtils.playTo(player, SoundUtils.UI.ERROR);
+        if (isProtectedItem(item)) {
+            cancelWithMessage(event, player);
         }
     }
 
-    private boolean isLifeOrDeathCore(ItemStack stack) {
-        if (!ItemUtil.isElementItem(plugin, stack)) return false;
+    private boolean isEnderChest(Inventory inventory) {
+        return inventory != null && inventory.getType() == InventoryType.ENDER_CHEST;
+    }
+
+    private boolean isProtectedItem(ItemStack stack) {
+        if (stack == null || !ItemUtil.isElementItem(plugin, stack)) {
+            return false;
+        }
         
-        // Use improved API
         Optional<ElementType> typeOpt = ItemUtil.getElementTypeOptional(plugin, stack);
         if (typeOpt.isEmpty()) return false;
         
-        ElementType type = typeOpt.get();
+        return isLifeOrDeath(typeOpt.get());
+    }
+
+    private boolean isLifeOrDeath(ElementType type) {
         return type == ElementType.LIFE || type == ElementType.DEATH;
     }
-}
 
+    private void cancelWithMessage(InventoryClickEvent event, Player player) {
+        event.setCancelled(true);
+        player.sendMessage(ChatColor.RED + "You cannot store Life or Death cores in an Ender Chest!");
+        SoundUtils.playTo(player, SoundUtils.UI.ERROR);
+    }
+
+    private void cancelWithMessage(InventoryDragEvent event, Player player) {
+        event.setCancelled(true);
+        player.sendMessage(ChatColor.RED + "You cannot store Life or Death cores in an Ender Chest!");
+        SoundUtils.playTo(player, SoundUtils.UI.ERROR);
+    }
+}

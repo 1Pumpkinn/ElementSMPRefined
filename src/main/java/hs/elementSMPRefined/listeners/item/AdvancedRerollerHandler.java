@@ -1,10 +1,12 @@
 package hs.elementSMPRefined.listeners.item;
 
+import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
-import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.visual.SoundUtils;
+import net.kyori.adventure.title.Title;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -16,14 +18,20 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.time.Duration;
 import java.util.Random;
 
-public class AdvancedRerollerListener implements Listener {
+/**
+ * Handles advanced element reroller item usage for non-basic elements
+ */
+public class AdvancedRerollerHandler implements Listener {
     private final ElementSMPRefined plugin;
+    private final ElementManager elementManager;
     private final Random random = new Random();
 
-    public AdvancedRerollerListener(ElementSMPRefined plugin) {
+    public AdvancedRerollerHandler(ElementSMPRefined plugin, ElementManager elementManager) {
         this.plugin = plugin;
+        this.elementManager = elementManager;
     }
 
     @EventHandler
@@ -31,38 +39,36 @@ public class AdvancedRerollerListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        if (item == null || !item.hasItemMeta()) return;
-        var meta = item.getItemMeta();
-        var container = meta.getPersistentDataContainer();
-
-        if (!container.has(ItemKeys.advancedReroller(plugin), PersistentDataType.BYTE)) return;
+        if (item == null || !isAdvancedReroller(item)) return;
 
         Action action = event.getAction();
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
 
         event.setCancelled(true);
 
-        var elementManager = plugin.getElementManager();
         if (elementManager.isCurrentlyRolling(player)) {
             player.sendMessage(ChatColor.RED + "You are already rerolling your element!");
             return;
         }
 
-        PlayerData pd = elementManager.data(player.getUniqueId());
-        ElementType current = pd.getCurrentElement();
-        ElementType newElement = determineNewElement(current);
+        PlayerData playerData = elementManager.data(player.getUniqueId());
+        ElementType currentElement = playerData.getCurrentElement();
+        ElementType newElement = determineNewElement(currentElement);
 
-        item.setAmount(item.getAmount() - 1);
-        if (item.getAmount() <= 0) player.getInventory().removeItem(item);
-
+        consumeItem(player, item);
         performAdvancedRoll(player, newElement);
     }
 
+    private boolean isAdvancedReroller(ItemStack item) {
+        return item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer()
+                .has(ItemKeys.advancedReroller(plugin), PersistentDataType.BYTE);
+    }
+
     private ElementType determineNewElement(ElementType current) {
-        ElementType[] advancedElements = plugin.getElementManager().getAdvancedElements();
+        ElementType[] advancedElements = elementManager.getAdvancedElements();
         
         if (advancedElements.length == 0) {
-            // Fallback to default behavior if no advanced elements configured
+            // Fallback to default behavior
             return switch (current) {
                 case METAL -> ElementType.FROST;
                 case FROST -> ElementType.METAL;
@@ -81,18 +87,23 @@ public class AdvancedRerollerListener implements Listener {
             }
         }
         
-        // If current is null or only one advanced element, return random from all
         return advancedElements[random.nextInt(advancedElements.length)];
     }
 
+    private void consumeItem(Player player, ItemStack item) {
+        item.setAmount(item.getAmount() - 1);
+        if (item.getAmount() <= 0) {
+            player.getInventory().removeItem(item);
+        }
+    }
+
     private void performAdvancedRoll(Player player, ElementType targetElement) {
-        plugin.getElementManager().data(player.getUniqueId());
+        elementManager.data(player.getUniqueId());
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
-        ElementType[] advancedElements = plugin.getElementManager().getAdvancedElements();
+        ElementType[] advancedElements = elementManager.getAdvancedElements();
         final String[] names;
         
-        // Fallback to default names if no advanced elements configured
         if (advancedElements.length == 0) {
             names = new String[]{"METAL", "FROST"};
         } else {
@@ -101,9 +112,9 @@ public class AdvancedRerollerListener implements Listener {
                     .toArray(String[]::new);
         }
         
-        int steps = 20;
-        long interval = 3L;
-
+        final int steps = 20;
+        final long interval = 3L;
+        
         new BukkitRunnable() {
             int tick = 0;
 
@@ -127,40 +138,40 @@ public class AdvancedRerollerListener implements Listener {
     }
 
     private void assignAdvancedElement(Player player, ElementType element) {
-        PlayerData pd = plugin.getElementManager().data(player.getUniqueId());
+        PlayerData playerData = elementManager.data(player.getUniqueId());
 
-        clearOldElementEffects(player, pd);
+        clearOldElementEffects(player, playerData);
 
-        int currentUpgradeLevel = pd.getCurrentElementUpgradeLevel();
-        pd.setCurrentElementWithoutReset(element);
-        pd.setCurrentElementUpgradeLevel(currentUpgradeLevel);
-        plugin.getDataStore().save(pd);
+        int currentUpgradeLevel = playerData.getCurrentElementUpgradeLevel();
+        playerData.setCurrentElementWithoutReset(element);
+        playerData.setCurrentElementUpgradeLevel(currentUpgradeLevel);
+        plugin.getDataStore().save(playerData);
 
-        var title = net.kyori.adventure.title.Title.title(
+        Title title = Title.title(
                 net.kyori.adventure.text.Component.text("Element Chosen!")
                         .color(net.kyori.adventure.text.format.NamedTextColor.GOLD),
                 net.kyori.adventure.text.Component.text(element.name())
                         .color(net.kyori.adventure.text.format.NamedTextColor.AQUA),
-                net.kyori.adventure.title.Title.Times.times(
-                        java.time.Duration.ofMillis(500),
-                        java.time.Duration.ofMillis(2000),
-                        java.time.Duration.ofMillis(500)
+                Title.Times.times(
+                        Duration.ofMillis(500),
+                        Duration.ofMillis(2000),
+                        Duration.ofMillis(500)
                 )
         );
 
         player.showTitle(title);
-        plugin.getElementManager().applyUpsides(player);
+        elementManager.applyUpsides(player);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
 
         player.sendMessage(ChatColor.GREEN + "Your element has been rerolled");
     }
 
-    private void clearOldElementEffects(Player player, PlayerData pd) {
-        ElementType oldElement = pd.getCurrentElement();
+    private void clearOldElementEffects(Player player, PlayerData playerData) {
+        ElementType oldElement = playerData.getCurrentElement();
 
         if (oldElement == null) return;
 
-        var element = plugin.getElementManager().get(oldElement);
+        var element = elementManager.get(oldElement);
         if (element != null) {
             element.clearEffects(player);
         }
@@ -176,4 +187,3 @@ public class AdvancedRerollerListener implements Listener {
         }
     }
 }
-

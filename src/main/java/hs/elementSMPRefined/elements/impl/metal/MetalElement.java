@@ -7,6 +7,7 @@ import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
 import hs.elementSMPRefined.elements.abilities.impl.metal.MetalChainAbility;
 import hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility;
+import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -15,13 +16,17 @@ import org.bukkit.potion.PotionEffectType;
 public class MetalElement extends BaseElement {
     private final ElementSMPRefined plugin;
     private final Ability ability1;
-    private final Ability ability2;
+    private final MetalDashAbility ability2;
 
     public MetalElement(ElementSMPRefined plugin) {
         super(plugin);
         this.plugin = plugin;
         this.ability1 = new MetalChainAbility(plugin);
         this.ability2 = new MetalDashAbility(plugin);
+    }
+
+    public MetalDashAbility getMetalDashAbility() {
+        return ability2;
     }
 
     @Override
@@ -50,13 +55,10 @@ public class MetalElement extends BaseElement {
 
     @Override
     public void clearEffects(Player player) {
-        player.removePotionEffect(PotionEffectType.HASTE);
+        EffectService.removeElementPotionEffect(player, PotionEffectType.HASTE);
         ability1.setActive(player, false);
         ability2.setActive(player, false);
-
-
     }
-
 
     @Override
     public String getDisplayName() {

@@ -8,9 +8,9 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ManaManager {
     private final ElementSMPRefined plugin;
@@ -18,7 +18,7 @@ public class ManaManager {
     private final ConfigManager configManager;
     private BukkitTask task;
 
-    private final Map<UUID, PlayerData> cache = new HashMap<>();
+    private final Map<UUID, PlayerData> cache = new ConcurrentHashMap<>();
 
     public ManaManager(ElementSMPRefined plugin, DataStore store, ConfigManager configManager) {
         this.plugin = plugin;

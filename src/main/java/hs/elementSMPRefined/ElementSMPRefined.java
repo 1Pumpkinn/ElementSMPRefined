@@ -25,6 +25,12 @@ public final class ElementSMPRefined extends JavaPlugin {
     private hs.elementSMPRefined.util.scheduling.TaskScheduler taskScheduler;
     private hs.elementSMPRefined.util.bukkit.MetadataHelper metadataHelper;
     private hs.elementSMPRefined.status.StatusEffectManager statusEffectManager;
+    private hs.elementSMPRefined.elements.impl.earth.listeners.EarthFriendlyMobListener earthFriendlyMobListener;
+    private hs.elementSMPRefined.elements.impl.death.listeners.DeathFriendlyMobListener deathFriendlyMobListener;
+    private hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener;
+    private hs.elementSMPRefined.listeners.GUIListener guiListener;
+    private hs.elementSMPRefined.listeners.ability.AbilityListener abilityListener;
+    private hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility metalDashAbility;
 
     @Override
     public void onEnable() {
@@ -50,6 +56,15 @@ public final class ElementSMPRefined extends JavaPlugin {
             stopBackgroundTasks();
             if (statusEffectManager != null) {
                 statusEffectManager.cleanup();
+            }
+            if (earthFriendlyMobListener != null) {
+                earthFriendlyMobListener.cleanup();
+            }
+            if (deathFriendlyMobListener != null) {
+                deathFriendlyMobListener.cleanup();
+            }
+            if (frostPassiveListener != null) {
+                frostPassiveListener.cleanup();
             }
             saveAllData();
             getLogger().info("ElementPlugin disabled successfully!");
@@ -143,15 +158,30 @@ public final class ElementSMPRefined extends JavaPlugin {
         getLogger().info("Registering listeners...");
         PluginManager pm = Bukkit.getPluginManager();
 
-        pm.registerEvents(new PlayerLifecycleListener(this, elementManager, manaManager, effectService), this);
+        PlayerLifecycleListener playerLifecycleListener = new PlayerLifecycleListener(this, elementManager, manaManager, effectService);
+        pm.registerEvents(playerLifecycleListener, this);
         pm.registerEvents(effectService, this);
         pm.registerEvents(new GameModeListener(manaManager, configManager), this);
         pm.registerEvents(new hs.elementSMPRefined.listeners.combat.CombatListener(trustManager, elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.listeners.ability.AbilityListener(this, elementManager), this);
+        this.abilityListener = new hs.elementSMPRefined.listeners.ability.AbilityListener(this, elementManager);
+        pm.registerEvents(abilityListener, this);
         pm.registerEvents(new StatusEffectListener(this), this);
         registerItemListeners(pm);
-        pm.registerEvents(new GUIListener(this), this);
+        this.guiListener = new GUIListener(this);
+        pm.registerEvents(guiListener, this);
         registerElementListeners(pm);
+
+        // Set listener references after they're created
+        playerLifecycleListener.setFrostPassiveListener(frostPassiveListener);
+        playerLifecycleListener.setGuiListener(guiListener);
+        playerLifecycleListener.setAbilityListener(abilityListener);
+
+        // Get MetalDashAbility from MetalElement
+        var metalElement = elementManager.get(hs.elementSMPRefined.elements.ElementType.METAL);
+        if (metalElement instanceof hs.elementSMPRefined.elements.impl.metal.MetalElement metalElementImpl) {
+            this.metalDashAbility = metalElementImpl.getMetalDashAbility();
+            playerLifecycleListener.setMetalDashAbility(metalDashAbility);
+        }
 
         getLogger().info("Listeners registered");
     }
@@ -177,16 +207,19 @@ public final class ElementSMPRefined extends JavaPlugin {
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireCombatListener(elementManager, trustManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireballProtectionListener(), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthCharmListener(elementManager, this), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthFriendlyMobListener(this, trustManager), this);
+        this.earthFriendlyMobListener = new hs.elementSMPRefined.elements.impl.earth.listeners.EarthFriendlyMobListener(this, trustManager);
+        pm.registerEvents(earthFriendlyMobListener, this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthOreDropListener(elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.life.listeners.LifeRegenListener(elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.life.LifeElementCraftListener(this, elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.listeners.DeathRawFoodListener(elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.listeners.DeathFriendlyMobListener(this, trustManager), this);
+        this.deathFriendlyMobListener = new hs.elementSMPRefined.elements.impl.death.listeners.DeathFriendlyMobListener(this, trustManager);
+        pm.registerEvents(deathFriendlyMobListener, this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.DeathElementCraftListener(this, elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.metal.listeners.MetalArrowImmunityListener(elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.metal.listeners.MetalChainStunListener(this), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener(this, elementManager), this);
+        this.frostPassiveListener = new hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener(this, elementManager);
+        pm.registerEvents(frostPassiveListener, this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.frost.listeners.FrostFrozenPunchListener(this, elementManager), this);
     }
 

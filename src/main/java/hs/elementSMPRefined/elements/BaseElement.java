@@ -1,7 +1,6 @@
 package hs.elementSMPRefined.elements;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -96,18 +95,6 @@ public abstract class BaseElement implements Element {
      */
     protected boolean hasMana(Player player, hs.elementSMPRefined.managers.ManaManager mana, int cost) {
         if (mana.get(player.getUniqueId()).getMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana (" + cost + ")");
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Check if player has enough mana and spend it (deprecated - use hasMana instead)
-     */
-    @Deprecated
-    protected boolean checkMana(Player player, hs.elementSMPRefined.managers.ManaManager mana, int cost) {
-        if (!mana.spend(player, cost)) {
             player.sendMessage(ChatColor.RED + "Not enough mana (" + cost + ")");
             return false;
         }

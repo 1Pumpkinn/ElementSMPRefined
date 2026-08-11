@@ -16,6 +16,7 @@ import java.util.UUID;
 public class EarthFriendlyMobListener implements Listener {
     private final ElementSMPRefined plugin;
     private final TrustManager trustManager;
+    private org.bukkit.scheduler.BukkitTask followTask;
 
     public EarthFriendlyMobListener(ElementSMPRefined plugin, TrustManager trustManager) {
         this.plugin = plugin;
@@ -23,8 +24,14 @@ public class EarthFriendlyMobListener implements Listener {
         startFollowTask();
     }
 
+    public void cleanup() {
+        if (followTask != null && !followTask.isCancelled()) {
+            followTask.cancel();
+        }
+    }
+
     private void startFollowTask() {
-        new BukkitRunnable() {
+        followTask = new BukkitRunnable() {
             @Override
             public void run() {
                 for (org.bukkit.World world : Bukkit.getWorlds()) {
@@ -55,18 +62,18 @@ public class EarthFriendlyMobListener implements Listener {
                                     // Look for enemies to attack first
                                     Player nearestEnemy = null;
                                     double bestDistance = Double.MAX_VALUE;
-                                    
+
                                     for (Player player : mob.getWorld().getPlayers()) {
                                         if (player.getUniqueId().equals(ownerId)) continue;
                                         if (trustManager.isTrusted(ownerId, player.getUniqueId())) continue;
-                                        
+
                                         double playerDistance = mob.getLocation().distanceSquared(player.getLocation());
                                         if (playerDistance < bestDistance && playerDistance < 16*16) { // 16 block range
                                             bestDistance = playerDistance;
                                             nearestEnemy = player;
                                         }
                                     }
-                                    
+
                                     if (nearestEnemy != null) {
                                         // Attack the nearest enemy
                                         mob.setTarget(nearestEnemy);
@@ -77,7 +84,9 @@ public class EarthFriendlyMobListener implements Listener {
                                     }
                                 }
                             }
-                        } catch (Exception ignored) {}
+                        } catch (Exception ex) {
+                            plugin.getLogger().warning("Error in EarthFriendlyMobListener follow task: " + ex.getMessage());
+                        }
                     }
                 }
             }
@@ -125,7 +134,9 @@ public class EarthFriendlyMobListener implements Listener {
                             e.setCancelled(true);
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ex) {
+                    plugin.getLogger().warning("Error in EarthFriendlyMobListener onTarget: " + ex.getMessage());
+                }
             }
         }
     }
@@ -153,7 +164,9 @@ public class EarthFriendlyMobListener implements Listener {
                         e.setCancelled(true);
                         return;
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ex) {
+                    plugin.getLogger().warning("Error in EarthFriendlyMobListener onDamage: " + ex.getMessage());
+                }
             }
         }
     }

@@ -7,6 +7,7 @@ import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
 import hs.elementSMPRefined.elements.abilities.impl.earth.EarthCharmAbility;
 import hs.elementSMPRefined.elements.abilities.impl.earth.EarthTunnelAbility;
+import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -51,16 +52,12 @@ public class EarthElement extends BaseElement {
     @Override
     protected boolean canCancelAbility1(ElementContext context) {
         // Check if the player has the tunneling metadata - if so, they can cancel
-        boolean canCancel = context.getPlayer().hasMetadata(META_TUNNELING);
-        if (canCancel) {
-
-        }
-        return canCancel;
+        return context.getPlayer().hasMetadata(META_TUNNELING);
     }
 
     @Override
     public void clearEffects(Player player) {
-        player.removePotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE);
+        EffectService.removeElementPotionEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE);
         player.removeMetadata(META_MINE_UNTIL, plugin);
         player.removeMetadata(META_CHARM_NEXT_UNTIL, plugin);
         player.removeMetadata(META_TUNNELING, plugin);

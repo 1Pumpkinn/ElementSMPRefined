@@ -25,6 +25,7 @@ public class FrostPassiveListener implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
     private final Set<UUID> frostSpeedPlayers = new HashSet<>();
+    private org.bukkit.scheduler.BukkitTask passiveTask;
 
     public FrostPassiveListener(ElementSMPRefined plugin, ElementManager elementManager) {
         this.plugin = plugin;
@@ -32,8 +33,19 @@ public class FrostPassiveListener implements Listener {
         startPassiveEffectTask();
     }
 
+    public void cleanup() {
+        if (passiveTask != null && !passiveTask.isCancelled()) {
+            passiveTask.cancel();
+        }
+        frostSpeedPlayers.clear();
+    }
+
+    public void onPlayerQuit(UUID playerUuid) {
+        frostSpeedPlayers.remove(playerUuid);
+    }
+
     private void startPassiveEffectTask() {
-        new BukkitRunnable() {
+        passiveTask = new BukkitRunnable() {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {

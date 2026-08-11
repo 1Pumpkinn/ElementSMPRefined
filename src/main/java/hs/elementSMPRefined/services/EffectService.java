@@ -80,10 +80,8 @@ public class EffectService implements Listener {
         PlayerData pd = elementManager.data(player.getUniqueId());
         ElementType currentElement = pd.getCurrentElement();
 
-        // Clear effects from ALL elements
+        // Clear effects from ALL elements (including current one when switching)
         for (ElementType type : ElementType.values()) {
-            if (type == currentElement) continue;
-
             Element element = elementManager.get(type);
             if (element != null) {
                 element.clearEffects(player);
@@ -92,6 +90,19 @@ public class EffectService implements Listener {
 
         // Reset health if not Life element
         resetHealthIfNeeded(player, currentElement);
+    }
+
+    /**
+     * Remove a potion effect only if it was applied by the element system.
+     * Element effects have very long durations (Integer.MAX_VALUE), while player potions have shorter durations.
+     * This preserves legitimate potion effects from drinking/splashing potions.
+     */
+    public static void removeElementPotionEffect(Player player, PotionEffectType type) {
+        PotionEffect effect = player.getPotionEffect(type);
+        if (effect != null && effect.getDuration() > 1000000) {
+            // Only remove if it has an element-like duration (near Integer.MAX_VALUE)
+            player.removePotionEffect(type);
+        }
     }
 
     /**

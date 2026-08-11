@@ -7,6 +7,7 @@ import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
 import hs.elementSMPRefined.elements.abilities.impl.water.WaterBeamAbility;
 import hs.elementSMPRefined.elements.abilities.impl.water.WaterGeyserAbility;
+import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -50,6 +51,8 @@ public class WaterElement extends BaseElement {
     
     @Override
     public void clearEffects(Player player) {
+        EffectService.removeElementPotionEffect(player, PotionEffectType.CONDUIT_POWER);
+        EffectService.removeElementPotionEffect(player, PotionEffectType.DOLPHINS_GRACE);
         ability1.setActive(player, false);
         ability2.setActive(player, false);
     }

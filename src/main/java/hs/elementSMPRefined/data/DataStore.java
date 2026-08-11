@@ -1,7 +1,6 @@
 package hs.elementSMPRefined.data;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.elements.ElementType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -10,6 +9,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class DataStore {
@@ -20,7 +20,7 @@ public class DataStore {
     private final File serverFile;
     private final FileConfiguration serverCfg;
 
-    private final Map<UUID, PlayerData> playerDataCache = new HashMap<>();
+    private final Map<UUID, PlayerData> playerDataCache = new ConcurrentHashMap<>();
 
     public PlayerData getPlayerData(UUID uuid) {
         // Check cache first

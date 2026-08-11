@@ -7,17 +7,19 @@ import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
 import hs.elementSMPRefined.elements.abilities.impl.life.LifeHealingBeamAbility;
 import hs.elementSMPRefined.elements.abilities.impl.life.LifeRegenAbility;
+import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LifeElement extends BaseElement {
 
@@ -26,7 +28,7 @@ public class LifeElement extends BaseElement {
     private final Ability ability2;
 
     // Fixed: only ONE passive task map
-    private final Map<UUID, BukkitTask> passiveTasks = new HashMap<>();
+    private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
 
     public LifeElement(ElementSMPRefined plugin) {
         super(plugin);
@@ -132,6 +134,9 @@ public class LifeElement extends BaseElement {
 
         // Stop aura
         cancelPassiveTask(player);
+
+        // Clear regeneration effect
+        EffectService.removeElementPotionEffect(player, PotionEffectType.REGENERATION);
 
         // Reset health to normal
         var attr = player.getAttribute(Attribute.MAX_HEALTH);

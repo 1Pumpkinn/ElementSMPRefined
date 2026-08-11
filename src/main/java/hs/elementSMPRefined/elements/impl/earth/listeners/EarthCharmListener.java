@@ -3,6 +3,7 @@ package hs.elementSMPRefined.elements.impl.earth.listeners;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.elements.impl.earth.EarthElement;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.bukkit.MetadataHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -13,20 +14,22 @@ import org.bukkit.metadata.FixedMetadataValue;
 public class EarthCharmListener implements Listener {
     private final ElementManager elements;
     private final ElementSMPRefined plugin;
+    private final MetadataHelper metadataHelper;
 
     public EarthCharmListener(ElementManager elements, ElementSMPRefined plugin) {
         this.elements = elements;
         this.plugin = plugin;
+        this.metadataHelper = plugin.getMetadataHelper();
     }
 
     @EventHandler
     public void onPunch(EntityDamageByEntityEvent e) {
         if (!(e.getDamager() instanceof Player p)) return;
         if (!(e.getEntity() instanceof Mob mob)) return;
-        if (!p.hasMetadata(EarthElement.META_CHARM_NEXT_UNTIL)) return;
 
-        long until = p.getMetadata(EarthElement.META_CHARM_NEXT_UNTIL).get(0).asLong();
-        if (System.currentTimeMillis() > until) return;
+        // Use safe metadata access
+        long until = metadataHelper.getLong(p, EarthElement.META_CHARM_NEXT_UNTIL, 0);
+        if (until == 0 || System.currentTimeMillis() > until) return;
 
         // Check if mob can be charmed (prevent boss mobs)
         if (mob instanceof Wither || mob instanceof EnderDragon || mob instanceof Warden) {
@@ -36,7 +39,7 @@ public class EarthCharmListener implements Listener {
         }
 
         // Consume the ability
-        p.removeMetadata(EarthElement.META_CHARM_NEXT_UNTIL, plugin);
+        metadataHelper.remove(p, EarthElement.META_CHARM_NEXT_UNTIL);
 
         long expire = System.currentTimeMillis() + 30_000L;
         mob.setMetadata("earth_charmed_owner", new FixedMetadataValue(plugin, p.getUniqueId().toString()));

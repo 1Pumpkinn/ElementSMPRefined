@@ -7,17 +7,20 @@ import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
 import hs.elementSMPRefined.elements.abilities.impl.death.DeathSummonUndeadAbility;
 import hs.elementSMPRefined.elements.abilities.impl.death.DeathWitherSkullAbility;
+import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 public class DeathElement extends BaseElement {
     private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
-    private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> passiveTasks = new java.util.HashMap<>();
+    private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> passiveTasks = new java.util.concurrent.ConcurrentHashMap<>();
 
     public DeathElement(ElementSMPRefined plugin) {
         super(plugin);
@@ -78,6 +81,9 @@ public class DeathElement extends BaseElement {
     public void clearEffects(Player player) {
         // Cancel passive task
         cancelPassiveTask(player);
+        
+        // Clear night vision effect
+        EffectService.removeElementPotionEffect(player, PotionEffectType.NIGHT_VISION);
         
         ability1.setActive(player, false);
         ability2.setActive(player, false);

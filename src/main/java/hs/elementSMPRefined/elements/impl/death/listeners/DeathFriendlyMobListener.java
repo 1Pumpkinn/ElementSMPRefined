@@ -16,6 +16,7 @@ import java.util.UUID;
 public class DeathFriendlyMobListener implements Listener {
     private final ElementSMPRefined plugin;
     private final TrustManager trustManager;
+    private org.bukkit.scheduler.BukkitTask followTask;
 
     public DeathFriendlyMobListener(ElementSMPRefined plugin, TrustManager trustManager) {
         this.plugin = plugin;
@@ -23,8 +24,14 @@ public class DeathFriendlyMobListener implements Listener {
         startFollowTask();
     }
 
+    public void cleanup() {
+        if (followTask != null && !followTask.isCancelled()) {
+            followTask.cancel();
+        }
+    }
+
     private void startFollowTask() {
-        new BukkitRunnable() {
+        followTask = new BukkitRunnable() {
             @Override
             public void run() {
                 for (org.bukkit.World world : Bukkit.getWorlds()) {
@@ -82,7 +89,9 @@ public class DeathFriendlyMobListener implements Listener {
                                     }
                                 }
                             }
-                        } catch (Exception ignored) {}
+                        } catch (Exception ex) {
+                            plugin.getLogger().warning("Error in DeathFriendlyMobListener follow task: " + ex.getMessage());
+                        }
                     }
                 }
             }
@@ -128,7 +137,9 @@ public class DeathFriendlyMobListener implements Listener {
                         e.setCancelled(true);
                         return;
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ex) {
+                    plugin.getLogger().warning("Error in DeathFriendlyMobListener onTarget: " + ex.getMessage());
+                }
             }
         }
     }
@@ -156,7 +167,9 @@ public class DeathFriendlyMobListener implements Listener {
                         e.setCancelled(true);
                         return;
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ex) {
+                    plugin.getLogger().warning("Error in DeathFriendlyMobListener onDamage: " + ex.getMessage());
+                }
             }
         }
 
@@ -190,7 +203,9 @@ public class DeathFriendlyMobListener implements Listener {
                         mob.setTarget(target);
                         mob.setAware(true);
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ex) {
+                    plugin.getLogger().warning("Error in DeathFriendlyMobListener mob command: " + ex.getMessage());
+                }
             }
         }
     }

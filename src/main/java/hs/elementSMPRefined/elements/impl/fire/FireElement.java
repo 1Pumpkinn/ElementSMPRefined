@@ -7,6 +7,7 @@ import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
 import hs.elementSMPRefined.elements.abilities.impl.fire.FireballAbility;
 import hs.elementSMPRefined.elements.abilities.impl.fire.MeteorShowerAbility;
+import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -48,7 +49,7 @@ public class FireElement extends BaseElement {
 
     @Override
     public void clearEffects(Player player) {
-        player.removePotionEffect(PotionEffectType.FIRE_RESISTANCE);
+        EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
         ability1.setActive(player, false);
         ability2.setActive(player, false);
     }

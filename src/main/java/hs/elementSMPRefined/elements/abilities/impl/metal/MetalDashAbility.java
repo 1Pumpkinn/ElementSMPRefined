@@ -16,12 +16,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MetalDashAbility extends BaseAbility implements Listener {
     private final ElementSMPRefined plugin;
     private final Set<UUID> stunnedPlayers = new HashSet<>();
     private final Set<UUID> dashingPlayers = new HashSet<>();
-    private final Map<UUID, Boolean> pendingStuns = new HashMap<>();
+    private final Map<UUID, Boolean> pendingStuns = new ConcurrentHashMap<>();
 
     public MetalDashAbility(ElementSMPRefined plugin) {
         super("metal_dash", 75, 15, 2);
@@ -180,5 +181,11 @@ public class MetalDashAbility extends BaseAbility implements Listener {
     @Override
     public String getDescription() {
         return "Dash forward 20 blocks, damaging enemies you pass through. Missing all enemies stuns you for 5 seconds. (75 mana)";
+    }
+
+    public void onPlayerQuit(UUID playerUuid) {
+        stunnedPlayers.remove(playerUuid);
+        dashingPlayers.remove(playerUuid);
+        pendingStuns.remove(playerUuid);
     }
 }

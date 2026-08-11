@@ -17,12 +17,18 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
+import java.util.UUID;
+
 public class PlayerLifecycleListener implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
     private final ManaManager manaManager;
     private final EffectService effectService;
     private final TaskScheduler scheduler;
+    private hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener;
+    private hs.elementSMPRefined.listeners.GUIListener guiListener;
+    private hs.elementSMPRefined.listeners.ability.AbilityListener abilityListener;
+    private hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility metalDashAbility;
 
     public PlayerLifecycleListener(ElementSMPRefined plugin, ElementManager elementManager,
                                    ManaManager manaManager, EffectService effectService) {
@@ -31,6 +37,22 @@ public class PlayerLifecycleListener implements Listener {
         this.manaManager = manaManager;
         this.effectService = effectService;
         this.scheduler = new TaskScheduler(plugin);
+    }
+
+    public void setFrostPassiveListener(hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener) {
+        this.frostPassiveListener = frostPassiveListener;
+    }
+
+    public void setGuiListener(hs.elementSMPRefined.listeners.GUIListener guiListener) {
+        this.guiListener = guiListener;
+    }
+
+    public void setAbilityListener(hs.elementSMPRefined.listeners.ability.AbilityListener abilityListener) {
+        this.abilityListener = abilityListener;
+    }
+
+    public void setMetalDashAbility(hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility metalDashAbility) {
+        this.metalDashAbility = metalDashAbility;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -58,10 +80,24 @@ public class PlayerLifecycleListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        UUID playerUuid = player.getUniqueId();
         elementManager.cancelRolling(player);
-        manaManager.save(player.getUniqueId());
+        manaManager.save(playerUuid);
         effectService.clearAllElementEffects(player);
-        plugin.getDataStore().save(elementManager.data(player.getUniqueId()));
+        plugin.getDataStore().save(elementManager.data(playerUuid));
+        ElementSelectionGUI.removeGUI(playerUuid);
+        if (frostPassiveListener != null) {
+            frostPassiveListener.onPlayerQuit(playerUuid);
+        }
+        if (guiListener != null) {
+            guiListener.onPlayerQuit(playerUuid);
+        }
+        if (abilityListener != null) {
+            abilityListener.onPlayerQuit(playerUuid);
+        }
+        if (metalDashAbility != null) {
+            metalDashAbility.onPlayerQuit(playerUuid);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

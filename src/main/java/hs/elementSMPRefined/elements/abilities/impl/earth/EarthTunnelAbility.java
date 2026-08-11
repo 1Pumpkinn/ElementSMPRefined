@@ -3,6 +3,7 @@ package hs.elementSMPRefined.elements.abilities.impl.earth;
 import hs.elementSMPRefined.elements.ElementContext;
 import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import hs.elementSMPRefined.elements.impl.earth.EarthElement;
+import hs.elementSMPRefined.util.bukkit.MetadataHelper;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -49,10 +50,12 @@ public class EarthTunnelAbility extends BaseAbility {
     );
 
     private final hs.elementSMPRefined.ElementSMPRefined plugin;
+    private final MetadataHelper metadataHelper;
 
     public EarthTunnelAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
         super("earth_tunnel", 50, 10, 1);
         this.plugin = plugin;
+        this.metadataHelper = plugin.getMetadataHelper();
     }
 
     @Override
@@ -60,8 +63,8 @@ public class EarthTunnelAbility extends BaseAbility {
         Player player = context.getPlayer();
 
         // If ability is already active (check metadata), cancel it WITHOUT consuming mana
-        if (player.hasMetadata(EarthElement.META_TUNNELING)) {
-            player.removeMetadata(EarthElement.META_TUNNELING, plugin);
+        if (metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
+            metadataHelper.remove(player, EarthElement.META_TUNNELING);
             player.sendMessage(ChatColor.YELLOW + "Tunneling cancelled");
             setActive(player, false);
             // Don't start a new tunnel - just cancel and return
@@ -69,7 +72,7 @@ public class EarthTunnelAbility extends BaseAbility {
         }
 
         // Start the tunneling ability
-        player.setMetadata(EarthElement.META_TUNNELING, new FixedMetadataValue(plugin, System.currentTimeMillis() + 20_000L));
+        metadataHelper.setLong(player, EarthElement.META_TUNNELING, System.currentTimeMillis() + 20_000L);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_STONE_BREAK, 1f, 0.8f);
         player.sendMessage(ChatColor.GOLD + "Tunneling started Press again to cancel.");
 
@@ -78,15 +81,15 @@ public class EarthTunnelAbility extends BaseAbility {
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (!player.isOnline() || !player.hasMetadata(EarthElement.META_TUNNELING)) {
+                if (!player.isOnline() || !metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
                     setActive(player, false);
                     cancel();
                     return;
                 }
 
-                long until = player.getMetadata(EarthElement.META_TUNNELING).get(0).asLong();
+                long until = metadataHelper.getLong(player, EarthElement.META_TUNNELING, 0);
                 if (System.currentTimeMillis() > until) {
-                    player.removeMetadata(EarthElement.META_TUNNELING, plugin);
+                    metadataHelper.remove(player, EarthElement.META_TUNNELING);
                     player.sendMessage(ChatColor.YELLOW + "Tunneling ended");
                     setActive(player, false);
                     cancel();

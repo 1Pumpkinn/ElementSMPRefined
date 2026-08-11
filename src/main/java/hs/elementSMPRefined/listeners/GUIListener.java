@@ -12,13 +12,22 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class GUIListener implements Listener {
     private final ElementSMPRefined plugin;
     // Prevent rapid re-open loops when inventories transition
-    private final java.util.Set<java.util.UUID> suppressReopen = new java.util.HashSet<>();
+    private final java.util.Set<java.util.UUID> suppressReopen = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
     public GUIListener(ElementSMPRefined plugin) {
         this.plugin = plugin;
+    }
+
+    public void onPlayerQuit(UUID playerUuid) {
+        suppressReopen.remove(playerUuid);
     }
 
     @EventHandler

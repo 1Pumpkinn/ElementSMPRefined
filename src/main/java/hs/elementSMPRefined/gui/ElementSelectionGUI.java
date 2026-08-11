@@ -15,14 +15,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ElementSelectionGUI {
     private static final String INVENTORY_TITLE = ChatColor.DARK_PURPLE + "Rolling Element...";
-    private static final Map<UUID, ElementSelectionGUI> openGuis = new HashMap<>();
+    private static final Map<UUID, ElementSelectionGUI> openGuis = new ConcurrentHashMap<>();
     private static final ElementType[] BASIC_ELEMENTS = {
             ElementType.AIR, ElementType.WATER, ElementType.FIRE, ElementType.EARTH
     };
-    
+
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
     private final Player player;

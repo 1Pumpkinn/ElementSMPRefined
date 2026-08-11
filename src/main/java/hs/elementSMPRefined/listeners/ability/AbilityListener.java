@@ -112,5 +112,9 @@ public class AbilityListener implements Listener {
             wasShiftHeld = false;
         }
     }
+
+    public void onPlayerQuit(UUID playerUuid) {
+        tapTrackers.remove(playerUuid);
+    }
 }
 

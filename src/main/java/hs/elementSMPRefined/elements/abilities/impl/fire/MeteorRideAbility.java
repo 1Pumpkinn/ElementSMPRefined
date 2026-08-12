@@ -6,38 +6,76 @@ import hs.elementSMPRefined.elements.abilities.BaseAbility;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
-import org.bukkit.entity.Fireball;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Meteor Ride - Ride on a meteor and crash into entities to deal damage.
- * The player controls the meteor's direction and it deals damage on impact.
+ * Meteor Ride - The player is granted direct flight control (so all normal
+ * WASD/space/shift movement input applies to them) while a magma-block
+ * Block Display is glued to their position every tick, making it look like
+ * they're riding/embedded in a molten meteor.
+ *
+ * IMPORTANT ROTATION NOTE: Display transformations apply translation AFTER
+ * rotation (world = translation + rotation * scale * vertex). A constant
+ * translation therefore only centers the block at one specific angle - as
+ * the angle changes the pivot silently shifts to the block's corner and it
+ * sweeps an arc instead of spinning in place. buildTransform() below
+ * recomputes the translation every frame from the current angle so the
+ * pivot always stays fixed at the display's own location.
  */
-public class MeteorRideAbility extends BaseAbility implements Listener {
+public class MeteorRideAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
-    private final Map<UUID, Fireball> activeMeteors = new HashMap<>();
+
+    private final Map<UUID, BlockDisplay> activeDisplays = new HashMap<>();
     private final Map<UUID, BukkitRunnable> meteorTasks = new HashMap<>();
+    private final Map<UUID, Float> spinAngles = new HashMap<>();
+
+    // Saved flight state to restore when the ride ends
+    private final Map<UUID, Boolean> prevAllowFlight = new HashMap<>();
+    private final Map<UUID, Boolean> prevFlying = new HashMap<>();
+    private final Map<UUID, Float> prevFlySpeed = new HashMap<>();
+    private final Map<UUID, TrustManager> activeTrust = new HashMap<>();
+
+    private static final float METEOR_SCALE = 1.35f;
+    private static final float SPIN_SPEED = 0.12f; // radians per tick
+    private static final float RIDE_FLY_SPEED = 0.1f; // vanilla default flying speed - tune to taste
+    private static final double VERTICAL_OFFSET = 1.1; // how far below the player the meteor sits
+
+    // Ground-impact AOE tuning
+    private static final int GRACE_TICKS = 10; // ~0.5s liftoff window before ground-impact checks start
+    private static final double IMPACT_RADIUS = 4.5;
+    private static final double IMPACT_DAMAGE = 14.0;
+    private static final double IMPACT_KNOCKBACK = 2.2;
 
     public MeteorRideAbility(ElementSMPRefined plugin) {
         super("fire_meteor_ride", 60, 15, 2);
         this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
+        UUID playerId = player.getUniqueId();
+
+        // Re-casting while already riding toggles it off early instead of
+        // starting a new ride (sneak is left alone since it's needed to
+        // descend while flying).
+        if (activeDisplays.containsKey(playerId)) {
+            endMeteorRide(player, false);
+            return true;
+        }
+
         ManaManager mana = context.getManaManager();
         TrustManager trust = context.getTrustManager();
         int cost = getManaCost();
@@ -47,134 +85,215 @@ public class MeteorRideAbility extends BaseAbility implements Listener {
             return false;
         }
 
-        UUID playerId = player.getUniqueId();
-        
-        // Check if player is already riding a meteor
-        if (activeMeteors.containsKey(playerId)) {
-            player.sendMessage(ChatColor.RED + "You are already riding a meteor!");
-            return false;
-        }
-
         World world = player.getWorld();
-        Location spawnLoc = player.getLocation().add(0, 2, 0);
-        Vector direction = player.getLocation().getDirection().normalize();
+        Location startLoc = player.getLocation();
 
-        // Create the meteor (fireball)
-        Fireball meteor = world.spawn(spawnLoc, Fireball.class);
-        meteor.setShooter(player);
-        meteor.setDirection(direction.multiply(1.5));
-        meteor.setYield(2.0f); // High explosion power
-        meteor.setIsIncendiary(false); // Don't set blocks on fire
+        // --- Save current flight state, then grant full flight control ---
+        prevAllowFlight.put(playerId, player.getAllowFlight());
+        prevFlying.put(playerId, player.isFlying());
+        prevFlySpeed.put(playerId, player.getFlySpeed());
 
-        // Mount the player on the meteor
-        meteor.addPassenger(player);
+        player.setAllowFlight(true);
+        player.setFlying(true);
+        player.setFlySpeed(RIDE_FLY_SPEED);
 
-        // Store the meteor
-        activeMeteors.put(playerId, meteor);
+        // --- Spawn the magma block display that acts as the meteor skin ---
+        BlockDisplay display = world.spawn(startLoc, BlockDisplay.class, d -> {
+            d.setBlock(Material.MAGMA_BLOCK.createBlockData());
+            d.setBrightness(new Display.Brightness(15, 15));
+            // Interpolation window matches our per-tick update rate (1 tick).
+            // A longer window (e.g. 3) makes the display perpetually chase a
+            // target that's already moved again before it catches up, which
+            // reads as lag when the player moves continuously.
+            d.setInterpolationDuration(1);
+            d.setInterpolationDelay(0);
+            d.setTeleportDuration(1);
+            d.setTransformation(buildTransform(0f));
+        });
 
-        // Play sounds
-        world.playSound(spawnLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
-        world.playSound(spawnLoc, Sound.ENTITY_BLAZE_SHOOT, 1.2f, 0.8f);
+        activeDisplays.put(playerId, display);
+        spinAngles.put(playerId, 0f);
+        activeTrust.put(playerId, trust);
 
-        // Create particle trail and damage task
+        world.playSound(startLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
+        world.playSound(startLoc, Sound.ENTITY_BLAZE_SHOOT, 1.2f, 0.8f);
+        player.sendMessage(ChatColor.GOLD + "You are riding the meteor! Use the ability again to end early.");
+
         BukkitRunnable task = new BukkitRunnable() {
+            private int ticksAlive = 0;
+
             @Override
             public void run() {
-                if (!player.isOnline() || !meteor.isValid() || !meteor.getPassengers().contains(player)) {
-                    endMeteorRide(player);
+                if (!player.isOnline() || !display.isValid()) {
+                    endMeteorRide(player, false);
                     cancel();
                     return;
                 }
 
-                // Create fire particle trail
-                Location meteorLoc = meteor.getLocation();
-                world.spawnParticle(Particle.FLAME, meteorLoc, 10, 0.5, 0.5, 0.5, 0.1, null, true);
-                world.spawnParticle(Particle.LAVA, meteorLoc, 3, 0.3, 0.3, 0.3, 0.05, null, true);
+                ticksAlive++;
+
+                // Give the player a moment to lift off before we start
+                // checking for a ground hit, so casting while standing on
+                // the ground doesn't detonate instantly.
+                if (ticksAlive > GRACE_TICKS && player.isOnGround()) {
+                    endMeteorRide(player, true);
+                    cancel();
+                    return;
+                }
+
+                Location playerLoc = player.getLocation();
+                Location meteorLoc = playerLoc.clone().subtract(0, VERTICAL_OFFSET, 0);
+
+                // Keep the meteor skin glued beneath the player, spinning in place
+                float angle = spinAngles.merge(playerId, SPIN_SPEED, Float::sum);
+                display.teleport(meteorLoc);
+                display.setTransformation(buildTransform(angle));
+
+                // Fire trail
+                world.spawnParticle(Particle.FLAME, playerLoc, 10, 0.5, 0.5, 0.5, 0.1, null, true);
+                world.spawnParticle(Particle.LAVA, playerLoc, 3, 0.3, 0.3, 0.3, 0.05, null, true);
 
                 // Damage entities on contact
                 double damageRadius = 2.0;
-                for (LivingEntity entity : meteorLoc.getNearbyLivingEntities(damageRadius)) {
+                for (LivingEntity entity : playerLoc.getNearbyLivingEntities(damageRadius)) {
                     if (entity.equals(player)) continue;
                     if (entity instanceof Player other && trust.isTrusted(player.getUniqueId(), other.getUniqueId())) continue;
 
                     entity.damage(8.0, player);
-                    entity.setFireTicks(80); // Set on fire for 4 seconds
-                    
-                    // Knockback away from meteor
+                    entity.setFireTicks(80); // 4 seconds
+
                     Vector knockback = entity.getLocation().toVector()
-                            .subtract(meteorLoc.toVector())
+                            .subtract(playerLoc.toVector())
                             .normalize()
                             .multiply(1.5);
                     knockback.setY(0.5);
                     entity.setVelocity(entity.getVelocity().add(knockback));
                 }
 
-                // Play continuous sound
-                world.playSound(meteorLoc, Sound.ENTITY_BLAZE_BURN, 0.5f, 1.0f);
+                world.playSound(playerLoc, Sound.ENTITY_BLAZE_BURN, 0.5f, 1.0f);
             }
         };
-        task.runTaskTimer(plugin, 0L, 2L);
+        task.runTaskTimer(plugin, 0L, 1L);
         meteorTasks.put(playerId, task);
 
         // Auto-end after 8 seconds
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (activeMeteors.containsKey(playerId)) {
-                    endMeteorRide(player);
+                if (activeDisplays.containsKey(playerId)) {
+                    endMeteorRide(player, false);
                 }
             }
-        }.runTaskLater(plugin, 160L); // 8 seconds
+        }.runTaskLater(plugin, 160L);
 
         return true;
     }
 
-    private void endMeteorRide(Player player) {
+    /**
+     * Builds a transformation that rotates the block around its own center
+     * (a fixed point at the display entity's location) regardless of angle,
+     * by recomputing the translation each frame to cancel out the pivot
+     * shift that a constant translation would otherwise introduce.
+     */
+    private Transformation buildTransform(float angleRadians) {
+        float half = 0.5f * METEOR_SCALE;
+
+        // Rotate the half-extent vector around the Y axis by hand (simple
+        // trig instead of relying on AxisAngle4f#transform, to keep this
+        // dependency-free and easy to verify).
+        float cos = (float) Math.cos(angleRadians);
+        float sin = (float) Math.sin(angleRadians);
+        float rotatedHalfX = half * cos + half * sin;
+        float rotatedHalfZ = -half * sin + half * cos;
+
+        Vector3f translation = new Vector3f(-rotatedHalfX, -half, -rotatedHalfZ);
+
+        return new Transformation(
+                translation,
+                new AxisAngle4f(angleRadians, 0f, 1f, 0f),
+                new Vector3f(METEOR_SCALE, METEOR_SCALE, METEOR_SCALE),
+                new AxisAngle4f(0f, 0f, 0f, 1f)
+        );
+    }
+
+    private void endMeteorRide(Player player, boolean groundImpact) {
         UUID playerId = player.getUniqueId();
-        Fireball meteor = activeMeteors.remove(playerId);
+        BlockDisplay display = activeDisplays.remove(playerId);
         BukkitRunnable task = meteorTasks.remove(playerId);
+        TrustManager trust = activeTrust.remove(playerId);
+        spinAngles.remove(playerId);
 
         if (task != null) {
             task.cancel();
         }
 
-        if (meteor != null && meteor.isValid()) {
-            // Create explosion effect when meteor ride ends
-            Location meteorLoc = meteor.getLocation();
-            meteorLoc.getWorld().createExplosion(meteorLoc, 2.0f, false, false);
-            meteorLoc.getWorld().playSound(meteorLoc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
-            
-            // Eject player safely
-            if (meteor.getPassengers().contains(player)) {
-                meteor.removePassenger(player);
-                // Give player a small boost upward to prevent fall damage
-                player.setVelocity(new Vector(0, 0.5, 0));
+        Location endLoc = player.getLocation();
+        World world = endLoc.getWorld();
+
+        // Cosmetic boom only (particles + sound) - deliberately NOT using
+        // World#createExplosion here, since that deals its own vanilla
+        // explosion damage/knockback on top of whatever we apply manually
+        // below, which would make ground impacts hit twice as hard as
+        // intended and be affected by explosion resistance/protection in
+        // ways we don't control.
+        if (groundImpact) {
+            world.spawnParticle(Particle.EXPLOSION, endLoc, 3, 0.5, 0.3, 0.5, 0);
+            world.playSound(endLoc, Sound.ENTITY_GENERIC_EXPLODE, 1.4f, 0.8f);
+            triggerGroundImpactDamage(player, trust, endLoc, world);
+        } else {
+            world.spawnParticle(Particle.EXPLOSION, endLoc, 1);
+            world.playSound(endLoc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
+        }
+
+        if (display != null && display.isValid()) {
+            display.remove();
+        }
+
+        // Restore the player's original flight state
+        Boolean wasFlying = prevFlying.remove(playerId);
+        Boolean allowFlight = prevAllowFlight.remove(playerId);
+        Float flySpeed = prevFlySpeed.remove(playerId);
+
+        if (wasFlying != null) {
+            player.setFlying(wasFlying);
+        }
+        if (allowFlight != null) {
+            player.setAllowFlight(allowFlight);
+        }
+        if (flySpeed != null) {
+            player.setFlySpeed(flySpeed);
+        }
+
+        // Small upward boost so the player doesn't immediately drop if flight was revoked mid-air
+        if (allowFlight == null || !allowFlight) {
+            player.setVelocity(new Vector(0, 0.3, 0));
+        }
+    }
+
+    /**
+     * One-time AOE damage burst applied when the meteor actually crashes
+     * into the ground, separate from the smaller continuous contact damage
+     * applied while still airborne.
+     */
+    private void triggerGroundImpactDamage(Player player, TrustManager trust, Location impactLoc, World world) {
+        for (LivingEntity entity : impactLoc.getNearbyLivingEntities(IMPACT_RADIUS)) {
+            if (entity.equals(player)) continue;
+            if (trust != null && entity instanceof Player other && trust.isTrusted(player.getUniqueId(), other.getUniqueId())) continue;
+
+            entity.damage(IMPACT_DAMAGE, player);
+            entity.setFireTicks(100); // 5 seconds
+
+            Vector knockback = entity.getLocation().toVector().subtract(impactLoc.toVector());
+            if (knockback.lengthSquared() < 1.0E-4) {
+                // Entity is essentially on top of the impact point - push it
+                // in an arbitrary horizontal direction instead of failing
+                // to normalize a zero-length vector.
+                knockback = new Vector(1, 0, 0);
             }
-            
-            meteor.remove();
+            knockback = knockback.normalize().multiply(IMPACT_KNOCKBACK);
+            knockback.setY(0.8);
+            entity.setVelocity(entity.getVelocity().add(knockback));
         }
-    }
-
-    @EventHandler
-    public void onMeteorExplode(EntityExplodeEvent event) {
-        // Prevent meteor explosions from destroying blocks
-        if (event.getEntity() instanceof Fireball) {
-            event.blockList().clear();
-        }
-    }
-
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        UUID playerId = player.getUniqueId();
-        
-        // Check if player is riding a meteor
-        Fireball meteor = activeMeteors.get(playerId);
-        if (meteor == null || !meteor.isValid()) return;
-        
-        // Update meteor direction based on player's view direction
-        Vector newDirection = player.getLocation().getDirection().normalize().multiply(1.5);
-        meteor.setDirection(newDirection);
     }
 
     @Override
@@ -184,6 +303,6 @@ public class MeteorRideAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Ride on a meteor and crash into enemies to deal massive damage. You control the meteor's direction.";
+        return ChatColor.GRAY + "Become a blazing meteor with full flight control and crash into enemies to deal massive damage. Recast to end early.";
     }
 }

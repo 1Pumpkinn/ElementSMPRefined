@@ -4,7 +4,8 @@ import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.impl.air.*;
 import hs.elementSMPRefined.elements.abilities.impl.death.*;
 import hs.elementSMPRefined.elements.abilities.impl.earth.*;
-import hs.elementSMPRefined.elements.abilities.impl.fire.*;
+import hs.elementSMPRefined.elements.abilities.impl.fire.FireGeyserAbility;
+import hs.elementSMPRefined.elements.abilities.impl.fire.MeteorRideAbility;
 import hs.elementSMPRefined.elements.abilities.impl.frost.*;
 import hs.elementSMPRefined.elements.abilities.impl.life.*;
 import hs.elementSMPRefined.elements.abilities.impl.metal.*;
@@ -54,8 +55,8 @@ public final class AbilityRegistry {
 
         // Fire
         register(ElementType.FIRE,
-                new FireballAbility(plugin),
-                new MeteorShowerAbility(plugin)
+                new FireGeyserAbility(plugin),
+                new MeteorRideAbility(plugin)
         );
 
         // Earth

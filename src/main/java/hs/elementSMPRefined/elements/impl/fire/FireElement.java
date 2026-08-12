@@ -5,8 +5,8 @@ import hs.elementSMPRefined.elements.BaseElement;
 import hs.elementSMPRefined.elements.ElementContext;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
-import hs.elementSMPRefined.elements.abilities.impl.fire.FireballAbility;
-import hs.elementSMPRefined.elements.abilities.impl.fire.MeteorShowerAbility;
+import hs.elementSMPRefined.elements.abilities.impl.fire.FireGeyserAbility;
+import hs.elementSMPRefined.elements.abilities.impl.fire.MeteorRideAbility;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -19,8 +19,8 @@ public class FireElement extends BaseElement {
 
     public FireElement(ElementSMPRefined plugin) {
         super(plugin);
-        this.ability1 = new FireballAbility(plugin);
-        this.ability2 = new MeteorShowerAbility(plugin);
+        this.ability1 = new FireGeyserAbility(plugin);
+        this.ability2 = new MeteorRideAbility(plugin);
     }
 
     @Override

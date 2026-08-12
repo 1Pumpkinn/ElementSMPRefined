@@ -10,7 +10,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 /**
  * Handles Fire element combat interactions
- * Fire Upside 2: Apply fire aspect when hitting enemies
+ * Fire Passive: Apply fire aspect when hitting enemies with any attack
  */
 public class FireCombatListener implements Listener {
     private final ElementManager elementManager;
@@ -30,11 +30,6 @@ public class FireCombatListener implements Listener {
 
         var playerData = elementManager.data(damager.getUniqueId());
         if (playerData.getCurrentElement() != ElementType.FIRE) {
-            return;
-        }
-
-        // Check if they have Upgrade 2
-        if (playerData.getUpgradeLevel(ElementType.FIRE) < 2) {
             return;
         }
 

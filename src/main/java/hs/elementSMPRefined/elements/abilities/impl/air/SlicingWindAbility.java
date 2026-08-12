@@ -41,7 +41,7 @@ public class SlicingWindAbility extends BaseAbility {
 
         w.playSound(origin, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.2f, 1.4f);
 
-        double range = 10.0;
+        double range = 20.0;
         double hitboxWidth = 1.1;
         double damage = 5.0;
 

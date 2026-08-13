@@ -137,7 +137,6 @@ public class StatusEffectManager {
         StatusEffectData data = effectData.get(type);
 
         if (data == null) {
-            plugin.getLogger().warning("Unknown status effect type: " + type);
             return;
         }
 

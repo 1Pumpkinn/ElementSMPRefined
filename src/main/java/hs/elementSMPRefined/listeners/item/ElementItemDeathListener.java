@@ -56,20 +56,12 @@ public class ElementItemDeathListener implements Listener {
 
     private void handleCoreDrop(PlayerDeathEvent event, PlayerData playerData, ElementType currentElement) {
         if (!shouldDropCore(currentElement)) {
-            plugin.getLogger().info("Player " + event.getEntity().getName() + " died with " + 
-                    currentElement + " element - no core drop");
             return;
         }
-
-        plugin.getLogger().info("Player " + event.getEntity().getName() + " died with " + 
-                currentElement + " element - dropping core");
 
         ItemStack coreItem = hs.elementSMPRefined.items.ElementCoreItem.createCore(plugin, currentElement);
         if (coreItem != null) {
             event.getDrops().add(coreItem);
-            plugin.getLogger().info("Added " + currentElement + " core to death drops");
-        } else {
-            plugin.getLogger().warning("Failed to create " + currentElement + " core item");
         }
 
         playerData.removeElementItem(currentElement);

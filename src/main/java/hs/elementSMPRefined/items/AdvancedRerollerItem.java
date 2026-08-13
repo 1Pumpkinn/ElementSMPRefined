@@ -45,10 +45,7 @@ public final class AdvancedRerollerItem {
             recipe.setIngredient('E', Material.NETHERITE_INGOT);
             recipe.setIngredient('T', Material.TOTEM_OF_UNDYING);
 
-            boolean success = plugin.getServer().addRecipe(recipe);
-            if (!success) {
-                plugin.getLogger().warning("Failed to register Advanced Reroller recipe");
-            }
+            plugin.getServer().addRecipe(recipe);
         } catch (Exception e) {
             plugin.getLogger().severe("Error registering Advanced Reroller recipe: " + e.getMessage());
         }

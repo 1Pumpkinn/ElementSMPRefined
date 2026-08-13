@@ -46,10 +46,7 @@ public final class Upgrader1Item {
             recipe.setIngredient('A', Material.FEATHER);
 
 
-            boolean success = plugin.getServer().addRecipe(recipe);
-            if (!success) {
-                plugin.getLogger().warning("Failed to register Upgrader I recipe");
-            }
+            plugin.getServer().addRecipe(recipe);
         } catch (Exception e) {
             plugin.getLogger().severe("Error registering Upgrader I recipe: " + e.getMessage());
         }

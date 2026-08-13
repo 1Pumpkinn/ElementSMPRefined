@@ -1,4 +1,4 @@
-package hs.elementSMPRefined.elements.abilities.impl;
+package hs.elementSMPRefined.util.example;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.elements.ElementContext;

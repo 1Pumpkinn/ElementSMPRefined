@@ -39,8 +39,6 @@ public class AnnotationRegistry {
      * Scan and register all annotated elements and items
      */
     public void scanAndRegister() {
-        plugin.getLogger().info("Scanning for annotated elements and items in package: " + basePackage);
-
         try {
             List<Class<?>> classes = findClasses(basePackage);
             int elementsRegistered = 0;
@@ -63,9 +61,6 @@ public class AnnotationRegistry {
                     }
                 }
             }
-
-            plugin.getLogger().info("Registration complete: " + elementsRegistered + " elements, " +
-                    itemsRegistered + " items registered via annotations");
 
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Error during annotation scanning", e);

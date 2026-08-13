@@ -90,7 +90,7 @@ public class DeathFriendlyMobListener implements Listener {
                                 }
                             }
                         } catch (Exception ex) {
-                            plugin.getLogger().warning("Error in DeathFriendlyMobListener follow task: " + ex.getMessage());
+                            // Silently handle errors in follow task
                         }
                     }
                 }
@@ -138,7 +138,7 @@ public class DeathFriendlyMobListener implements Listener {
                         return;
                     }
                 } catch (Exception ex) {
-                    plugin.getLogger().warning("Error in DeathFriendlyMobListener onTarget: " + ex.getMessage());
+                    // Silently handle errors in target event
                 }
             }
         }
@@ -168,7 +168,7 @@ public class DeathFriendlyMobListener implements Listener {
                         return;
                     }
                 } catch (Exception ex) {
-                    plugin.getLogger().warning("Error in DeathFriendlyMobListener onDamage: " + ex.getMessage());
+                    // Silently handle errors in damage event
                 }
             }
         }
@@ -204,7 +204,7 @@ public class DeathFriendlyMobListener implements Listener {
                         mob.setAware(true);
                     }
                 } catch (Exception ex) {
-                    plugin.getLogger().warning("Error in DeathFriendlyMobListener mob command: " + ex.getMessage());
+                    // Silently handle errors in mob command
                 }
             }
         }

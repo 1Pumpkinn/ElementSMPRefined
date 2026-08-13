@@ -48,10 +48,7 @@ public final class RerollerItem {
             recipe.setIngredient('E', Material.NETHERITE_SCRAP);
             recipe.setIngredient('T', Material.TOTEM_OF_UNDYING);
             
-            boolean success = plugin.getServer().addRecipe(recipe);
-            if (!success) {
-                plugin.getLogger().warning("Failed to register Element Reroller recipe");
-            }
+            plugin.getServer().addRecipe(recipe);
         } catch (Exception e) {
             plugin.getLogger().severe("Error registering Element Reroller recipe: " + e.getMessage());
         }

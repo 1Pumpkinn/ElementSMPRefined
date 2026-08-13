@@ -40,7 +40,6 @@ public class ElementRegistry {
 
         elements.put(type, element);
         elementData.put(type, data);
-        plugin.getLogger().info("Registered element: " + type + " (" + data.displayName() + ")");
     }
 
     /**
@@ -83,7 +82,6 @@ public class ElementRegistry {
      */
     public void freeze() {
         this.frozen = true;
-        plugin.getLogger().info("Element registry frozen with " + elements.size() + " elements registered");
     }
 
     /**

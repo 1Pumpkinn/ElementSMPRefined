@@ -32,7 +32,6 @@ public class ConfigManager {
             plugin.reloadConfig();
             this.config = plugin.getConfig();
             this.elementConfiguration = new ElementConfiguration(config.getConfigurationSection("elements"));
-            plugin.getLogger().info("Configuration reloaded successfully");
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to reload configuration", e);
         }
@@ -95,7 +94,6 @@ public class ConfigManager {
         if (elementConfiguration.hasConfig(type)) {
             return elementConfiguration.getConfig(type).getAbility1Cost();
         }
-        plugin.getLogger().warning("No configuration found for " + type + ", using default ability1 cost 50");
         return 50;
     }
 
@@ -103,7 +101,6 @@ public class ConfigManager {
         if (elementConfiguration.hasConfig(type)) {
             return elementConfiguration.getConfig(type).getAbility2Cost();
         }
-        plugin.getLogger().warning("No configuration found for " + type + ", using default ability2 cost 75");
         return 75;
     }
 

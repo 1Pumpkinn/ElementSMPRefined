@@ -39,7 +39,6 @@ public class ItemRegistry {
 
         items.put(itemId, new RegisteredItem(item, data));
         elementItems.put(itemId, item);
-        plugin.getLogger().info("Registered item: " + itemId + " (" + data.displayName() + ")");
     }
 
     /**
@@ -84,7 +83,6 @@ public class ItemRegistry {
      */
     public void freeze() {
         this.frozen = true;
-        plugin.getLogger().info("Item registry frozen with " + items.size() + " items registered");
     }
 
     /**

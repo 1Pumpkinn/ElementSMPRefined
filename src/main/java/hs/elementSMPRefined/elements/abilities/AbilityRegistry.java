@@ -89,8 +89,6 @@ public final class AbilityRegistry {
                 new FrostCircleAbility(plugin),
                 new FrostPunchAbility(plugin)
         );
-
-        plugin.getLogger().info("Registered " + abilities.size() + " element ability sets");
     }
 
     /**

@@ -1,13 +1,11 @@
-package hs.elementSMPRefined.elements.example;
+package hs.elementSMPRefined.util.example;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.elements.ElementBuilder;
 import hs.elementSMPRefined.elements.Element;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
-import hs.elementSMPRefined.elements.abilities.impl.ExampleAbility;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
 /**

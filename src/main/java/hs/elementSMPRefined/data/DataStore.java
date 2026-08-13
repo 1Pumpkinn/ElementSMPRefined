@@ -52,10 +52,6 @@ public class DataStore {
         if (section == null) {
             section = playerCfg.getConfigurationSection(uuidString);
 
-            // If found at root level, log a warning
-            if (section != null) {
-                plugin.getLogger().warning("Found player data for " + uuidString + " at root level. Consider migrating to 'players.' format.");
-            }
         }
 
         if (section == null) {

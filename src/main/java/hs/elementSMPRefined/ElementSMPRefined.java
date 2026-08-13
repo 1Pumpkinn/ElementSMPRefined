@@ -42,8 +42,6 @@ public final class ElementSMPRefined extends JavaPlugin {
             initializeServices();
             registerComponents();
             startBackgroundTasks();
-
-            getLogger().info("ElementPlugin v" + getDescription().getVersion() + " enabled successfully!");
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Failed to enable plugin", e);
             getServer().getPluginManager().disablePlugin(this);
@@ -71,41 +69,27 @@ public final class ElementSMPRefined extends JavaPlugin {
     }
 
     private void initializeCore() {
-        getLogger().info("Initializing core components...");
         this.configManager = new ConfigManager(this);
         this.dataStore = new hs.elementSMPRefined.data.DataStore(this);
-        getLogger().info("Core components initialized");
     }
 
     private void initializeManagers() {
-        getLogger().info("Initializing managers...");
-
         this.trustManager = new TrustManager(this);
         this.manaManager = new ManaManager(this, dataStore, configManager);
         this.elementManager = new ElementManager(this, dataStore, manaManager, trustManager, configManager);
         this.itemManager = new ItemManager(this, manaManager, configManager);
         this.statusEffectManager = new hs.elementSMPRefined.status.StatusEffectManager(this);
-
-        getLogger().info("Managers initialized");
     }
 
     private void initializeServices() {
-        getLogger().info("Initializing services...");
-
         this.effectService = new hs.elementSMPRefined.services.EffectService(this, elementManager);
         this.validationService = new hs.elementSMPRefined.services.ValidationService(trustManager);
         this.abilityRegistry = new hs.elementSMPRefined.elements.abilities.AbilityRegistry(this);
-
-        getLogger().info("Services initialized");
     }
 
     private void initializeUtilities() {
-        getLogger().info("Initializing utilities...");
-
         this.taskScheduler = new hs.elementSMPRefined.util.scheduling.TaskScheduler(this);
         this.metadataHelper = new hs.elementSMPRefined.util.bukkit.MetadataHelper(this);
-
-        getLogger().info("Utilities initialized");
     }
 
     private void registerComponents() {
@@ -124,8 +108,6 @@ public final class ElementSMPRefined extends JavaPlugin {
                 .command("mana", new ManaCommand(manaManager, configManager))
                 .command("util", new UtilCommand(this))
                 .command("togglerecipe", new ToggleRecipeCommand(this));
-
-        getLogger().info("Commands registered");
     }
 
     private static class CommandRegister {
@@ -152,7 +134,6 @@ public final class ElementSMPRefined extends JavaPlugin {
     }
 
     private void registerListeners() {
-        getLogger().info("Registering listeners...");
         PluginManager pm = Bukkit.getPluginManager();
 
         PlayerLifecycleListener playerLifecycleListener = new PlayerLifecycleListener(this, elementManager, manaManager, effectService);
@@ -182,8 +163,6 @@ public final class ElementSMPRefined extends JavaPlugin {
             this.metalDashAbility = metalElementImpl.getMetalDashAbility();
             playerLifecycleListener.setMetalDashAbility(metalDashAbility);
         }
-
-        getLogger().info("Listeners registered");
     }
 
     private void registerItemListeners(PluginManager pm) {
@@ -230,9 +209,7 @@ public final class ElementSMPRefined extends JavaPlugin {
 
     private void registerRecipes() {
         taskScheduler.runLaterSeconds(() -> {
-            getLogger().info("Registering recipes...");
             hs.elementSMPRefined.recipes.UtilRecipes.registerRecipes(this);
-            getLogger().info("Recipes registered");
         }, 1);
     }
 

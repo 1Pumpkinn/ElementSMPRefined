@@ -25,7 +25,6 @@ public final class ElementSMPRefined extends JavaPlugin {
     private hs.elementSMPRefined.util.scheduling.TaskScheduler taskScheduler;
     private hs.elementSMPRefined.util.bukkit.MetadataHelper metadataHelper;
     private hs.elementSMPRefined.status.StatusEffectManager statusEffectManager;
-    private hs.elementSMPRefined.elements.impl.earth.listeners.EarthFriendlyMobListener earthFriendlyMobListener;
     private hs.elementSMPRefined.elements.impl.death.listeners.DeathFriendlyMobListener deathFriendlyMobListener;
     private hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener;
     private hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener airFallImpactListener;
@@ -38,9 +37,9 @@ public final class ElementSMPRefined extends JavaPlugin {
         try {
             saveDefaultConfig();
             initializeCore();
+            initializeUtilities();
             initializeManagers();
             initializeServices();
-            initializeUtilities();
             registerComponents();
             startBackgroundTasks();
 
@@ -57,9 +56,6 @@ public final class ElementSMPRefined extends JavaPlugin {
             stopBackgroundTasks();
             if (statusEffectManager != null) {
                 statusEffectManager.cleanup();
-            }
-            if (earthFriendlyMobListener != null) {
-                earthFriendlyMobListener.cleanup();
             }
             if (deathFriendlyMobListener != null) {
                 deathFriendlyMobListener.cleanup();
@@ -217,10 +213,7 @@ public final class ElementSMPRefined extends JavaPlugin {
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireImmunityListener(elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireCombatListener(elementManager, trustManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireballProtectionListener(), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthCharmListener(elementManager, this), this);
-        this.earthFriendlyMobListener = new hs.elementSMPRefined.elements.impl.earth.listeners.EarthFriendlyMobListener(this, trustManager);
-        pm.registerEvents(earthFriendlyMobListener, this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthOreDropListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthVeinMinerListener(elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.life.listeners.LifeRegenListener(elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.life.LifeElementCraftListener(this, elementManager), this);
         pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.listeners.DeathRawFoodListener(elementManager), this);

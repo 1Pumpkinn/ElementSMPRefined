@@ -3,7 +3,8 @@ package hs.elementSMPRefined.elements.abilities;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.impl.air.*;
 import hs.elementSMPRefined.elements.abilities.impl.death.*;
-import hs.elementSMPRefined.elements.abilities.impl.earth.*;
+import hs.elementSMPRefined.elements.abilities.impl.earth.EarthTunnelAbility;
+import hs.elementSMPRefined.elements.abilities.impl.earth.GraspAbility;
 import hs.elementSMPRefined.elements.abilities.impl.fire.FireGeyserAbility;
 import hs.elementSMPRefined.elements.abilities.impl.fire.MeteorRideAbility;
 import hs.elementSMPRefined.elements.abilities.impl.frost.*;
@@ -62,7 +63,7 @@ public final class AbilityRegistry {
         // Earth
         register(ElementType.EARTH,
                 new EarthTunnelAbility(plugin),
-                new EarthCharmAbility(plugin)
+                new GraspAbility(plugin)
         );
 
         // Life

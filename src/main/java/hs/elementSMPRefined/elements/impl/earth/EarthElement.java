@@ -5,8 +5,8 @@ import hs.elementSMPRefined.elements.BaseElement;
 import hs.elementSMPRefined.elements.ElementContext;
 import hs.elementSMPRefined.elements.ElementType;
 import hs.elementSMPRefined.elements.abilities.Ability;
-import hs.elementSMPRefined.elements.abilities.impl.earth.EarthCharmAbility;
 import hs.elementSMPRefined.elements.abilities.impl.earth.EarthTunnelAbility;
+import hs.elementSMPRefined.elements.abilities.impl.earth.GraspAbility;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -15,7 +15,6 @@ import org.bukkit.potion.PotionEffectType;
 
 public class EarthElement extends BaseElement {
     public static final String META_MINE_UNTIL = "earth_mine_until";
-    public static final String META_CHARM_NEXT_UNTIL = "earth_charm_next_until";
     public static final String META_TUNNELING = "earth_tunneling";
 
     private final ElementSMPRefined plugin;
@@ -26,7 +25,7 @@ public class EarthElement extends BaseElement {
         super(plugin);
         this.plugin = plugin;
         this.ability1 = new EarthTunnelAbility(plugin);
-        this.ability2 = new EarthCharmAbility(plugin);
+        this.ability2 = new GraspAbility(plugin);
     }
 
     @Override
@@ -59,7 +58,6 @@ public class EarthElement extends BaseElement {
     public void clearEffects(Player player) {
         EffectService.removeElementPotionEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE);
         player.removeMetadata(META_MINE_UNTIL, plugin);
-        player.removeMetadata(META_CHARM_NEXT_UNTIL, plugin);
         player.removeMetadata(META_TUNNELING, plugin);
         ability1.setActive(player, false);
         ability2.setActive(player, false);
@@ -72,7 +70,7 @@ public class EarthElement extends BaseElement {
 
     @Override
     public String getDescription() {
-        return "Masters of stone and earth. Earth users can tunnel through blocks and charm mobs.";
+        return "Masters of stone and earth. Earth users can tunnel through blocks and grasp enemies with earthen hands.";
     }
 
     @Override

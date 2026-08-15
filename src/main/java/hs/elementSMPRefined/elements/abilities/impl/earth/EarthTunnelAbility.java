@@ -18,6 +18,7 @@ public class EarthTunnelAbility extends BaseAbility {
     private static final Set<Material> TUNNELABLE = EnumSet.of(
             Material.STONE, Material.DEEPSLATE, Material.DIRT, Material.GRASS_BLOCK,
             Material.COBBLESTONE, Material.ANDESITE, Material.DIORITE, Material.GRANITE,
+            Material.MUD,
 
             Material.GRAVEL, Material.SAND, Material.RED_SAND, Material.SANDSTONE,
             Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK,
@@ -25,6 +26,9 @@ public class EarthTunnelAbility extends BaseAbility {
             // Nether Blocks
             Material.BLACKSTONE, Material.CRIMSON_NYLIUM,
             Material.WARPED_HYPHAE, Material.SOUL_SAND, Material.BASALT, Material.SOUL_SOIL,
+
+            // End Blocks
+            Material.END_STONE,
 
 
             // Ores

@@ -23,9 +23,8 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK,
 
             // Nether Blocks
-            Material.BLACKSTONE, Material.ANCIENT_DEBRIS, Material.CRIMSON_NYLIUM,
+            Material.BLACKSTONE, Material.CRIMSON_NYLIUM,
             Material.WARPED_HYPHAE, Material.SOUL_SAND, Material.BASALT, Material.SOUL_SOIL,
-            Material.NETHERRACK,
 
             // Ores
 

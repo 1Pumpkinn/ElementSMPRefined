@@ -115,67 +115,21 @@ public class ElementManager {
         return elementRegistry.getAllElements();
     }
 
+    /**
+     * Every element's own class already knows its display name, description, and
+     * abilities (see {@link hs.elementSMPRefined.API.element.BaseElement}) - so
+     * registering a new element is just adding one line here. Whether it's a
+     * "basic" starter element is decided separately, by {@link #getBasicElements()}.
+     */
     private void registerAllElements() {
-        // Register elements using the new registry system
-        elementRegistry.register(new AirElement(plugin), ElementRegistry.ElementData.builder()
-                .displayName("Air")
-                .description("Masters of wind and agility. Air users can reduce fall damage and move with unparalleled grace.")
-                .color("LIGHT_PURPLE")
-                .isBasic(true)
-                .build());
-
-        elementRegistry.register(new WaterElement(plugin), ElementRegistry.ElementData.builder()
-                .displayName("Water")
-                .description("Masters of the seas. Water users can breathe underwater and swim with enhanced speed.")
-                .color("AQUA")
-                .isBasic(true)
-                .build());
-
-        elementRegistry.register(new FireElement(plugin), ElementRegistry.ElementData.builder()
-                .displayName("Fire")
-                .description("Masters of flame and destruction. Fire users are immune to fire damage and can rain destruction from above.")
-                .color("RED")
-                .isBasic(true)
-                .build());
-
-        elementRegistry.register(new EarthElement(plugin), ElementRegistry.ElementData.builder()
-                .displayName("Earth")
-                .description("Masters of the land. Earth users have increased mining speed and protection from environmental hazards.")
-                .color("GREEN")
-                .isBasic(true)
-                .build());
-
-        elementRegistry.register(new LifeElement(plugin), ElementRegistry.ElementData.builder()
-                .displayName("Life")
-                .description("Masters of vitality and healing. Life users have increased health and natural regeneration.")
-                .color("LIGHT_GREEN")
-                .isBasic(false)
-                .requiresUpgrade(true)
-                .build());
-
-        elementRegistry.register(new DeathElement(plugin), ElementRegistry.ElementData.builder()
-                .displayName("Death")
-                .description("Masters of darkness and stealth. Death users can see in the dark and strike with deadly precision.")
-                .color("DARK_GRAY")
-                .isBasic(false)
-                .requiresUpgrade(true)
-                .build());
-
-        elementRegistry.register(new MetalElement(plugin), ElementRegistry.ElementData.builder()
-                .displayName("Metal")
-                .description("Masters of craftsmanship and durability. Metal users have increased mining speed and defense.")
-                .color("GRAY")
-                .isBasic(false)
-                .requiresUpgrade(true)
-                .build());
-
-        elementRegistry.register(new FrostElement(plugin), ElementRegistry.ElementData.builder()
-                .displayName("Frost")
-                .description("Masters of ice and cold. Frost users can slow enemies and freeze them in their tracks.")
-                .color("WHITE")
-                .isBasic(false)
-                .requiresUpgrade(true)
-                .build());
+        elementRegistry.register(new AirElement(plugin));
+        elementRegistry.register(new WaterElement(plugin));
+        elementRegistry.register(new FireElement(plugin));
+        elementRegistry.register(new EarthElement(plugin));
+        elementRegistry.register(new LifeElement(plugin));
+        elementRegistry.register(new DeathElement(plugin));
+        elementRegistry.register(new MetalElement(plugin));
+        elementRegistry.register(new FrostElement(plugin));
 
         // Freeze the registry to prevent further modifications
         elementRegistry.freeze();

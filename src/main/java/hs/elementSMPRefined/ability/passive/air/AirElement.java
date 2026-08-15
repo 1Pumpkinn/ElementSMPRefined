@@ -1,31 +1,28 @@
 package hs.elementSMPRefined.ability.passive.air;
 
 import hs.elementSMPRefined.API.element.BaseElement;
-import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
-import hs.elementSMPRefined.API.ability.Ability;
-import hs.elementSMPRefined.ability.main.air.SlicingWindAbility;
 import hs.elementSMPRefined.ability.main.air.AirDashAbility;
+import hs.elementSMPRefined.ability.main.air.SlicingWindAbility;
+import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.List;
+
 public class AirElement extends BaseElement {
-    private final Ability ability1;
-    private final Ability ability2;
-    private hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener fallImpactListener;
+    private AirFallImpactListener fallImpactListener;
 
     public AirElement(JavaPlugin plugin) {
-        super(plugin);
-        this.ability1 = new SlicingWindAbility(plugin);
-        this.ability2 = new AirDashAbility(plugin);
+        super(plugin, new SlicingWindAbility(plugin), new AirDashAbility(plugin));
     }
 
-    public void setFallImpactListener(hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener listener) {
+    public void setFallImpactListener(AirFallImpactListener listener) {
         this.fallImpactListener = listener;
     }
 
-    public hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener getFallImpactListener() {
+    public AirFallImpactListener getFallImpactListener() {
         return fallImpactListener;
     }
 
@@ -43,22 +40,6 @@ public class AirElement extends BaseElement {
     }
 
     @Override
-    protected boolean executeAbility1(ElementContext context) {
-        return ability1.execute(context);
-    }
-
-    @Override
-    protected boolean executeAbility2(ElementContext context) {
-        return ability2.execute(context);
-    }
-
-    @Override
-    public void clearEffects(Player player) {
-        ability1.setActive(player, false);
-        ability2.setActive(player, false);
-    }
-
-    @Override
     public String getDisplayName() {
         return ChatColor.WHITE + "Air";
     }
@@ -69,22 +50,11 @@ public class AirElement extends BaseElement {
     }
 
     @Override
-    public String getAbility1Name() {
-        return ability1.getName();
-    }
-
-    @Override
-    public String getAbility1Description() {
-        return ability1.getDescription();
-    }
-
-    @Override
-    public String getAbility2Name() {
-        return ability2.getName();
-    }
-
-    @Override
-    public String getAbility2Description() {
-        return ability2.getDescription();
+    public List<String> getPassiveBenefits() {
+        return List.of(
+                "No fall damage",
+                "The further you fall, the further nearby entities are knocked back on landing",
+                "5% chance to apply Slow Falling to enemies (Upgrade II)"
+        );
     }
 }

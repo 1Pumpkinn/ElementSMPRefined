@@ -37,10 +37,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     // Utilities
     protected TaskScheduler taskScheduler;
     protected MetadataHelper metadataHelper;
-    
-    // Registries
-    protected hs.elementSMPRefined.API.ability.AbilityRegistry abilityRegistry;
-    
+
     // Initializers
     protected CommandInitializer commandInitializer;
     protected ListenerInitializer listenerInitializer;
@@ -112,7 +109,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     private void initializeServices() {
         this.effectService = new EffectService(this, elementManager);
         this.validationService = new ValidationService(trustManager);
-        this.abilityRegistry = new hs.elementSMPRefined.API.ability.AbilityRegistry(this);
     }
 
     private void initializeInitializers() {
@@ -160,7 +156,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public TrustManager getTrustManager() { return trustManager; }
     public ItemManager getItemManager() { return itemManager; }
     public StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
-    public hs.elementSMPRefined.API.ability.AbilityRegistry getAbilityRegistry() { return abilityRegistry; }
     public EffectService getEffectService() { return effectService; }
     public ValidationService getValidationService() { return validationService; }
     public TaskScheduler getTaskScheduler() { return taskScheduler; }

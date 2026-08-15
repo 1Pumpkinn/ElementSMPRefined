@@ -117,7 +117,7 @@ public class MetalChainAbility extends BaseAbility {
                             
                             // Apply slowness potion effect to further reduce movement
                             mob.addPotionEffect(new PotionEffect(
-                                org.bukkit.potion.PotionEffectType.SLOWNESS,
+                                PotionEffectType.SLOWNESS,
                                 60, // 3 seconds
                                 10, // High amplifier
                                 false, // No particles
@@ -142,7 +142,7 @@ public class MetalChainAbility extends BaseAbility {
                     }
 
                     // Visual/audio feedback for stun
-                    player.getWorld().playSound(targetLoc, org.bukkit.Sound.BLOCK_ANVIL_LAND, 1.0f, 2.0f);
+                    player.getWorld().playSound(targetLoc, Sound.BLOCK_ANVIL_LAND, 1.0f, 2.0f);
                     player.getWorld().spawnParticle(Particle.BLOCK, targetLoc, 30,
                             0.3, 0.5, 0.3, 0.1,
                             org.bukkit.Material.IRON_BLOCK.createBlockData(), true);

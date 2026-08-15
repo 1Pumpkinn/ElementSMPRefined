@@ -1,9 +1,7 @@
 package hs.elementSMPRefined.ability.passive.death;
 
 import hs.elementSMPRefined.API.element.BaseElement;
-import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
-import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ability.main.death.DeathSummonUndeadAbility;
 import hs.elementSMPRefined.ability.main.death.DeathWitherSkullAbility;
 import hs.elementSMPRefined.services.EffectService;
@@ -13,16 +11,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DeathElement extends BaseElement {
-    private final Ability ability1;
-    private final Ability ability2;
-    private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> passiveTasks = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
 
     public DeathElement(JavaPlugin plugin) {
-        super(plugin);
-        this.ability1 = new DeathWitherSkullAbility(plugin);
-        this.ability2 = new DeathSummonUndeadAbility(plugin);
+        super(plugin, new DeathWitherSkullAbility(plugin), new DeathSummonUndeadAbility(plugin));
     }
 
     @Override
@@ -34,12 +34,11 @@ public class DeathElement extends BaseElement {
     public void applyUpsides(Player player, int upgradeLevel) {
         // Cancel any existing passive task for this player
         cancelPassiveTask(player);
-        
+
         // Upside 1: Any raw or undead foods act as golden apples (handled in a listener)
         // Upside 2: Nearby enemies get hunger 1 in a 5x5 radius (if upgradeLevel >= 2)
         if (upgradeLevel >= 2) {
-            // Start a repeating task to continuously apply hunger to nearby enemies
-            org.bukkit.scheduler.BukkitTask task = new BukkitRunnable() {
+            BukkitTask task = new BukkitRunnable() {
                 @Override
                 public void run() {
                     if (!player.isOnline()) {
@@ -47,8 +46,7 @@ public class DeathElement extends BaseElement {
                         passiveTasks.remove(player.getUniqueId());
                         return;
                     }
-                    
-                    // Apply hunger to nearby players and mobs in 5x5 radius
+
                     int radius = 5;
                     for (Player other : player.getWorld().getNearbyPlayers(player.getLocation(), radius)) {
                         if (!other.equals(player)) {
@@ -57,43 +55,23 @@ public class DeathElement extends BaseElement {
                     }
                 }
             }.runTaskTimer(plugin, 0L, 20L); // Every second
-            
-            // Store the task reference
+
             passiveTasks.put(player.getUniqueId(), task);
         }
     }
 
-    @Override
-    protected boolean executeAbility1(ElementContext context) {
-        return ability1.execute(context);
-    }
-
-    @Override
-    protected boolean executeAbility2(ElementContext context) {
-        return ability2.execute(context);
+    private void cancelPassiveTask(Player player) {
+        BukkitTask task = passiveTasks.remove(player.getUniqueId());
+        if (task != null && !task.isCancelled()) {
+            task.cancel();
+        }
     }
 
     @Override
     public void clearEffects(Player player) {
-        // Cancel passive task
+        super.clearEffects(player);
         cancelPassiveTask(player);
-        
-        // Clear night vision effect
         EffectService.removeElementPotionEffect(player, PotionEffectType.NIGHT_VISION);
-        
-        ability1.setActive(player, false);
-        ability2.setActive(player, false);
-    }
-    
-    /**
-     * Cancel the passive task for a player
-     * @param player The player to cancel the task for
-     */
-    private void cancelPassiveTask(Player player) {
-        org.bukkit.scheduler.BukkitTask task = passiveTasks.remove(player.getUniqueId());
-        if (task != null && !task.isCancelled()) {
-            task.cancel();
-        }
     }
 
     @Override
@@ -107,22 +85,11 @@ public class DeathElement extends BaseElement {
     }
 
     @Override
-    public String getAbility1Name() {
-        return ability1.getName();
-    }
-
-    @Override
-    public String getAbility1Description() {
-        return ability1.getDescription();
-    }
-
-    @Override
-    public String getAbility2Name() {
-        return ability2.getName();
-    }
-
-    @Override
-    public String getAbility2Description() {
-        return ability2.getDescription();
+    public List<String> getPassiveBenefits() {
+        return List.of(
+                "Permanent Night Vision",
+                "Raw/undead foods heal you",
+                "Nearby enemies get Hunger (Upgrade II)"
+        );
     }
 }

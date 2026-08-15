@@ -71,7 +71,7 @@ public final class CoreConsumptionHandler {
         SoundUtils.playTo(player, SoundUtils.Ability.SUCCESS);
 
         player.sendMessage(ChatColor.GREEN + "You consumed the " +
-                hs.elementSMPRefined.items.ElementCoreItem.getDisplayName(type) + ChatColor.GREEN + "!");
+                ElementCoreItem.getDisplayName(type) + ChatColor.GREEN + "!");
 
         e.setCancelled(true);
         return true;

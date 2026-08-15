@@ -196,7 +196,7 @@ public class AirFallImpactListener implements Listener {
                     double y = 0.3 + (progress * 0.5); // Particles rise up
 
                     Location particleLoc = location.clone().add(x, y, z);
-                    world.spawnParticle(org.bukkit.Particle.CLOUD, particleLoc, 1, 0, 0.1, 0, 0.02);
+                    world.spawnParticle(Particle.CLOUD, particleLoc, 1, 0, 0.1, 0, 0.02);
                 }
 
                 // Smoke particles that drift outward

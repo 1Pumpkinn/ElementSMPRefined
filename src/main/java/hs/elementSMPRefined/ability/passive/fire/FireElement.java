@@ -1,9 +1,7 @@
 package hs.elementSMPRefined.ability.passive.fire;
 
 import hs.elementSMPRefined.API.element.BaseElement;
-import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
-import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ability.main.fire.FireGeyserAbility;
 import hs.elementSMPRefined.ability.main.fire.MeteorRideAbility;
 import hs.elementSMPRefined.services.EffectService;
@@ -13,14 +11,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.List;
+
 public class FireElement extends BaseElement {
-    private final Ability ability1;
-    private final Ability ability2;
 
     public FireElement(JavaPlugin plugin) {
-        super(plugin);
-        this.ability1 = new FireGeyserAbility(plugin);
-        this.ability2 = new MeteorRideAbility(plugin);
+        super(plugin, new FireGeyserAbility(plugin), new MeteorRideAbility(plugin));
     }
 
     @Override
@@ -38,20 +34,9 @@ public class FireElement extends BaseElement {
     }
 
     @Override
-    protected boolean executeAbility1(ElementContext context) {
-        return ability1.execute(context);
-    }
-
-    @Override
-    protected boolean executeAbility2(ElementContext context) {
-        return ability2.execute(context);
-    }
-
-    @Override
     public void clearEffects(Player player) {
+        super.clearEffects(player);
         EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
-        ability1.setActive(player, false);
-        ability2.setActive(player, false);
     }
 
     @Override
@@ -65,22 +50,10 @@ public class FireElement extends BaseElement {
     }
 
     @Override
-    public String getAbility1Name() {
-        return ability1.getName();
-    }
-
-    @Override
-    public String getAbility1Description() {
-        return ability1.getDescription();
-    }
-
-    @Override
-    public String getAbility2Name() {
-        return ability2.getName();
-    }
-
-    @Override
-    public String getAbility2Description() {
-        return ability2.getDescription();
+    public List<String> getPassiveBenefits() {
+        return List.of(
+                "Immune to fire/lava damage",
+                "Apply Fire Aspect to all attacks (Upgrade II)"
+        );
     }
 }

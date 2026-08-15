@@ -14,9 +14,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ElementContext {
     private final Player player;
     private final int upgradeLevel;
-    private final hs.elementSMPRefined.managers.ManaManager manaManager;
-    private final hs.elementSMPRefined.managers.TrustManager trustManager;
-    private final hs.elementSMPRefined.managers.ConfigManager configManager;
+    private final ManaManager manaManager;
+    private final TrustManager trustManager;
+    private final ConfigManager configManager;
     private final ElementType elementType;
     private final ElementSMPRefined plugin;
 
@@ -68,17 +68,17 @@ public class ElementContext {
             return this;
         }
 
-        public Builder manaManager(hs.elementSMPRefined.managers.ManaManager manager) {
+        public Builder manaManager(ManaManager manager) {
             this.manaManager = manager;
             return this;
         }
 
-        public Builder trustManager(hs.elementSMPRefined.managers.TrustManager manager) {
+        public Builder trustManager(TrustManager manager) {
             this.trustManager = manager;
             return this;
         }
 
-        public Builder configManager(hs.elementSMPRefined.managers.ConfigManager manager) {
+        public Builder configManager(ConfigManager manager) {
             this.configManager = manager;
             return this;
         }

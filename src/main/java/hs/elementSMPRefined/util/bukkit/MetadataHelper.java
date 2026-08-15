@@ -225,7 +225,7 @@ public final class MetadataHelper {
     public void removeWithPrefix(Entity entity, String prefix) {
         // Bukkit metadata doesn't have a direct way to get all keys
         // We need to iterate through the entity's metadata values
-        for (org.bukkit.metadata.MetadataValue value : entity.getMetadata(prefix)) {
+        for (MetadataValue value : entity.getMetadata(prefix)) {
             if (value.getOwningPlugin().equals(plugin)) {
                 entity.removeMetadata(prefix, plugin);
                 cache.remove(prefix + ":" + entity.getUniqueId());

@@ -18,7 +18,7 @@ import java.util.UUID;
 public class GUIListener implements Listener {
     private final ElementSMPRefined plugin;
     // Prevent rapid re-open loops when inventories transition
-    private final java.util.Set<java.util.UUID> suppressReopen = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
+    private final java.util.Set<UUID> suppressReopen = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
     public GUIListener(ElementSMPRefined plugin) {
         this.plugin = plugin;
@@ -36,7 +36,7 @@ public class GUIListener implements Listener {
         if (title.contains("Rolling Element") || title.contains("Select Your Element")) {
             event.setCancelled(true);
 
-            hs.elementSMPRefined.gui.ElementSelectionGUI gui = ElementSelectionGUI.getGUI(player.getUniqueId());
+            ElementSelectionGUI gui = ElementSelectionGUI.getGUI(player.getUniqueId());
             if (gui != null) {
                 gui.handleClick(event.getRawSlot());
             }
@@ -64,7 +64,7 @@ public class GUIListener implements Listener {
                 if (em.data(player.getUniqueId()).getCurrentElement() == null) {
                     player.sendMessage(net.kyori.adventure.text.Component.text("You must choose an element to play!").color(net.kyori.adventure.text.format.NamedTextColor.RED));
                     suppressReopen.add(player.getUniqueId());
-                    new hs.elementSMPRefined.gui.ElementSelectionGUI(plugin, player, false).open();
+                    new ElementSelectionGUI(plugin, player, false).open();
                     // Remove suppression shortly after to allow future legitimate closes to trigger reopen
                     plugin.getServer().getScheduler().runTaskLater(plugin, () -> suppressReopen.remove(player.getUniqueId()), 2L);
                 }

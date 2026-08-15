@@ -1,84 +1,45 @@
 package hs.elementSMPRefined.util.example;
 
-import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.API.element.ElementContext;
-import hs.elementSMPRefined.API.ability.Ability;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 /**
- * Example ability implementation to demonstrate the ability system.
- * This is a template for creating new abilities.
+ * Template for a new ability. Copy this class, rename it, and fill in
+ * {@link #execute}. Extending {@link BaseAbility} gives you mana cost,
+ * cooldown, required upgrade level, and active-player tracking for free -
+ * you only need to describe the ability and implement what it does.
  */
-public class ExampleAbility implements Ability {
-    private final ElementSMPRefined plugin;
-    private final Set<UUID> activePlayers = new HashSet<>();
+public class ExampleAbility extends BaseAbility {
 
-    public ExampleAbility(ElementSMPRefined plugin) {
-        this.plugin = plugin;
+    public ExampleAbility() {
+        // abilityId, manaCost, cooldownSeconds, requiredUpgradeLevel
+        super("example_ability", 50, 0, 1);
     }
 
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
 
-        // Check if ability is already active (toggle behavior)
+        // Toggle off if already active - useful for channelled/held abilities.
         if (isActiveFor(player)) {
             setActive(player, false);
-            player.sendMessage("§cExample ability deactivated");
+            player.sendMessage(ChatColor.RED + "Example ability deactivated");
             return true;
         }
 
-        // Activate the ability
         setActive(player, true);
-        player.sendMessage("§aExample ability activated");
+        player.sendMessage(ChatColor.GREEN + "Example ability activated");
 
-        // Add your ability logic here
-        // For example: deal damage, apply effects, spawn particles, etc.
+        // Add your ability logic here: deal damage, apply effects, spawn particles, etc.
 
         return true;
     }
 
     @Override
-    public int getManaCost() {
-        return 50;
-    }
-
-    @Override
-    public int getCooldownSeconds() {
-        return 0; // No cooldown for toggle abilities
-    }
-
-    @Override
-    public int getRequiredUpgradeLevel() {
-        return 0;
-    }
-
-    @Override
-    public String getAbilityId() {
-        return "example_ability";
-    }
-
-    @Override
-    public boolean isActiveFor(Player player) {
-        return activePlayers.contains(player.getUniqueId());
-    }
-
-    @Override
-    public void setActive(Player player, boolean active) {
-        if (active) {
-            activePlayers.add(player.getUniqueId());
-        } else {
-            activePlayers.remove(player.getUniqueId());
-        }
-    }
-
-    @Override
     public String getName() {
-        return "Example Ability";
+        return ChatColor.WHITE + "Example Ability";
     }
 
     @Override

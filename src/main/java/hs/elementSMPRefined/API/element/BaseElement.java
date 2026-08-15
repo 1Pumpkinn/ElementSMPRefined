@@ -1,24 +1,35 @@
 package hs.elementSMPRefined.API.element;
 
+import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ManaManager;
+import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Abstract base class for all elements that provides common functionality
- * and reduces code duplication in element implementations.
+ * Base implementation every element should extend.
+ * <p>
+ * Handles the parts that are identical for every element - mana spending,
+ * upgrade-level gating, and forwarding ability name/description to the two
+ * abilities you hand it - so a concrete element only has to describe what
+ * makes it unique: its passives, display text, and its two {@link Ability}
+ * instances.
+ * <p>
+ * See {@code hs.elementSMPRefined.util.example.ExampleElement} for a minimal
+ * template to copy when adding a new element.
  */
 public abstract class BaseElement implements Element {
     protected final ElementSMPRefined plugin;
-    private final java.util.Set<java.util.UUID> activeAbility1 = new java.util.HashSet<>();
-    private final java.util.Set<java.util.UUID> activeAbility2 = new java.util.HashSet<>();
+    protected final Ability ability1;
+    protected final Ability ability2;
 
-    // Abstract methods that must be implemented by subclasses
-    // These are now defined in the Element interface, but BaseElement can provide default implementations if needed
-
-    public BaseElement(JavaPlugin plugin) {
+    protected BaseElement(JavaPlugin plugin, Ability ability1, Ability ability2) {
         this.plugin = (ElementSMPRefined) plugin;
+        this.ability1 = ability1;
+        this.ability2 = ability2;
     }
 
     public ElementSMPRefined getPlugin() {
@@ -26,62 +37,43 @@ public abstract class BaseElement implements Element {
     }
 
     @Override
-    public boolean ability1(ElementContext context) {
-        if (!checkUpgradeLevel(context.getPlayer(), context.getUpgradeLevel(), 1)) return false;
-
-        // Check if ability can be cancelled
-        boolean shouldCheckCosts = !canCancelAbility1(context);
-
-        if (!shouldCheckCosts) {
-            executeAbility1(context);
-            return true;
-        }
-
-        // Normal activation flow - check mana only (NO COOLDOWN)
-        int cost = context.getConfigManager().getAbility1Cost(getType());
-        if (!hasMana(context.getPlayer(), context.getManaManager(), cost)) return false;
-
-        // Execute ability first, only consume mana if successful
-        if (executeAbility1(context)) {
-            context.getManaManager().spend(context.getPlayer(), cost);
-            return true;
-        }
-        return false;
+    public final boolean ability1(ElementContext context) {
+        return activate(context, ability1, 1, context.getConfigManager().getAbility1Cost(getType()), this::canCancelAbility1);
     }
 
     @Override
-    public boolean ability2(ElementContext context) {
-        // Require upgrade level 1 before allowing upgrade level 2
+    public final boolean ability2(ElementContext context) {
+        Player player = context.getPlayer();
         if (context.getUpgradeLevel() < 1) {
-            context.getPlayer().sendMessage(ChatColor.RED + "You need Upgrade I before you can use Upgrade II abilities.");
+            player.sendMessage(ChatColor.RED + "You need Upgrade I before you can use Upgrade II abilities.");
             return false;
         }
+        return activate(context, ability2, 2, context.getConfigManager().getAbility2Cost(getType()), this::canCancelAbility2);
+    }
 
-        if (!checkUpgradeLevel(context.getPlayer(), context.getUpgradeLevel(), 2)) return false;
+    /**
+     * Shared activation flow: check upgrade level, let an active/cancellable ability
+     * toggle off for free, otherwise check and spend mana on a successful cast.
+     */
+    private boolean activate(ElementContext context, Ability ability, int requiredLevel, int cost,
+                              java.util.function.Predicate<ElementContext> canCancel) {
+        Player player = context.getPlayer();
+        if (!checkUpgradeLevel(player, context.getUpgradeLevel(), requiredLevel)) return false;
 
-        // Check if ability can be cancelled
-        boolean shouldCheckCosts = !canCancelAbility2(context);
-
-        if (!shouldCheckCosts) {
-            executeAbility2(context);
+        if (canCancel.test(context)) {
+            ability.execute(context);
             return true;
         }
 
-        // Normal activation flow - check mana only (NO COOLDOWN)
-        int cost = context.getConfigManager().getAbility2Cost(getType());
-        if (!hasMana(context.getPlayer(), context.getManaManager(), cost)) return false;
+        if (!hasMana(player, context.getManaManager(), cost)) return false;
 
-        // Execute ability first, only consume mana if successful
-        if (executeAbility2(context)) {
-            context.getManaManager().spend(context.getPlayer(), cost);
+        if (ability.execute(context)) {
+            context.getManaManager().spend(player, cost);
             return true;
         }
         return false;
     }
 
-    /**
-     * Check if player has required upgrade level for ability
-     */
     protected boolean checkUpgradeLevel(Player player, int upgradeLevel, int requiredLevel) {
         if (upgradeLevel < requiredLevel) {
             player.sendMessage(ChatColor.RED + "You need Upgrade " +
@@ -91,10 +83,7 @@ public abstract class BaseElement implements Element {
         return true;
     }
 
-    /**
-     * Check if player has enough mana (without spending it)
-     */
-    protected boolean hasMana(Player player, hs.elementSMPRefined.managers.ManaManager mana, int cost) {
+    protected boolean hasMana(Player player, ManaManager mana, int cost) {
         if (mana.get(player.getUniqueId()).getMana() < cost) {
             player.sendMessage(ChatColor.RED + "Not enough mana (" + cost + ")");
             return false;
@@ -103,70 +92,58 @@ public abstract class BaseElement implements Element {
     }
 
     /**
-     * Template methods to be implemented by concrete elements
-     */
-    protected abstract boolean executeAbility1(ElementContext context);
-
-    protected abstract boolean executeAbility2(ElementContext context);
-
-    /**
-     * Check if ability1 can be cancelled (override in subclasses if needed)
-     * @return true if the ability is active and can be cancelled
+     * Whether ability1 should toggle off (no mana check) instead of activating again.
+     * Off by default - override for abilities that support being cancelled mid-use.
      */
     protected boolean canCancelAbility1(ElementContext context) {
-        return false; // Default: no cancellation support
+        return false;
     }
 
     /**
-     * Check if ability2 can be cancelled (override in subclasses if needed)
-     * @return true if the ability is active and can be cancelled
+     * Whether ability2 should toggle off (no mana check) instead of activating again.
+     * Off by default - override for abilities that support being cancelled mid-use.
      */
     protected boolean canCancelAbility2(ElementContext context) {
-        return false; // Default: no cancellation support
+        return false;
     }
 
-    /**
-     * Helper method to check if target is valid (not player or not trusted)
-     */
-    protected boolean isValidTarget(Player player, org.bukkit.entity.LivingEntity target, hs.elementSMPRefined.managers.TrustManager trust) {
+    protected boolean isValidTarget(Player player, LivingEntity target, TrustManager trust) {
         if (target.equals(player)) return false;
-        if (target instanceof Player other && trust.isTrusted(player.getUniqueId(), other.getUniqueId())) {
-            return false;
-        }
-        return true;
+        return !(target instanceof Player other) || !trust.isTrusted(player.getUniqueId(), other.getUniqueId());
     }
 
-    /**
-     * Helper method to check if target is valid using ElementContext
-     */
-    protected boolean isValidTarget(ElementContext context, org.bukkit.entity.LivingEntity target) {
+    protected boolean isValidTarget(ElementContext context, LivingEntity target) {
         return isValidTarget(context.getPlayer(), target, context.getTrustManager());
     }
 
     /**
-     * Ability cooldown management methods
+     * Default clean-up: deactivates both abilities. Override to also strip potion
+     * effects, cancel passive tasks, clear metadata, etc. - call {@code super.clearEffects(player)}
+     * so the abilities still get deactivated.
      */
-    protected boolean isAbility1Active(Player player) {
-        return activeAbility1.contains(player.getUniqueId());
+    @Override
+    public void clearEffects(Player player) {
+        ability1.setActive(player, false);
+        ability2.setActive(player, false);
     }
 
-    public boolean isAbility2Active(Player player) {
-        return activeAbility2.contains(player.getUniqueId());
+    @Override
+    public String getAbility1Name() {
+        return ability1.getName();
     }
 
-    protected void setAbility1Active(Player player, boolean active) {
-        if (active) {
-            activeAbility1.add(player.getUniqueId());
-        } else {
-            activeAbility1.remove(player.getUniqueId());
-        }
+    @Override
+    public String getAbility1Description() {
+        return ability1.getDescription();
     }
 
-    protected void setAbility2Active(Player player, boolean active) {
-        if (active) {
-            activeAbility2.add(player.getUniqueId());
-        } else {
-            activeAbility2.remove(player.getUniqueId());
-        }
+    @Override
+    public String getAbility2Name() {
+        return ability2.getName();
+    }
+
+    @Override
+    public String getAbility2Description() {
+        return ability2.getDescription();
     }
 }

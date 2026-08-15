@@ -1,9 +1,7 @@
 package hs.elementSMPRefined.ability.passive.life;
 
 import hs.elementSMPRefined.API.element.BaseElement;
-import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
-import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ability.main.life.LifeHealingBeamAbility;
 import hs.elementSMPRefined.ability.main.life.LifeRegenAbility;
 import hs.elementSMPRefined.services.EffectService;
@@ -17,22 +15,18 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LifeElement extends BaseElement {
 
-    private final Ability ability1;
-    private final Ability ability2;
-
-    // Fixed: only ONE passive task map
+    // Only ONE passive task map, keyed by player
     private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
 
     public LifeElement(JavaPlugin plugin) {
-        super(plugin);
-        this.ability1 = new LifeRegenAbility(plugin);
-        this.ability2 = new LifeHealingBeamAbility(plugin);
+        super(plugin, new LifeRegenAbility(plugin), new LifeHealingBeamAbility(plugin));
     }
 
     @Override
@@ -40,12 +34,8 @@ public class LifeElement extends BaseElement {
         return ElementType.LIFE;
     }
 
-    // =====================================================================
-    // APPLY UPSIDES — fixed to prevent duplicate tasks
-    // =====================================================================
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-
         // Cancel previous task to prevent stacking
         cancelPassiveTask(player);
 
@@ -82,14 +72,10 @@ public class LifeElement extends BaseElement {
                 }
             }.runTaskTimer(plugin, 0L, 40L); // Every 2 seconds
 
-            // Store the running task
             passiveTasks.put(player.getUniqueId(), task);
         }
     }
 
-    // =====================================================================
-    // Crop Growth Helper
-    // =====================================================================
     private boolean growIfCrop(Block block) {
         if (block.getBlockData() instanceof Ageable ageable) {
             if (ageable.getAge() < ageable.getMaximumAge()) {
@@ -101,9 +87,6 @@ public class LifeElement extends BaseElement {
         return false;
     }
 
-    // =====================================================================
-    // Cancel passive task
-    // =====================================================================
     private void cancelPassiveTask(Player player) {
         BukkitTask task = passiveTasks.remove(player.getUniqueId());
         if (task != null && !task.isCancelled()) {
@@ -111,32 +94,13 @@ public class LifeElement extends BaseElement {
         }
     }
 
-    // =====================================================================
-    // Abilities
-    // =====================================================================
-    @Override
-    protected boolean executeAbility1(ElementContext context) {
-        return ability1.execute(context);
-    }
-
-    @Override
-    protected boolean executeAbility2(ElementContext context) {
-        return ability2.execute(context);
-    }
-
-    // =====================================================================
-    // Clearing Effects
-    // =====================================================================
     @Override
     public void clearEffects(Player player) {
+        super.clearEffects(player);
 
-        // Stop aura
         cancelPassiveTask(player);
-
-        // Clear regeneration effect
         EffectService.removeElementPotionEffect(player, PotionEffectType.REGENERATION);
 
-        // Reset health to normal
         var attr = player.getAttribute(Attribute.MAX_HEALTH);
         if (attr != null) {
             attr.setBaseValue(20.0);
@@ -144,14 +108,8 @@ public class LifeElement extends BaseElement {
                 player.setHealth(20.0);
             }
         }
-
-        ability1.setActive(player, false);
-        ability2.setActive(player, false);
     }
 
-    // =====================================================================
-    // Display
-    // =====================================================================
     @Override
     public String getDisplayName() {
         return ChatColor.GREEN + "Life";
@@ -163,22 +121,11 @@ public class LifeElement extends BaseElement {
     }
 
     @Override
-    public String getAbility1Name() {
-        return ability1.getName();
-    }
-
-    @Override
-    public String getAbility1Description() {
-        return ability1.getDescription();
-    }
-
-    @Override
-    public String getAbility2Name() {
-        return ability2.getName();
-    }
-
-    @Override
-    public String getAbility2Description() {
-        return ability2.getDescription();
+    public List<String> getPassiveBenefits() {
+        return List.of(
+                "15 hearts total",
+                "Regeneration I",
+                "Crops grow faster (Upgrade II)"
+        );
     }
 }

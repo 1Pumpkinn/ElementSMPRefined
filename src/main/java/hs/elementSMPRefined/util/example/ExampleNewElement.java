@@ -1,10 +1,10 @@
 package hs.elementSMPRefined.util.example;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.elements.ElementBuilder;
-import hs.elementSMPRefined.elements.Element;
-import hs.elementSMPRefined.elements.ElementType;
-import hs.elementSMPRefined.elements.abilities.Ability;
+import hs.elementSMPRefined.API.ElementBuilder;
+import hs.elementSMPRefined.API.Element;
+import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.Ability;
 import org.bukkit.ChatColor;
 import org.bukkit.potion.PotionEffectType;
 

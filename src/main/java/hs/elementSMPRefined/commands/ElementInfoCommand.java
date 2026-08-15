@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.commands;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.API.ElementType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;

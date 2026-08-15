@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.data;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.API.ElementType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

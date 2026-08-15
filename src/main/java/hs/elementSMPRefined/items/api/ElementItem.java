@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.items.api;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.API.ElementType;
 import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ManaManager;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;

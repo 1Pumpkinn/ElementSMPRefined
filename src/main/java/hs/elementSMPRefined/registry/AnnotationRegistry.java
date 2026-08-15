@@ -1,12 +1,9 @@
 package hs.elementSMPRefined.registry;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.elements.Element;
-import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.API.Element;
 import hs.elementSMPRefined.items.api.ElementItem;
-import org.bukkit.Bukkit;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;

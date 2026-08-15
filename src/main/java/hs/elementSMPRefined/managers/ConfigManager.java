@@ -2,7 +2,7 @@ package hs.elementSMPRefined.managers;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.config.ElementConfiguration;
-import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.API.ElementType;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.logging.Level;

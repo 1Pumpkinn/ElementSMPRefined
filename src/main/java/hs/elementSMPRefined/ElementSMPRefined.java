@@ -1,5 +1,7 @@
 package hs.elementSMPRefined;
 
+import hs.elementSMPRefined.API.AbilityRegistry;
+import hs.elementSMPRefined.API.ElementType;
 import hs.elementSMPRefined.commands.*;
 import hs.elementSMPRefined.listeners.GUIListener;
 import hs.elementSMPRefined.listeners.StatusEffectListener;
@@ -19,18 +21,18 @@ public final class ElementSMPRefined extends JavaPlugin {
     private ManaManager manaManager;
     private TrustManager trustManager;
     private ItemManager itemManager;
-    private hs.elementSMPRefined.elements.abilities.AbilityRegistry abilityRegistry;
+    private AbilityRegistry abilityRegistry;
     private hs.elementSMPRefined.services.EffectService effectService;
     private hs.elementSMPRefined.services.ValidationService validationService;
     private hs.elementSMPRefined.util.scheduling.TaskScheduler taskScheduler;
     private hs.elementSMPRefined.util.bukkit.MetadataHelper metadataHelper;
     private hs.elementSMPRefined.status.StatusEffectManager statusEffectManager;
-    private hs.elementSMPRefined.elements.impl.death.listeners.DeathFriendlyMobListener deathFriendlyMobListener;
-    private hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener;
-    private hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener airFallImpactListener;
+    private hs.elementSMPRefined.ability.passive.death.listeners.DeathFriendlyMobListener deathFriendlyMobListener;
+    private hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener frostPassiveListener;
+    private hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener airFallImpactListener;
     private hs.elementSMPRefined.listeners.GUIListener guiListener;
     private hs.elementSMPRefined.listeners.ability.AbilityListener abilityListener;
-    private hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility metalDashAbility;
+    private hs.elementSMPRefined.ability.main.metal.MetalDashAbility metalDashAbility;
 
     @Override
     public void onEnable() {
@@ -84,7 +86,7 @@ public final class ElementSMPRefined extends JavaPlugin {
     private void initializeServices() {
         this.effectService = new hs.elementSMPRefined.services.EffectService(this, elementManager);
         this.validationService = new hs.elementSMPRefined.services.ValidationService(trustManager);
-        this.abilityRegistry = new hs.elementSMPRefined.elements.abilities.AbilityRegistry(this);
+        this.abilityRegistry = new AbilityRegistry(this);
     }
 
     private void initializeUtilities() {
@@ -158,8 +160,8 @@ public final class ElementSMPRefined extends JavaPlugin {
         playerLifecycleListener.setAirFallImpactListener(this.airFallImpactListener);
 
         // Get MetalDashAbility from MetalElement
-        var metalElement = elementManager.get(hs.elementSMPRefined.elements.ElementType.METAL);
-        if (metalElement instanceof hs.elementSMPRefined.elements.impl.metal.MetalElement metalElementImpl) {
+        var metalElement = elementManager.get(ElementType.METAL);
+        if (metalElement instanceof hs.elementSMPRefined.ability.passive.metal.MetalElement metalElementImpl) {
             this.metalDashAbility = metalElementImpl.getMetalDashAbility();
             playerLifecycleListener.setMetalDashAbility(metalDashAbility);
         }
@@ -178,32 +180,32 @@ public final class ElementSMPRefined extends JavaPlugin {
 
     private void registerElementListeners(PluginManager pm) {
         // Create and register Air fall impact listener
-        this.airFallImpactListener = new hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener(this, elementManager);
+        this.airFallImpactListener = new hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener(this, elementManager);
         pm.registerEvents(this.airFallImpactListener, this);
         
         // Set the listener reference in AirElement
-        var airElement = elementManager.get(hs.elementSMPRefined.elements.ElementType.AIR);
-        if (airElement instanceof hs.elementSMPRefined.elements.impl.air.AirElement airElementImpl) {
+        var airElement = elementManager.get(ElementType.AIR);
+        if (airElement instanceof hs.elementSMPRefined.ability.passive.air.AirElement airElementImpl) {
             airElementImpl.setFallImpactListener(this.airFallImpactListener);
         }
         
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.air.listeners.AirCombatListener(elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.water.listeners.WaterDrowningImmunityListener(elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireImmunityListener(elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireCombatListener(elementManager, trustManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.fire.listeners.FireballProtectionListener(), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.earth.listeners.EarthVeinMinerListener(elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.life.listeners.LifeRegenListener(elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.life.LifeElementCraftListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.listeners.DeathRawFoodListener(elementManager), this);
-        this.deathFriendlyMobListener = new hs.elementSMPRefined.elements.impl.death.listeners.DeathFriendlyMobListener(this, trustManager);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.air.listeners.AirCombatListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.water.listeners.WaterDrowningImmunityListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.fire.listeners.FireImmunityListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.fire.listeners.FireCombatListener(elementManager, trustManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.fire.listeners.FireballProtectionListener(), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.earth.listeners.EarthVeinMinerListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.life.listeners.LifeRegenListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.life.LifeElementCraftListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.death.listeners.DeathRawFoodListener(elementManager), this);
+        this.deathFriendlyMobListener = new hs.elementSMPRefined.ability.passive.death.listeners.DeathFriendlyMobListener(this, trustManager);
         pm.registerEvents(deathFriendlyMobListener, this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.death.DeathElementCraftListener(this, elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.metal.listeners.MetalArrowImmunityListener(elementManager), this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.metal.listeners.MetalChainStunListener(this), this);
-        this.frostPassiveListener = new hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener(this, elementManager);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.death.DeathElementCraftListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.metal.listeners.MetalArrowImmunityListener(elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListener(this), this);
+        this.frostPassiveListener = new hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener(this, elementManager);
         pm.registerEvents(frostPassiveListener, this);
-        pm.registerEvents(new hs.elementSMPRefined.elements.impl.frost.listeners.FrostFrozenPunchListener(this, elementManager), this);
+        pm.registerEvents(new hs.elementSMPRefined.ability.passive.frost.listeners.FrostFrozenPunchListener(this, elementManager), this);
     }
 
 
@@ -236,7 +238,7 @@ public final class ElementSMPRefined extends JavaPlugin {
     public TrustManager getTrustManager() { return trustManager; }
     public ItemManager getItemManager() { return itemManager; }
     public hs.elementSMPRefined.status.StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
-    public hs.elementSMPRefined.elements.abilities.AbilityRegistry getAbilityRegistry() { return abilityRegistry; }
+    public AbilityRegistry getAbilityRegistry() { return abilityRegistry; }
     public hs.elementSMPRefined.services.EffectService getEffectService() { return effectService; }
     public hs.elementSMPRefined.services.ValidationService getValidationService() { return validationService; }
     public hs.elementSMPRefined.util.scheduling.TaskScheduler getTaskScheduler() { return taskScheduler; }

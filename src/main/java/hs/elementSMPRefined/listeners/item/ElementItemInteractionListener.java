@@ -2,12 +2,11 @@ package hs.elementSMPRefined.listeners.item;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.PlayerData;
-import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.API.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.managers.ItemManager;
 import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import hs.elementSMPRefined.util.visual.SoundUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

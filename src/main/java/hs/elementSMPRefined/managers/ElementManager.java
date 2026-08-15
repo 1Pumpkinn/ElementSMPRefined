@@ -1,23 +1,24 @@
 package hs.elementSMPRefined.managers;
 
+import hs.elementSMPRefined.API.Element;
+import hs.elementSMPRefined.API.ElementContext;
+import hs.elementSMPRefined.API.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.DataStore;
 import hs.elementSMPRefined.data.PlayerData;
-import hs.elementSMPRefined.elements.*;
-import hs.elementSMPRefined.elements.impl.air.AirElement;
-import hs.elementSMPRefined.elements.impl.death.DeathElement;
-import hs.elementSMPRefined.elements.impl.earth.EarthElement;
-import hs.elementSMPRefined.elements.impl.fire.FireElement;
-import hs.elementSMPRefined.elements.impl.frost.FrostElement;
-import hs.elementSMPRefined.elements.impl.life.LifeElement;
-import hs.elementSMPRefined.elements.impl.metal.MetalElement;
-import hs.elementSMPRefined.elements.impl.water.WaterElement;
+import hs.elementSMPRefined.ability.passive.air.AirElement;
+import hs.elementSMPRefined.ability.passive.death.DeathElement;
+import hs.elementSMPRefined.ability.passive.earth.EarthElement;
+import hs.elementSMPRefined.ability.passive.fire.FireElement;
+import hs.elementSMPRefined.ability.passive.frost.FrostElement;
+import hs.elementSMPRefined.ability.passive.life.LifeElement;
+import hs.elementSMPRefined.ability.passive.metal.MetalElement;
+import hs.elementSMPRefined.ability.passive.water.WaterElement;
 import hs.elementSMPRefined.registry.ElementRegistry;
 import hs.elementSMPRefined.services.EffectService;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 

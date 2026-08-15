@@ -25,11 +25,11 @@ public class PlayerLifecycleListener implements Listener {
     private final ManaManager manaManager;
     private final EffectService effectService;
     private final TaskScheduler scheduler;
-    private hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener;
-    private hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener airFallImpactListener;
+    private hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener frostPassiveListener;
+    private hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener airFallImpactListener;
     private hs.elementSMPRefined.listeners.GUIListener guiListener;
     private hs.elementSMPRefined.listeners.ability.AbilityListener abilityListener;
-    private hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility metalDashAbility;
+    private hs.elementSMPRefined.ability.main.metal.MetalDashAbility metalDashAbility;
 
     public PlayerLifecycleListener(ElementSMPRefined plugin, ElementManager elementManager,
                                    ManaManager manaManager, EffectService effectService) {
@@ -40,11 +40,11 @@ public class PlayerLifecycleListener implements Listener {
         this.scheduler = new TaskScheduler(plugin);
     }
 
-    public void setFrostPassiveListener(hs.elementSMPRefined.elements.impl.frost.listeners.FrostPassiveListener frostPassiveListener) {
+    public void setFrostPassiveListener(hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener frostPassiveListener) {
         this.frostPassiveListener = frostPassiveListener;
     }
 
-    public void setAirFallImpactListener(hs.elementSMPRefined.elements.impl.air.listeners.AirFallImpactListener airFallImpactListener) {
+    public void setAirFallImpactListener(hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener airFallImpactListener) {
         this.airFallImpactListener = airFallImpactListener;
     }
 
@@ -56,7 +56,7 @@ public class PlayerLifecycleListener implements Listener {
         this.abilityListener = abilityListener;
     }
 
-    public void setMetalDashAbility(hs.elementSMPRefined.elements.abilities.impl.metal.MetalDashAbility metalDashAbility) {
+    public void setMetalDashAbility(hs.elementSMPRefined.ability.main.metal.MetalDashAbility metalDashAbility) {
         this.metalDashAbility = metalDashAbility;
     }
 

@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.util.example;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.elements.ElementContext;
-import hs.elementSMPRefined.elements.abilities.Ability;
+import hs.elementSMPRefined.API.ElementContext;
+import hs.elementSMPRefined.API.Ability;
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;

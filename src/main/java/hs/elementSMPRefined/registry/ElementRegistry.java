@@ -1,12 +1,10 @@
 package hs.elementSMPRefined.registry;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.elements.Element;
-import hs.elementSMPRefined.elements.ElementType;
-import org.bukkit.Bukkit;
+import hs.elementSMPRefined.API.Element;
+import hs.elementSMPRefined.API.ElementType;
 
 import java.util.*;
-import java.util.logging.Level;
 
 /**
  * Central registry for all elements. Provides automatic registration and lookup.

@@ -1,5 +1,6 @@
 package hs.elementSMPRefined.listeners;
 
+import hs.elementSMPRefined.API.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.gui.ElementSelectionGUI;
 import hs.elementSMPRefined.items.ItemKeys;
@@ -12,10 +13,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Collections;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class GUIListener implements Listener {
     private final ElementSMPRefined plugin;
@@ -104,8 +102,8 @@ public class GUIListener implements Listener {
         }
 
         try {
-            hs.elementSMPRefined.elements.ElementType elementType =
-                    hs.elementSMPRefined.elements.ElementType.valueOf(elementTypeString);
+            ElementType elementType =
+                    ElementType.valueOf(elementTypeString);
 
             // Check if player already has this element
             hs.elementSMPRefined.data.PlayerData pd = plugin.getElementManager().data(player.getUniqueId());

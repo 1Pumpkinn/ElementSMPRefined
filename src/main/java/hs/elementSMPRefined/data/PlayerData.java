@@ -1,6 +1,6 @@
 package hs.elementSMPRefined.data;
 
-import hs.elementSMPRefined.elements.ElementType;
+import hs.elementSMPRefined.API.ElementType;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;

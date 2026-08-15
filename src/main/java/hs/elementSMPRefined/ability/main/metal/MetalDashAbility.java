@@ -1,8 +1,9 @@
 package hs.elementSMPRefined.ability.main.metal;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -24,9 +25,9 @@ public class MetalDashAbility extends BaseAbility implements Listener {
     private final Set<UUID> dashingPlayers = new HashSet<>();
     private final Map<UUID, Boolean> pendingStuns = new ConcurrentHashMap<>();
 
-    public MetalDashAbility(ElementSMPRefined plugin) {
+    public MetalDashAbility(JavaPlugin plugin) {
         super("metal_dash", 75, 15, 2);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 

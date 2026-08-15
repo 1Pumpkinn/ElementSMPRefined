@@ -1,10 +1,9 @@
 package hs.elementSMPRefined.services;
 
-import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.PlayerData;
-import hs.elementSMPRefined.API.Element;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.Element;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
@@ -14,6 +13,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -26,13 +26,13 @@ import java.util.Map;
  * Single source of truth for all effect-related operations.
  */
 public class EffectService implements Listener {
-    private final ElementSMPRefined plugin;
+    private final JavaPlugin plugin;
     private final ElementManager elementManager;
 
     // Cache of required effects per element
     private final Map<ElementType, EffectRequirement[]> requiredEffects = new EnumMap<>(ElementType.class);
 
-    public EffectService(ElementSMPRefined plugin, ElementManager elementManager) {
+    public EffectService(JavaPlugin plugin, ElementManager elementManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         initializeRequirements();

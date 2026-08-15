@@ -1,15 +1,15 @@
 package hs.elementSMPRefined.ability.passive.earth;
 
-import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.BaseElement;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.ElementType;
-import hs.elementSMPRefined.API.Ability;
+import hs.elementSMPRefined.API.element.BaseElement;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ability.main.earth.EarthTunnelAbility;
 import hs.elementSMPRefined.ability.main.earth.GraspAbility;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -17,13 +17,11 @@ public class EarthElement extends BaseElement {
     public static final String META_MINE_UNTIL = "earth_mine_until";
     public static final String META_TUNNELING = "earth_tunneling";
 
-    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
 
-    public EarthElement(ElementSMPRefined plugin) {
+    public EarthElement(JavaPlugin plugin) {
         super(plugin);
-        this.plugin = plugin;
         this.ability1 = new EarthTunnelAbility(plugin);
         this.ability2 = new GraspAbility(plugin);
     }

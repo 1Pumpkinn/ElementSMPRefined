@@ -1,4 +1,4 @@
-package hs.elementSMPRefined.API;
+package hs.elementSMPRefined.API.element;
 
 import org.bukkit.entity.Player;
 

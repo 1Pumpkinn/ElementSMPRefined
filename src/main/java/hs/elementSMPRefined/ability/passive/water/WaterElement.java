@@ -1,26 +1,24 @@
 package hs.elementSMPRefined.ability.passive.water;
 
-import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.BaseElement;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.ElementType;
-import hs.elementSMPRefined.API.Ability;
+import hs.elementSMPRefined.API.element.BaseElement;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ability.main.water.WaterBeamAbility;
 import hs.elementSMPRefined.ability.main.water.WaterGeyserAbility;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class WaterElement extends BaseElement {
-    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
 
-    public WaterElement(ElementSMPRefined plugin) {
+    public WaterElement(JavaPlugin plugin) {
         super(plugin);
-        this.plugin = plugin;
         this.ability1 = new WaterGeyserAbility(plugin);
         this.ability2 = new WaterBeamAbility(plugin);
     }

@@ -1,22 +1,22 @@
 package hs.elementSMPRefined.managers;
 
-import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.items.api.ElementItem;
 import hs.elementSMPRefined.registry.ItemRegistry;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Collection;
 
 public class ItemManager {
-    private final ElementSMPRefined plugin;
+    private final JavaPlugin plugin;
     private final ManaManager mana;
     private final ConfigManager configManager;
     private final ItemRegistry itemRegistry;
 
-    public ItemManager(ElementSMPRefined plugin, ManaManager mana, ConfigManager configManager) {
+    public ItemManager(JavaPlugin plugin, ManaManager mana, ConfigManager configManager) {
         this.plugin = plugin;
         this.mana = mana;
         this.configManager = configManager;

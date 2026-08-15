@@ -1,22 +1,24 @@
 package hs.elementSMPRefined.ability.main.air;
 
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class AirDashAbility extends BaseAbility {
-    private final hs.elementSMPRefined.ElementSMPRefined plugin;
+    private final ElementSMPRefined plugin;
 
-    public AirDashAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
+    public AirDashAbility(JavaPlugin plugin) {
         super("air_dash", 75, 5, 1);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

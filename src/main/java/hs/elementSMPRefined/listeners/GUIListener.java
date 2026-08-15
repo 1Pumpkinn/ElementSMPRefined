@@ -1,6 +1,6 @@
 package hs.elementSMPRefined.listeners;
 
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.gui.ElementSelectionGUI;
 import hs.elementSMPRefined.items.ItemKeys;

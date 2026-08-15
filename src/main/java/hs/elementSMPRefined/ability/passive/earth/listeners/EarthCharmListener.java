@@ -3,6 +3,7 @@
 //import hs.elementSMPRefined.ElementSMPRefined;
 //import hs.elementSMPRefined.ability.passive.earth.EarthElement;
 //import hs.elementSMPRefined.managers.ElementManager;
+//import org.bukkit.plugin.java.JavaPlugin;
 //import hs.elementSMPRefined.util.bukkit.MetadataHelper;
 //import org.bukkit.ChatColor;
 //import org.bukkit.entity.*;
@@ -18,7 +19,7 @@
 //
 //    public EarthCharmListener(ElementManager elements, ElementSMPRefined plugin) {
 //        this.elements = elements;
-//        this.plugin = plugin;
+//        this.plugin = (ElementSMPRefined) plugin;
 //        this.metadataHelper = plugin.getMetadataHelper();
 //    }
 //

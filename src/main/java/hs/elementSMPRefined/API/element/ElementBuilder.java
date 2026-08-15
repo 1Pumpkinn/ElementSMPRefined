@@ -1,5 +1,6 @@
-package hs.elementSMPRefined.API;
+package hs.elementSMPRefined.API.element;
 
+import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

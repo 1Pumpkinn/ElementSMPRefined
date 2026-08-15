@@ -1,10 +1,10 @@
 package hs.elementSMPRefined.data;
 
-import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class DataStore {
-    private final ElementSMPRefined plugin;
+    private final JavaPlugin plugin;
 
     private final File playerFile;
     private FileConfiguration playerCfg;
@@ -61,7 +61,7 @@ public class DataStore {
         return new PlayerData(uuid, section);
     }
 
-    public DataStore(ElementSMPRefined plugin) {
+    public DataStore(JavaPlugin plugin) {
         this.plugin = plugin;
         File dataDir = new File(plugin.getDataFolder(), "data");
         if (!dataDir.exists()) {

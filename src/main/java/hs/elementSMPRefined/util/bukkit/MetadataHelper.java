@@ -1,10 +1,10 @@
 package hs.elementSMPRefined.util.bukkit;
 
-import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.util.time.TimeUtils.Expiration;
 import org.bukkit.entity.Entity;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -15,10 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Provides a clean API for entity metadata management with automatic cleanup.
  */
 public final class MetadataHelper {
-    private final ElementSMPRefined plugin;
+    private final JavaPlugin plugin;
     private final ConcurrentHashMap<String, Long> cache = new ConcurrentHashMap<>();
 
-    public MetadataHelper(ElementSMPRefined plugin) {
+    public MetadataHelper(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 

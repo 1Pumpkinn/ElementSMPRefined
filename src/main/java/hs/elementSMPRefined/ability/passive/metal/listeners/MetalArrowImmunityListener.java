@@ -1,6 +1,6 @@
 package hs.elementSMPRefined.ability.passive.metal.listeners;
 
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;

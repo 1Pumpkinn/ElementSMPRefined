@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.ability.main.fire;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
@@ -10,6 +10,7 @@ import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -58,9 +59,9 @@ public class MeteorRideAbility extends BaseAbility {
     private static final double IMPACT_DAMAGE = 14.0;
     private static final double IMPACT_KNOCKBACK = 2.2;
 
-    public MeteorRideAbility(ElementSMPRefined plugin) {
+    public MeteorRideAbility(JavaPlugin plugin) {
         super("fire_meteor_ride", 60, 15, 2);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

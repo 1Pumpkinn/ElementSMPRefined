@@ -1,15 +1,15 @@
 package hs.elementSMPRefined.ability.passive.fire;
 
-import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.BaseElement;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.ElementType;
-import hs.elementSMPRefined.API.Ability;
+import hs.elementSMPRefined.API.element.BaseElement;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ability.main.fire.FireGeyserAbility;
 import hs.elementSMPRefined.ability.main.fire.MeteorRideAbility;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -17,7 +17,7 @@ public class FireElement extends BaseElement {
     private final Ability ability1;
     private final Ability ability2;
 
-    public FireElement(ElementSMPRefined plugin) {
+    public FireElement(JavaPlugin plugin) {
         super(plugin);
         this.ability1 = new FireGeyserAbility(plugin);
         this.ability2 = new MeteorRideAbility(plugin);

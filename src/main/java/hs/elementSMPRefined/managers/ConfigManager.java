@@ -1,18 +1,18 @@
 package hs.elementSMPRefined.managers;
 
-import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.config.ElementConfiguration;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
 
 public class ConfigManager {
-    private final ElementSMPRefined plugin;
+    private final JavaPlugin plugin;
     private FileConfiguration config;
     private ElementConfiguration elementConfiguration;
 
-    public ConfigManager(ElementSMPRefined plugin) {
+    public ConfigManager(JavaPlugin plugin) {
         this.plugin = plugin;
         try {
             this.config = plugin.getConfig();

@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.ability.main.death;
 
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -9,6 +9,7 @@ import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
@@ -23,9 +24,9 @@ public class DeathSummonUndeadAbility extends BaseAbility {
     public static final String META_FRIENDLY_UNDEAD_UNTIL = "death_summoned_until";
     private final Random random = new Random();
 
-    public DeathSummonUndeadAbility(ElementSMPRefined plugin) {
+    public DeathSummonUndeadAbility(JavaPlugin plugin) {
         super("death_summon_undead", 50, 30, 1);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

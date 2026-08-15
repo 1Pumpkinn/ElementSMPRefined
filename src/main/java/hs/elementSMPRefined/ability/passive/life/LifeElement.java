@@ -1,10 +1,9 @@
 package hs.elementSMPRefined.ability.passive.life;
 
-import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.BaseElement;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.ElementType;
-import hs.elementSMPRefined.API.Ability;
+import hs.elementSMPRefined.API.element.BaseElement;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ability.main.life.LifeHealingBeamAbility;
 import hs.elementSMPRefined.ability.main.life.LifeRegenAbility;
 import hs.elementSMPRefined.services.EffectService;
@@ -13,6 +12,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -23,16 +23,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LifeElement extends BaseElement {
 
-    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
 
     // Fixed: only ONE passive task map
     private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
 
-    public LifeElement(ElementSMPRefined plugin) {
+    public LifeElement(JavaPlugin plugin) {
         super(plugin);
-        this.plugin = plugin;
         this.ability1 = new LifeRegenAbility(plugin);
         this.ability2 = new LifeHealingBeamAbility(plugin);
     }

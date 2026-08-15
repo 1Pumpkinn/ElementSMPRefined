@@ -1,10 +1,11 @@
-package hs.elementSMPRefined.API;
+package hs.elementSMPRefined.API.element;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Context object that encapsulates all managers required for element abilities.
@@ -82,8 +83,8 @@ public class ElementContext {
             return this;
         }
 
-        public Builder plugin(ElementSMPRefined plugin) {
-            this.plugin = plugin;
+        public Builder plugin(JavaPlugin plugin) {
+            this.plugin = (ElementSMPRefined) plugin;
             return this;
         }
 

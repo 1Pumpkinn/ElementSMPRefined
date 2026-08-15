@@ -1,4 +1,4 @@
-package hs.elementSMPRefined.API;
+package hs.elementSMPRefined.API.element;
 
 public enum ElementType {
     AIR,

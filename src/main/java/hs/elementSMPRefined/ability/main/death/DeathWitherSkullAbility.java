@@ -1,20 +1,21 @@
 package hs.elementSMPRefined.ability.main.death;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.WitherSkull;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 public class DeathWitherSkullAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
-    public DeathWitherSkullAbility(ElementSMPRefined plugin) {
+    public DeathWitherSkullAbility(JavaPlugin plugin) {
         super("death_wither_skull", 75, 10, 2);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

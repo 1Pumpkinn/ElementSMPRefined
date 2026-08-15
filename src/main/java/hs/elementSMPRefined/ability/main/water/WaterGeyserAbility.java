@@ -1,12 +1,14 @@
 package hs.elementSMPRefined.ability.main.water;
 
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -15,11 +17,11 @@ import org.bukkit.util.Vector;
  */
 public class WaterGeyserAbility extends BaseAbility {
 
-    private final hs.elementSMPRefined.ElementSMPRefined plugin;
+    private final ElementSMPRefined plugin;
 
-    public WaterGeyserAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
+    public WaterGeyserAbility(JavaPlugin plugin) {
         super("water_geyser", 75, 5, 1);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

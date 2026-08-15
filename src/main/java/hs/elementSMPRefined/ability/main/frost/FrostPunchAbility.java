@@ -1,22 +1,23 @@
 package hs.elementSMPRefined.ability.main.frost;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class FrostPunchAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
     public static final String META_FROZEN_PUNCH_READY = "frost_frozen_punch_ready";
 
-    public FrostPunchAbility(ElementSMPRefined plugin) {
+    public FrostPunchAbility(JavaPlugin plugin) {
         super("frost_frozen_punch", 75, 10, 2);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

@@ -2,7 +2,8 @@ package hs.elementSMPRefined.ability.passive.death;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.PlayerData;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
+import org.bukkit.plugin.java.JavaPlugin;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.visual.SoundUtils;
@@ -22,8 +23,8 @@ public class DeathElementCraftListener implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
 
-    public DeathElementCraftListener(ElementSMPRefined plugin, ElementManager elementManager) {
-        this.plugin = plugin;
+    public DeathElementCraftListener(JavaPlugin plugin, ElementManager elementManager) {
+        this.plugin = (ElementSMPRefined) plugin;
         this.elementManager = elementManager;
     }
 

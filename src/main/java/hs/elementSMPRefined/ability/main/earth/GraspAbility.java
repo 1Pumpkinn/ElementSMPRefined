@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.ability.main.earth;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
@@ -14,6 +14,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
@@ -46,9 +47,9 @@ public class GraspAbility extends BaseAbility implements Listener {
     /** Grasped target UUID -> the session holding them, for the move-lock handler and quit cleanup. */
     private final Map<UUID, GraspSession> grasped = new HashMap<>();
 
-    public GraspAbility(ElementSMPRefined plugin) {
+    public GraspAbility(JavaPlugin plugin) {
         super("earth_grasp", 60, 12, 2);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 

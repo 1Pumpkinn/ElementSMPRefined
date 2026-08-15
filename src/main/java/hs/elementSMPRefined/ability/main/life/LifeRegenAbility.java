@@ -1,22 +1,24 @@
 package hs.elementSMPRefined.ability.main.life;
 
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class LifeRegenAbility extends BaseAbility {
 
-    private final hs.elementSMPRefined.ElementSMPRefined plugin;
-    
-    public LifeRegenAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
+    private final ElementSMPRefined plugin;
+
+    public LifeRegenAbility(JavaPlugin plugin) {
         super("life_regen", 50, 20, 1);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

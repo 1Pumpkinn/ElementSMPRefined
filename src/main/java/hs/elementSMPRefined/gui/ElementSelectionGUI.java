@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.gui;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.Bukkit;

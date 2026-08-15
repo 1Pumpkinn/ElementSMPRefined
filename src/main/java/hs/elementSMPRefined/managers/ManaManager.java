@@ -1,11 +1,11 @@
 package hs.elementSMPRefined.managers;
 
-import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.DataStore;
 import hs.elementSMPRefined.data.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Map;
@@ -13,14 +13,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ManaManager {
-    private final ElementSMPRefined plugin;
+    private final JavaPlugin plugin;
     private final DataStore store;
     private final ConfigManager configManager;
     private BukkitTask task;
 
     private final Map<UUID, PlayerData> cache = new ConcurrentHashMap<>();
 
-    public ManaManager(ElementSMPRefined plugin, DataStore store, ConfigManager configManager) {
+    public ManaManager(JavaPlugin plugin, DataStore store, ConfigManager configManager) {
         this.plugin = plugin;
         this.store = store;
         this.configManager = configManager;

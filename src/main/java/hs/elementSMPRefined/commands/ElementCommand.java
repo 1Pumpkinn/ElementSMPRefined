@@ -2,7 +2,7 @@ package hs.elementSMPRefined.commands;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.DataStore;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.gui.ElementSelectionGUI;
 import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ElementManager;

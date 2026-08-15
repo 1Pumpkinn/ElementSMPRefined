@@ -1,28 +1,26 @@
 package hs.elementSMPRefined.ability.passive.death;
 
-import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.BaseElement;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.ElementType;
-import hs.elementSMPRefined.API.Ability;
+import hs.elementSMPRefined.API.element.BaseElement;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ability.main.death.DeathSummonUndeadAbility;
 import hs.elementSMPRefined.ability.main.death.DeathWitherSkullAbility;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class DeathElement extends BaseElement {
-    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
     private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> passiveTasks = new java.util.concurrent.ConcurrentHashMap<>();
 
-    public DeathElement(ElementSMPRefined plugin) {
+    public DeathElement(JavaPlugin plugin) {
         super(plugin);
-        this.plugin = plugin;
         this.ability1 = new DeathWitherSkullAbility(plugin);
         this.ability2 = new DeathSummonUndeadAbility(plugin);
     }

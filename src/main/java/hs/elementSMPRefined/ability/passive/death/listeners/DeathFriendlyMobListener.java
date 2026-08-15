@@ -1,8 +1,9 @@
 package hs.elementSMPRefined.ability.passive.death.listeners;
 
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.managers.TrustManager;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -19,8 +20,8 @@ public class DeathFriendlyMobListener implements Listener {
     private final TrustManager trustManager;
     private org.bukkit.scheduler.BukkitTask followTask;
 
-    public DeathFriendlyMobListener(ElementSMPRefined plugin, TrustManager trustManager) {
-        this.plugin = plugin;
+    public DeathFriendlyMobListener(JavaPlugin plugin, TrustManager trustManager) {
+        this.plugin = (ElementSMPRefined) plugin;
         this.trustManager = trustManager;
         startFollowTask();
     }

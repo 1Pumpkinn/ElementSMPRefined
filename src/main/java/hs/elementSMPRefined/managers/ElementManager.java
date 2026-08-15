@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.managers;
 
-import hs.elementSMPRefined.API.Element;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.Element;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.DataStore;
@@ -20,6 +20,7 @@ import hs.elementSMPRefined.services.EffectService;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -39,9 +40,9 @@ public class ElementManager {
     private final Set<UUID> currentlyRolling = new HashSet<>();
     private final Random random = new Random();
 
-    public ElementManager(ElementSMPRefined plugin, DataStore store, ManaManager manaManager,
+    public ElementManager(JavaPlugin plugin, DataStore store, ManaManager manaManager,
                           TrustManager trustManager, ConfigManager configManager) {
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
         this.store = store;
         this.manaManager = manaManager;
         this.trustManager = trustManager;

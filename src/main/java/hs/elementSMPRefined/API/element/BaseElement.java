@@ -1,8 +1,9 @@
-package hs.elementSMPRefined.API;
+package hs.elementSMPRefined.API.element;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Abstract base class for all elements that provides common functionality
@@ -16,8 +17,8 @@ public abstract class BaseElement implements Element {
     // Abstract methods that must be implemented by subclasses
     // These are now defined in the Element interface, but BaseElement can provide default implementations if needed
 
-    public BaseElement(ElementSMPRefined plugin) {
-        this.plugin = plugin;
+    public BaseElement(JavaPlugin plugin) {
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     public ElementSMPRefined getPlugin() {

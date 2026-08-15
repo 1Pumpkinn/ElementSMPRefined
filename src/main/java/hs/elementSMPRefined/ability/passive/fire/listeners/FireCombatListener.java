@@ -1,6 +1,6 @@
 package hs.elementSMPRefined.ability.passive.fire.listeners;
 
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.Player;

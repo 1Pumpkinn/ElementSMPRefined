@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.util.bukkit;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

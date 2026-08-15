@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.ability.passive.death.listeners;
 
 import hs.elementSMPRefined.data.PlayerData;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;

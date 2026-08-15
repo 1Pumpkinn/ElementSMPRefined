@@ -1,6 +1,5 @@
 package hs.elementSMPRefined.items;
 
-import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -9,6 +8,7 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public final class AdvancedRerollerItem {
 
     public static final String KEY = "advanced_reroller";
 
-    public static ItemStack make(ElementSMPRefined plugin) {
+    public static ItemStack make(JavaPlugin plugin) {
         ItemStack item = new ItemStack(Material.RECOVERY_COMPASS);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_PURPLE + "Advanced Reroller");
@@ -26,12 +26,12 @@ public final class AdvancedRerollerItem {
                 ChatColor.YELLOW + "Right-click to reroll"
         ));
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        pdc.set(ItemKeys.namespaced(plugin, KEY), PersistentDataType.BYTE, (byte)1);
+        pdc.set(ItemKeys.advancedReroller(plugin), PersistentDataType.BYTE, (byte)1);
         item.setItemMeta(meta);
         return item;
     }
 
-    public static void registerRecipe(ElementSMPRefined plugin) {
+    public static void registerRecipe(JavaPlugin plugin) {
         try {
             ItemStack result = make(plugin);
             NamespacedKey key = new NamespacedKey(plugin, KEY);

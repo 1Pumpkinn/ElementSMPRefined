@@ -3,6 +3,7 @@ package hs.elementSMPRefined.ability.passive.metal.listeners;
 import hs.elementSMPRefined.ElementSMPRefined;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,8 +19,8 @@ import org.bukkit.util.Vector;
 public class MetalChainStunListener implements Listener {
     private final ElementSMPRefined plugin;
 
-    public MetalChainStunListener(ElementSMPRefined plugin) {
-        this.plugin = plugin;
+    public MetalChainStunListener(JavaPlugin plugin) {
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     /**

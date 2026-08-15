@@ -1,12 +1,14 @@
 package hs.elementSMPRefined.ability.main.air;
 
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -16,11 +18,11 @@ import org.bukkit.util.Vector;
  * knocking targets away.
  */
 public class SlicingWindAbility extends BaseAbility {
-    private final hs.elementSMPRefined.ElementSMPRefined plugin;
+    private final ElementSMPRefined plugin;
 
-    public SlicingWindAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
+    public SlicingWindAbility(JavaPlugin plugin) {
         super("slicing_wind", 40, 6, 1);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

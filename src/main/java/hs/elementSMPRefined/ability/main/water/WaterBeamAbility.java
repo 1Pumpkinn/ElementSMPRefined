@@ -1,12 +1,14 @@
 package hs.elementSMPRefined.ability.main.water;
 
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -17,11 +19,11 @@ import java.util.UUID;
 
 public class WaterBeamAbility extends BaseAbility {
     private final Set<UUID> activeUsers = new HashSet<>();
-    private final hs.elementSMPRefined.ElementSMPRefined plugin;
+    private final ElementSMPRefined plugin;
 
-    public WaterBeamAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
+    public WaterBeamAbility(JavaPlugin plugin) {
         super("water_beam", 50, 15, 2);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
     
     @Override

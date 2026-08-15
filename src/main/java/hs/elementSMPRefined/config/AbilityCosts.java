@@ -1,6 +1,6 @@
 package hs.elementSMPRefined.config;
 
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 
 import java.util.EnumMap;
 import java.util.Map;

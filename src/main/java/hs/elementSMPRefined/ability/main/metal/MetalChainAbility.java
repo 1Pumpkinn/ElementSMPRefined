@@ -1,8 +1,9 @@
 package hs.elementSMPRefined.ability.main.metal;
 
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.ElementSMPRefined;
+import org.bukkit.plugin.java.JavaPlugin;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -19,9 +20,9 @@ import org.bukkit.util.Vector;
 public class MetalChainAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
-    public MetalChainAbility(ElementSMPRefined plugin) {
+    public MetalChainAbility(JavaPlugin plugin) {
         super("metal_chain", 50, 10, 1);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

@@ -1,5 +1,6 @@
-package hs.elementSMPRefined.API;
+package hs.elementSMPRefined.API.ability;
 
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.air.*;
 import hs.elementSMPRefined.ability.main.death.*;
 import hs.elementSMPRefined.ability.main.earth.EarthTunnelAbility;
@@ -11,6 +12,7 @@ import hs.elementSMPRefined.ability.main.life.*;
 import hs.elementSMPRefined.ability.main.metal.*;
 import hs.elementSMPRefined.ability.main.water.*;
 import hs.elementSMPRefined.ElementSMPRefined;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
@@ -32,8 +34,8 @@ public final class AbilityRegistry {
         }
     }
 
-    public AbilityRegistry(ElementSMPRefined plugin) {
-        this.plugin = plugin;
+    public AbilityRegistry(JavaPlugin plugin) {
+        this.plugin = (ElementSMPRefined) plugin;
         registerAll();
     }
 

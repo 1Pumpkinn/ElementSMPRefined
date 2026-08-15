@@ -1,8 +1,9 @@
 package hs.elementSMPRefined.ability.passive.frost.listeners;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.frost.FrostPunchAbility;
+import org.bukkit.plugin.java.JavaPlugin;
 import hs.elementSMPRefined.managers.ElementManager;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import org.bukkit.Location;
@@ -27,8 +28,8 @@ public class FrostFrozenPunchListener implements Listener {
 
     public static final String META_FROZEN = "frost_frozen";
 
-    public FrostFrozenPunchListener(ElementSMPRefined plugin, ElementManager elementManager) {
-        this.plugin = plugin;
+    public FrostFrozenPunchListener(JavaPlugin plugin, ElementManager elementManager) {
+        this.plugin = (ElementSMPRefined) plugin;
         this.elementManager = elementManager;
     }
 

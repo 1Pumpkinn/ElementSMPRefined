@@ -1,23 +1,25 @@
 package hs.elementSMPRefined.ability.main.life;
 
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 public class LifeHealingBeamAbility extends BaseAbility {
 
-    private final hs.elementSMPRefined.ElementSMPRefined plugin;
-    
-    public LifeHealingBeamAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
+    private final ElementSMPRefined plugin;
+
+    public LifeHealingBeamAbility(JavaPlugin plugin) {
         super("life_healing_beam", 75, 15, 2);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

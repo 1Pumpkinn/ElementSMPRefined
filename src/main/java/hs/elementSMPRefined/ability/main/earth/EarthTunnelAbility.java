@@ -1,12 +1,14 @@
 package hs.elementSMPRefined.ability.main.earth;
 
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.ability.passive.earth.EarthElement;
 import hs.elementSMPRefined.util.bukkit.MetadataHelper;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -55,13 +57,13 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.COAL_BLOCK
     );
 
-    private final hs.elementSMPRefined.ElementSMPRefined plugin;
+    private final ElementSMPRefined plugin;
     private final MetadataHelper metadataHelper;
 
-    public EarthTunnelAbility(hs.elementSMPRefined.ElementSMPRefined plugin) {
+    public EarthTunnelAbility(JavaPlugin plugin) {
         super("earth_tunnel", 50, 10, 1);
-        this.plugin = plugin;
-        this.metadataHelper = plugin.getMetadataHelper();
+        this.plugin = (ElementSMPRefined) plugin;
+        this.metadataHelper = ((ElementSMPRefined) plugin).getMetadataHelper();
     }
 
     @Override

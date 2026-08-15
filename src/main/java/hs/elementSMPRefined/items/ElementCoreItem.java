@@ -1,13 +1,13 @@
 package hs.elementSMPRefined.items;
 
-import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,7 +76,7 @@ public final class ElementCoreItem {
         }
     }
 
-    public static ItemStack createCore(ElementSMPRefined plugin, ElementType type) {
+    public static ItemStack createCore(JavaPlugin plugin, ElementType type) {
         ElementCoreProperties props = properties(type);
         if (props == null) return null;
 

@@ -4,6 +4,7 @@ import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.items.api.ElementItem;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
@@ -17,8 +18,8 @@ public class ItemRegistry {
     private final Map<String, ElementItem> elementItems = new HashMap<>();
     private boolean frozen = false;
 
-    public ItemRegistry(ElementSMPRefined plugin) {
-        this.plugin = plugin;
+    public ItemRegistry(JavaPlugin plugin) {
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     /**

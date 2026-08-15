@@ -1,24 +1,22 @@
 package hs.elementSMPRefined.ability.passive.air;
 
-import hs.elementSMPRefined.API.BaseElement;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.ElementType;
-import hs.elementSMPRefined.API.Ability;
+import hs.elementSMPRefined.API.element.BaseElement;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.ability.main.air.SlicingWindAbility;
 import hs.elementSMPRefined.ability.main.air.AirDashAbility;
-import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class AirElement extends BaseElement {
-    private final ElementSMPRefined plugin;
     private final Ability ability1;
     private final Ability ability2;
     private hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener fallImpactListener;
 
-    public AirElement(ElementSMPRefined plugin) {
+    public AirElement(JavaPlugin plugin) {
         super(plugin);
-        this.plugin = plugin;
         this.ability1 = new SlicingWindAbility(plugin);
         this.ability2 = new AirDashAbility(plugin);
     }

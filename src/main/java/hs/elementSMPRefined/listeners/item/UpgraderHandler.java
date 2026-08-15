@@ -2,7 +2,7 @@ package hs.elementSMPRefined.listeners.item;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.PlayerData;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.ChatColor;

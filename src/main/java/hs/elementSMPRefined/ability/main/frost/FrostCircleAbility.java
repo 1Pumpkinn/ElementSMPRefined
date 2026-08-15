@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.ability.main.frost;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementContext;
-import hs.elementSMPRefined.API.BaseAbility;
+import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.ability.BaseAbility;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -11,6 +11,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -25,9 +26,9 @@ public class FrostCircleAbility extends BaseAbility {
 
     public static final String META_CIRCLE_FROZEN = "frost_freezing_circle";
 
-    public FrostCircleAbility(ElementSMPRefined plugin) {
+    public FrostCircleAbility(JavaPlugin plugin) {
         super("frost_freezing_circle", 50, 10, 1);
-        this.plugin = plugin;
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     @Override

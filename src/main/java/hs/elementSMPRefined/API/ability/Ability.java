@@ -1,5 +1,6 @@
-package hs.elementSMPRefined.API;
+package hs.elementSMPRefined.API.ability;
 
+import hs.elementSMPRefined.API.element.ElementContext;
 import org.bukkit.entity.Player;
 
 /**

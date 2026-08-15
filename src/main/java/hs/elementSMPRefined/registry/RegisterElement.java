@@ -1,6 +1,6 @@
 package hs.elementSMPRefined.registry;
 
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

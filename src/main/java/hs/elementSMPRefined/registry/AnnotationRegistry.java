@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.registry;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.Element;
+import hs.elementSMPRefined.API.element.Element;
 import hs.elementSMPRefined.items.api.ElementItem;
 
 import java.io.IOException;

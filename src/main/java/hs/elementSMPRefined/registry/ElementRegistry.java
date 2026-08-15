@@ -1,8 +1,9 @@
 package hs.elementSMPRefined.registry;
 
+import hs.elementSMPRefined.API.element.Element;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.Element;
-import hs.elementSMPRefined.API.ElementType;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
@@ -16,8 +17,8 @@ public class ElementRegistry {
     private final Map<ElementType, ElementData> elementData = new EnumMap<>(ElementType.class);
     private boolean frozen = false;
 
-    public ElementRegistry(ElementSMPRefined plugin) {
-        this.plugin = plugin;
+    public ElementRegistry(JavaPlugin plugin) {
+        this.plugin = (ElementSMPRefined) plugin;
     }
 
     /**

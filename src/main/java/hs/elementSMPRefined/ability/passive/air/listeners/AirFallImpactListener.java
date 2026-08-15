@@ -1,8 +1,9 @@
 package hs.elementSMPRefined.ability.passive.air.listeners;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.ElementType;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
+import org.bukkit.plugin.java.JavaPlugin;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -30,8 +31,8 @@ public class AirFallImpactListener implements Listener {
     private final Map<UUID, Double> playerFallStartY;
     private final Map<UUID, Boolean> playerIsFalling;
 
-    public AirFallImpactListener(ElementSMPRefined plugin, ElementManager elementManager) {
-        this.plugin = plugin;
+    public AirFallImpactListener(JavaPlugin plugin, ElementManager elementManager) {
+        this.plugin = (ElementSMPRefined) plugin;
         this.elementManager = elementManager;
         this.playerFallStartY = new HashMap<>();
         this.playerIsFalling = new HashMap<>();

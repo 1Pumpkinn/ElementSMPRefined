@@ -1,5 +1,7 @@
-package hs.elementSMPRefined.API;
+package hs.elementSMPRefined.API.registry;
 
+import hs.elementSMPRefined.API.element.ElementInfo;
+import hs.elementSMPRefined.API.element.ElementType;
 import org.bukkit.ChatColor;
 
 import java.util.EnumMap;

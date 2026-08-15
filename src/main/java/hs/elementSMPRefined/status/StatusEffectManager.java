@@ -1,8 +1,8 @@
 package hs.elementSMPRefined.status;
 
-import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -15,11 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Provides a data-driven API for applying and managing status effects.
  */
 public class StatusEffectManager {
-    private final ElementSMPRefined plugin;
+    private final JavaPlugin plugin;
     private final Map<UUID, Map<StatusEffectType, StatusEffectInstance>> activeEffects = new ConcurrentHashMap<>();
     private final Map<StatusEffectType, StatusEffectData> effectData = new EnumMap<>(StatusEffectType.class);
 
-    public StatusEffectManager(ElementSMPRefined plugin) {
+    public StatusEffectManager(JavaPlugin plugin) {
         this.plugin = plugin;
         initializeDefaultEffects();
         startEffectMonitor();

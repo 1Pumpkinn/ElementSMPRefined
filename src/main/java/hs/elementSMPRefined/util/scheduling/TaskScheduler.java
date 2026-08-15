@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.util.scheduling;
 
 import hs.elementSMPRefined.config.Constants;
-import hs.elementSMPRefined.ElementSMPRefined;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -17,11 +17,11 @@ import java.util.function.Supplier;
  * Provides comprehensive scheduling capabilities with task tracking and cancellation.
  */
 public final class TaskScheduler {
-    private final ElementSMPRefined plugin;
+    private final JavaPlugin plugin;
     private final Map<String, BukkitTask> namedTasks = new ConcurrentHashMap<>();
     private final Map<UUID, Map<String, BukkitTask>> playerTasks = new ConcurrentHashMap<>();
 
-    public TaskScheduler(ElementSMPRefined plugin) {
+    public TaskScheduler(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 

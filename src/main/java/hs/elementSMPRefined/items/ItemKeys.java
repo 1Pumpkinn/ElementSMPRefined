@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.items;
 
-import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.NamespacedKey;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ItemKeys {
     private ItemKeys() {}
@@ -17,15 +17,15 @@ public final class ItemKeys {
     public static final String KEY_LIFE_CORE = "life_core";
     public static final String KEY_DEATH_CORE = "death_core";
 
-    public static NamespacedKey namespaced(ElementSMPRefined plugin, String key) {
+    public static NamespacedKey namespaced(JavaPlugin plugin, String key) {
         return new NamespacedKey(plugin, key);
     }
 
-    public static NamespacedKey upgraderLevel(ElementSMPRefined plugin) { return namespaced(plugin, KEY_UPGRADER_LEVEL); }
-    public static NamespacedKey elementItem(ElementSMPRefined plugin) { return namespaced(plugin, KEY_ELEMENT_ITEM); }
-    public static NamespacedKey elementType(ElementSMPRefined plugin) { return namespaced(plugin, KEY_ELEMENT_TYPE); }
-    public static NamespacedKey reroller(ElementSMPRefined plugin) { return namespaced(plugin, KEY_REROLLER); }
-    public static NamespacedKey advancedReroller(ElementSMPRefined plugin) { return namespaced(plugin, KEY_ADVANCED_REROLLER); }
-    public static NamespacedKey lifeCore(ElementSMPRefined plugin) { return namespaced(plugin, KEY_LIFE_CORE); }
-    public static NamespacedKey deathCore(ElementSMPRefined plugin) { return namespaced(plugin, KEY_DEATH_CORE); }
+    public static NamespacedKey upgraderLevel(JavaPlugin plugin) { return namespaced(plugin, KEY_UPGRADER_LEVEL); }
+    public static NamespacedKey elementItem(JavaPlugin plugin) { return namespaced(plugin, KEY_ELEMENT_ITEM); }
+    public static NamespacedKey elementType(JavaPlugin plugin) { return namespaced(plugin, KEY_ELEMENT_TYPE); }
+    public static NamespacedKey reroller(JavaPlugin plugin) { return namespaced(plugin, KEY_REROLLER); }
+    public static NamespacedKey advancedReroller(JavaPlugin plugin) { return namespaced(plugin, KEY_ADVANCED_REROLLER); }
+    public static NamespacedKey lifeCore(JavaPlugin plugin) { return namespaced(plugin, KEY_LIFE_CORE); }
+    public static NamespacedKey deathCore(JavaPlugin plugin) { return namespaced(plugin, KEY_DEATH_CORE); }
 }

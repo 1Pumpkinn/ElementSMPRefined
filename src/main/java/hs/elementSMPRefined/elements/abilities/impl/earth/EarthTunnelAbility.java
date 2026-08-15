@@ -26,6 +26,7 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.BLACKSTONE, Material.CRIMSON_NYLIUM,
             Material.WARPED_HYPHAE, Material.SOUL_SAND, Material.BASALT, Material.SOUL_SOIL,
 
+
             // Ores
 
             Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
@@ -36,6 +37,9 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE,
             Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
             Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE,
+            Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE,
+
+
 
             Material.NETHERITE_BLOCK,
             Material.DIAMOND_BLOCK,

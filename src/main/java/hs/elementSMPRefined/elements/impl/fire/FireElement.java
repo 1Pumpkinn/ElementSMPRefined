@@ -30,10 +30,10 @@ public class FireElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Upside 1: Infinite Fire Resistance
+        // Passive 1: Infinite Fire Resistance
         player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, true, false));
 
-        // Upside 2: Fire Aspect on hits (handled in listener)
+        // Passive 2: Fire Aspect on hits (handled in listener - applies to all attacks)
         // No passive effect needed here
     }
 
@@ -61,7 +61,7 @@ public class FireElement extends BaseElement {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Masters of flame and destruction. Fire users are immune to fire damage and can rain destruction from above.";
+        return ChatColor.GRAY + "Masters of flame and destruction. Fire users are immune to fire damage and ignite enemies with every attack.";
     }
 
     @Override

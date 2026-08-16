@@ -2,8 +2,8 @@ package hs.elementSMPRefined.ability.passive.water;
 
 import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
-import hs.elementSMPRefined.ability.main.water.WaterBeamAbility;
-import hs.elementSMPRefined.ability.main.water.WaterGeyserAbility;
+import hs.elementSMPRefined.ability.main.water.WaterBubbleAbility;
+import hs.elementSMPRefined.ability.main.water.WaterPullDownAbility;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -16,7 +16,7 @@ import java.util.List;
 public class WaterElement extends BaseElement {
 
     public WaterElement(JavaPlugin plugin) {
-        super(plugin, new WaterGeyserAbility(plugin), new WaterBeamAbility(plugin));
+        super(plugin, new WaterBubbleAbility(plugin), new WaterPullDownAbility(plugin));
     }
 
     @Override
@@ -24,11 +24,12 @@ public class WaterElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Upside 1: Infinite conduit power
+        // Passive 1: Breath of the Nautilus (infinite water breathing)
+        player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, Integer.MAX_VALUE, 0, true, false));
         player.addPotionEffect(new PotionEffect(PotionEffectType.CONDUIT_POWER, Integer.MAX_VALUE, 0, true, false));
 
         if (upgradeLevel >= 2) {
-            // Upside 2: Dolphins grace 5 (level 4 = dolphins grace 5)
+            // Passive 2: Dolphins grace 5 (upgrade II)
             player.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, Integer.MAX_VALUE, 4, true, false));
         }
     }
@@ -36,6 +37,7 @@ public class WaterElement extends BaseElement {
     @Override
     public void clearEffects(Player player) {
         super.clearEffects(player);
+        EffectService.removeElementPotionEffect(player, PotionEffectType.WATER_BREATHING);
         EffectService.removeElementPotionEffect(player, PotionEffectType.CONDUIT_POWER);
         EffectService.removeElementPotionEffect(player, PotionEffectType.DOLPHINS_GRACE);
     }
@@ -47,14 +49,15 @@ public class WaterElement extends BaseElement {
 
     @Override
     public String getDescription() {
-        return "Harness the flowing power of water to control the battlefield.";
+        return "Control the tides with a bubble shield, drowning pull, and the Breath of the Nautilus.";
     }
 
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Infinite Water Breathing",
+                "Breath of the Nautilus (infinite water breathing)",
                 "Conduit Power permanently",
+                "True invisibility while still in water",
                 "Dolphin's Grace V (Upgrade II)"
         );
     }

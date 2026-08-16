@@ -98,6 +98,7 @@ public class ListenerInitializer {
         // Register other element listeners
         pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.air.listeners.AirCombatListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.water.listeners.WaterDrowningImmunityListener(plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.fire.listeners.FireImmunityListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.fire.listeners.FireCombatListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
         pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.fire.listeners.FireballProtectionListener(), plugin);

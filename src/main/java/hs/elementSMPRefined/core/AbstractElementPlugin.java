@@ -51,6 +51,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
             initializeUtilities();
             initializeManagers();
             initializeServices();
+            beforeRegisterComponents();
             initializeInitializers();
             registerComponents();
             startBackgroundTasks();
@@ -72,6 +73,13 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error during plugin shutdown", e);
         }
+    }
+
+    /**
+     * Template method for subclasses to perform required setup before listeners are registered.
+     */
+    protected void beforeRegisterComponents() {
+        // Override in subclasses if needed
     }
 
     /**

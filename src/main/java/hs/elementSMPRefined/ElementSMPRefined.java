@@ -18,7 +18,4 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
     protected void onPluginDisable() {
         getLogger().info("ElementSMPRefined plugin disabled successfully!");
     }
-
-    // Additional plugin-specific logic can be added here
-    // The base class handles all common initialization and management
 }

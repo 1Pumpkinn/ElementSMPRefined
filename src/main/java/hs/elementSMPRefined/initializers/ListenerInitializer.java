@@ -1,11 +1,28 @@
 package hs.elementSMPRefined.initializers;
 
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.API.element.Element;
+import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.element.ListenerProvider;
+import hs.elementSMPRefined.ability.passive.air.AirElement;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import hs.elementSMPRefined.ability.passive.death.listeners.DeathFriendlyMobListener;
 import hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;
 import hs.elementSMPRefined.ability.passive.metal.MetalElement;
-import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.ability.passive.air.listeners.AirCombatListener;
+import hs.elementSMPRefined.ability.passive.water.listeners.WaterDrowningImmunityListener;
+import hs.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener;
+import hs.elementSMPRefined.ability.passive.fire.listeners.FireImmunityListener;
+import hs.elementSMPRefined.ability.passive.fire.listeners.FireCombatListener;
+import hs.elementSMPRefined.ability.passive.fire.listeners.FireballProtectionListener;
+import hs.elementSMPRefined.ability.passive.earth.listeners.EarthVeinMinerListener;
+import hs.elementSMPRefined.ability.passive.life.listeners.LifeRegenListener;
+import hs.elementSMPRefined.ability.passive.life.LifeElementCraftListener;
+import hs.elementSMPRefined.ability.passive.death.listeners.DeathRawFoodListener;
+import hs.elementSMPRefined.ability.passive.death.DeathElementCraftListener;
+import hs.elementSMPRefined.ability.passive.metal.listeners.MetalArrowImmunityListener;
+import hs.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListener;
+import hs.elementSMPRefined.ability.passive.frost.listeners.FrostFrozenPunchListener;
 import hs.elementSMPRefined.listeners.GUIListener;
 import hs.elementSMPRefined.listeners.StatusEffectListener;
 import hs.elementSMPRefined.listeners.ability.AbilityListener;
@@ -49,26 +66,19 @@ public class ListenerInitializer {
         registerCoreListeners();
         registerItemListeners();
         registerElementListeners();
-        setupListenerReferences();
+        registerLifecycleListener();
     }
 
     private void registerCoreListeners() {
-        this.playerLifecycleListener = new PlayerLifecycleListener(
-                plugin, 
-                plugin.getElementManager(), 
-                plugin.getManaManager(), 
-                plugin.getEffectService()
-        );
-        pluginManager.registerEvents(playerLifecycleListener, plugin);
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
         pluginManager.registerEvents(new GameModeListener(plugin.getManaManager(), plugin.getConfigManager()), plugin);
         pluginManager.registerEvents(new CombatListener(plugin.getTrustManager(), plugin.getElementManager()), plugin);
-        
+
         this.abilityListener = new AbilityListener(plugin, plugin.getElementManager());
         pluginManager.registerEvents(abilityListener, plugin);
-        
+
         pluginManager.registerEvents(new StatusEffectListener(plugin), plugin);
-        
+
         this.guiListener = new GUIListener(plugin);
         pluginManager.registerEvents(guiListener, plugin);
     }
@@ -85,56 +95,64 @@ public class ListenerInitializer {
     }
 
     private void registerElementListeners() {
-        // Air fall impact listener
+        // Register core element listeners
+        registerCoreElementListeners();
+        
+        // Register ListenerProvider listeners (auto-discovered from elements)
+        plugin.getElementManager().getAllElements().forEach(element -> {
+            if (element instanceof ListenerProvider provider) {
+                provider.getListeners(plugin).forEach(listener -> {
+                    pluginManager.registerEvents(listener, plugin);
+                });
+            }
+        });
+        
+        // Store special listeners that need cross-references
+        storeSpecialListeners();
+    }
+    
+    /**
+     * Register core element listeners that don't fit the ListenerProvider pattern
+     * (e.g., listeners that need special setup or cross-references)
+     */
+    private void registerCoreElementListeners() {
         this.airFallImpactListener = new AirFallImpactListener(plugin, plugin.getElementManager());
         pluginManager.registerEvents(airFallImpactListener, plugin);
-        
-        // Set the listener reference in AirElement
+
         var airElement = plugin.getElementManager().get(ElementType.AIR);
-        if (airElement instanceof hs.elementSMPRefined.ability.passive.air.AirElement airElementImpl) {
+        if (airElement instanceof AirElement airElementImpl) {
             airElementImpl.setFallImpactListener(airFallImpactListener);
         }
-        
-        // Register other element listeners
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.air.listeners.AirCombatListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.water.listeners.WaterDrowningImmunityListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener(plugin, plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.fire.listeners.FireImmunityListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.fire.listeners.FireCombatListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.fire.listeners.FireballProtectionListener(), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.earth.listeners.EarthVeinMinerListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.life.listeners.LifeRegenListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.life.LifeElementCraftListener(plugin, plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.death.listeners.DeathRawFoodListener(plugin.getElementManager()), plugin);
-        
+
         this.deathFriendlyMobListener = new DeathFriendlyMobListener(plugin, plugin.getTrustManager());
         pluginManager.registerEvents(deathFriendlyMobListener, plugin);
-        
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.death.DeathElementCraftListener(plugin, plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.metal.listeners.MetalArrowImmunityListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListener(plugin), plugin);
-        
+
         this.frostPassiveListener = new FrostPassiveListener(plugin, plugin.getElementManager());
         pluginManager.registerEvents(frostPassiveListener, plugin);
-        
-        pluginManager.registerEvents(new hs.elementSMPRefined.ability.passive.frost.listeners.FrostFrozenPunchListener(plugin, plugin.getElementManager()), plugin);
 
-        // Get MetalDashAbility from MetalElement
         var metalElement = plugin.getElementManager().get(ElementType.METAL);
         if (metalElement instanceof MetalElement metalElementImpl) {
             this.metalDashAbility = metalElementImpl.getMetalDashAbility();
         }
     }
+    
+    private void storeSpecialListeners() {
+        // Listeners are now available for PlayerLifecycleListener
+    }
 
-    private void setupListenerReferences() {
-        // Set cross-references after all listeners are registered
-        if (playerLifecycleListener != null) {
-            playerLifecycleListener.setFrostPassiveListener(frostPassiveListener);
-            playerLifecycleListener.setGuiListener(guiListener);
-            playerLifecycleListener.setAbilityListener(abilityListener);
-            playerLifecycleListener.setAirFallImpactListener(airFallImpactListener);
-            playerLifecycleListener.setMetalDashAbility(metalDashAbility);
-        }
+    private void registerLifecycleListener() {
+        this.playerLifecycleListener = new PlayerLifecycleListener(
+                plugin,
+                plugin.getElementManager(),
+                plugin.getManaManager(),
+                plugin.getEffectService(),
+                frostPassiveListener,
+                airFallImpactListener,
+                guiListener,
+                abilityListener,
+                metalDashAbility
+        );
+        pluginManager.registerEvents(playerLifecycleListener, plugin);
     }
 
     public void cleanup() {

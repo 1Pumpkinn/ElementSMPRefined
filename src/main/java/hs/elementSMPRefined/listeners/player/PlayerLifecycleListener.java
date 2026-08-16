@@ -1,9 +1,14 @@
 package hs.elementSMPRefined.listeners.player;
 
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.ability.main.metal.MetalDashAbility;
+import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
+import hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.gui.ElementSelectionGUI;
+import hs.elementSMPRefined.listeners.GUIListener;
+import hs.elementSMPRefined.listeners.ability.AbilityListener;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.services.EffectService;
@@ -25,38 +30,28 @@ public class PlayerLifecycleListener implements Listener {
     private final ManaManager manaManager;
     private final EffectService effectService;
     private final TaskScheduler scheduler;
-    private hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener frostPassiveListener;
-    private hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener airFallImpactListener;
-    private hs.elementSMPRefined.listeners.GUIListener guiListener;
-    private hs.elementSMPRefined.listeners.ability.AbilityListener abilityListener;
-    private hs.elementSMPRefined.ability.main.metal.MetalDashAbility metalDashAbility;
+    private final FrostPassiveListener frostPassiveListener;
+    private final AirFallImpactListener airFallImpactListener;
+    private final GUIListener guiListener;
+    private final AbilityListener abilityListener;
+    private final MetalDashAbility metalDashAbility;
 
     public PlayerLifecycleListener(ElementSMPRefined plugin, ElementManager elementManager,
-                                   ManaManager manaManager, EffectService effectService) {
+                                   ManaManager manaManager, EffectService effectService,
+                                   FrostPassiveListener frostPassiveListener,
+                                   AirFallImpactListener airFallImpactListener,
+                                   GUIListener guiListener,
+                                   AbilityListener abilityListener,
+                                   MetalDashAbility metalDashAbility) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.manaManager = manaManager;
         this.effectService = effectService;
         this.scheduler = new TaskScheduler(plugin);
-    }
-
-    public void setFrostPassiveListener(hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener frostPassiveListener) {
         this.frostPassiveListener = frostPassiveListener;
-    }
-
-    public void setAirFallImpactListener(hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener airFallImpactListener) {
         this.airFallImpactListener = airFallImpactListener;
-    }
-
-    public void setGuiListener(hs.elementSMPRefined.listeners.GUIListener guiListener) {
         this.guiListener = guiListener;
-    }
-
-    public void setAbilityListener(hs.elementSMPRefined.listeners.ability.AbilityListener abilityListener) {
         this.abilityListener = abilityListener;
-    }
-
-    public void setMetalDashAbility(hs.elementSMPRefined.ability.main.metal.MetalDashAbility metalDashAbility) {
         this.metalDashAbility = metalDashAbility;
     }
 

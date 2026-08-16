@@ -2,8 +2,10 @@ package hs.elementSMPRefined.util.example;
 
 import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.element.ListenerProvider;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -16,21 +18,33 @@ import java.util.List;
  * describe what makes this element unique - mana spending, upgrade-level
  * gating, and ability name/description are already handled for you.
  * <p>
+ * Optionally implement {@link ListenerProvider} to automatically register your
+ * element's passive listeners without modifying ListenerInitializer.
+ * <p>
  * To wire it in:
  * <ol>
  *   <li>Add a constant to {@link ElementType}.</li>
  *   <li>Register it in {@code ElementManager.registerAllElements()} -
  *       {@code elementRegistry.register(new ExampleElement(plugin));}</li>
  *   <li>If it needs event listeners (combat hooks, item interactions, etc.),
- *       wire those up in {@code ListenerInitializer} the same way the other
- *       elements do.</li>
+ *       implement {@link ListenerProvider#getListeners(JavaPlugin)} to return
+ *       your listeners - they'll be auto-registered.</li>
  * </ol>
  */
-public class ExampleElement extends BaseElement {
+public class ExampleElement extends BaseElement implements ListenerProvider {
 
     public ExampleElement(JavaPlugin plugin) {
         // Hand BaseElement the two abilities this element casts.
         super(plugin, new ExampleAbility(), new ExampleAbility());
+    }
+
+    @Override
+    public List<Listener> getListeners(JavaPlugin plugin) {
+        // Return any listeners your element's passives need.
+        // They will be automatically registered by ListenerInitializer.
+        return List.of(
+                // new ExamplePassiveListener(plugin, ...)
+        );
     }
 
     @Override

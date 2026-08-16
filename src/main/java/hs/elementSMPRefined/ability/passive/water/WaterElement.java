@@ -2,10 +2,14 @@ package hs.elementSMPRefined.ability.passive.water;
 
 import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.element.ListenerProvider;
 import hs.elementSMPRefined.ability.main.water.WaterBubbleAbility;
 import hs.elementSMPRefined.ability.main.water.WaterPullDownAbility;
+import hs.elementSMPRefined.ability.passive.water.listeners.WaterDrowningImmunityListener;
+import hs.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
+import org.bukkit.event.Listener;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -13,10 +17,18 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
 
-public class WaterElement extends BaseElement {
+public class WaterElement extends BaseElement implements ListenerProvider {
 
     public WaterElement(JavaPlugin plugin) {
         super(plugin, new WaterBubbleAbility(plugin), new WaterPullDownAbility(plugin));
+    }
+
+    @Override
+    public List<Listener> getListeners(JavaPlugin plugin) {
+        return List.of(
+                new WaterDrowningImmunityListener(((hs.elementSMPRefined.ElementSMPRefined) plugin).getElementManager()),
+                new WaterInvisibilityListener(((hs.elementSMPRefined.ElementSMPRefined) plugin), ((hs.elementSMPRefined.ElementSMPRefined) plugin).getElementManager())
+        );
     }
 
     @Override

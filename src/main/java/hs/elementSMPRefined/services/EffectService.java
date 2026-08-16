@@ -11,65 +11,28 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.EnumMap;
-import java.util.Map;
-
 /**
- * Centralized service for managing element passive effects.
- * Single source of truth for all effect-related operations.
+ * Coordinates element passive effect application and health management.
+ * 
+ * This service does NOT store hardcoded effect lists - each element owns
+ * its effects in {@link Element#applyUpsides(Player, int)}.
+ * EffectService simply ensures effects are re-applied when needed (after
+ * milk, respawn, etc.) and manages health attributes.
  */
 public class EffectService implements Listener {
     private final JavaPlugin plugin;
     private final ElementManager elementManager;
 
-    // Cache of required effects per element
-    private final Map<ElementType, EffectRequirement[]> requiredEffects = new EnumMap<>(ElementType.class);
-
     public EffectService(JavaPlugin plugin, ElementManager elementManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
-        initializeRequirements();
         startMonitoring();
-    }
-
-    private void initializeRequirements() {
-        // Water
-        requiredEffects.put(ElementType.WATER, new EffectRequirement[] {
-                new EffectRequirement(PotionEffectType.WATER_BREATHING, 0, false),
-                new EffectRequirement(PotionEffectType.CONDUIT_POWER, 0, false)
-        });
-
-        // Fire
-        requiredEffects.put(ElementType.FIRE, new EffectRequirement[] {
-                new EffectRequirement(PotionEffectType.FIRE_RESISTANCE, 0, false)
-        });
-
-        // Earth
-        requiredEffects.put(ElementType.EARTH, new EffectRequirement[] {
-                new EffectRequirement(PotionEffectType.HERO_OF_THE_VILLAGE, 0, false)
-        });
-
-        // Life
-        requiredEffects.put(ElementType.LIFE, new EffectRequirement[] {
-                new EffectRequirement(PotionEffectType.REGENERATION, 0, false)
-        });
-
-        // Death
-        requiredEffects.put(ElementType.DEATH, new EffectRequirement[] {
-                new EffectRequirement(PotionEffectType.NIGHT_VISION, 0, false)
-        });
-
-        // Metal
-        requiredEffects.put(ElementType.METAL, new EffectRequirement[] {
-                new EffectRequirement(PotionEffectType.HASTE, 0, false)
-        });
     }
 
     /**
@@ -89,25 +52,25 @@ public class EffectService implements Listener {
         }
 
         // Reset health if not Life element
-        resetHealthIfNeeded(player, currentElement);
+        updatePlayerHealth(player, currentElement);
     }
 
     /**
      * Remove a potion effect only if it was applied by the element system.
-     * Element effects have very long durations (Integer.MAX_VALUE), while player potions have shorter durations.
-     * This preserves legitimate potion effects from drinking/splashing potions.
+     * Element effects have very long durations (Integer.MAX_VALUE), while
+     * player potions have shorter durations. This preserves legitimate potion
+     * effects from drinking/splashing potions.
      */
     public static void removeElementPotionEffect(Player player, PotionEffectType type) {
         PotionEffect effect = player.getPotionEffect(type);
         if (effect != null && effect.getDuration() > 1000000) {
-            // Only remove if it has an element-like duration (near Integer.MAX_VALUE)
             player.removePotionEffect(type);
         }
     }
 
     /**
      * Apply passive effects for player's current element.
-     * Single source of truth for effect application.
+     * Delegates to the element to define its own effects.
      */
     public void applyPassiveEffects(Player player) {
         PlayerData pd = elementManager.data(player.getUniqueId());
@@ -122,54 +85,25 @@ public class EffectService implements Listener {
     }
 
     /**
-     * Validate and restore effects if needed.
-     * Called periodically and after certain events.
+     * Validate and restore effects if they were lost.
+     * Called after events that remove potion effects (milk, etc.).
      */
-    public void validateEffects(Player player) {
-        PlayerData pd = elementManager.data(player.getUniqueId());
-        ElementType currentElement = pd.getCurrentElement();
-
-        if (currentElement == null) return;
-
-        int upgradeLevel = pd.getUpgradeLevel(currentElement);
-
-        // Check required effects
-        EffectRequirement[] requirements = requiredEffects.get(currentElement);
-        if (requirements != null) {
-            for (EffectRequirement req : requirements) {
-                if (!req.upgradeRequired || upgradeLevel >= 2) {
-                    if (!hasValidEffect(player, req.type)) {
-                        player.addPotionEffect(new PotionEffect(
-                                req.type, Integer.MAX_VALUE, req.level, true, false
-                        ));
-                    }
-                }
-            }
+    public void reapplyEffects(Player player) {
+        if (player.isOnline()) {
+            applyPassiveEffects(player);
+            updatePlayerHealth(player, elementManager.data(player.getUniqueId()).getCurrentElement());
         }
-
-        // Special handling for Water upgrade 2
-        if (currentElement == ElementType.WATER && upgradeLevel >= 2) {
-            if (!hasValidEffect(player, PotionEffectType.DOLPHINS_GRACE)) {
-                player.addPotionEffect(new PotionEffect(
-                        PotionEffectType.DOLPHINS_GRACE, Integer.MAX_VALUE, 4, true, false
-                ));
-            }
-        }
-
-        // Validate health
-        resetHealthIfNeeded(player, currentElement);
     }
 
-    private boolean hasValidEffect(Player player, PotionEffectType type) {
-        PotionEffect effect = player.getPotionEffect(type);
-        return effect != null && effect.getDuration() > 100;
-    }
-
-    private void resetHealthIfNeeded(Player player, ElementType currentElement) {
+    /**
+     * Ensure player's max health matches their current element.
+     * Life element grants bonus health; all others use normal health.
+     */
+    private void updatePlayerHealth(Player player, ElementType elementType) {
         var attr = player.getAttribute(Attribute.MAX_HEALTH);
         if (attr == null) return;
 
-        double targetHealth = currentElement == ElementType.LIFE ?
+        double targetHealth = elementType == ElementType.LIFE ?
                 Constants.Health.LIFE_MAX : Constants.Health.NORMAL_MAX;
 
         if (attr.getBaseValue() != targetHealth) {
@@ -181,57 +115,30 @@ public class EffectService implements Listener {
     }
 
     /**
-     * Start periodic monitoring of effects
+     * Start periodic health validation (effects are re-applied on-demand).
      */
     private void startMonitoring() {
         new BukkitRunnable() {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    validateEffects(player);
+                    PlayerData pd = elementManager.data(player.getUniqueId());
+                    if (pd.getCurrentElement() != null) {
+                        updatePlayerHealth(player, pd.getCurrentElement());
+                    }
                 }
             }
         }.runTaskTimer(plugin, Constants.Timing.TWO_SECONDS, Constants.Timing.TWO_SECONDS);
     }
 
-    // Event handlers
+    /**
+     * When milk is consumed, all potion effects are cleared. Reapply element effects.
+     */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMilkConsume(PlayerItemConsumeEvent event) {
         if (event.getItem().getType() != org.bukkit.Material.MILK_BUCKET) return;
 
         Player player = event.getPlayer();
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline()) {
-                applyPassiveEffects(player);
-            }
-        }, 1L);
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onEffectRemove(EntityPotionEffectEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
-        if (event.getCause() != EntityPotionEffectEvent.Cause.COMMAND &&
-                event.getCause() != EntityPotionEffectEvent.Cause.PLUGIN) return;
-
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline()) {
-                validateEffects(player);
-            }
-        }, 2L);
-    }
-
-    /**
-     * Helper class for effect requirements
-     */
-    private static class EffectRequirement {
-        final PotionEffectType type;
-        final int level;
-        final boolean upgradeRequired;
-
-        EffectRequirement(PotionEffectType type, int level, boolean upgradeRequired) {
-            this.type = type;
-            this.level = level;
-            this.upgradeRequired = upgradeRequired;
-        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> reapplyEffects(player), 1L);
     }
 }

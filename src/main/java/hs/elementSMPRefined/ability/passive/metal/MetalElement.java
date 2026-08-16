@@ -31,7 +31,7 @@ public class MetalElement extends BaseElement {
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
         // Upside 1: haste 1 permanently
-        player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, Integer.MAX_VALUE, 0, true, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, PotionEffect.INFINITE_DURATION, 0, true, false));
 
         // Upside 2: Arrow immunity (handled in listener)
         // No passive effect needed here

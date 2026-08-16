@@ -57,15 +57,20 @@ public class EffectService implements Listener {
 
     /**
      * Remove a potion effect only if it was applied by the element system.
-     * Element effects have very long durations (Integer.MAX_VALUE), while
-     * player potions have shorter durations. This preserves legitimate potion
-     * effects from drinking/splashing potions.
+     * Element effects use infinite duration values, while player potions have
+     * shorter durations. This preserves legitimate potion effects from
+     * drinking/splashing potions.
      */
     public static void removeElementPotionEffect(Player player, PotionEffectType type) {
         PotionEffect effect = player.getPotionEffect(type);
-        if (effect != null && effect.getDuration() > 1000000) {
+        if (effect != null && isElementPotionEffect(effect)) {
             player.removePotionEffect(type);
         }
+    }
+
+    private static boolean isElementPotionEffect(PotionEffect effect) {
+        return effect.getDuration() > 1000000
+                || effect.getDuration() == PotionEffect.INFINITE_DURATION;
     }
 
     /**

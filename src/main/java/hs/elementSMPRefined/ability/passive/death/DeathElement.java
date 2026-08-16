@@ -35,6 +35,9 @@ public class DeathElement extends BaseElement {
         // Cancel any existing passive task for this player
         cancelPassiveTask(player);
 
+        // Passive: Night Vision
+        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, PotionEffect.INFINITE_DURATION, 0, true, false));
+
         // Upside 1: Any raw or undead foods act as golden apples (handled in a listener)
         // Upside 2: Nearby enemies get hunger 1 in a 5x5 radius (if upgradeLevel >= 2)
         if (upgradeLevel >= 2) {

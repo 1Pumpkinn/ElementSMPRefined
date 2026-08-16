@@ -56,10 +56,10 @@ public class ExampleElement extends BaseElement implements ListenerProvider {
     public void applyUpsides(Player player, int upgradeLevel) {
         // Permanent passive effects go here. Guard stronger effects behind
         // upgradeLevel so Upgrade II feels like an upgrade.
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 0, true, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 0, true, false));
 
         if (upgradeLevel >= 2) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, true, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 1, true, false));
         }
     }
 

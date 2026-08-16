@@ -36,13 +36,11 @@ public class WaterElement extends BaseElement implements ListenerProvider {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passive 1: Breath of the Nautilus (infinite water breathing)
-        player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, Integer.MAX_VALUE, 0, true, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.CONDUIT_POWER, Integer.MAX_VALUE, 0, true, false));
+        // Passive 1: Breath of the Nautilus DO NOT CHANGE THIS EFFECT IT'S BREATH OF THE NATULIST
+        player.addPotionEffect(new PotionEffect(PotionEffectType.BREATH_OF_THE_NAUTILUS, PotionEffect.INFINITE_DURATION, 0, true, false));
 
         if (upgradeLevel >= 2) {
-            // Passive 2: Dolphins grace 5 (upgrade II)
-            player.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, Integer.MAX_VALUE, 4, true, false));
+            // Passive 2 is not a effect so nothing here!
         }
     }
 
@@ -50,8 +48,6 @@ public class WaterElement extends BaseElement implements ListenerProvider {
     public void clearEffects(Player player) {
         super.clearEffects(player);
         EffectService.removeElementPotionEffect(player, PotionEffectType.WATER_BREATHING);
-        EffectService.removeElementPotionEffect(player, PotionEffectType.CONDUIT_POWER);
-        EffectService.removeElementPotionEffect(player, PotionEffectType.DOLPHINS_GRACE);
     }
 
     @Override
@@ -68,9 +64,7 @@ public class WaterElement extends BaseElement implements ListenerProvider {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Breath of the Nautilus (infinite water breathing)",
-                "Conduit Power permanently",
-                "True invisibility while still in water",
-                "Dolphin's Grace V (Upgrade II)"
+                "True invisibility while still in water"
         );
     }
 }

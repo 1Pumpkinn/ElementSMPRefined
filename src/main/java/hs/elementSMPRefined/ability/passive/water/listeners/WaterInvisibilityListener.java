@@ -89,7 +89,7 @@ public class WaterInvisibilityListener implements Listener {
 
     private void concealPlayer(Player player) {
         trulyInvisible.add(player.getUniqueId());
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 0, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 0, false, false));
         hidePlayerFromAll(player);
         player.sendActionBar(ChatColor.AQUA + "You slip beneath the surface, unseen...");
     }
@@ -99,7 +99,7 @@ public class WaterInvisibilityListener implements Listener {
         trulyInvisible.remove(uuid);
 
         PotionEffect current = player.getPotionEffect(PotionEffectType.INVISIBILITY);
-        if (current != null && current.getDuration() > 1000000) {
+        if (current != null && (current.getDuration() > 1000000 || current.getDuration() == PotionEffect.INFINITE_DURATION)) {
             player.removePotionEffect(PotionEffectType.INVISIBILITY);
         }
 
@@ -145,7 +145,7 @@ public class WaterInvisibilityListener implements Listener {
         lastLocation.remove(uuid);
         if (trulyInvisible.remove(uuid)) {
             PotionEffect current = player.getPotionEffect(PotionEffectType.INVISIBILITY);
-            if (current != null && current.getDuration() > 1000000) {
+            if (current != null && (current.getDuration() > 1000000 || current.getDuration() == PotionEffect.INFINITE_DURATION)) {
                 player.removePotionEffect(PotionEffectType.INVISIBILITY);
             }
             if (player.isOnline()) {

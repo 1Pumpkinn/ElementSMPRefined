@@ -33,7 +33,7 @@ public class StatusEffectManager {
         registerEffectData(StatusEffectType.FULL_STUN, StatusEffectData.builder()
                 .displayName("Full Stun")
                 .description("Unable to move, look around, or interact")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 127, false, false))
+                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 127, false, false))
                 .isStackable(false)
                 .maxDuration(300) // 5 seconds max
                 .build());
@@ -42,7 +42,7 @@ public class StatusEffectManager {
         registerEffectData(StatusEffectType.PARTIAL_STUN, StatusEffectData.builder()
                 .displayName("Partial Stun")
                 .description("Unable to move or look around, but can interact")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 127, false, false))
+                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 127, false, false))
                 .isStackable(false)
                 .maxDuration(400) // 8 seconds max
                 .build());
@@ -51,7 +51,7 @@ public class StatusEffectManager {
         registerEffectData(StatusEffectType.STUN, StatusEffectData.builder()
                 .displayName("Stun")
                 .description("Unable to move, but can look and interact")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 5, false, false))
+                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 5, false, false))
                 .isStackable(false)
                 .maxDuration(400) // 8 seconds max
                 .build());
@@ -60,7 +60,7 @@ public class StatusEffectManager {
         registerEffectData(StatusEffectType.ROOT, StatusEffectData.builder()
                 .displayName("Root")
                 .description("Rooted in place")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 5, false, false))
+                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 5, false, false))
                 .isStackable(false)
                 .maxDuration(400) // 8 seconds max
                 .build());
@@ -69,7 +69,7 @@ public class StatusEffectManager {
         registerEffectData(StatusEffectType.SLOW, StatusEffectData.builder()
                 .displayName("Slow")
                 .description("Reduced movement speed")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 2, false, false))
+                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 2, false, false))
                 .isStackable(true)
                 .maxDuration(600) // 10 seconds max
                 .build());
@@ -86,7 +86,7 @@ public class StatusEffectManager {
         registerEffectData(StatusEffectType.WEAKNESS, StatusEffectData.builder()
                 .displayName("Weakness")
                 .description("Reduced damage output")
-                .potionEffect(new PotionEffect(PotionEffectType.WEAKNESS, Integer.MAX_VALUE, 1, false, false))
+                .potionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 1, false, false))
                 .isStackable(true)
                 .maxDuration(800) // 13 seconds max
                 .build());

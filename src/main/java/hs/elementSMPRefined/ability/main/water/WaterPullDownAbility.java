@@ -29,8 +29,8 @@ public class WaterPullDownAbility extends BaseAbility {
     private static final double RANGE = 6.0;
     private static final int DRAG_TICKS = 15; // 0.75s drag before the dunk lands
     private static final double MAX_PULL_DEPTH = 4.0;
-    private static final double DROWN_DAMAGE = 6.0; // 3 hearts
-    private static final int STUN_TICKS = 50; // 2.5 seconds
+    private static final int DROWN_DURATION_TICKS = 40; // 2 seconds
+    private static final double DROWN_DAMAGE_PER_TICK = 2.0; // 2 hearts per second (4.0 per 2 ticks)
 
     private final ElementSMPRefined plugin;
 
@@ -130,18 +130,53 @@ public class WaterPullDownAbility extends BaseAbility {
         target.getWorld().playSound(loc, Sound.ENTITY_PLAYER_HURT_DROWN, 1.0f, 0.8f);
         target.getWorld().spawnParticle(Particle.BUBBLE_POP, loc.add(0, 1, 0), 25, 0.4, 0.5, 0.4, 0.1, null, true);
 
-        if (!target.isDead()) {
-            target.damage(DROWN_DAMAGE, player);
-        }
-        if (target.isDead()) return;
+        // Apply drowning damage over 2 seconds (40 ticks) with true damage
+        new BukkitRunnable() {
+            int ticks = 0;
 
+            @Override
+            public void run() {
+                if (!target.isValid() || target.isDead()) {
+                    cancel();
+                    return;
+                }
+
+                // Apply true damage (ignores armor)
+                double newHealth = target.getHealth() - DROWN_DAMAGE_PER_TICK;
+                
+                // Check if this would trigger totem of undying
+                if (newHealth <= 0 && target instanceof Player targetPlayer) {
+                    // Let the damage event handle totem, so use damage() instead of setHealth
+                    target.damage(DROWN_DAMAGE_PER_TICK * 1.5, player); // Slight boost to ensure kill
+                } else {
+                    // Direct true damage for living
+                    target.setHealth(Math.max(0, newHealth));
+                }
+
+                Location particleLoc = target.getLocation();
+                target.getWorld().spawnParticle(Particle.BUBBLE, particleLoc, 4, 0.2, 0.2, 0.2, 0.01, null, true);
+                target.getWorld().playSound(particleLoc, Sound.BLOCK_WATER_AMBIENT, 0.5f, 0.5f);
+
+                ticks++;
+                if (ticks >= DROWN_DURATION_TICKS || target.isDead()) {
+                    cancel();
+                    // Apply stun if still alive
+                    if (target.isValid() && !target.isDead()) {
+                        applyDrownStun(target);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 1L); // 1 tick = 0.05 seconds, so 40 ticks = 2 seconds
+    }
+
+    private void applyDrownStun(LivingEntity target) {
         if (target instanceof Player targetPlayer) {
-            plugin.getStatusEffectManager().applyStun(targetPlayer, STUN_TICKS);
+            plugin.getStatusEffectManager().applyStun(targetPlayer, 50); // 2.5 seconds
         } else if (target instanceof Mob mob) {
             boolean wasAware = mob.isAware();
             mob.setAware(false);
             mob.setAI(false);
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, STUN_TICKS, 10, false, false));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 50, 10, false, false));
             mob.setVelocity(new Vector(0, 0, 0));
 
             new BukkitRunnable() {
@@ -153,7 +188,7 @@ public class WaterPullDownAbility extends BaseAbility {
                         mob.removePotionEffect(PotionEffectType.SLOWNESS);
                     }
                 }
-            }.runTaskLater(plugin, STUN_TICKS);
+            }.runTaskLater(plugin, 50);
         }
     }
 
@@ -172,6 +207,6 @@ public class WaterPullDownAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "While in water, drag a target under, dealing drowning damage and stunning them for 2.5s. (75 mana)";
+        return ChatColor.GRAY + "While in water, drag a target under, dealing true drowning damage (4 hearts over 2 seconds) and stunning them for 2.5s. (75 mana)";
     }
 }

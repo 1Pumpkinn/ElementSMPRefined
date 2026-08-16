@@ -27,7 +27,7 @@ public class FireElement extends BaseElement {
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
         // Passive 1: Infinite Fire Resistance
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, true, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 0, true, false));
 
         // Passive 2: Fire Aspect on hits (handled in listener - applies to all attacks)
         // No passive effect needed here

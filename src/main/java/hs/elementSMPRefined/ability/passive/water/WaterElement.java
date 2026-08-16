@@ -47,7 +47,7 @@ public class WaterElement extends BaseElement implements ListenerProvider {
     @Override
     public void clearEffects(Player player) {
         super.clearEffects(player);
-        EffectService.removeElementPotionEffect(player, PotionEffectType.WATER_BREATHING);
+        EffectService.removeElementPotionEffect(player, PotionEffectType.BREATH_OF_THE_NAUTILUS);
     }
 
     @Override

@@ -4,6 +4,7 @@ import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.DataStore;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.gui.ElementSelectionGUI;
+import hs.elementSMPRefined.items.ElementCoreItem;
 import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
@@ -13,6 +14,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +40,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         commands.put("debug", new DebugCommand());
         commands.put("roll", new RollCommand());
         commands.put("config", new ConfigCommand());
+        commands.put("givecore", new GiveCoreCommand());
         return commands;
     }
 
@@ -69,6 +72,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/element roll - Roll for a new element (OP only)");
         sender.sendMessage(ChatColor.YELLOW + "/element config <action> - Configuration management");
         sender.sendMessage(ChatColor.GRAY + "  Actions: reload, reset, set <key> <value>, element <element> <key> <value>");
+        sender.sendMessage(ChatColor.YELLOW + "/element givecore <player> <element> - Give a player an element core item");
     }
 
     @Override
@@ -94,7 +98,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
             }
             case 3 -> {
                 String subCmd = args[0].toLowerCase();
-                if (subCmd.equals("set")) {
+                if (subCmd.equals("set") || subCmd.equals("givecore")) {
                     yield filterStartingWith(getElementNames(), args[2]);
                 }
                 if (subCmd.equals("config") && args[1].equalsIgnoreCase("set")) {
@@ -117,9 +121,9 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
     }
 
     private List<String> getConfigKeys(String prefix) {
-        return List.of("mana.max", "mana.regen_per_second", "status_effects.enabled", 
-                "status_effects.damage_per_tick", "status_effects.notification_messages",
-                "recipes.advanced_reroller_enabled").stream()
+        return List.of("mana.max", "mana.regen_per_second", "status_effects.enabled",
+                        "status_effects.damage_per_tick", "status_effects.notification_messages",
+                        "recipes.advanced_reroller_enabled").stream()
                 .filter(s -> s.toLowerCase().startsWith(prefix.toLowerCase()))
                 .toList();
     }
@@ -195,6 +199,43 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                     ChatColor.AQUA + elementType.get().name());
             target.sendMessage(ChatColor.GREEN + "Your element has been set to " +
                     ChatColor.AQUA + elementType.get().name() + ChatColor.GREEN + " by an admin.");
+
+            return true;
+        }
+    }
+
+    private class GiveCoreCommand implements SubCommand {
+        @Override
+        public boolean execute(CommandSender sender, String[] args) {
+            if (args.length < 3) {
+                sender.sendMessage(ChatColor.RED + "Usage: /element givecore <player> <element>");
+                return true;
+            }
+
+            Player target = Bukkit.getPlayer(args[1]);
+            if (target == null) {
+                sender.sendMessage(ChatColor.RED + "Player '" + args[1] + "' not found.");
+                return true;
+            }
+
+            Optional<ElementType> elementType = parseElementType(args[2]);
+            if (elementType.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "Invalid element. Valid: " + String.join(", ", getElementNames()));
+                return true;
+            }
+
+            ItemStack core = ElementCoreItem.createCore(plugin, elementType.get());
+            if (core == null) {
+                sender.sendMessage(ChatColor.RED + elementType.get().name() + " doesn't have a core item.");
+                return true;
+            }
+
+            target.getInventory().addItem(core);
+
+            sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " a " +
+                    ChatColor.AQUA + elementType.get().name() + ChatColor.GREEN + " core.");
+            target.sendMessage(ChatColor.GREEN + "You received a " +
+                    ChatColor.AQUA + elementType.get().name() + ChatColor.GREEN + " core from an admin.");
 
             return true;
         }
@@ -283,7 +324,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                     }
                     String key = args[2];
                     String value = args[3];
-                    
+
                     try {
                         // Try to set the value based on type
                         if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
@@ -307,16 +348,16 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                         sender.sendMessage(ChatColor.RED + "Usage: /element config element <element> <key> <value>");
                         return true;
                     }
-                    
+
                     Optional<ElementType> elementType = parseElementType(args[2]);
                     if (elementType.isEmpty()) {
                         sender.sendMessage(ChatColor.RED + "Invalid element. Valid: " + String.join(", ", getElementNames()));
                         return true;
                     }
-                    
+
                     String key = args[3];
                     String value = args[4];
-                    
+
                     try {
                         setElementConfig(sender, elementType.get(), key, value);
                     } catch (Exception e) {
@@ -336,7 +377,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
 
         private void setElementConfig(CommandSender sender, ElementType type, String key, String value) {
             String configPath = "elements." + type.name().toLowerCase() + "." + key;
-            
+
             // Set the value based on type
             Object typedValue;
             if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
@@ -348,14 +389,14 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                     typedValue = value;
                 }
             }
-            
+
             configManager.getConfig().set(configPath, typedValue);
             plugin.saveConfig();
             sender.sendMessage(ChatColor.GREEN + "Set " + type.name() + "." + key + " to " + value);
-            
+
             // Reload config to apply changes
             configManager.reload();
-            
+
             // Update the element configuration in memory
             configManager.getElementConfiguration().setConfigValue(type, key, typedValue);
         }

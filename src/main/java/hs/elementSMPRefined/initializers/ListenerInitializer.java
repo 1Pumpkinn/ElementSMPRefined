@@ -1,7 +1,6 @@
 package hs.elementSMPRefined.initializers;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.API.element.Element;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.element.ListenerProvider;
 import hs.elementSMPRefined.ability.passive.air.AirElement;
@@ -9,20 +8,6 @@ import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import hs.elementSMPRefined.ability.passive.death.listeners.DeathFriendlyMobListener;
 import hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;
 import hs.elementSMPRefined.ability.passive.metal.MetalElement;
-import hs.elementSMPRefined.ability.passive.air.listeners.AirCombatListener;
-import hs.elementSMPRefined.ability.passive.water.listeners.WaterDrowningImmunityListener;
-import hs.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener;
-import hs.elementSMPRefined.ability.passive.fire.listeners.FireImmunityListener;
-import hs.elementSMPRefined.ability.passive.fire.listeners.FireCombatListener;
-import hs.elementSMPRefined.ability.passive.fire.listeners.FireballProtectionListener;
-import hs.elementSMPRefined.ability.passive.earth.listeners.EarthVeinMinerListener;
-import hs.elementSMPRefined.ability.passive.life.listeners.LifeRegenListener;
-import hs.elementSMPRefined.ability.passive.life.LifeElementCraftListener;
-import hs.elementSMPRefined.ability.passive.death.listeners.DeathRawFoodListener;
-import hs.elementSMPRefined.ability.passive.death.DeathElementCraftListener;
-import hs.elementSMPRefined.ability.passive.metal.listeners.MetalArrowImmunityListener;
-import hs.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListener;
-import hs.elementSMPRefined.ability.passive.frost.listeners.FrostFrozenPunchListener;
 import hs.elementSMPRefined.listeners.GUIListener;
 import hs.elementSMPRefined.listeners.StatusEffectListener;
 import hs.elementSMPRefined.listeners.ability.AbilityListener;

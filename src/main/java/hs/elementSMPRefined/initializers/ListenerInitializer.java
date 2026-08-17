@@ -69,7 +69,7 @@ public class ListenerInitializer {
     }
 
     private void registerItemListeners() {
-        pluginManager.registerEvents(new ElementItemInteractionListener(plugin, plugin.getElementManager(), plugin.getItemManager()), plugin);
+        pluginManager.registerEvents(new ElementItemInteractionListener(plugin, plugin.getItemManager()), plugin);
         pluginManager.registerEvents(new ElementItemCraftingListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new ElementItemDeathListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new ElementInventoryProtectionListener(plugin, plugin.getElementManager()), plugin);
@@ -82,7 +82,7 @@ public class ListenerInitializer {
     private void registerElementListeners() {
         // Register core element listeners
         registerCoreElementListeners();
-        
+
         // Register ListenerProvider listeners (auto-discovered from elements)
         plugin.getElementManager().getAllElements().forEach(element -> {
             if (element instanceof ListenerProvider provider) {
@@ -91,11 +91,11 @@ public class ListenerInitializer {
                 });
             }
         });
-        
+
         // Store special listeners that need cross-references
         storeSpecialListeners();
     }
-    
+
     /**
      * Register core element listeners that don't fit the ListenerProvider pattern
      * (e.g., listeners that need special setup or cross-references)
@@ -120,7 +120,7 @@ public class ListenerInitializer {
             this.metalDashAbility = metalElementImpl.getMetalDashAbility();
         }
     }
-    
+
     private void storeSpecialListeners() {
         // Listeners are now available for PlayerLifecycleListener
     }

@@ -105,22 +105,21 @@ public class GUIListener implements Listener {
             ElementType elementType =
                     ElementType.valueOf(elementTypeString);
 
-            // Check if player already has this element
             hs.elementSMPRefined.data.PlayerData pd = plugin.getElementManager().data(player.getUniqueId());
-            if (pd.hasElementItem(elementType)) {
+
+            // Don't waste the core if they're already on this element
+            if (pd.getCurrentElement() == elementType) {
                 player.sendMessage(
-                        net.kyori.adventure.text.Component.text("You already have the ")
+                        net.kyori.adventure.text.Component.text("You are already using the ")
                                 .color(net.kyori.adventure.text.format.NamedTextColor.YELLOW)
                                 .append(net.kyori.adventure.text.Component.text(elementType.name(), net.kyori.adventure.text.format.NamedTextColor.GOLD))
-                                .append(net.kyori.adventure.text.Component.text(" core! You cannot consume it again.", net.kyori.adventure.text.format.NamedTextColor.YELLOW))
+                                .append(net.kyori.adventure.text.Component.text(" element!", net.kyori.adventure.text.format.NamedTextColor.YELLOW))
                 );
                 return;
             }
 
-            // Apply the element
-            plugin.getElementManager().assignElement(player, elementType);
-
-            // Consume the element core FIRST before giving new one
+            // Consume the core - switching elements will return the core for
+            // whichever element the player is switching away from (if it has one)
             if (item.getAmount() > 1) {
                 item.setAmount(item.getAmount() - 1);
             } else {
@@ -132,8 +131,8 @@ public class GUIListener implements Listener {
                 }
             }
 
-            // Give a new matching core immediately after user consumes one
-            plugin.getElementManager().giveElementItem(player, elementType);
+            // Apply the element
+            plugin.getElementManager().assignElement(player, elementType);
 
             player.sendMessage(
                     net.kyori.adventure.text.Component.text("You have chosen ")

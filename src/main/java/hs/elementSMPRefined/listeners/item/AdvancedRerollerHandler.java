@@ -66,7 +66,7 @@ public class AdvancedRerollerHandler implements Listener {
 
     private ElementType determineNewElement(ElementType current) {
         ElementType[] advancedElements = elementManager.getAdvancedElements();
-        
+
         if (advancedElements.length == 0) {
             // Fallback to default behavior
             return switch (current) {
@@ -75,18 +75,18 @@ public class AdvancedRerollerHandler implements Listener {
                 default -> random.nextBoolean() ? ElementType.METAL : ElementType.FROST;
             };
         }
-        
+
         // Filter out current element and choose from remaining
         if (current != null) {
             ElementType[] available = java.util.Arrays.stream(advancedElements)
                     .filter(type -> type != current)
                     .toArray(ElementType[]::new);
-            
+
             if (available.length > 0) {
                 return available[random.nextInt(available.length)];
             }
         }
-        
+
         return advancedElements[random.nextInt(advancedElements.length)];
     }
 
@@ -103,7 +103,7 @@ public class AdvancedRerollerHandler implements Listener {
 
         ElementType[] advancedElements = elementManager.getAdvancedElements();
         final String[] names;
-        
+
         if (advancedElements.length == 0) {
             names = new String[]{"METAL", "FROST"};
         } else {
@@ -111,10 +111,10 @@ public class AdvancedRerollerHandler implements Listener {
                     .map(Enum::name)
                     .toArray(String[]::new);
         }
-        
+
         final int steps = 20;
         final long interval = 3L;
-        
+
         new BukkitRunnable() {
             int tick = 0;
 
@@ -175,6 +175,8 @@ public class AdvancedRerollerHandler implements Listener {
         if (element != null) {
             element.clearEffects(player);
         }
+
+        elementManager.returnElementCore(player, oldElement);
 
         if (oldElement == ElementType.LIFE) {
             var attr = player.getAttribute(Attribute.MAX_HEALTH);

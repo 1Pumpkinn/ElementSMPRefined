@@ -249,7 +249,31 @@ public class ElementManager {
     }
 
     private void handleElementSwitch(Player player, ElementType oldElement) {
+        returnElementCore(player, oldElement);
         effectService.clearAllElementEffects(player);
+    }
+
+    /**
+     * Gives the player back a core for the element they're switching away from,
+     * if that element type has a core item. Drops it on the ground instead if
+     * their inventory is full.
+     */
+    public void returnElementCore(Player player, ElementType oldElement) {
+        if (oldElement == null) return;
+
+        var core = hs.elementSMPRefined.items.ElementCoreItem.createCore(plugin, oldElement);
+        if (core == null) return; // this element type has no physical core
+
+        var leftover = player.getInventory().addItem(core);
+        if (leftover.isEmpty()) {
+            player.sendMessage(ChatColor.YELLOW + "Your " + oldElement.name() + " core has been returned!");
+        } else {
+            for (var drop : leftover.values()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), drop);
+            }
+            player.sendMessage(ChatColor.YELLOW + "Your inventory was full, so your " +
+                    oldElement.name() + " core dropped on the ground!");
+        }
     }
 
     public void applyUpsides(Player player) {

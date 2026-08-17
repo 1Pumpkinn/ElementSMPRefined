@@ -10,6 +10,11 @@ import java.util.Map;
  * Data-driven configuration for elements. Loads element settings from config files.
  */
 public class ElementConfiguration {
+
+    // Kept in sync with the defaults in config.yml and ConfigManager.
+    private static final int DEFAULT_ABILITY1_COST = 50;
+    private static final int DEFAULT_ABILITY2_COST = 75;
+
     private final Map<ElementType, ElementConfig> configs = new HashMap<>();
 
     public ElementConfiguration(ConfigurationSection config) {
@@ -40,66 +45,60 @@ public class ElementConfiguration {
         return configs.containsKey(type);
     }
 
+    /**
+     * Updates a single field on {@code type}'s in-memory config, leaving every
+     * other field as-is. If {@code type} has no config yet, one is created from
+     * defaults first. An unrecognized {@code key} or a value of the wrong type
+     * is a no-op - it does not create or touch any entry.
+     */
     public void setConfigValue(ElementType type, String key, Object value) {
-        ElementConfig config = configs.get(type);
-        if (config == null) {
-            // Create new config if it doesn't exist with default values
-            config = new ElementConfig("Unknown", "No description", "WHITE", true, false, 50, 100);
-            configs.put(type, config);
-        }
-        
-        // Update the specific field based on key
+        ElementConfig existing = configs.getOrDefault(type,
+                new ElementConfig("Unknown", "No description", "WHITE", true, false,
+                        DEFAULT_ABILITY1_COST, DEFAULT_ABILITY2_COST));
+
+        String displayName = existing.displayName;
+        String description = existing.description;
+        String color = existing.color;
+        boolean enabled = existing.enabled;
+        boolean isBasic = existing.isBasic;
+        int ability1Cost = existing.ability1Cost;
+        int ability2Cost = existing.ability2Cost;
+
         switch (key.toLowerCase()) {
-            case "ability1_cost" -> {
-                if (value instanceof Integer) {
-                    configs.put(type, new ElementConfig(config.displayName, config.description, config.color, 
-                            config.enabled, config.isBasic, (Integer) value, config.ability2Cost));
-                }
-                break;
-            }
-            case "ability2_cost" -> {
-                if (value instanceof Integer) {
-                    configs.put(type, new ElementConfig(config.displayName, config.description, config.color, 
-                            config.enabled, config.isBasic, config.ability1Cost, (Integer) value));
-                }
-                break;
-            }
-            case "is_basic" -> {
-                if (value instanceof Boolean) {
-                    configs.put(type, new ElementConfig(config.displayName, config.description, config.color, 
-                            config.enabled, (Boolean) value, config.ability1Cost, config.ability2Cost));
-                }
-                break;
-            }
-            case "enabled" -> {
-                if (value instanceof Boolean) {
-                    configs.put(type, new ElementConfig(config.displayName, config.description, config.color, 
-                            (Boolean) value, config.isBasic, config.ability1Cost, config.ability2Cost));
-                }
-                break;
-            }
             case "display_name" -> {
-                if (value instanceof String) {
-                    configs.put(type, new ElementConfig((String) value, config.description, config.color, 
-                            config.enabled, config.isBasic, config.ability1Cost, config.ability2Cost));
-                }
-                break;
+                if (!(value instanceof String s)) return;
+                displayName = s;
             }
             case "description" -> {
-                if (value instanceof String) {
-                    configs.put(type, new ElementConfig(config.displayName, (String) value, config.color, 
-                            config.enabled, config.isBasic, config.ability1Cost, config.ability2Cost));
-                }
-                break;
+                if (!(value instanceof String s)) return;
+                description = s;
             }
             case "color" -> {
-                if (value instanceof String) {
-                    configs.put(type, new ElementConfig(config.displayName, config.description, (String) value, 
-                            config.enabled, config.isBasic, config.ability1Cost, config.ability2Cost));
-                }
-                break;
+                if (!(value instanceof String s)) return;
+                color = s;
+            }
+            case "enabled" -> {
+                if (!(value instanceof Boolean b)) return;
+                enabled = b;
+            }
+            case "is_basic" -> {
+                if (!(value instanceof Boolean b)) return;
+                isBasic = b;
+            }
+            case "ability1_cost" -> {
+                if (!(value instanceof Integer i)) return;
+                ability1Cost = i;
+            }
+            case "ability2_cost" -> {
+                if (!(value instanceof Integer i)) return;
+                ability2Cost = i;
+            }
+            default -> {
+                return; // unknown key - don't create/touch an entry over it
             }
         }
+
+        configs.put(type, new ElementConfig(displayName, description, color, enabled, isBasic, ability1Cost, ability2Cost));
     }
 
     /**
@@ -120,13 +119,13 @@ public class ElementConfiguration {
             this.color = section.getString("color", "WHITE");
             this.enabled = section.getBoolean("enabled", true);
             this.isBasic = section.getBoolean("is_basic", false);
-            this.ability1Cost = section.getInt("ability1_cost", 50);
-            this.ability2Cost = section.getInt("ability2_cost", 100);
+            this.ability1Cost = section.getInt("ability1_cost", DEFAULT_ABILITY1_COST);
+            this.ability2Cost = section.getInt("ability2_cost", DEFAULT_ABILITY2_COST);
         }
 
         // Constructor for creating config programmatically
-        public ElementConfig(String displayName, String description, String color, boolean enabled, 
-                           boolean isBasic, int ability1Cost, int ability2Cost) {
+        public ElementConfig(String displayName, String description, String color, boolean enabled,
+                             boolean isBasic, int ability1Cost, int ability2Cost) {
             this.displayName = displayName;
             this.description = description;
             this.color = color;

@@ -91,7 +91,7 @@ public final class DamageUtils {
         }
 
         public static DamageConfig elemental(LivingEntity target, double amount, Player source,
-                                           DamageEffect... effects) {
+                                             DamageEffect... effects) {
             return new DamageConfig(target, amount, Optional.of(source),
                     DamageType.ELEMENTAL, true, false, new Vector(0, 0, 0), 0,
                     effects, 100, true, ChatColor.AQUA);
@@ -290,8 +290,13 @@ public final class DamageUtils {
 
         // Apply armor reduction for physical damage
         if (damageType == DamageType.PHYSICAL) {
-            double armor = target instanceof Player player ?
-                    ((Player) target).getAttribute(Attribute.ARMOR).getValue() : 0;
+            double armor = 0;
+            if (target instanceof Player player) {
+                var armorAttribute = player.getAttribute(Attribute.ARMOR);
+                if (armorAttribute != null) {
+                    armor = armorAttribute.getValue();
+                }
+            }
             double armorReduction = Math.min(20, armor) / 25.0; // Max 80% reduction
             modifiedDamage *= (1.0 - armorReduction);
         }
@@ -335,7 +340,7 @@ public final class DamageUtils {
      * Chain multiple damage operations
      */
     public static void damageChain(LivingEntity target, Player source,
-                                    Consumer<DamageConfigBuilder>... configurators) {
+                                   Consumer<DamageConfigBuilder>... configurators) {
         for (Consumer<DamageConfigBuilder> config : configurators) {
             DamageConfigBuilder builder = new DamageConfigBuilder(target, source);
             config.accept(builder);
@@ -427,4 +432,3 @@ public final class DamageUtils {
 
     private DamageUtils() {}
 }
-

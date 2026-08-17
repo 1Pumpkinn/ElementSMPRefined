@@ -7,6 +7,7 @@ import hs.elementSMPRefined.gui.ElementSelectionGUI;
 import hs.elementSMPRefined.items.ElementCoreItem;
 import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.visual.ParticlePreset;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -36,6 +37,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
 
     private Map<String, SubCommand> initializeSubCommands() {
         Map<String, SubCommand> commands = new HashMap<>();
+        commands.put("particles", new ParticlesCommand());
         commands.put("set", new SetCommand());
         commands.put("debug", new DebugCommand());
         commands.put("roll", new RollCommand());
@@ -46,6 +48,13 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length > 0 && args[0].equalsIgnoreCase("particles")) {
+            SubCommand subCommand = subCommands.get("particles");
+            if (subCommand != null) {
+                return subCommand.execute(sender, args);
+            }
+        }
+
         if (!sender.hasPermission("element.admin")) {
             sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
             return true;
@@ -67,6 +76,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "=== Element Admin Commands ===");
+        sender.sendMessage(ChatColor.YELLOW + "/element particles <preset> - Preview a particle pattern at your feet");
         sender.sendMessage(ChatColor.YELLOW + "/element set <player> <element> - Set player's element");
         sender.sendMessage(ChatColor.YELLOW + "/element debug <player> - Debug player's element data");
         sender.sendMessage(ChatColor.YELLOW + "/element roll - Roll for a new element (OP only)");
@@ -77,12 +87,22 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 1) {
+            if (sender.hasPermission("element.admin") || sender.hasPermission("element.particles") || sender instanceof Player) {
+                return filterStartingWith(subCommands.keySet(), args[0]);
+            }
+            return Collections.emptyList();
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("particles")) {
+            return ParticlePreset.filterNames(args[1]);
+        }
+
         if (!sender.hasPermission("element.admin")) {
             return Collections.emptyList();
         }
 
         return switch (args.length) {
-            case 1 -> filterStartingWith(subCommands.keySet(), args[0]);
             case 2 -> {
                 String subCmd = args[0].toLowerCase();
                 if (subCommands.containsKey(subCmd)) {
@@ -171,6 +191,37 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
 
     private interface SubCommand {
         boolean execute(CommandSender sender, String[] args);
+    }
+
+    private class ParticlesCommand implements SubCommand {
+        @Override
+        public boolean execute(CommandSender sender, String[] args) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+                return true;
+            }
+
+            if (args.length == 1) {
+                sendPresetList(player);
+                return true;
+            }
+
+            Optional<ParticlePreset> preset = ParticlePreset.fromName(args[1]);
+            if (preset.isEmpty()) {
+                sendPresetList(player);
+                return true;
+            }
+
+            preset.get().play(player, plugin);
+            player.sendMessage(ChatColor.GREEN + "Playing particle preset: " + ChatColor.AQUA + preset.get().getKey());
+            return true;
+        }
+
+        private void sendPresetList(Player player) {
+            player.sendMessage(ChatColor.GOLD + "=== Element Particle Presets ===");
+            player.sendMessage(ChatColor.YELLOW + "Available: " + String.join(", ", ParticlePreset.getNames()));
+            player.sendMessage(ChatColor.GRAY + "Usage: /element particles <preset>");
+        }
     }
 
     private class SetCommand implements SubCommand {

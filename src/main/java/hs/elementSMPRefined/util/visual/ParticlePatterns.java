@@ -80,7 +80,7 @@ public final class ParticlePatterns {
         }
 
         public static ExpandingRingConfig of(Location center, double startRadius, double endRadius,
-                                          int steps, Particle particle) {
+                                             int steps, Particle particle) {
             return new ExpandingRingConfig(center, startRadius, endRadius, steps, particle, 2);
         }
     }
@@ -101,7 +101,7 @@ public final class ParticlePatterns {
         }
 
         public static SpiralConfig of(Location center, double radius, double height,
-                                   int rotations, Particle particle) {
+                                      int rotations, Particle particle) {
             return new SpiralConfig(center, radius, height, rotations, 12, particle, true);
         }
     }
@@ -143,7 +143,7 @@ public final class ParticlePatterns {
         }
 
         public static HelixConfig of(Location center, double radius, double height,
-                                   int coils, Particle particle) {
+                                     int coils, Particle particle) {
             return new HelixConfig(center, radius, height, coils, 10, particle, true);
         }
     }
@@ -157,10 +157,10 @@ public final class ParticlePatterns {
         World world = config.center().getWorld();
         if (world == null) return;
 
-        double angleStep = 360.0 / config.points();
+        double angleStepRad = (2 * Math.PI) / config.points();
 
-        for (int i = 0; i < 360; i += angleStep) {
-            double rad = Math.toRadians(i);
+        for (int i = 0; i < config.points(); i++) {
+            double rad = i * angleStepRad;
             double x = Math.cos(rad) * config.radius();
             double z = Math.sin(rad) * config.radius();
 
@@ -369,7 +369,7 @@ public final class ParticlePatterns {
      * Animated rotating circle
      */
     public static void animateRotatingCircle(CircleConfig config, long periodTicks,
-                                            hs.elementSMPRefined.ElementSMPRefined plugin) {
+                                             hs.elementSMPRefined.ElementSMPRefined plugin) {
         new org.bukkit.scheduler.BukkitRunnable() {
             private double angle = 0;
 
@@ -405,7 +405,7 @@ public final class ParticlePatterns {
      * Animated spiral rising effect
      */
     public static void animateRisingSpiral(SpiralConfig config, long speedTicks,
-                                         hs.elementSMPRefined.ElementSMPRefined plugin) {
+                                           hs.elementSMPRefined.ElementSMPRefined plugin) {
         new org.bukkit.scheduler.BukkitRunnable() {
             private int currentPoint = 0;
             private final int totalPoints = config.rotations() * config.pointsPerRotation();
@@ -473,7 +473,7 @@ public final class ParticlePatterns {
      * Create a vortex/tornado effect
      */
     public static void createVortex(Location center, Particle particle, double radius, double height,
-                                   int pointsPerLevel, int levels) {
+                                    int pointsPerLevel, int levels) {
         World world = center.getWorld();
         if (world == null) return;
 
@@ -572,4 +572,3 @@ public final class ParticlePatterns {
 
     private ParticlePatterns() {}
 }
-

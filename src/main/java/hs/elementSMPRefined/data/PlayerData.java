@@ -1,14 +1,26 @@
 package hs.elementSMPRefined.data;
 
 import hs.elementSMPRefined.API.element.ElementType;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;
 
 /**
- * Immutable player data holder using modern Java patterns
+ * A player's element progress, mana, owned items, and trust list.
+ * <p>
+ * This class is a plain data holder with no knowledge of how it gets
+ * persisted - see {@link PlayerDataSerializer} for the YAML mapping and
+ * {@link PlayerDataRepository} for the storage contract. That split means
+ * this class can be constructed and mutated freely in unit tests without
+ * touching a Bukkit config or a file on disk.
  */
 public final class PlayerData {
+
+    /** Starting mana for a brand-new player. */
+    public static final int DEFAULT_MANA = 100;
+
+    /** Upgrade levels are clamped to [0, MAX_UPGRADE_LEVEL]. */
+    public static final int MAX_UPGRADE_LEVEL = 2;
+
     private final UUID uuid;
     private ElementType currentElement;
     private final EnumSet<ElementType> ownedItems;
@@ -16,64 +28,14 @@ public final class PlayerData {
     private int currentElementUpgradeLevel;
     private final Set<UUID> trustedPlayers;
 
-    // === CONSTRUCTORS ===
+    // === CONSTRUCTION ===
 
     public PlayerData(UUID uuid) {
-        this.uuid = Objects.requireNonNull(uuid, "UUID cannot be null");
+        this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
         this.ownedItems = EnumSet.noneOf(ElementType.class);
-        this.mana = 100;
+        this.mana = DEFAULT_MANA;
         this.currentElementUpgradeLevel = 0;
         this.trustedPlayers = new HashSet<>();
-    }
-
-    public PlayerData(UUID uuid, ConfigurationSection section) {
-        this(uuid);
-        if (section != null) {
-            loadFromSection(section);
-        }
-    }
-
-    private void loadFromSection(ConfigurationSection section) {
-        // Load element
-        String elem = section.getString("element");
-        if (elem != null) {
-            try {
-                this.currentElement = ElementType.valueOf(elem);
-            } catch (IllegalArgumentException ignored) {
-                // Invalid element, leave as null
-            }
-        }
-
-        // Load mana
-        this.mana = section.getInt("mana", 100);
-
-        // Load upgrade level
-        this.currentElementUpgradeLevel = section.getInt("currentUpgradeLevel", 0);
-
-        // Load owned items
-        List<String> items = section.getStringList("items");
-        if (items != null) {
-            for (String name : items) {
-                try {
-                    ElementType type = ElementType.valueOf(name);
-                    this.ownedItems.add(type);
-                } catch (IllegalArgumentException ignored) {
-                    // Skip invalid items
-                }
-            }
-        }
-
-        // Load trust list
-        ConfigurationSection trustSection = section.getConfigurationSection("trust");
-        if (trustSection != null) {
-            for (String key : trustSection.getKeys(false)) {
-                try {
-                    this.trustedPlayers.add(UUID.fromString(key));
-                } catch (IllegalArgumentException ignored) {
-                    // Invalid UUID, skip
-                }
-            }
-        }
     }
 
     // === GETTERS ===
@@ -108,6 +70,7 @@ public final class PlayerData {
 
     // === SETTERS (with validation) ===
 
+    /** Sets the current element and resets its upgrade level to 0. */
     public void setCurrentElement(ElementType element) {
         this.currentElement = element;
         if (element != null) {
@@ -115,12 +78,13 @@ public final class PlayerData {
         }
     }
 
+    /** Sets the current element without touching the upgrade level - used by loaders. */
     public void setCurrentElementWithoutReset(ElementType element) {
         this.currentElement = element;
     }
 
     public void setCurrentElementUpgradeLevel(int level) {
-        this.currentElementUpgradeLevel = Math.max(0, Math.min(2, level));
+        this.currentElementUpgradeLevel = Math.max(0, Math.min(MAX_UPGRADE_LEVEL, level));
     }
 
     public void setMana(int mana) {
@@ -133,6 +97,7 @@ public final class PlayerData {
 
     // === ELEMENT-SPECIFIC METHODS ===
 
+    /** Upgrade level only applies to whichever element is currently active; anything else reads as 0. */
     public int getUpgradeLevel(ElementType type) {
         if (type != null && type.equals(currentElement)) {
             return currentElementUpgradeLevel;

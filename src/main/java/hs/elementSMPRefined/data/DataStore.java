@@ -1,6 +1,5 @@
 package hs.elementSMPRefined.data;
 
-import hs.elementSMPRefined.API.element.ElementType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -8,154 +7,140 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
-public class DataStore {
+/**
+ * YAML-backed {@link PlayerDataRepository}. Player data lives in
+ * {@code data/players.yml} under the plugin's data folder, with an
+ * in-memory cache in front of it so hot paths (ability checks, mana
+ * ticks) don't hit disk.
+ * <p>
+ * All public methods are synchronized: the YAML config object is shared
+ * mutable state, and the plugin can call into this class from async
+ * tasks (e.g. join/quit handling) as well as the main thread.
+ */
+public class DataStore implements PlayerDataRepository {
+
     private final JavaPlugin plugin;
 
     private final File playerFile;
     private FileConfiguration playerCfg;
     private final File serverFile;
-    private final FileConfiguration serverCfg;
+    private FileConfiguration serverCfg;
 
     private final Map<UUID, PlayerData> playerDataCache = new ConcurrentHashMap<>();
 
-    public PlayerData getPlayerData(UUID uuid) {
-        // Check cache first
-        if (playerDataCache.containsKey(uuid)) {
-            return playerDataCache.get(uuid);
+    public DataStore(JavaPlugin plugin) {
+        this.plugin = plugin;
+
+        File dataDir = new File(plugin.getDataFolder(), "data");
+        if (!dataDir.exists() && !dataDir.mkdirs()) {
+            throw new IllegalStateException("Could not create data directory: " + dataDir.getAbsolutePath());
         }
 
-        // Load from file if not in cache
-        PlayerData data = loadPlayerDataFromFile(uuid);
-        playerDataCache.put(uuid, data);
-        return data;
+        this.playerFile = createIfMissing(dataDir, "players.yml");
+        this.playerCfg = loadYaml(playerFile, "players.yml");
+
+        this.serverFile = createIfMissing(dataDir, "server.yml");
+        this.serverCfg = loadYaml(serverFile, "server.yml");
+    }
+
+    private File createIfMissing(File dir, String name) {
+        File file = new File(dir, name);
+        if (!file.exists()) {
+            try {
+                if (!file.createNewFile()) {
+                    throw new IllegalStateException("Failed to create " + name);
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("Could not create " + name, e);
+            }
+        }
+        return file;
+    }
+
+    private FileConfiguration loadYaml(File file, String name) {
+        try {
+            return YamlConfiguration.loadConfiguration(file);
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not load " + name, e);
+        }
+    }
+
+    // === READ PATH ===
+
+    @Override
+    public synchronized PlayerData getPlayerData(UUID uuid) {
+        PlayerData cached = playerDataCache.get(uuid);
+        if (cached != null) {
+            return cached;
+        }
+
+        PlayerData loaded = loadPlayerDataFromFile(uuid);
+        playerDataCache.put(uuid, loaded);
+        return loaded;
+    }
+
+    @Override
+    public PlayerData load(UUID uuid) {
+        return getPlayerData(uuid);
     }
 
     private PlayerData loadPlayerDataFromFile(UUID uuid) {
         try {
             playerCfg = YamlConfiguration.loadConfiguration(playerFile);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to reload player configuration", e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to reload players.yml, using blank data for " + uuid, e);
             return new PlayerData(uuid);
         }
 
         String uuidString = uuid.toString();
-        ConfigurationSection section = null;
 
-        // CRITICAL: Try "players.<uuid>" format FIRST (this is the primary location)
-        section = playerCfg.getConfigurationSection("players." + uuidString);
+        // Primary format: players.<uuid>
+        ConfigurationSection section = playerCfg.getConfigurationSection("players." + uuidString);
 
-        // Fallback: Try root level (legacy format)
+        // Legacy fallback: <uuid> at root, from before the "players." prefix was introduced
         if (section == null) {
             section = playerCfg.getConfigurationSection(uuidString);
-
         }
 
-        if (section == null) {
-            return new PlayerData(uuid);
-        }
-
-        return new PlayerData(uuid, section);
+        return PlayerDataSerializer.deserialize(uuid, section);
     }
 
-    public DataStore(JavaPlugin plugin) {
-        this.plugin = plugin;
-        File dataDir = new File(plugin.getDataFolder(), "data");
-        if (!dataDir.exists()) {
-            if (!dataDir.mkdirs()) {
-                plugin.getLogger().severe("Failed to create data directory: " + dataDir.getAbsolutePath());
-                throw new RuntimeException("Could not create data directory");
-            }
-        }
+    // === WRITE PATH ===
 
-        this.playerFile = new File(dataDir, "players.yml");
-        if (!playerFile.exists()) {
-            try {
-                if (!playerFile.createNewFile()) {
-                    plugin.getLogger().severe("Failed to create players.yml file");
-                    throw new RuntimeException("Could not create players.yml file");
-                }
-            } catch (IOException e) {
-                plugin.getLogger().severe("Error creating players.yml: " + e.getMessage());
-                throw new RuntimeException("Could not create players.yml file", e);
-            }
-        }
-
+    @Override
+    public synchronized void save(PlayerData data) {
         try {
-            this.playerCfg = YamlConfiguration.loadConfiguration(playerFile);
-        } catch (Exception e) {
-            plugin.getLogger().severe("Failed to load players.yml configuration: " + e.getMessage());
-            throw new RuntimeException("Could not load players.yml configuration", e);
-        }
-
-        this.serverFile = new File(dataDir, "server.yml");
-        if (!serverFile.exists()) {
-            try {
-                if (!serverFile.createNewFile()) {
-                    plugin.getLogger().severe("Failed to create server.yml file");
-                    throw new RuntimeException("Could not create server.yml file");
-                }
-            } catch (IOException e) {
-                plugin.getLogger().severe("Error creating server.yml: " + e.getMessage());
-                throw new RuntimeException("Could not create server.yml file", e);
-            }
-        }
-
-        try {
-            this.serverCfg = YamlConfiguration.loadConfiguration(serverFile);
-        } catch (Exception e) {
-            plugin.getLogger().severe("Failed to load server.yml configuration: " + e.getMessage());
-            throw new RuntimeException("Could not load server.yml configuration", e);
-        }
-    }
-
-    public synchronized PlayerData load(UUID uuid) {
-        return getPlayerData(uuid);
-    }
-
-    public synchronized void save(PlayerData pd) {
-        try {
+            // Reload first so we merge onto whatever's currently on disk rather than
+            // clobbering changes written by another save() call in between.
             playerCfg = YamlConfiguration.loadConfiguration(playerFile);
 
-            // ALWAYS use "players.<uuid>" format for consistency
-            String key = "players." + pd.getUuid().toString();
-            ConfigurationSection sec = playerCfg.getConfigurationSection(key);
-            if (sec == null) sec = playerCfg.createSection(key);
-
-            sec.set("element", pd.getCurrentElement() == null ? null : pd.getCurrentElement().name());
-            sec.set("mana", pd.getMana());
-            sec.set("currentUpgradeLevel", pd.getCurrentElementUpgradeLevel());
-
-            List<String> items = new ArrayList<>();
-            for (ElementType t : pd.getOwnedItems()) items.add(t.name());
-            sec.set("items", items);
-
-            // Save trust list
-            sec.set("trust", null); // Clear existing
-            if (!pd.getTrustedPlayers().isEmpty()) {
-                ConfigurationSection trustSec = sec.createSection("trust");
-                for (UUID trustedUuid : pd.getTrustedPlayers()) {
-                    trustSec.set(trustedUuid.toString(), true);
-                }
+            String key = "players." + data.getUuid();
+            ConfigurationSection section = playerCfg.getConfigurationSection(key);
+            if (section == null) {
+                section = playerCfg.createSection(key);
             }
 
-            // Update cache
-            playerDataCache.put(pd.getUuid(), pd);
+            PlayerDataSerializer.serialize(data, section);
 
-            // Save to disk
+            playerDataCache.put(data.getUuid(), data);
             flushPlayerData();
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save player data for " + pd.getUuid(), e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to save player data for " + data.getUuid(), e);
         }
     }
 
+    @Override
     public synchronized void invalidateCache(UUID uuid) {
         playerDataCache.remove(uuid);
     }
 
+    @Override
     public synchronized void flushAll() {
         flushPlayerData();
     }
@@ -168,19 +153,29 @@ public class DataStore {
         }
     }
 
-    // TRUST store - now delegates to PlayerData
+    // === TRUST (delegates to PlayerData) ===
+
+    @Override
     public synchronized Set<UUID> getTrusted(UUID owner) {
-        PlayerData pd = getPlayerData(owner);
-        return pd.getTrustedPlayers();
+        return getPlayerData(owner).getTrustedPlayers();
     }
 
+    @Override
     public synchronized void setTrusted(UUID owner, Set<UUID> trusted) {
-        PlayerData pd = getPlayerData(owner);
-        pd.setTrustedPlayers(trusted);
-        save(pd);
+        PlayerData data = getPlayerData(owner);
+        data.setTrustedPlayers(trusted);
+        save(data);
     }
 
-    private void flushServerData() {
+    // === SERVER-WIDE CONFIG (data/server.yml) ===
+
+    /** Exposes the server-wide config section for callers that need plugin-level (non-per-player) storage. */
+    public synchronized FileConfiguration getServerConfig() {
+        return serverCfg;
+    }
+
+    /** Persists whatever's currently in {@link #getServerConfig()} to disk. */
+    public synchronized void saveServerConfig() {
         try {
             serverCfg.save(serverFile);
         } catch (IOException e) {

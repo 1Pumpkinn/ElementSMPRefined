@@ -8,17 +8,33 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Handles per-second mana regen and spend/check calls.
+ * <p>
+ * Mana changes only mutate the {@link PlayerData} instance cached in
+ * {@link DataStore} - they do NOT hit disk immediately. Writing a full
+ * players.yml on every regen tick for every online player is a main-thread
+ * disk I/O storm waiting to happen as the player count grows. Instead,
+ * changed players are flushed in a batch every {@link #FLUSH_INTERVAL_SECONDS}
+ * seconds, plus explicitly on quit (see {@code PlayerLifecycleListener}) and
+ * on plugin disable (see {@code AbstractElementPlugin#onDisable}), so nothing
+ * is lost outside of a hard crash.
+ */
 public class ManaManager {
+    private static final int FLUSH_INTERVAL_SECONDS = 30;
+
     private final JavaPlugin plugin;
     private final DataStore store;
     private final ConfigManager configManager;
     private BukkitTask task;
 
-    private final Map<UUID, PlayerData> cache = new ConcurrentHashMap<>();
+    /** UUIDs with in-memory mana changes not yet written to disk. */
+    private final Set<UUID> dirty = ConcurrentHashMap.newKeySet();
+    private int ticksSinceFlush = 0;
 
     public ManaManager(JavaPlugin plugin, DataStore store, ConfigManager configManager) {
         this.plugin = plugin;
@@ -47,34 +63,59 @@ public class ManaManager {
                         if (pd.getMana() > maxMana) {
                             pd.setMana(maxMana);
                         }
-                        store.save(pd);
+                        dirty.add(p.getUniqueId());
                     }
                 }
 
                 // Action bar display with mana emoji
                 String manaDisplay = p.getGameMode() == GameMode.CREATIVE ? "∞" : String.valueOf(pd.getMana());
                 p.sendActionBar(
-                    net.kyori.adventure.text.Component.text("Ⓜ Mana: ")
-                        .color(net.kyori.adventure.text.format.NamedTextColor.AQUA)
-                        .append(net.kyori.adventure.text.Component.text(manaDisplay, net.kyori.adventure.text.format.NamedTextColor.WHITE))
-                        .append(net.kyori.adventure.text.Component.text("/" + maxMana, net.kyori.adventure.text.format.NamedTextColor.GRAY))
+                        net.kyori.adventure.text.Component.text("Ⓜ Mana: ")
+                                .color(net.kyori.adventure.text.format.NamedTextColor.AQUA)
+                                .append(net.kyori.adventure.text.Component.text(manaDisplay, net.kyori.adventure.text.format.NamedTextColor.WHITE))
+                                .append(net.kyori.adventure.text.Component.text("/" + maxMana, net.kyori.adventure.text.format.NamedTextColor.GRAY))
                 );
             }
+
+            flushDirtyIfDue();
         }, 20L, 20L);
+    }
+
+    /** Every FLUSH_INTERVAL_SECONDS ticks of this task, persist whatever changed since the last flush. */
+    private void flushDirtyIfDue() {
+        ticksSinceFlush++;
+        if (ticksSinceFlush < FLUSH_INTERVAL_SECONDS) {
+            return;
+        }
+        ticksSinceFlush = 0;
+        flushDirty();
+    }
+
+    private void flushDirty() {
+        if (dirty.isEmpty()) return;
+        for (UUID uuid : dirty) {
+            PlayerData pd = store.getPlayerData(uuid);
+            store.save(pd);
+        }
+        dirty.clear();
     }
 
     public void stop() {
         if (task != null) task.cancel();
         task = null;
+        // Don't lose the last <30s of regen when the manager stops (e.g. on reload).
+        flushDirty();
     }
 
     public PlayerData get(UUID uuid) {
-        return cache.computeIfAbsent(uuid, store::load);
+        return store.getPlayerData(uuid);
     }
 
+    /** Immediately persists a player's mana, bypassing the batch - used on quit. */
     public void save(UUID uuid) {
-        PlayerData pd = cache.get(uuid);
-        if (pd != null) store.save(pd);
+        dirty.remove(uuid);
+        PlayerData pd = store.getPlayerData(uuid);
+        store.save(pd);
     }
 
     public boolean spend(Player player, int amount) {
@@ -86,10 +127,10 @@ public class ManaManager {
         PlayerData pd = get(player.getUniqueId());
         if (pd.getMana() < amount) return false;
         pd.addMana(-amount);
-        store.save(pd);
+        dirty.add(player.getUniqueId());
         return true;
     }
-    
+
     /**
      * Check if player has enough mana without spending it
      * @param player The player to check
@@ -101,7 +142,7 @@ public class ManaManager {
         if (player.getGameMode() == GameMode.CREATIVE) {
             return true;
         }
-        
+
         PlayerData pd = get(player.getUniqueId());
         return pd.getMana() >= amount;
     }

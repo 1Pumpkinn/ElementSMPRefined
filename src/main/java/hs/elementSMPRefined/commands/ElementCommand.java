@@ -10,6 +10,8 @@ import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.visual.ParticlePreset;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.Particle;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -94,8 +96,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
             return Collections.emptyList();
         }
 
-        if (args.length == 2 && args[0].equalsIgnoreCase("particles")) {
-            return ParticlePreset.filterNames(args[1]);
+        if (args[0].equalsIgnoreCase("particles")) {
+            return getParticlesTabCompletion(args);
         }
 
         if (!sender.hasPermission("element.admin")) {
@@ -105,13 +107,13 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         return switch (args.length) {
             case 2 -> {
                 String subCmd = args[0].toLowerCase();
+                if (subCmd.equals("roll")) {
+                    yield Collections.emptyList();
+                }
+                if (subCmd.equals("config")) {
+                    yield List.of("reload", "reset", "set", "element");
+                }
                 if (subCommands.containsKey(subCmd)) {
-                    if (subCmd.equals("roll")) {
-                        yield Collections.emptyList();
-                    }
-                    if (subCmd.equals("config")) {
-                        yield List.of("reload", "reset", "set", "element");
-                    }
                     yield getOnlinePlayerNames(args[1]);
                 }
                 yield Collections.emptyList();
@@ -138,6 +140,39 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
             }
             default -> Collections.emptyList();
         };
+    }
+
+    private List<String> getParticlesTabCompletion(String[] args) {
+        if (args.length == 2) {
+            return ParticlePreset.filterNames(args[1]);
+        }
+
+        if (args.length >= 3 && args.length <= 5) {
+            return filterStartingWith(List.of("0.5", "1", "1.5", "2", "2.5", "3", "4", "5", "6", "8", "10"), args[args.length - 1]);
+        }
+
+        if (args.length == 6) {
+            return filterStartingWith(List.of("white", "red", "orange", "yellow", "green", "lime", "aqua", "cyan",
+                    "blue", "purple", "magenta", "pink", "black", "gray", "grey", "silver", "#ff0000", "#00ff00", "#0000ff"), args[5]);
+        }
+
+        if (args.length == 7) {
+            return filterStartingWith(getParticleNameSuggestions(), args[6]);
+        }
+
+        return Collections.emptyList();
+    }
+
+    private List<String> getParticleNameSuggestions() {
+        List<String> suggestions = new ArrayList<>();
+        for (Particle particle : Particle.values()) {
+            suggestions.add(particle.name().toLowerCase(Locale.ROOT).replace('_', '-'));
+        }
+        suggestions.add("dust");
+        suggestions.add("glow");
+        suggestions.add("soul-fire-flame");
+        suggestions.add("dripping-lava");
+        return suggestions.stream().distinct().toList();
     }
 
     private List<String> getConfigKeys(String prefix) {
@@ -212,15 +247,167 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            preset.get().play(player, plugin);
+            ParticlePreset.PresetOptions options = parsePresetOptions(args);
+            preset.get().play(player, plugin, options);
             player.sendMessage(ChatColor.GREEN + "Playing particle preset: " + ChatColor.AQUA + preset.get().getKey());
             return true;
+        }
+
+        private ParticlePreset.PresetOptions parsePresetOptions(String[] args) {
+            ParticlePreset preset = ParticlePreset.fromName(args[1]).orElse(ParticlePreset.CIRCLE);
+            ParticlePreset.PresetOptions defaults = ParticlePreset.PresetOptions.defaults(preset);
+
+            double size = defaults.sizeOr(1.0);
+            double length = defaults.lengthOr(0.0);
+            double width = defaults.widthOr(1.0);
+            Particle particle = defaults.particle();
+            Color color = defaults.color();
+
+            for (int i = 2; i < args.length; i++) {
+                String arg = args[i];
+                if (arg == null || arg.isBlank()) {
+                    continue;
+                }
+
+                if (arg.startsWith("size=") || arg.equalsIgnoreCase("size")) {
+                    String value = arg.contains("=") ? arg.substring(arg.indexOf('=') + 1) : (i + 1 < args.length ? args[++i] : "");
+                    if (!value.isBlank()) {
+                        try {
+                            size = Double.parseDouble(value);
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                    continue;
+                }
+
+                if (arg.startsWith("length=") || arg.equalsIgnoreCase("length")) {
+                    String value = arg.contains("=") ? arg.substring(arg.indexOf('=') + 1) : (i + 1 < args.length ? args[++i] : "");
+                    if (!value.isBlank()) {
+                        try {
+                            length = Double.parseDouble(value);
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                    continue;
+                }
+
+                if (arg.startsWith("width=") || arg.equalsIgnoreCase("width")) {
+                    String value = arg.contains("=") ? arg.substring(arg.indexOf('=') + 1) : (i + 1 < args.length ? args[++i] : "");
+                    if (!value.isBlank()) {
+                        try {
+                            width = Double.parseDouble(value);
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                    continue;
+                }
+
+                if (arg.startsWith("color=") || arg.equalsIgnoreCase("color")) {
+                    String value = arg.contains("=") ? arg.substring(arg.indexOf('=') + 1) : (i + 1 < args.length ? args[++i] : "");
+                    color = parseColor(value);
+                    continue;
+                }
+
+                if (arg.startsWith("particle=") || arg.equalsIgnoreCase("particle")) {
+                    String value = arg.contains("=") ? arg.substring(arg.indexOf('=') + 1) : (i + 1 < args.length ? args[++i] : "");
+                    particle = parseParticle(value);
+                    continue;
+                }
+
+                if (i == 2) {
+                    try {
+                        size = Double.parseDouble(arg);
+                    } catch (NumberFormatException ignored) {
+                    }
+                    continue;
+                }
+                if (i == 3) {
+                    try {
+                        length = Double.parseDouble(arg);
+                    } catch (NumberFormatException ignored) {
+                    }
+                    continue;
+                }
+                if (i == 4) {
+                    try {
+                        width = Double.parseDouble(arg);
+                    } catch (NumberFormatException ignored) {
+                    }
+                    continue;
+                }
+                if (i == 5) {
+                    color = parseColor(arg);
+                    continue;
+                }
+                if (i == 6) {
+                    particle = parseParticle(arg);
+                }
+            }
+
+            return new ParticlePreset.PresetOptions(size, length, width, particle, color);
+        }
+
+        private Color parseColor(String input) {
+            if (input == null || input.isBlank()) {
+                return null;
+            }
+
+            String normalized = input.trim().toLowerCase(Locale.ROOT);
+            return switch (normalized) {
+                case "white" -> Color.WHITE;
+                case "silver", "lightgray" -> Color.SILVER;
+                case "gray", "grey" -> Color.GRAY;
+                case "black" -> Color.BLACK;
+                case "red" -> Color.RED;
+                case "orange" -> Color.ORANGE;
+                case "yellow" -> Color.YELLOW;
+                case "green" -> Color.GREEN;
+                case "lime" -> Color.LIME;
+                case "aqua", "cyan" -> Color.AQUA;
+                case "blue" -> Color.BLUE;
+                case "purple", "magenta" -> Color.PURPLE;
+                case "pink" -> Color.FUCHSIA;
+                default -> {
+                    if (normalized.startsWith("#") && normalized.length() == 7) {
+                        try {
+                            int r = Integer.parseInt(normalized.substring(1, 3), 16);
+                            int g = Integer.parseInt(normalized.substring(3, 5), 16);
+                            int b = Integer.parseInt(normalized.substring(5, 7), 16);
+                            yield Color.fromRGB(r, g, b);
+                        } catch (NumberFormatException ignored) {
+                            yield null;
+                        }
+                    }
+                    yield null;
+                }
+            };
+        }
+
+        private Particle parseParticle(String input) {
+            if (input == null || input.isBlank()) {
+                return null;
+            }
+
+            String normalized = input.trim().toUpperCase(Locale.ROOT).replace('-', '_');
+            try {
+                return Particle.valueOf(normalized);
+            } catch (IllegalArgumentException e) {
+                return switch (normalized) {
+                    case "DUST", "REDSTONE" -> Particle.DUST;
+                    case "GLOW" -> Particle.GLOW;
+                    case "SOULFIRE" -> Particle.SOUL_FIRE_FLAME;
+                    case "DRIPLAVA" -> Particle.DRIPPING_LAVA;
+                    default -> null;
+                };
+            }
         }
 
         private void sendPresetList(Player player) {
             player.sendMessage(ChatColor.GOLD + "=== Element Particle Presets ===");
             player.sendMessage(ChatColor.YELLOW + "Available: " + String.join(", ", ParticlePreset.getNames()));
-            player.sendMessage(ChatColor.GRAY + "Usage: /element particles <preset>");
+            player.sendMessage(ChatColor.GRAY + "Usage: /element particles <preset> [size] [length] [width] [color] [particle]");
+            player.sendMessage(ChatColor.GRAY + "Also supported: size=2.5 length=0 width=36 color=red particle=dust");
+            player.sendMessage(ChatColor.GRAY + "Example: /element particles circle 2.5 0 36 red dust");
         }
     }
 

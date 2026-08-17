@@ -60,7 +60,7 @@ public class MeteorRideAbility extends BaseAbility {
     private static final double IMPACT_KNOCKBACK = 2.2;
 
     public MeteorRideAbility(JavaPlugin plugin) {
-        super("fire_meteor_ride", 60, 15, 2);
+        super("fire_meteor_ride", 75, 15, 2);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

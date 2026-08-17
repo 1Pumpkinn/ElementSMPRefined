@@ -48,7 +48,7 @@ public class GraspAbility extends BaseAbility implements Listener {
     private final Map<UUID, GraspSession> grasped = new HashMap<>();
 
     public GraspAbility(JavaPlugin plugin) {
-        super("earth_grasp", 60, 12, 2);
+        super("earth_grasp", 75, 12, 2);
         this.plugin = (ElementSMPRefined) plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }

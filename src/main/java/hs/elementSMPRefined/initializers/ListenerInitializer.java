@@ -6,6 +6,7 @@ import hs.elementSMPRefined.API.element.ListenerProvider;
 import hs.elementSMPRefined.ability.passive.air.AirElement;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import hs.elementSMPRefined.ability.passive.death.listeners.DeathFriendlyMobListener;
+import hs.elementSMPRefined.ability.passive.earth.listeners.EarthVeinMinerListener;
 import hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;
 import hs.elementSMPRefined.ability.passive.metal.MetalElement;
 import hs.elementSMPRefined.listeners.GUIListener;
@@ -114,6 +115,8 @@ public class ListenerInitializer {
 
         this.frostPassiveListener = new FrostPassiveListener(plugin, plugin.getElementManager());
         pluginManager.registerEvents(frostPassiveListener, plugin);
+
+        pluginManager.registerEvents(new EarthVeinMinerListener(plugin.getElementManager()), plugin);
 
         var metalElement = plugin.getElementManager().get(ElementType.METAL);
         if (metalElement instanceof MetalElement metalElementImpl) {

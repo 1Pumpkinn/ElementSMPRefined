@@ -37,10 +37,6 @@ public class ElementItemInteractionListener implements Listener {
         ItemStack item = event.getItem();
         if (item != null && isElementItem(item)) {
             SoundUtils.playTo(event.getPlayer(), SoundUtils.UI.CLICK);
-            
-            if (hs.elementSMPRefined.items.CoreConsumptionHandler.handleCoreConsume(event, plugin, elements)) {
-                return;
-            }
             itemManager.handleUse(event);
         }
     }
@@ -48,15 +44,14 @@ public class ElementItemInteractionListener implements Listener {
     @EventHandler
     public void onPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        
+
         ItemStack stack = event.getItem().getItemStack();
         if (!isElementItem(stack)) return;
-        
+
         Optional<ElementType> typeOpt = ItemUtil.getElementTypeOptional(plugin, stack);
         if (typeOpt.isEmpty()) return;
-        
+
         ElementType type = typeOpt.get();
-        if (isLifeOrDeath(type)) return;
 
         PlayerData playerData = elements.data(player.getUniqueId());
         if (playerData.getCurrentElement() != type) {
@@ -80,8 +75,4 @@ public class ElementItemInteractionListener implements Listener {
     private boolean isElementItem(ItemStack stack) {
         return ItemUtil.isElementItem(plugin, stack);
     }
-
-    private boolean isLifeOrDeath(ElementType type) {
-        return type == ElementType.LIFE || type == ElementType.DEATH;
-    }
-}
+}   

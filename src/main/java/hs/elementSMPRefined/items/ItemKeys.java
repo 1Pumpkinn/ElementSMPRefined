@@ -14,9 +14,6 @@ public final class ItemKeys {
     public static final String KEY_REROLLER = "element_reroller";
     public static final String KEY_ADVANCED_REROLLER = "advanced_reroller";
 
-    public static final String KEY_LIFE_CORE = "life_core";
-    public static final String KEY_DEATH_CORE = "death_core";
-
     public static NamespacedKey namespaced(JavaPlugin plugin, String key) {
         return new NamespacedKey(plugin, key);
     }
@@ -26,6 +23,4 @@ public final class ItemKeys {
     public static NamespacedKey elementType(JavaPlugin plugin) { return namespaced(plugin, KEY_ELEMENT_TYPE); }
     public static NamespacedKey reroller(JavaPlugin plugin) { return namespaced(plugin, KEY_REROLLER); }
     public static NamespacedKey advancedReroller(JavaPlugin plugin) { return namespaced(plugin, KEY_ADVANCED_REROLLER); }
-    public static NamespacedKey lifeCore(JavaPlugin plugin) { return namespaced(plugin, KEY_LIFE_CORE); }
-    public static NamespacedKey deathCore(JavaPlugin plugin) { return namespaced(plugin, KEY_DEATH_CORE); }
 }

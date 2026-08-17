@@ -23,54 +23,6 @@ public final class ElementCoreItem {
 
     private static ElementCoreProperties properties(ElementType type) {
         switch (type) {
-            case AIR:
-                return new ElementCoreProperties(
-                        Material.FEATHER,
-                        ChatColor.LIGHT_PURPLE,
-                        "Air Element"
-                );
-            case WATER:
-                return new ElementCoreProperties(
-                        Material.PRISMARINE_CRYSTALS,
-                        ChatColor.AQUA,
-                        "Water Element"
-                );
-            case FIRE:
-                return new ElementCoreProperties(
-                        Material.BLAZE_POWDER,
-                        ChatColor.RED,
-                        "Fire Element"
-                );
-            case EARTH:
-                return new ElementCoreProperties(
-                        Material.DIRT,
-                        ChatColor.GREEN,
-                        "Earth Element"
-                );
-            case LIFE:
-                return new ElementCoreProperties(
-                        Material.REDSTONE_BLOCK,
-                        ChatColor.RED,
-                        "Life Element"
-                );
-            case DEATH:
-                return new ElementCoreProperties(
-                        Material.WITHER_SKELETON_SKULL,
-                        ChatColor.DARK_GRAY,
-                        "Death Element"
-                );
-            case METAL:
-                return new ElementCoreProperties(
-                        Material.IRON_INGOT,
-                        ChatColor.GRAY,
-                        "Metal Element"
-                );
-            case FROST:
-                return new ElementCoreProperties(
-                        Material.SNOWBALL,
-                        ChatColor.WHITE,
-                        "Frost Element"
-                );
             default:
                 return null;
         }
@@ -90,13 +42,6 @@ public final class ElementCoreItem {
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             pdc.set(ItemKeys.elementType(plugin), PersistentDataType.STRING, type.name());
             pdc.set(ItemKeys.elementItem(plugin), PersistentDataType.BYTE, (byte) 1);
-
-            // Add specific core identifier based on type
-            if (type == ElementType.LIFE) {
-                pdc.set(ItemKeys.lifeCore(plugin), PersistentDataType.BYTE, (byte) 1);
-            } else if (type == ElementType.DEATH) {
-                pdc.set(ItemKeys.deathCore(plugin), PersistentDataType.BYTE, (byte) 1);
-            }
 
             item.setItemMeta(meta);
         }

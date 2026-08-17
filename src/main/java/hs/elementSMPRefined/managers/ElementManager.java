@@ -62,7 +62,7 @@ public class ElementManager {
     public ElementType[] getBasicElements() {
         // Start with default basic elements
         List<ElementType> basicElements = new ArrayList<>(Arrays.asList(BASIC_ELEMENTS));
-        
+
         // Add or remove elements based on configuration
         for (ElementType type : ElementType.values()) {
             var config = configManager.getElementConfiguration().getConfig(type);
@@ -77,7 +77,7 @@ public class ElementManager {
                 }
             }
         }
-        
+
         return basicElements.toArray(new ElementType[0]);
     }
 
@@ -89,7 +89,7 @@ public class ElementManager {
         List<ElementType> advancedElements = new ArrayList<>(Arrays.asList(
                 ElementType.LIFE, ElementType.DEATH, ElementType.METAL, ElementType.FROST
         ));
-        
+
         // Add or remove elements based on configuration
         for (ElementType type : ElementType.values()) {
             var config = configManager.getElementConfiguration().getConfig(type);
@@ -104,7 +104,7 @@ public class ElementManager {
                 }
             }
         }
-        
+
         return advancedElements.toArray(new ElementType[0]);
     }
 
@@ -249,7 +249,6 @@ public class ElementManager {
     }
 
     private void handleElementSwitch(Player player, ElementType oldElement) {
-        returnLifeOrDeathCore(player, oldElement);
         effectService.clearAllElementEffects(player);
     }
 
@@ -311,17 +310,6 @@ public class ElementManager {
                 )
         );
         player.showTitle(titleObj);
-    }
-
-    private void returnLifeOrDeathCore(Player player, ElementType oldElement) {
-        if (oldElement != ElementType.LIFE && oldElement != ElementType.DEATH) return;
-        if (!data(player.getUniqueId()).hasElementItem(oldElement)) return;
-
-        var core = hs.elementSMPRefined.items.ElementCoreItem.createCore(plugin, oldElement);
-        if (core != null) {
-            player.getInventory().addItem(core);
-            player.sendMessage(ChatColor.YELLOW + "Your core has been returned!");
-        }
     }
 
     private boolean beginRoll(Player player) {

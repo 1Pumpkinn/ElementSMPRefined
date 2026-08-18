@@ -20,9 +20,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * players.yml on every regen tick for every online player is a main-thread
  * disk I/O storm waiting to happen as the player count grows. Instead,
  * changed players are flushed in a batch every {@link #FLUSH_INTERVAL_SECONDS}
- * seconds, plus explicitly on quit (see {@code PlayerLifecycleListener}) and
- * on plugin disable (see {@code AbstractElementPlugin#onDisable}), so nothing
- * is lost outside of a hard crash.
+ * seconds via {@link DataStore#saveAsync}, which does the actual YAML
+ * read/write off the main thread, plus explicitly on quit (see
+ * {@code PlayerLifecycleListener}, synchronous since it's a single player)
+ * and on plugin disable (see {@code AbstractElementPlugin#onDisable}, a
+ * final synchronous flush so nothing is lost outside of a hard crash).
  */
 public class ManaManager {
     private static final int FLUSH_INTERVAL_SECONDS = 30;
@@ -95,7 +97,10 @@ public class ManaManager {
         if (dirty.isEmpty()) return;
         for (UUID uuid : dirty) {
             PlayerData pd = store.getPlayerData(uuid);
-            store.save(pd);
+            // Async: this runs on the main thread every FLUSH_INTERVAL_SECONDS for
+            // every dirty player, so a synchronous store.save() here would mean
+            // main-thread YAML read+write per player, scaling with player count.
+            store.saveAsync(pd);
         }
         dirty.clear();
     }

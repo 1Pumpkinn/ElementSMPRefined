@@ -32,23 +32,21 @@ public class GUIListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        String title = event.getView().getTitle();
-        if (title.contains("Rolling Element") || title.contains("Select Your Element")) {
-            event.setCancelled(true);
+        // Identify the GUI via its InventoryHolder instead of matching the
+        // (deprecated) legacy inventory title string - robust to any future
+        // title change and doesn't false-positive on unrelated inventories
+        // that happen to contain the same substring.
+        if (!(event.getInventory().getHolder() instanceof ElementSelectionGUI gui)) return;
 
-            ElementSelectionGUI gui = ElementSelectionGUI.getGUI(player.getUniqueId());
-            if (gui != null) {
-                gui.handleClick(event.getRawSlot());
-            }
-        }
+        event.setCancelled(true);
+        gui.handleClick(event.getRawSlot());
     }
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
 
-        String title = event.getView().getTitle();
-        if (title.contains("Rolling Element") || title.contains("Select Your Element")) {
+        if (event.getInventory().getHolder() instanceof ElementSelectionGUI) {
             ElementSelectionGUI.removeGUI(player.getUniqueId());
             // Capture close reason to avoid reopening during inventory transitions
             InventoryCloseEvent.Reason reason = event.getReason();

@@ -28,8 +28,20 @@ public interface PlayerDataRepository {
      */
     PlayerData load(UUID uuid);
 
-    /** Persists {@code data} to storage and refreshes the cache entry. */
+    /**
+     * Persists {@code data} to storage and refreshes the cache entry.
+     * Performs the disk write synchronously on the calling thread - safe to
+     * call from the main thread for infrequent, one-off saves (quit, admin
+     * commands) but NOT from a per-tick or high-frequency loop.
+     */
     void save(PlayerData data);
+
+    /**
+     * Refreshes the cache entry immediately, then persists {@code data} to
+     * storage on an async thread. Use this from high-frequency call sites
+     * (periodic flush loops) so disk I/O never blocks the main thread.
+     */
+    void saveAsync(PlayerData data);
 
     /** Drops the cached entry for {@code uuid}, forcing a reload on the next {@link #get}. */
     void invalidateCache(UUID uuid);

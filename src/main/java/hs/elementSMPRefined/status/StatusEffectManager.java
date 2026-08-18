@@ -1,11 +1,14 @@
 package hs.elementSMPRefined.status;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +21,9 @@ public class StatusEffectManager {
     private final JavaPlugin plugin;
     private final Map<UUID, Map<StatusEffectType, StatusEffectInstance>> activeEffects = new ConcurrentHashMap<>();
     private final Map<StatusEffectType, StatusEffectData> effectData = new EnumMap<>(StatusEffectType.class);
+
+    /** The per-tick monitor task - stored so {@link #cleanup()} can actually cancel it. */
+    private BukkitTask monitorTask;
 
     public StatusEffectManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -144,7 +150,7 @@ public class StatusEffectManager {
         int actualDuration = Math.min(duration, data.maxDuration());
 
         Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects
-                .computeIfAbsent(uuid, k -> new HashMap<>());
+                .computeIfAbsent(uuid, k -> new ConcurrentHashMap<>());
 
         StatusEffectInstance existing = playerEffects.get(type);
 
@@ -166,7 +172,7 @@ public class StatusEffectManager {
         applyPotionEffects(player, type, data);
 
         // Notify player
-        player.sendMessage("§c" + data.displayName() + " applied for " + (actualDuration / 20.0) + " seconds");
+        player.sendMessage(Component.text(data.displayName() + " applied for " + (actualDuration / 20.0) + " seconds", NamedTextColor.RED));
     }
 
     /**
@@ -215,7 +221,10 @@ public class StatusEffectManager {
             StatusEffectInstance removed = playerEffects.remove(type);
             if (removed != null) {
                 removePotionEffects(player, type);
-                player.sendMessage("§a" + effectData.get(type).displayName() + " removed");
+                StatusEffectData data = effectData.get(type);
+                if (data != null) {
+                    player.sendMessage(Component.text(data.displayName() + " removed", NamedTextColor.GREEN));
+                }
             }
         }
     }
@@ -231,7 +240,7 @@ public class StatusEffectManager {
             for (StatusEffectType type : playerEffects.keySet()) {
                 removePotionEffects(player, type);
             }
-            player.sendMessage("§aAll status effects removed");
+            player.sendMessage(Component.text("All status effects removed", NamedTextColor.GREEN));
         }
     }
 
@@ -346,10 +355,12 @@ public class StatusEffectManager {
     }
 
     /**
-     * Start the effect monitoring task
+     * Start the effect monitoring task. The returned task is kept in
+     * {@link #monitorTask} so {@link #cleanup()} can actually cancel it -
+     * previously this ran forever with no handle to stop it on demand.
      */
     private void startEffectMonitor() {
-        new BukkitRunnable() {
+        monitorTask = new BukkitRunnable() {
             @Override
             public void run() {
                 long currentTime = System.currentTimeMillis();
@@ -401,9 +412,15 @@ public class StatusEffectManager {
     }
 
     /**
-     * Clean up when plugin disables
+     * Clean up when plugin disables. Cancels the monitor task (previously
+     * left running with no handle to stop it) and drops all tracked effect
+     * state.
      */
     public void cleanup() {
+        if (monitorTask != null && !monitorTask.isCancelled()) {
+            monitorTask.cancel();
+        }
+        monitorTask = null;
         activeEffects.clear();
     }
 

@@ -1,5 +1,6 @@
 package hs.elementSMPRefined.data;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -19,9 +20,16 @@ import java.util.logging.Level;
  * in-memory cache in front of it so hot paths (ability checks, mana
  * ticks) don't hit disk.
  * <p>
- * All public methods are synchronized: the YAML config object is shared
- * mutable state, and the plugin can call into this class from async
- * tasks (e.g. join/quit handling) as well as the main thread.
+ * All disk-touching methods are synchronized: the YAML config object is
+ * shared mutable state, and both the main thread ({@link #save}) and the
+ * async flush path ({@link #saveAsync}) can write it. Synchronizing on
+ * {@code this} keeps a read-merge-write cycle from one caller from being
+ * torn by another.
+ * <p>
+ * IMPORTANT: {@link #getPlayerData(UUID)} caches every UUID it has ever
+ * seen and only drops an entry via {@link #invalidateCache(UUID)}. Callers
+ * MUST invalidate on player quit (after the final save) or this cache grows
+ * without bound for the lifetime of the server.
  */
 public class DataStore implements PlayerDataRepository {
 
@@ -74,7 +82,7 @@ public class DataStore implements PlayerDataRepository {
     // === READ PATH ===
 
     @Override
-    public synchronized PlayerData getPlayerData(UUID uuid) {
+    public PlayerData getPlayerData(UUID uuid) {
         PlayerData cached = playerDataCache.get(uuid);
         if (cached != null) {
             return cached;
@@ -90,7 +98,7 @@ public class DataStore implements PlayerDataRepository {
         return getPlayerData(uuid);
     }
 
-    private PlayerData loadPlayerDataFromFile(UUID uuid) {
+    private synchronized PlayerData loadPlayerDataFromFile(UUID uuid) {
         try {
             playerCfg = YamlConfiguration.loadConfiguration(playerFile);
         } catch (Exception e) {
@@ -113,8 +121,39 @@ public class DataStore implements PlayerDataRepository {
 
     // === WRITE PATH ===
 
+    /**
+     * Persists {@code data} synchronously on the calling thread. Intended
+     * for infrequent, one-off saves (quit, admin commands, final shutdown
+     * flush) where a single blocking YAML read+write is negligible. Do NOT
+     * call this from a per-tick or per-player periodic loop - use
+     * {@link #saveAsync(PlayerData)} instead.
+     */
     @Override
     public synchronized void save(PlayerData data) {
+        playerDataCache.put(data.getUuid(), data);
+        persistToDisk(data);
+    }
+
+    /**
+     * Refreshes the cache immediately (so subsequent reads see the change
+     * right away) and defers the actual YAML read-merge-write to an async
+     * task. This is the path {@code ManaManager}'s periodic dirty-flush
+     * should use, since it can touch many players' data every flush
+     * interval - doing that synchronously on the main thread would stall
+     * the server tick as player count grows.
+     */
+    @Override
+    public void saveAsync(PlayerData data) {
+        playerDataCache.put(data.getUuid(), data);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            synchronized (this) {
+                persistToDisk(data);
+            }
+        });
+    }
+
+    /** Actual read-merge-write cycle. Caller must hold the lock on {@code this}. */
+    private void persistToDisk(PlayerData data) {
         try {
             // Reload first so we merge onto whatever's currently on disk rather than
             // clobbering changes written by another save() call in between.
@@ -128,7 +167,6 @@ public class DataStore implements PlayerDataRepository {
 
             PlayerDataSerializer.serialize(data, section);
 
-            playerDataCache.put(data.getUuid(), data);
             flushPlayerData();
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save player data for " + data.getUuid(), e);
@@ -136,10 +174,11 @@ public class DataStore implements PlayerDataRepository {
     }
 
     @Override
-    public synchronized void invalidateCache(UUID uuid) {
+    public void invalidateCache(UUID uuid) {
         playerDataCache.remove(uuid);
     }
 
+    /** Synchronous - only safe to call on shutdown/disable where blocking briefly is acceptable. */
     @Override
     public synchronized void flushAll() {
         flushPlayerData();
@@ -156,12 +195,12 @@ public class DataStore implements PlayerDataRepository {
     // === TRUST (delegates to PlayerData) ===
 
     @Override
-    public synchronized Set<UUID> getTrusted(UUID owner) {
+    public Set<UUID> getTrusted(UUID owner) {
         return getPlayerData(owner).getTrustedPlayers();
     }
 
     @Override
-    public synchronized void setTrusted(UUID owner, Set<UUID> trusted) {
+    public void setTrusted(UUID owner, Set<UUID> trusted) {
         PlayerData data = getPlayerData(owner);
         data.setTrustedPlayers(trusted);
         save(data);

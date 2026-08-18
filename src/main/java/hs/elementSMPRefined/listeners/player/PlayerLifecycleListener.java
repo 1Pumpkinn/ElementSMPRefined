@@ -85,6 +85,10 @@ public class PlayerLifecycleListener implements Listener {
         manaManager.save(playerUuid);
         effectService.clearAllElementEffects(player);
         plugin.getDataStore().save(elementManager.data(playerUuid));
+        // Drop the cached PlayerData now that it's safely on disk - without
+        // this, DataStore's cache grows for every unique player who has
+        // ever joined and never shrinks for the life of the server.
+        plugin.getDataStore().invalidateCache(playerUuid);
         ElementSelectionGUI.removeGUI(playerUuid);
         if (frostPassiveListener != null) {
             frostPassiveListener.onPlayerQuit(playerUuid);

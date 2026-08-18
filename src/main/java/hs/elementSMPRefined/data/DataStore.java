@@ -37,8 +37,6 @@ public class DataStore implements PlayerDataRepository {
 
     private final File playerFile;
     private FileConfiguration playerCfg;
-    private final File serverFile;
-    private FileConfiguration serverCfg;
 
     private final Map<UUID, PlayerData> playerDataCache = new ConcurrentHashMap<>();
 
@@ -52,9 +50,6 @@ public class DataStore implements PlayerDataRepository {
 
         this.playerFile = createIfMissing(dataDir, "players.yml");
         this.playerCfg = loadYaml(playerFile, "players.yml");
-
-        this.serverFile = createIfMissing(dataDir, "server.yml");
-        this.serverCfg = loadYaml(serverFile, "server.yml");
     }
 
     private File createIfMissing(File dir, String name) {
@@ -204,21 +199,5 @@ public class DataStore implements PlayerDataRepository {
         PlayerData data = getPlayerData(owner);
         data.setTrustedPlayers(trusted);
         save(data);
-    }
-
-    // === SERVER-WIDE CONFIG (data/server.yml) ===
-
-    /** Exposes the server-wide config section for callers that need plugin-level (non-per-player) storage. */
-    public synchronized FileConfiguration getServerConfig() {
-        return serverCfg;
-    }
-
-    /** Persists whatever's currently in {@link #getServerConfig()} to disk. */
-    public synchronized void saveServerConfig() {
-        try {
-            serverCfg.save(serverFile);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save server.yml to disk", e);
-        }
     }
 }

@@ -92,7 +92,9 @@ public class GraspAbility extends BaseAbility implements Listener {
         LivingEntity closestTarget = null;
         double closestDistance = GRAB_RANGE;
 
-        for (LivingEntity entity : player.getWorld().getLivingEntities()) {
+        // Bounded to GRAB_RANGE via Paper's spatial-index nearby query instead of
+        // scanning every living entity in the loaded world (getWorld().getLivingEntities()).
+        for (LivingEntity entity : eyeLoc.getNearbyLivingEntities(GRAB_RANGE)) {
             if (entity.equals(player)) continue;
             if (entity instanceof Player other && trust.isTrusted(player.getUniqueId(), other.getUniqueId())) continue;
 

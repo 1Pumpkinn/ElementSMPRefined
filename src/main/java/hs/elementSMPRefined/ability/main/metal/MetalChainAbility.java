@@ -36,7 +36,10 @@ public class MetalChainAbility extends BaseAbility {
         Location eyeLoc = player.getEyeLocation();
         Vector lookDir = eyeLoc.getDirection();
 
-        for (LivingEntity entity : player.getWorld().getLivingEntities()) {
+        // Bounded to `range` via Paper's spatial-index nearby query instead of
+        // scanning every living entity in the loaded world (getWorld().getLivingEntities()) -
+        // scales with nearby entity count, not total world entity count.
+        for (LivingEntity entity : player.getLocation().getNearbyLivingEntities(range)) {
             if (entity.equals(player)) continue;
 
             // Skip armor stands
@@ -110,23 +113,23 @@ public class MetalChainAbility extends BaseAbility {
                         if (finalTarget instanceof Mob mob) {
                             // Store original AI state
                             boolean wasAware = mob.isAware();
-                            
+
                             // Disable AI to stop movement
                             mob.setAware(false);
                             mob.setAI(false);
-                            
+
                             // Apply slowness potion effect to further reduce movement
                             mob.addPotionEffect(new PotionEffect(
-                                PotionEffectType.SLOWNESS,
-                                60, // 3 seconds
-                                10, // High amplifier
-                                false, // No particles
-                                false  // No icon
+                                    PotionEffectType.SLOWNESS,
+                                    60, // 3 seconds
+                                    10, // High amplifier
+                                    false, // No particles
+                                    false  // No icon
                             ));
-                            
+
                             // Set velocity to zero immediately
                             finalTarget.setVelocity(new Vector(0, 0, 0));
-                            
+
                             // Re-enable AI after 3 seconds
                             new BukkitRunnable() {
                                 @Override

@@ -32,6 +32,9 @@ public class FireCombatListener implements Listener {
         if (playerData.getCurrentElement() != ElementType.FIRE) {
             return;
         }
+        if (playerData.getUpgradeLevel(ElementType.FIRE) < 2) {
+            return;
+        }
 
         // Don't apply to trusted players
         if (event.getEntity() instanceof Player victim) {

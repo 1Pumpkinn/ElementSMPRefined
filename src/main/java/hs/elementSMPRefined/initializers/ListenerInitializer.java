@@ -5,10 +5,17 @@ import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.element.ListenerProvider;
 import hs.elementSMPRefined.ability.passive.air.AirElement;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
+import hs.elementSMPRefined.ability.passive.air.listeners.AirCombatListener;
 import hs.elementSMPRefined.ability.passive.death.listeners.DeathFriendlyMobListener;
+import hs.elementSMPRefined.ability.passive.death.listeners.DeathPassiveHunger;
+import hs.elementSMPRefined.ability.passive.death.listeners.DeathRawFoodListener;
 import hs.elementSMPRefined.ability.passive.earth.listeners.EarthVeinMinerListener;
+import hs.elementSMPRefined.ability.passive.fire.listeners.FireCombatListener;
+import hs.elementSMPRefined.ability.passive.frost.listeners.FrostFrozenPunchListener;
 import hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;
 import hs.elementSMPRefined.ability.passive.metal.MetalElement;
+import hs.elementSMPRefined.ability.passive.metal.listeners.MetalArrowImmunityListener;
+import hs.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListener;
 import hs.elementSMPRefined.listeners.GUIListener;
 import hs.elementSMPRefined.listeners.StatusEffectListener;
 import hs.elementSMPRefined.listeners.ability.AbilityListener;
@@ -122,6 +129,21 @@ public class ListenerInitializer {
         if (metalElement instanceof MetalElement metalElementImpl) {
             this.metalDashAbility = metalElementImpl.getMetalDashAbility();
         }
+
+        // Upgrade II passives that were implemented but never wired in
+        pluginManager.registerEvents(new AirCombatListener(plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new FireCombatListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
+        pluginManager.registerEvents(new DeathRawFoodListener(plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new MetalArrowImmunityListener(plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new MetalChainStunListener(plugin), plugin);
+        pluginManager.registerEvents(new FrostFrozenPunchListener(plugin, plugin.getElementManager()), plugin);
+
+        // Death Upgrade II passive (nearby enemies get Hunger) is a periodic pulse, not an event
+        var deathPassiveHunger = new DeathPassiveHunger(plugin.getElementManager());
+        plugin.getTaskScheduler().runTimerSeconds(
+                () -> plugin.getServer().getOnlinePlayers().forEach(deathPassiveHunger::applyPassiveHunger),
+                3, 3
+        );
     }
 
     private void storeSpecialListeners() {

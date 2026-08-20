@@ -28,8 +28,6 @@ public final class PlayerData {
     private int currentElementUpgradeLevel;
     private final Set<UUID> trustedPlayers;
 
-    // === CONSTRUCTION ===
-
     public PlayerData(UUID uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
         this.ownedItems = EnumSet.noneOf(ElementType.class);
@@ -37,8 +35,6 @@ public final class PlayerData {
         this.currentElementUpgradeLevel = 0;
         this.trustedPlayers = new HashSet<>();
     }
-
-    // === GETTERS ===
 
     public UUID getUuid() {
         return uuid;
@@ -68,8 +64,6 @@ public final class PlayerData {
         return new HashSet<>(trustedPlayers);
     }
 
-    // === SETTERS (with validation) ===
-
     /** Sets the current element and resets its upgrade level to 0. */
     public void setCurrentElement(ElementType element) {
         this.currentElement = element;
@@ -95,8 +89,6 @@ public final class PlayerData {
         setMana(this.mana + delta);
     }
 
-    // === ELEMENT-SPECIFIC METHODS ===
-
     /** Upgrade level only applies to whichever element is currently active; anything else reads as 0. */
     public int getUpgradeLevel(ElementType type) {
         if (type != null && type.equals(currentElement)) {
@@ -119,8 +111,6 @@ public final class PlayerData {
         return Collections.unmodifiableMap(map);
     }
 
-    // === OWNED ITEMS ===
-
     public boolean hasElementItem(ElementType type) {
         return ownedItems.contains(type);
     }
@@ -132,8 +122,6 @@ public final class PlayerData {
     public void removeElementItem(ElementType type) {
         ownedItems.remove(type);
     }
-
-    // === TRUST MANAGEMENT ===
 
     public boolean isTrusted(UUID uuid) {
         return trustedPlayers.contains(uuid);
@@ -153,8 +141,6 @@ public final class PlayerData {
             trustedPlayers.addAll(trusted);
         }
     }
-
-    // === UTILITY ===
 
     @Override
     public boolean equals(Object o) {

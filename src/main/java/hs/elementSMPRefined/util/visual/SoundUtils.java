@@ -50,8 +50,6 @@ public final class SoundUtils {
         }
     }
 
-    // ==================== SOUND CATEGORIES ====================
-
     /**
      * Ability-related sounds
      */
@@ -151,8 +149,6 @@ public final class SoundUtils {
         private Notification() {}
     }
 
-    // ==================== BASIC SOUND PLAYING ====================
-
     /**
      * Play sound at location
      */
@@ -186,8 +182,6 @@ public final class SoundUtils {
     public static void playToWorld(World world, SoundConfig config) {
         world.getPlayers().forEach(p -> playTo(p, config));
     }
-
-    // ==================== SPATIAL AUDIO ====================
 
     /**
      * Play sound with distance-based volume falloff

@@ -68,8 +68,6 @@ public final class TimeUtils {
         }
     }
 
-    // ==================== CONVERSION METHODS ====================
-
     /**
      * Convert milliseconds to ticks (1 tick = 50ms)
      */
@@ -132,8 +130,6 @@ public final class TimeUtils {
     public static long daysToMillis(int days) {
         return days * 24L * 60L * 60L * 1000L;
     }
-
-    // ==================== FORMATTING METHODS ====================
 
     /**
      * Format duration in milliseconds to human-readable string
@@ -244,8 +240,6 @@ public final class TimeUtils {
         return formatDate(System.currentTimeMillis());
     }
 
-    // ==================== PARSING METHODS ====================
-
     /**
      * Parse time string to milliseconds
      * Supports formats: "1h 30m", "2m 30s", "45s", "1h30m", "90s"
@@ -302,8 +296,6 @@ public final class TimeUtils {
             return parseDuration(timeString);
         }
     }
-
-    // ==================== UTILITY METHODS ====================
 
     /**
      * Get current time in milliseconds

@@ -57,10 +57,6 @@ public class ConfigManager {
         }
     }
 
-    // === Safe readers - every getter below funnels through one of these instead of
-    // repeating its own try/catch. Bukkit's config getters basically never throw, but
-    // this keeps a hand-edited/corrupt config.yml from ever crashing the plugin. ===
-
     private int getIntSafe(String path, int fallback) {
         try {
             return config.getInt(path, fallback);

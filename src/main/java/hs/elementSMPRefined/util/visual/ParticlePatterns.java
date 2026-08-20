@@ -16,8 +16,6 @@ import java.util.function.Consumer;
  */
 public final class ParticlePatterns {
 
-    // ==================== CONFIGURATION RECORDS ====================
-
     public record CircleConfig(
             Location center,
             double radius,
@@ -148,8 +146,6 @@ public final class ParticlePatterns {
         }
     }
 
-    // ==================== BASIC PATTERNS ====================
-
     /**
      * Spawn a circle of particles
      */
@@ -232,8 +228,6 @@ public final class ParticlePatterns {
             spawnCircle(circleConfig);
         }
     }
-
-    // ==================== ADVANCED 3D PATTERNS ====================
 
     /**
      * Spawn a vertical spiral of particles
@@ -330,8 +324,6 @@ public final class ParticlePatterns {
             world.spawnParticle(config.particle(), loc2, 1, 0.1, 0.1, 0.1, 0, null, true);
         }
     }
-
-    // ==================== ANIMATED PATTERNS ====================
 
     /**
      * Animated expanding ring with animation support
@@ -445,8 +437,6 @@ public final class ParticlePatterns {
         }.runTaskTimer(plugin, 0, speedTicks);
     }
 
-    // ==================== SPECIAL EFFECTS ====================
-
     /**
      * Create a burst explosion effect
      */
@@ -517,8 +507,6 @@ public final class ParticlePatterns {
                     0.1, 0.1, 0.1, 0, null, true);
         }
     }
-
-    // ==================== UTILITY METHODS ====================
 
     private static void ensureAboveGround(Location loc) {
         int maxRaise = 3;

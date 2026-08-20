@@ -25,8 +25,6 @@ public final class TaskScheduler {
         this.plugin = plugin;
     }
 
-    // ==================== BASIC TASKS ====================
-
     /**
      * Run a task immediately on the main thread
      */
@@ -80,8 +78,6 @@ public final class TaskScheduler {
         );
     }
 
-    // ==================== ASYNC TASKS ====================
-
     /**
      * Run a task asynchronously
      */
@@ -117,8 +113,6 @@ public final class TaskScheduler {
             }
         }.runTaskTimerAsynchronously(plugin, delayTicks, periodTicks);
     }
-
-    // ==================== NAMED TASKS ====================
 
     /**
      * Run a named task that can be cancelled by name
@@ -157,8 +151,6 @@ public final class TaskScheduler {
         BukkitTask task = namedTasks.get(name);
         return task != null && !task.isCancelled();
     }
-
-    // ==================== PLAYER-SPECIFIC TASKS ====================
 
     /**
      * Run a task for a specific player
@@ -212,8 +204,6 @@ public final class TaskScheduler {
         }
     }
 
-    // ==================== CONDITIONAL TASKS ====================
-
     /**
      * Run a task repeatedly until a condition is met
      */
@@ -263,8 +253,6 @@ public final class TaskScheduler {
         }.runTaskTimer(plugin, 0, checkInterval);
     }
 
-    // ==================== CHAINED TASKS ====================
-
     /**
      * Run multiple tasks in sequence
      */
@@ -311,8 +299,6 @@ public final class TaskScheduler {
             }
         }.runTaskTimer(plugin, 0, 1);
     }
-
-    // ==================== UTILITY TASKS ====================
 
     /**
      * Run a task after player load
@@ -367,8 +353,6 @@ public final class TaskScheduler {
             }
         }.runTask(plugin);
     }
-
-    // ==================== TASK MANAGEMENT ====================
 
     /**
      * Cancel all tasks managed by this scheduler

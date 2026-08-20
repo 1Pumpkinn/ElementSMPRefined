@@ -74,8 +74,6 @@ public class DataStore implements PlayerDataRepository {
         }
     }
 
-    // === READ PATH ===
-
     @Override
     public PlayerData getPlayerData(UUID uuid) {
         PlayerData cached = playerDataCache.get(uuid);
@@ -113,8 +111,6 @@ public class DataStore implements PlayerDataRepository {
 
         return PlayerDataSerializer.deserialize(uuid, section);
     }
-
-    // === WRITE PATH ===
 
     /**
      * Persists {@code data} synchronously on the calling thread. Intended
@@ -186,8 +182,6 @@ public class DataStore implements PlayerDataRepository {
             plugin.getLogger().log(Level.SEVERE, "Failed to save players.yml to disk", e);
         }
     }
-
-    // === TRUST (delegates to PlayerData) ===
 
     @Override
     public Set<UUID> getTrusted(UUID owner) {

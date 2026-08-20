@@ -1,5 +1,6 @@
 package hs.elementSMPRefined.managers;
 
+import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.config.ElementConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -115,6 +116,33 @@ public class ConfigManager {
             return elementConfiguration.getConfig(type).getAbility2Cost();
         }
         return DEFAULT_ABILITY_2_COST;
+    }
+
+    /**
+     * ElementId-aware ability cost lookup, for addon elements as well as builtins.
+     * Builtin IDs (namespace "elements") defer to the per-type config section as
+     * before; addon elements have no per-type config section yet, so they fall
+     * back to the same defaults everyone else gets when unconfigured.
+     */
+    public int getAbility1Cost(ElementId id) {
+        ElementType type = toBuiltinType(id);
+        return type != null ? getAbility1Cost(type) : DEFAULT_ABILITY_1_COST;
+    }
+
+    public int getAbility2Cost(ElementId id) {
+        ElementType type = toBuiltinType(id);
+        return type != null ? getAbility2Cost(type) : DEFAULT_ABILITY_2_COST;
+    }
+
+    private ElementType toBuiltinType(ElementId id) {
+        if (id == null || !id.namespace().equals("elements")) {
+            return null;
+        }
+        try {
+            return ElementType.valueOf(id.key().toUpperCase());
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     public boolean isAdvancedRerollerRecipeEnabled() {

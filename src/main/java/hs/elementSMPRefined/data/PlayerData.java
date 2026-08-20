@@ -135,6 +135,24 @@ public final class PlayerData {
         }
     }
 
+    /**
+     * ElementId-based equivalent of {@link #getUpgradeLevel(ElementType)}, for addon
+     * elements (and builtins) alike. Upgrade level only applies to whichever element
+     * is currently active; anything else reads as 0.
+     */
+    public int getUpgradeLevel(ElementId id) {
+        if (id != null && id.equals(currentElementId)) {
+            return currentElementUpgradeLevel;
+        }
+        return 0;
+    }
+
+    public void setUpgradeLevel(ElementId id, int level) {
+        if (id != null && id.equals(currentElementId)) {
+            setCurrentElementUpgradeLevel(level);
+        }
+    }
+
     public Map<ElementType, Integer> getUpgradesView() {
         Map<ElementType, Integer> map = new EnumMap<>(ElementType.class);
         if (currentElement != null) {

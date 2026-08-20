@@ -19,7 +19,7 @@ status_effects:
 elements:
   air:
     display_name: "Air"
-    description: "Masters of wind and agility. Air users can reduce fall damage and move with unparalleled grace."
+    description: "Masters of wind and agility. Air users are immune to fall damage and move with unparalleled grace."
     color: "LIGHT_PURPLE"
     enabled: true
     is_basic: true

@@ -40,7 +40,6 @@ public final class Constants {
 
     public static final class Duration {
         public static final long EARTH_TUNNEL_MS = 20_000L;
-        public static final long EARTH_CHARM_MS = 30_000L;
         public static final long DEATH_SUMMON_MS = 30_000L;
         public static final long FROST_PUNCH_READY_MS = 10_000L;
         public static final long FROST_FREEZE_MS = 5_000L;
@@ -51,8 +50,8 @@ public final class Constants {
     }
 
     public static final class Distance {
-        public static final double AIR_BLAST_RADIUS = 6.0;
-        public static final double WATER_GEYSER_RADIUS = 5.0;
+        public static final double AIR_DASH_RADIUS = 3.0;
+        public static final double FIRE_GEYSER_RADIUS = 5.5;
         public static final double LIFE_REGEN_RADIUS = 5.0;
         public static final double FROST_CIRCLE_RADIUS = 5.0;
         public static final double DEATH_HUNGER_RADIUS = 5.0;

@@ -3,7 +3,7 @@ package hs.elementSMPRefined.ability.passive.fire;
 import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.fire.FireGeyserAbility;
-import hs.elementSMPRefined.ability.main.fire.MeteorRideAbility;
+import hs.elementSMPRefined.ability.main.fire.MeteorCrashAbility;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -16,7 +16,7 @@ import java.util.List;
 public class FireElement extends BaseElement {
 
     public FireElement(JavaPlugin plugin) {
-        super(plugin, new FireGeyserAbility(plugin), new MeteorRideAbility(plugin));
+        super(plugin, new FireGeyserAbility(plugin), new MeteorCrashAbility(plugin));
     }
 
     @Override

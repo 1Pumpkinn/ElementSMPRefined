@@ -22,14 +22,8 @@ import java.util.UUID;
 
 /**
  * Meteor Crash - The player is launched high into the air, then steers
- * themselves toward wherever they're looking: horizontal velocity is pulled
- * toward the look direction every tick (so you can drift over to what you're
- * aiming at), and looking down adds extra downward speed so you can dive
- * into a target. A flat, look-independent counter-force also lightens
- * gravity's overall pull, so the whole thing feels a bit floatier - but
- * looking straight up no longer gets any special treatment beyond that, so
- * it can't be used to stall out or hover. No flight mode is granted and no
- * cosmetic entity is spawned; it's pure velocity manipulation on the player.
+ * themselves toward wherever they're looking horizontally, so they can drift
+ * over to what they're aiming at while following a normal launch and fall.
  */
 public class MeteorCrashAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
@@ -43,14 +37,9 @@ public class MeteorCrashAbility extends BaseAbility {
     private static final double LAUNCH_UP_VELOCITY = 2.3;
     private static final double LAUNCH_FORWARD_VELOCITY = 0.7; // horizontal, in the direction the player is facing
 
-    // Steering tuning. Horizontal and vertical are handled separately on
-    // purpose: horizontal steer + the flat gravity compensation give a
-    // general floaty, "move where you're looking" feel in every direction,
-    // while the dive assist only ever fires on a downward look so it can't
-    // be mistaken for lift - looking up gets no vertical boost at all.
+    // Steering tuning. Vertical motion is intentionally left to the launch
+    // impulse and vanilla gravity so pitch changes cannot cause oscillation.
     private static final double STEER_ACCEL_HORIZONTAL = 0.1; // pull toward look direction's horizontal component each tick
-    private static final double STEER_ACCEL_DIVE = 0.12; // extra downward accel when looking down, scaled by how steep - lets you dive into what you're aiming at
-    private static final double GRAVITY_COMPENSATION = 0.022; // flat upward offset every tick, independent of look direction - makes the overall fall feel lighter without looking up specifically stalling it
     private static final double MAX_HORIZONTAL_SPEED = 1.6; // horizontal-only cap, applied after steering each tick
 
     // Ground-impact AOE tuning
@@ -136,12 +125,9 @@ public class MeteorCrashAbility extends BaseAbility {
                 // the landing, so don't let vanilla fall damage stack on top.
                 player.setFallDistance(0f);
 
-                // Steer toward wherever the player is currently looking,
-                // horizontally, plus a flat gravity compensation so falling
-                // feels lighter in general. Looking down adds extra downward
-                // speed (a dive assist) so you can commit to crashing where
-                // you're aiming; looking up gets no equivalent vertical
-                // boost, so it can't be used to hover or stall the fall.
+                // Steer horizontally toward the current heading. Leave the
+                // vertical component alone so looking up or level cannot
+                // fight the launch and gravity simulation.
                 Vector look = player.getLocation().getDirection().normalize();
                 Vector velocity = player.getVelocity();
 
@@ -149,11 +135,6 @@ public class MeteorCrashAbility extends BaseAbility {
                 if (horizLook.lengthSquared() > 1.0E-4) {
                     velocity.add(horizLook.normalize().multiply(STEER_ACCEL_HORIZONTAL));
                 }
-
-                if (look.getY() < 0) {
-                    velocity.setY(velocity.getY() + look.getY() * STEER_ACCEL_DIVE);
-                }
-                velocity.setY(velocity.getY() + GRAVITY_COMPENSATION);
 
                 // Only cap horizontal speed. Capping the full 3D vector here
                 // would also crush the vertical launch velocity back down to

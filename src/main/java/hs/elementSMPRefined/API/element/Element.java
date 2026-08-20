@@ -11,7 +11,21 @@ import java.util.List;
  * ability name/description pass-through for you.
  */
 public interface Element {
-    ElementType getType();
+    /**
+     * Legacy built-in type. Addons should implement {@link #getId()} instead.
+     */
+    default ElementType getType() {
+        return null;
+    }
+
+    /** Stable identifier used by addon-aware registries and persistence. */
+    default ElementId getId() {
+        ElementType type = getType();
+        if (type == null) {
+            throw new IllegalStateException("Addon elements must provide an ElementId");
+        }
+        return ElementId.builtin(type);
+    }
 
     void applyUpsides(Player player, int upgradeLevel);
 

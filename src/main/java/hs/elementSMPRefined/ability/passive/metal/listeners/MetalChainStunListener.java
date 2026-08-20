@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.ability.passive.metal.listeners;
 
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.status.StatusEffectType;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -14,9 +15,14 @@ import org.bukkit.util.Vector;
 
 /**
  * Listener for metal chain stun effects.
- * Handles knockback prevention and ensures mobs stay stunned.
+ * Enforces stun constraints:
+ * - Prevents stunned entities from moving
+ * - Removes knockback from stunned entities
+ * - Works for both players (via StatusEffectManager) and mobs (via AI disable)
  */
 public class MetalChainStunListener implements Listener {
+    private static final Vector ZERO_VELOCITY = new Vector(0, 0, 0);
+
     private final ElementSMPRefined plugin;
 
     public MetalChainStunListener(JavaPlugin plugin) {
@@ -24,37 +30,50 @@ public class MetalChainStunListener implements Listener {
     }
 
     /**
-     * Prevent stunned mobs from moving (additional safeguard)
+     * Prevent stunned entities from moving.
+     * Runs at HIGHEST priority to intercept movement before other listeners.
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityMove(EntityMoveEvent event) {
         LivingEntity entity = event.getEntity();
 
-        // Skip players (handled by StatusEffectListener)
-        if (entity instanceof Player) return;
+        // Players are handled by StatusEffectListener
+        if (entity instanceof Player) {
+            return;
+        }
 
-        // Check if mob has AI disabled (stunned by metal chain)
-        if (entity instanceof Mob mob && (!mob.isAware() || !mob.hasAI())) {
-            // Cancel the movement and zero out velocity
+        // Mobs marked as stunned (AI disabled) cannot move
+        if (entity instanceof Mob mob && !mob.hasAI()) {
             event.setCancelled(true);
-            entity.setVelocity(new Vector(0, 0, 0));
+            entity.setVelocity(ZERO_VELOCITY);
         }
     }
 
     /**
-     * Prevent stunned entities from taking knockback (metal-specific behavior)
+     * Prevent stunned entities from being knocked back by damage.
+     * This ensures stun immobilization is complete.
      */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+        if (!(event.getEntity() instanceof LivingEntity entity)) {
+            return;
+        }
 
-        // Check if entity is stunned by metal chain (using StatusEffectManager for players)
-        if (entity instanceof Player && plugin.getStatusEffectManager().isStunned(entity)) {
-            // Metal chain specifically prevents knockback more aggressively
-            entity.setVelocity(new Vector(0, 0, 0));
-        } else if (entity instanceof Mob mob && (!mob.isAware() || !mob.hasAI())) {
-            // Also prevent knockback for stunned mobs
-            entity.setVelocity(new Vector(0, 0, 0));
+        boolean isStunned = false;
+
+        // Check if player is stunned via StatusEffectManager
+        if (entity instanceof Player player) {
+            isStunned = plugin.getStatusEffectManager().hasEffect(player, StatusEffectType.FULL_STUN) ||
+                       plugin.getStatusEffectManager().hasEffect(player, StatusEffectType.STUN);
+        }
+        // Check if mob is stunned (AI disabled = stunned marker)
+        else if (entity instanceof Mob mob && !mob.hasAI()) {
+            isStunned = true;
+        }
+
+        // Remove all knockback from stunned entities
+        if (isStunned) {
+            entity.setVelocity(ZERO_VELOCITY);
         }
     }
 }

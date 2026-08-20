@@ -47,18 +47,21 @@ public class WaterInvisibilityListener implements Listener {
 
     private void startMonitor() {
         monitorTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            // Only check Water element players to avoid wasting cycles on other elements
             for (Player player : Bukkit.getOnlinePlayers()) {
-                tick(player);
+                if (elementManager.getPlayerElement(player) == ElementType.WATER) {
+                    tick(player);
+                }
             }
         }, 20L, MONITOR_PERIOD_TICKS);
     }
 
     private void tick(Player player) {
         UUID uuid = player.getUniqueId();
-
-        if (elementManager.getPlayerElement(player) != ElementType.WATER) {
+        
+        // Player is no longer in water or offline - clean up
+        if (!player.isInWater()) {
             idleChecks.remove(uuid);
-            lastLocation.remove(uuid);
             if (trulyInvisible.contains(uuid)) {
                 revealPlayer(player);
             }
@@ -68,18 +71,22 @@ public class WaterInvisibilityListener implements Listener {
         org.bukkit.Location current = player.getLocation();
         org.bukkit.Location previous = lastLocation.put(uuid, current.clone());
 
+        // Check if player hasn't moved
         boolean stationary = previous != null
                 && previous.getWorld().equals(current.getWorld())
                 && previous.distanceSquared(current) < MOVE_THRESHOLD_SQUARED;
 
-        if (player.isInWater() && stationary) {
+        if (stationary) {
             int checks = idleChecks.merge(uuid, 1, Integer::sum);
+            // Player idle long enough - apply invisibility
             if (checks >= IDLE_CHECKS_REQUIRED && !trulyInvisible.contains(uuid)) {
                 concealPlayer(player);
             } else if (trulyInvisible.contains(uuid)) {
+                // Refresh visibility cache
                 hidePlayerFromAll(player);
             }
         } else {
+            // Player moved - remove from invisibility
             idleChecks.remove(uuid);
             if (trulyInvisible.contains(uuid)) {
                 revealPlayer(player);

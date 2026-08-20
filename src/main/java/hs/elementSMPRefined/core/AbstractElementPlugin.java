@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.core;
 
 import hs.elementSMPRefined.data.DataStore;
+import hs.elementSMPRefined.addons.AddonManager;
 import hs.elementSMPRefined.initializers.CommandInitializer;
 import hs.elementSMPRefined.initializers.ListenerInitializer;
 import hs.elementSMPRefined.initializers.RecipeInitializer;
@@ -28,6 +29,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected ManaManager manaManager;
     protected TrustManager trustManager;
     protected ItemManager itemManager;
+    protected AddonManager addonManager;
     
     // Services
     protected StatusEffectManager statusEffectManager;
@@ -112,6 +114,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.elementManager = new ElementManager(this, dataStore, manaManager, trustManager, configManager);
         this.itemManager = new ItemManager(this, manaManager, configManager);
         this.statusEffectManager = new StatusEffectManager(this);
+        this.addonManager = new AddonManager((hs.elementSMPRefined.ElementSMPRefined) this);
     }
 
     private void initializeServices() {
@@ -163,6 +166,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public ManaManager getManaManager() { return manaManager; }
     public TrustManager getTrustManager() { return trustManager; }
     public ItemManager getItemManager() { return itemManager; }
+    public AddonManager getAddonManager() { return addonManager; }
     public StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
     public EffectService getEffectService() { return effectService; }
     public ValidationService getValidationService() { return validationService; }

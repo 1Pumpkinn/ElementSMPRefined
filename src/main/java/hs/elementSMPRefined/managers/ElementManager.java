@@ -3,6 +3,8 @@ package hs.elementSMPRefined.managers;
 import hs.elementSMPRefined.API.element.Element;
 import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.element.ElementId;
+import hs.elementSMPRefined.API.element.ListenerProvider;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.DataStore;
@@ -55,6 +57,18 @@ public class ElementManager {
     public ElementSMPRefined getPlugin() { return plugin; }
     public EffectService getEffectService() { return effectService; }
     public ElementRegistry getElementRegistry() { return elementRegistry; }
+
+    /**
+     * Register an addon element after built-in elements have been initialized.
+     * Provider listeners are registered immediately with the server.
+     */
+    public void registerAddonElement(Element element) {
+        elementRegistry.registerAddon(element);
+        if (element instanceof ListenerProvider provider) {
+            provider.getListeners(plugin).forEach(listener ->
+                    plugin.getServer().getPluginManager().registerEvents(listener, plugin));
+        }
+    }
 
     /**
      * Get all basic elements that can be rolled initially
@@ -143,8 +157,16 @@ public class ElementManager {
         return elementRegistry.get(type);
     }
 
+    public Element get(ElementId id) {
+        return elementRegistry.get(id);
+    }
+
     public ElementType getPlayerElement(Player player) {
         return data(player.getUniqueId()).getCurrentElement();
+    }
+
+    public ElementId getPlayerElementId(Player player) {
+        return data(player.getUniqueId()).getCurrentElementId();
     }
 
     public boolean isCurrentlyRolling(Player player) {

@@ -42,6 +42,17 @@ public class ItemRegistry {
         elementItems.put(itemId, item);
     }
 
+    /** Register an item supplied after the built-in registry has frozen. */
+    public void registerAddon(String itemId, ElementItem item, ItemData data) {
+        if (itemId == null || itemId.isBlank() || item == null || data == null) {
+            throw new IllegalArgumentException("Item ID, item, and item data are required");
+        }
+        if (items.putIfAbsent(itemId, new RegisteredItem(item, data)) != null) {
+            throw new IllegalArgumentException("Item " + itemId + " is already registered");
+        }
+        elementItems.put(itemId, item);
+    }
+
     /**
      * Get an item by its ID
      */

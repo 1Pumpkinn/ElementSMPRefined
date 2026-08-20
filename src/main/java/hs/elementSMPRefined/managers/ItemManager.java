@@ -44,6 +44,12 @@ public class ItemManager {
         item.registerRecipe(plugin);
     }
 
+    /** Register an addon item after built-in initialization. */
+    public void registerAddon(String itemId, ElementItem item, ItemRegistry.ItemData data) {
+        itemRegistry.registerAddon(itemId, item, data);
+        item.registerRecipe(plugin);
+    }
+
     public void handleUse(PlayerInteractEvent e) {
         for (ElementItem item : itemRegistry.getAllItems()) {
             if (item.handleUse(e, plugin, mana, configManager)) {

@@ -2,6 +2,7 @@ package hs.elementSMPRefined.util.bukkit;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.items.ItemKeys;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -32,12 +33,10 @@ public final class ItemUtil {
      * Get the element type from an item stack (legacy method for backward compatibility)
      */
     public static ElementType getElementType(ElementSMPRefined plugin, ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) return null;
-        String typeStr = stack.getItemMeta().getPersistentDataContainer()
-                .get(ItemKeys.elementType(plugin), PersistentDataType.STRING);
-        if (typeStr == null) return null;
         try {
-            return ElementType.valueOf(typeStr);
+            Optional<ElementId> id = getElementIdOptional(plugin, stack);
+            if (id.isEmpty() || !id.get().namespace().equals("elements")) return null;
+            return ElementType.valueOf(id.get().key().toUpperCase());
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -47,12 +46,23 @@ public final class ItemUtil {
      * Get the element type from an item stack (Optional version for new code)
      */
     public static Optional<ElementType> getElementTypeOptional(ElementSMPRefined plugin, ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) return Optional.empty();
-        String typeStr = stack.getItemMeta().getPersistentDataContainer()
-                .get(ItemKeys.elementType(plugin), PersistentDataType.STRING);
-        if (typeStr == null) return Optional.empty();
         try {
-            return Optional.of(ElementType.valueOf(typeStr));
+            return Optional.ofNullable(getElementType(plugin, stack));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
+    }
+
+    /** Read both canonical namespaced IDs and legacy enum names from core items. */
+    public static Optional<ElementId> getElementIdOptional(ElementSMPRefined plugin, ItemStack stack) {
+        if (stack == null || !stack.hasItemMeta()) return Optional.empty();
+        String value = stack.getItemMeta().getPersistentDataContainer()
+                .get(ItemKeys.elementType(plugin), PersistentDataType.STRING);
+        if (value == null) return Optional.empty();
+        try {
+            return Optional.of(value.contains(":")
+                    ? ElementId.parse(value)
+                    : ElementId.builtin(ElementType.valueOf(value)));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }

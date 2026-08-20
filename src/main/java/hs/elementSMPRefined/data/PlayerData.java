@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.data;
 
 import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.element.ElementId;
 
 import java.util.*;
 
@@ -23,7 +24,9 @@ public final class PlayerData {
 
     private final UUID uuid;
     private ElementType currentElement;
+    private ElementId currentElementId;
     private final EnumSet<ElementType> ownedItems;
+    private final Set<ElementId> ownedItemIds;
     private int mana;
     private int currentElementUpgradeLevel;
     private final Set<UUID> trustedPlayers;
@@ -31,6 +34,7 @@ public final class PlayerData {
     public PlayerData(UUID uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
         this.ownedItems = EnumSet.noneOf(ElementType.class);
+        this.ownedItemIds = new HashSet<>();
         this.mana = DEFAULT_MANA;
         this.currentElementUpgradeLevel = 0;
         this.trustedPlayers = new HashSet<>();
@@ -42,6 +46,10 @@ public final class PlayerData {
 
     public ElementType getCurrentElement() {
         return currentElement;
+    }
+
+    public ElementId getCurrentElementId() {
+        return currentElementId;
     }
 
     public ElementType getElementType() {
@@ -60,21 +68,45 @@ public final class PlayerData {
         return EnumSet.copyOf(ownedItems);
     }
 
+    public Set<ElementId> getOwnedItemIds() {
+        return new HashSet<>(ownedItemIds);
+    }
+
     public Set<UUID> getTrustedPlayers() {
         return new HashSet<>(trustedPlayers);
     }
 
     /** Sets the current element and resets its upgrade level to 0. */
     public void setCurrentElement(ElementType element) {
-        this.currentElement = element;
-        if (element != null) {
-            this.currentElementUpgradeLevel = 0;
-        }
+        setCurrentElement(element == null ? null : ElementId.builtin(element));
     }
 
     /** Sets the current element without touching the upgrade level - used by loaders. */
     public void setCurrentElementWithoutReset(ElementType element) {
-        this.currentElement = element;
+        setCurrentElementWithoutReset(element == null ? null : ElementId.builtin(element));
+    }
+
+    public void setCurrentElement(ElementId id) {
+        setCurrentElementWithoutReset(id);
+        if (id != null) {
+            this.currentElementUpgradeLevel = 0;
+        }
+    }
+
+    public void setCurrentElementWithoutReset(ElementId id) {
+        this.currentElementId = id;
+        this.currentElement = toBuiltinType(id);
+    }
+
+    private ElementType toBuiltinType(ElementId id) {
+        if (id == null || !id.namespace().equals("elements")) {
+            return null;
+        }
+        try {
+            return ElementType.valueOf(id.key().toUpperCase());
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     public void setCurrentElementUpgradeLevel(int level) {
@@ -112,15 +144,33 @@ public final class PlayerData {
     }
 
     public boolean hasElementItem(ElementType type) {
-        return ownedItems.contains(type);
+        return type != null && hasElementItem(ElementId.builtin(type));
     }
 
     public void addElementItem(ElementType type) {
-        ownedItems.add(type);
+        if (type != null) addElementItem(ElementId.builtin(type));
     }
 
     public void removeElementItem(ElementType type) {
-        ownedItems.remove(type);
+        if (type != null) removeElementItem(ElementId.builtin(type));
+    }
+
+    public boolean hasElementItem(ElementId id) {
+        return id != null && ownedItemIds.contains(id);
+    }
+
+    public void addElementItem(ElementId id) {
+        if (id == null) return;
+        ownedItemIds.add(id);
+        ElementType type = toBuiltinType(id);
+        if (type != null) ownedItems.add(type);
+    }
+
+    public void removeElementItem(ElementId id) {
+        if (id == null) return;
+        ownedItemIds.remove(id);
+        ElementType type = toBuiltinType(id);
+        if (type != null) ownedItems.remove(type);
     }
 
     public boolean isTrusted(UUID uuid) {

@@ -25,7 +25,6 @@ import hs.elementSMPRefined.listeners.item.ElementCombatListener;
 import hs.elementSMPRefined.listeners.item.ElementItemCraftingListener;
 import hs.elementSMPRefined.listeners.item.ElementItemDeathListener;
 import hs.elementSMPRefined.listeners.item.ElementItemInteractionListener;
-import hs.elementSMPRefined.listeners.item.ElementInventoryProtectionListener;
 import hs.elementSMPRefined.listeners.item.RerollerHandler;
 import hs.elementSMPRefined.listeners.item.UpgraderHandler;
 import hs.elementSMPRefined.listeners.player.GameModeListener;
@@ -80,7 +79,6 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new ElementItemInteractionListener(plugin, plugin.getItemManager()), plugin);
         pluginManager.registerEvents(new ElementItemCraftingListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new ElementItemDeathListener(plugin, plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new ElementInventoryProtectionListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new ElementCombatListener(plugin.getItemManager()), plugin);
         pluginManager.registerEvents(new RerollerHandler(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new AdvancedRerollerHandler(plugin, plugin.getElementManager()), plugin);
@@ -134,7 +132,7 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new AirCombatListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new FireCombatListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
         pluginManager.registerEvents(new DeathRawFoodListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new MetalArrowImmunityListener(plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new MetalArrowImmunityListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
         pluginManager.registerEvents(new MetalChainStunListener(plugin), plugin);
         pluginManager.registerEvents(new FrostFrozenPunchListener(plugin, plugin.getElementManager()), plugin);
 

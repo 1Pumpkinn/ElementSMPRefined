@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.data;
 
 import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.element.ElementId;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public final class PlayerDataSerializer {
         String elementName = section.getString("element");
         if (elementName != null) {
             try {
-                data.setCurrentElementWithoutReset(ElementType.valueOf(elementName));
+                data.setCurrentElementWithoutReset(parseId(elementName));
             } catch (IllegalArgumentException ignored) {
                 // Unknown/renamed element in storage - leave unset rather than crash the load.
             }
@@ -40,7 +41,7 @@ public final class PlayerDataSerializer {
 
         for (String name : section.getStringList("items")) {
             try {
-                data.addElementItem(ElementType.valueOf(name));
+                data.addElementItem(parseId(name));
             } catch (IllegalArgumentException ignored) {
                 // Skip invalid/renamed element item entries.
             }
@@ -62,13 +63,13 @@ public final class PlayerDataSerializer {
 
     /** Writes {@code data} into {@code section}, replacing whatever was there before. */
     public static void serialize(PlayerData data, ConfigurationSection section) {
-        section.set("element", data.getCurrentElement() == null ? null : data.getCurrentElement().name());
+        section.set("element", data.getCurrentElementId() == null ? null : data.getCurrentElementId().toString());
         section.set("mana", data.getMana());
         section.set("currentUpgradeLevel", data.getCurrentElementUpgradeLevel());
 
         List<String> items = new ArrayList<>();
-        for (ElementType type : data.getOwnedItems()) {
-            items.add(type.name());
+        for (ElementId id : data.getOwnedItemIds()) {
+            items.add(id.toString());
         }
         section.set("items", items);
 
@@ -79,5 +80,12 @@ public final class PlayerDataSerializer {
                 trust.set(trusted.toString(), true);
             }
         }
+    }
+
+    private static ElementId parseId(String value) {
+        if (value.contains(":")) {
+            return ElementId.parse(value);
+        }
+        return ElementId.builtin(ElementType.valueOf(value.toUpperCase()));
     }
 }

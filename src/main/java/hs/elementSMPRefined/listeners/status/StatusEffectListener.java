@@ -1,4 +1,4 @@
-package hs.elementSMPRefined.listeners;
+package hs.elementSMPRefined.listeners.status;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.status.StatusEffectManager;

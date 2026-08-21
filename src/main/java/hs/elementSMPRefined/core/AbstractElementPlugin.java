@@ -8,6 +8,7 @@ import hs.elementSMPRefined.initializers.RecipeInitializer;
 import hs.elementSMPRefined.managers.*;
 import hs.elementSMPRefined.services.EffectService;
 import hs.elementSMPRefined.services.ValidationService;
+import hs.elementSMPRefined.status.DisarmManager;
 import hs.elementSMPRefined.status.StatusEffectManager;
 import hs.elementSMPRefined.util.bukkit.MetadataHelper;
 import hs.elementSMPRefined.util.scheduling.TaskScheduler;
@@ -21,7 +22,7 @@ import java.util.logging.Level;
  * Centralizes common plugin initialization and management logic.
  */
 public abstract class AbstractElementPlugin extends JavaPlugin {
-    
+
     // Core managers
     protected DataStore dataStore;
     protected ConfigManager configManager;
@@ -30,12 +31,13 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected TrustManager trustManager;
     protected ItemManager itemManager;
     protected AddonManager addonManager;
-    
+
     // Services
     protected StatusEffectManager statusEffectManager;
+    protected DisarmManager disarmManager;
     protected EffectService effectService;
     protected ValidationService validationService;
-    
+
     // Utilities
     protected TaskScheduler taskScheduler;
     protected MetadataHelper metadataHelper;
@@ -114,6 +116,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.elementManager = new ElementManager(this, dataStore, manaManager, trustManager, configManager);
         this.itemManager = new ItemManager(this, manaManager, configManager);
         this.statusEffectManager = new StatusEffectManager(this);
+        this.disarmManager = new DisarmManager(this);
         this.addonManager = new AddonManager((hs.elementSMPRefined.ElementSMPRefined) this);
     }
 
@@ -148,6 +151,9 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         if (statusEffectManager != null) {
             statusEffectManager.cleanup();
         }
+        if (disarmManager != null) {
+            disarmManager.cleanup();
+        }
         if (listenerInitializer != null) {
             listenerInitializer.cleanup();
         }
@@ -168,11 +174,12 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public ItemManager getItemManager() { return itemManager; }
     public AddonManager getAddonManager() { return addonManager; }
     public StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
+    public DisarmManager getDisarmManager() { return disarmManager; }
     public EffectService getEffectService() { return effectService; }
     public ValidationService getValidationService() { return validationService; }
     public TaskScheduler getTaskScheduler() { return taskScheduler; }
     public MetadataHelper getMetadataHelper() { return metadataHelper; }
-    
+
     public CommandInitializer getCommandInitializer() { return commandInitializer; }
     public ListenerInitializer getListenerInitializer() { return listenerInitializer; }
     public RecipeInitializer getRecipeInitializer() { return recipeInitializer; }

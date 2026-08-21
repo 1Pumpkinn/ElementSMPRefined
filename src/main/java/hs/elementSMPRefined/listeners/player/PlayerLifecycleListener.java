@@ -12,6 +12,7 @@ import hs.elementSMPRefined.listeners.ability.AbilityListener;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.services.EffectService;
+import hs.elementSMPRefined.status.DisarmManager;
 import hs.elementSMPRefined.util.scheduling.TaskScheduler;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,6 +30,7 @@ public class PlayerLifecycleListener implements Listener {
     private final ElementManager elementManager;
     private final ManaManager manaManager;
     private final EffectService effectService;
+    private final DisarmManager disarmManager;
     private final TaskScheduler scheduler;
     private final FrostPassiveListener frostPassiveListener;
     private final AirFallImpactListener airFallImpactListener;
@@ -38,6 +40,7 @@ public class PlayerLifecycleListener implements Listener {
 
     public PlayerLifecycleListener(ElementSMPRefined plugin, ElementManager elementManager,
                                    ManaManager manaManager, EffectService effectService,
+                                   DisarmManager disarmManager,
                                    FrostPassiveListener frostPassiveListener,
                                    AirFallImpactListener airFallImpactListener,
                                    GUIListener guiListener,
@@ -47,6 +50,7 @@ public class PlayerLifecycleListener implements Listener {
         this.elementManager = elementManager;
         this.manaManager = manaManager;
         this.effectService = effectService;
+        this.disarmManager = disarmManager;
         this.scheduler = new TaskScheduler(plugin);
         this.frostPassiveListener = frostPassiveListener;
         this.airFallImpactListener = airFallImpactListener;
@@ -60,6 +64,13 @@ public class PlayerLifecycleListener implements Listener {
         Player player = event.getPlayer();
         PlayerData pd = elementManager.data(player.getUniqueId());
         manaManager.get(player.getUniqueId());
+        if (disarmManager != null) {
+            scheduler.runAfterPlayerLoad(() -> {
+                if (player.isOnline()) {
+                    disarmManager.reapplyCooldowns(player);
+                }
+            });
+        }
 
         if (pd.getCurrentElement() == null) {
             scheduler.runAfterPlayerLoad(() -> {

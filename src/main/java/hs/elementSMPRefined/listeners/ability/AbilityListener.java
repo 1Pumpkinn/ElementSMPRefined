@@ -3,6 +3,9 @@ package hs.elementSMPRefined.listeners.ability;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.status.DisarmManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,14 +21,18 @@ public class AbilityListener implements Listener {
     private static final long DOUBLE_TAP_THRESHOLD_MS = 250;
     private static final long CHECK_DELAY_TICKS = 6;
     private static final long CLEANUP_DELAY_TICKS = 2;
+    private static final Component ABILITY_DISARMED = Component.text(
+            "You are disarmed and cannot use abilities!", NamedTextColor.RED);
 
     private final ElementSMPRefined plugin;
     private final ElementManager elements;
+    private final DisarmManager disarmManager;
     private final Map<UUID, TapTracker> tapTrackers = new ConcurrentHashMap<>();
 
-    public AbilityListener(ElementSMPRefined plugin, ElementManager elements) {
+    public AbilityListener(ElementSMPRefined plugin, ElementManager elements, DisarmManager disarmManager) {
         this.plugin = plugin;
         this.elements = elements;
+        this.disarmManager = disarmManager;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -67,6 +74,11 @@ public class AbilityListener implements Listener {
 
                 TapTracker tracker = tapTrackers.get(playerId);
                 if (tracker == null || !tracker.isValidTap(tapTime)) {
+                    return;
+                }
+
+                if (disarmManager.isAbilityDisarmed(player)) {
+                    player.sendActionBar(ABILITY_DISARMED);
                     return;
                 }
 
@@ -117,4 +129,3 @@ public class AbilityListener implements Listener {
         tapTrackers.remove(playerUuid);
     }
 }
-

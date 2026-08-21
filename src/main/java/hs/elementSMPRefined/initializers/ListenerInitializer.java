@@ -17,7 +17,6 @@ import hs.elementSMPRefined.ability.passive.metal.MetalElement;
 import hs.elementSMPRefined.ability.passive.metal.listeners.MetalArrowImmunityListener;
 import hs.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListener;
 import hs.elementSMPRefined.listeners.GUIListener;
-import hs.elementSMPRefined.listeners.StatusEffectListener;
 import hs.elementSMPRefined.listeners.ability.AbilityListener;
 import hs.elementSMPRefined.listeners.combat.CombatListener;
 import hs.elementSMPRefined.listeners.item.AdvancedRerollerHandler;
@@ -29,6 +28,8 @@ import hs.elementSMPRefined.listeners.item.RerollerHandler;
 import hs.elementSMPRefined.listeners.item.UpgraderHandler;
 import hs.elementSMPRefined.listeners.player.GameModeListener;
 import hs.elementSMPRefined.listeners.player.PlayerLifecycleListener;
+import hs.elementSMPRefined.listeners.status.DisarmListener;
+import hs.elementSMPRefined.listeners.status.StatusEffectListener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -66,10 +67,11 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new GameModeListener(plugin.getManaManager(), plugin.getConfigManager()), plugin);
         pluginManager.registerEvents(new CombatListener(plugin.getTrustManager(), plugin.getElementManager()), plugin);
 
-        this.abilityListener = new AbilityListener(plugin, plugin.getElementManager());
+        this.abilityListener = new AbilityListener(plugin, plugin.getElementManager(), plugin.getDisarmManager());
         pluginManager.registerEvents(abilityListener, plugin);
 
         pluginManager.registerEvents(new StatusEffectListener(plugin), plugin);
+        pluginManager.registerEvents(new DisarmListener(plugin.getDisarmManager()), plugin);
 
         this.guiListener = new GUIListener(plugin);
         pluginManager.registerEvents(guiListener, plugin);
@@ -154,6 +156,7 @@ public class ListenerInitializer {
                 plugin.getElementManager(),
                 plugin.getManaManager(),
                 plugin.getEffectService(),
+                plugin.getDisarmManager(),
                 frostPassiveListener,
                 airFallImpactListener,
                 guiListener,

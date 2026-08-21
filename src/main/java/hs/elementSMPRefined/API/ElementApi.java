@@ -1,12 +1,16 @@
 package hs.elementSMPRefined.API;
 
 import hs.elementSMPRefined.API.ability.Ability;
+import hs.elementSMPRefined.API.addon.ElementAddon;
 import hs.elementSMPRefined.API.element.Element;
 import hs.elementSMPRefined.API.element.ElementId;
+import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.items.api.ElementItem;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.registry.ItemRegistry;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
@@ -29,6 +33,14 @@ public final class ElementApi {
         return plugin;
     }
 
+    public void registerAddon(ElementAddon addon) {
+        plugin.getAddonManager().register(addon);
+    }
+
+    public boolean isAddonRegistered(String name) {
+        return plugin.getAddonManager().isRegistered(name);
+    }
+
     public void registerElement(Element element) {
         plugin.getAddonManager().registerElement(element);
     }
@@ -43,6 +55,14 @@ public final class ElementApi {
 
     public void registerListener(String id, Listener listener) {
         plugin.getAddonManager().registerListener(id, listener);
+    }
+
+    public void registerDimension(NamespacedKey id, World world) {
+        plugin.getAddonManager().registerDimension(id, world);
+    }
+
+    public void registerBiome(NamespacedKey id) {
+        plugin.getAddonManager().registerBiome(id);
     }
 
     public Element getElement(ElementId id) {
@@ -61,6 +81,12 @@ public final class ElementApi {
         return plugin.getItemManager().getItem(id);
     }
 
+    public PlayerElementState getPlayerState(Player player) {
+        var data = elements.data(player.getUniqueId());
+        ElementId id = data.getCurrentElementId();
+        return new PlayerElementState(player.getUniqueId(), id, data.getUpgradeLevel(id), data.getMana());
+    }
+
     public ElementId getPlayerElement(Player player) {
         return elements.getPlayerElementId(player);
     }
@@ -76,6 +102,31 @@ public final class ElementApi {
 
     public void setElement(Player player, ElementId id) {
         elements.setElement(player, id);
+    }
+
+    public boolean activateAbility(Player player, String id) {
+        Ability ability = getAbility(id);
+        if (ability == null) return false;
+
+        var data = elements.data(player.getUniqueId());
+        ElementId elementId = data.getCurrentElementId();
+        if (elementId == null || data.getUpgradeLevel(elementId) < ability.getRequiredUpgradeLevel()) return false;
+        if (!plugin.getManaManager().hasMana(player, ability.getManaCost())) return false;
+
+        ElementContext context = ElementContext.builder()
+                .player(player)
+                .upgradeLevel(data.getUpgradeLevel(elementId))
+                .elementType(elementId.toBuiltinType())
+                .elementId(elementId)
+                .manaManager(plugin.getManaManager())
+                .trustManager(plugin.getTrustManager())
+                .configManager(plugin.getConfigManager())
+                .plugin(plugin)
+                .build();
+
+        if (!ability.execute(context)) return false;
+        plugin.getManaManager().spend(player, ability.getManaCost());
+        return true;
     }
 
     public boolean activateAbility(Player player, int slot) {

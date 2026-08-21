@@ -42,6 +42,10 @@ public final class AddonManager {
         plugin.getLogger().info("Registered addon: " + addon.getName());
     }
 
+    public boolean isRegistered(String name) {
+        return name != null && registeredAddons.contains(name);
+    }
+
     public void registerElement(hs.elementSMPRefined.API.element.Element element) {
         plugin.registerAddonElement(element);
     }

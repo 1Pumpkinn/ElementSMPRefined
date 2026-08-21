@@ -2,7 +2,7 @@ package hs.elementSMPRefined.listeners.item;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.PlayerData;
-import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.ChatColor;
@@ -40,15 +40,15 @@ public class UpgraderHandler implements Listener {
 
         int upgraderLevel = getUpgraderLevel(item);
         PlayerData playerData = elementManager.data(player.getUniqueId());
-        ElementType currentElement = playerData.getCurrentElement();
-        int currentUpgradeLevel = playerData.getUpgradeLevel(currentElement);
+        ElementId currentElementId = playerData.getCurrentElementId();
+        int currentUpgradeLevel = playerData.getUpgradeLevel(currentElementId);
 
         event.setCancelled(true);
 
         if (upgraderLevel == 1) {
-            handleUpgradeI(player, item, playerData, currentElement, currentUpgradeLevel);
+            handleUpgradeI(player, item, playerData, currentElementId, currentUpgradeLevel);
         } else if (upgraderLevel == 2) {
-            handleUpgradeII(player, item, playerData, currentElement, currentUpgradeLevel);
+            handleUpgradeII(player, item, playerData, currentElementId, currentUpgradeLevel);
         }
     }
 
@@ -77,18 +77,18 @@ public class UpgraderHandler implements Listener {
     }
 
     private void handleUpgradeI(Player player, ItemStack item, PlayerData playerData, 
-                              ElementType currentElement, int currentUpgradeLevel) {
+                              ElementId currentElementId, int currentUpgradeLevel) {
         if (currentUpgradeLevel >= 1) {
             player.sendMessage(ChatColor.RED + "You already have Upgrade I");
             return;
         }
         
-        applyUpgrade(player, item, playerData, currentElement, 1);
+        applyUpgrade(player, item, playerData, currentElementId, 1);
         player.sendMessage(ChatColor.GREEN + "You have unlocked " + ChatColor.GOLD + "Upgrade I");
     }
 
     private void handleUpgradeII(Player player, ItemStack item, PlayerData playerData, 
-                               ElementType currentElement, int currentUpgradeLevel) {
+                               ElementId currentElementId, int currentUpgradeLevel) {
         if (currentUpgradeLevel < 1) {
             player.sendMessage(ChatColor.RED + "You need Upgrade I before you can use Upgrade II!");
             return;
@@ -99,13 +99,13 @@ public class UpgraderHandler implements Listener {
             return;
         }
         
-        applyUpgrade(player, item, playerData, currentElement, 2);
+        applyUpgrade(player, item, playerData, currentElementId, 2);
         player.sendMessage(ChatColor.GREEN + "You have unlocked " + ChatColor.GOLD + "Upgrade II");
     }
 
     private void applyUpgrade(Player player, ItemStack item, PlayerData playerData, 
-                            ElementType currentElement, int level) {
-        playerData.setUpgradeLevel(currentElement, level);
+                            ElementId currentElementId, int level) {
+        playerData.setUpgradeLevel(currentElementId, level);
         plugin.getDataStore().save(playerData);
         elementManager.applyUpsides(player);
         

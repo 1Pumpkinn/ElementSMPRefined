@@ -2,6 +2,7 @@ package hs.elementSMPRefined.listeners.item;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.PlayerData;
+import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
@@ -66,19 +67,19 @@ public class ElementItemCraftingListener implements Listener {
 
     private void handleUpgraderCrafting(CraftItemEvent event, org.bukkit.entity.Player player, int level) {
         PlayerData playerData = elements.data(player.getUniqueId());
-        ElementType currentElement = playerData.getCurrentElement();
+        ElementId currentElementId = playerData.getCurrentElementId();
         
-        if (currentElement == null) {
+        if (currentElementId == null) {
             cancelCrafting(event, player, "You don't have an element yet.");
             return;
         }
         
-        if (level == 2 && playerData.getUpgradeLevel(currentElement) < 1) {
+        if (level == 2 && playerData.getUpgradeLevel(currentElementId) < 1) {
             cancelCrafting(event, player, "You must craft and possess Upgrader I before crafting Upgrader II.");
             return;
         }
         
-        if (level <= playerData.getUpgradeLevel(currentElement)) {
+        if (level <= playerData.getUpgradeLevel(currentElementId)) {
             cancelCrafting(event, player, "You already have this upgrade.");
             return;
         }
@@ -86,13 +87,13 @@ public class ElementItemCraftingListener implements Listener {
         consumeRecipeIngredients(event);
         event.getInventory().setResult(null);
         
-        playerData.setUpgradeLevel(currentElement, level);
+        playerData.setUpgradeLevel(currentElementId, level);
         plugin.getDataStore().save(playerData);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
         
-        String message = level == 1 
-                ? "Unlocked Ability 1 for " + currentElement.name()
-                : "Unlocked Ability 2 and Upside 2 for " + currentElement.name();
+        String message = level == 1
+            ? "Unlocked Ability 1 for " + currentElementId
+            : "Unlocked Ability 2 and Upside 2 for " + currentElementId;
         player.sendMessage(ChatColor.GREEN + message);
         
         if (level == 2) {

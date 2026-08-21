@@ -1,6 +1,7 @@
 package hs.elementSMPRefined;
 
 import hs.elementSMPRefined.core.AbstractElementPlugin;
+import hs.elementSMPRefined.API.ElementApi;
 import hs.elementSMPRefined.API.element.Element;
 import org.bukkit.event.Listener;
 
@@ -10,6 +11,17 @@ import org.bukkit.event.Listener;
  * handled by the abstract base class.
  */
 public final class ElementSMPRefined extends AbstractElementPlugin {
+    private ElementApi elementApi;
+
+    @Override
+    protected void beforeRegisterComponents() {
+        elementApi = new ElementApi(this);
+    }
+
+    /** Returns the supported facade for external plugins and addons. */
+    public ElementApi getElementApi() {
+        return elementApi;
+    }
 
     /** Register an addon element and its optional provider listeners. */
     public void registerAddonElement(Element element) {

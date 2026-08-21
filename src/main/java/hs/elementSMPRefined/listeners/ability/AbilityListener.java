@@ -53,7 +53,7 @@ public class AbilityListener implements Listener {
 
     private boolean hasElement(Player player) {
         PlayerData pd = elements.data(player.getUniqueId());
-        return pd.getCurrentElement() != null;
+        return pd.getCurrentElementId() != null;
     }
 
     private void scheduleAbilityActivation(Player player, UUID playerId, long tapTime) {

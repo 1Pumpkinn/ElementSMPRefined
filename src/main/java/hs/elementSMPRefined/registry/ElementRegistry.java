@@ -50,10 +50,12 @@ public class ElementRegistry {
 
     /**
      * Register an element supplied by an addon after built-in registration is complete.
+     * Addon elements are identified purely by {@link ElementId} - {@link Element#getType()}
+     * is a builtin-only concept and is expected to be {@code null} here.
      */
     public void registerAddon(Element element) {
-        if (element == null || element.getType() == null) {
-            throw new IllegalArgumentException("Addon element and element type are required");
+        if (element == null) {
+            throw new IllegalArgumentException("Addon element is required");
         }
 
         ElementId id = element.getId();
@@ -62,6 +64,7 @@ public class ElementRegistry {
             throw new IllegalArgumentException("Element " + id + " is already registered");
         }
 
+        // Only builtin-typed elements also occupy a slot in the legacy EnumMap view.
         ElementType type = element.getType();
         if (type != null) {
             Element enumElement = elements.putIfAbsent(type, element);
@@ -80,8 +83,9 @@ public class ElementRegistry {
         return elementsById.get(id);
     }
 
+    /** All registered elements, builtin and addon alike. */
     public Collection<Element> getAllElements() {
-        return Collections.unmodifiableCollection(elements.values());
+        return Collections.unmodifiableCollection(elementsById.values());
     }
 
     public Set<ElementType> getAllTypes() {
@@ -107,7 +111,8 @@ public class ElementRegistry {
         this.frozen = true;
     }
 
+    /** Total registered element count, builtin and addon alike. */
     public int size() {
-        return elements.size();
+        return elementsById.size();
     }
 }

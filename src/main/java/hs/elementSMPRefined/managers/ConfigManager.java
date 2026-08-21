@@ -125,24 +125,13 @@ public class ConfigManager {
      * back to the same defaults everyone else gets when unconfigured.
      */
     public int getAbility1Cost(ElementId id) {
-        ElementType type = toBuiltinType(id);
+        ElementType type = id == null ? null : id.toBuiltinType();
         return type != null ? getAbility1Cost(type) : DEFAULT_ABILITY_1_COST;
     }
 
     public int getAbility2Cost(ElementId id) {
-        ElementType type = toBuiltinType(id);
+        ElementType type = id == null ? null : id.toBuiltinType();
         return type != null ? getAbility2Cost(type) : DEFAULT_ABILITY_2_COST;
-    }
-
-    private ElementType toBuiltinType(ElementId id) {
-        if (id == null || !id.namespace().equals("elements")) {
-            return null;
-        }
-        try {
-            return ElementType.valueOf(id.key().toUpperCase());
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
     }
 
     public boolean isAdvancedRerollerRecipeEnabled() {

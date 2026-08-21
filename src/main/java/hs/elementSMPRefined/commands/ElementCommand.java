@@ -2,6 +2,7 @@ package hs.elementSMPRefined.commands;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.DataStore;
+import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.gui.ElementSelectionGUI;
 import hs.elementSMPRefined.items.ElementCoreItem;
@@ -120,7 +121,10 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
             }
             case 3 -> {
                 String subCmd = args[0].toLowerCase();
-                if (subCmd.equals("set") || subCmd.equals("givecore")) {
+                if (subCmd.equals("set")) {
+                    yield filterStartingWith(getAllElementNames(), args[2]);
+                }
+                if (subCmd.equals("givecore")) {
                     yield filterStartingWith(getElementNames(), args[2]);
                 }
                 if (subCmd.equals("config") && args[1].equalsIgnoreCase("set")) {
@@ -222,6 +226,35 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Resolves either a bare builtin name ("fire") or a namespaced addon ID
+     * ("elementevents:storm") to an {@link ElementId}. Used by {@code /element set}
+     * so admins can target addon elements, not just the 8 builtins.
+     */
+    private Optional<ElementId> parseElementId(String input) {
+        Optional<ElementType> builtin = parseElementType(input);
+        if (builtin.isPresent()) {
+            return Optional.of(ElementId.builtin(builtin.get()));
+        }
+        try {
+            ElementId id = ElementId.parse(input);
+            return elementManager.getElementRegistry().isRegistered(id) ? Optional.of(id) : Optional.empty();
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
+    }
+
+    /** Builtin names plus every registered addon element's "namespace:key" ID. */
+    private List<String> getAllElementNames() {
+        List<String> names = new ArrayList<>(getElementNames());
+        for (ElementId id : elementManager.getElementRegistry().getAllIds()) {
+            if (id.toBuiltinType() == null) {
+                names.add(id.toString());
+            }
+        }
+        return names;
     }
 
     private interface SubCommand {
@@ -425,18 +458,22 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            Optional<ElementType> elementType = parseElementType(args[2]);
-            if (elementType.isEmpty()) {
-                sender.sendMessage(ChatColor.RED + "Invalid element. Valid: " + String.join(", ", getElementNames()));
+            Optional<ElementId> elementId = parseElementId(args[2]);
+            if (elementId.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "Invalid element. Valid: " + String.join(", ", getAllElementNames()));
                 return true;
             }
 
-            elementManager.setElement(target, elementType.get());
+            ElementId id = elementId.get();
+            elementManager.setElement(target, id);
+
+            var element = elementManager.getElementRegistry().get(id);
+            String displayName = element != null ? element.getDisplayName() : id.toString();
 
             sender.sendMessage(ChatColor.GREEN + "Set " + target.getName() + "'s element to " +
-                    ChatColor.AQUA + elementType.get().name());
+                    ChatColor.AQUA + displayName);
             target.sendMessage(ChatColor.GREEN + "Your element has been set to " +
-                    ChatColor.AQUA + elementType.get().name() + ChatColor.GREEN + " by an admin.");
+                    ChatColor.AQUA + displayName + ChatColor.GREEN + " by an admin.");
 
             return true;
         }
@@ -496,8 +533,12 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.GOLD + "=== Element Debug for " + target.getName() + " ===");
 
             ElementType managerElement = elementManager.getPlayerElement(target);
-            sender.sendMessage(ChatColor.YELLOW + "ElementManager reports: " +
+            sender.sendMessage(ChatColor.YELLOW + "ElementManager reports (builtin type): " +
                     (managerElement != null ? managerElement.name() : "null"));
+
+            ElementId managerElementId = elementManager.getPlayerElementId(target);
+            sender.sendMessage(ChatColor.YELLOW + "ElementManager reports (element ID): " +
+                    (managerElementId != null ? managerElementId.toString() : "null"));
 
             dataStore.invalidateCache(target.getUniqueId());
             ElementType reloadedElement = elementManager.getPlayerElement(target);

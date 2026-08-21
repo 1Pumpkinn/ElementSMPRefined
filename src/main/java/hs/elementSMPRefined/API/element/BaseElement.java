@@ -38,7 +38,7 @@ public abstract class BaseElement implements Element {
 
     @Override
     public final boolean ability1(ElementContext context) {
-        return activate(context, ability1, 1, context.getConfigManager().getAbility1Cost(getType()), this::canCancelAbility1);
+        return activate(context, ability1, 1, context.getConfigManager().getAbility1Cost(getId()), this::canCancelAbility1);
     }
 
     @Override
@@ -48,7 +48,7 @@ public abstract class BaseElement implements Element {
             player.sendMessage(ChatColor.RED + "You need Upgrade I before you can use Upgrade II abilities.");
             return false;
         }
-        return activate(context, ability2, 2, context.getConfigManager().getAbility2Cost(getType()), this::canCancelAbility2);
+        return activate(context, ability2, 2, context.getConfigManager().getAbility2Cost(getId()), this::canCancelAbility2);
     }
 
     /**
@@ -56,7 +56,7 @@ public abstract class BaseElement implements Element {
      * toggle off for free, otherwise check and spend mana on a successful cast.
      */
     private boolean activate(ElementContext context, Ability ability, int requiredLevel, int cost,
-                              java.util.function.Predicate<ElementContext> canCancel) {
+                             java.util.function.Predicate<ElementContext> canCancel) {
         Player player = context.getPlayer();
         if (!checkUpgradeLevel(player, context.getUpgradeLevel(), requiredLevel)) return false;
 

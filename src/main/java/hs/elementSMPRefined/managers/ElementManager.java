@@ -226,52 +226,77 @@ public class ElementManager {
     }
 
     public void assignElement(Player player, ElementType type) {
-        assignElementInternal(player, type, "Element Chosen!", true);
+        assignElement(player, ElementId.builtin(type));
+    }
+
+    /**
+     * Generic version of {@link #assignElement(Player, ElementType)} that also
+     * accepts addon element IDs. Used e.g. by an altar/event granting a specific
+     * collected element outright (no rolling).
+     */
+    public void assignElement(Player player, ElementId id) {
+        assignElementInternal(player, id, "Element Chosen!", true);
     }
 
     public void setElement(Player player, ElementType type) {
-        PlayerData pd = data(player.getUniqueId());
-        ElementType old = pd.getCurrentElement();
+        setElement(player, ElementId.builtin(type));
+    }
 
-        if (old != null && old != type) {
+    /**
+     * Generic version of {@link #setElement(Player, ElementType)} that also
+     * accepts addon element IDs.
+     */
+    public void setElement(Player player, ElementId id) {
+        PlayerData pd = data(player.getUniqueId());
+        ElementId old = pd.getCurrentElementId();
+
+        if (old != null && !old.equals(id)) {
             handleElementSwitch(player, old);
         }
 
-        pd.setCurrentElement(type);
+        pd.setCurrentElement(id);
         store.save(pd);
 
-        player.sendMessage(ChatColor.GOLD + "Your element is now " + ChatColor.AQUA + type.name());
+        player.sendMessage(ChatColor.GOLD + "Your element is now " + ChatColor.AQUA + displayNameOf(id));
         applyUpsides(player);
     }
 
     private void assignElementInternal(Player player, ElementType type, String titleText) {
-        assignElementInternal(player, type, titleText, false);
+        assignElementInternal(player, ElementId.builtin(type), titleText, false);
     }
 
-    private void assignElementInternal(Player player, ElementType type, String titleText, boolean resetLevel) {
+    private void assignElementInternal(Player player, ElementId id, String titleText, boolean resetLevel) {
         PlayerData pd = data(player.getUniqueId());
-        ElementType old = pd.getCurrentElement();
+        ElementId old = pd.getCurrentElementId();
 
-        if (old != null && old != type) {
+        if (old != null && !old.equals(id)) {
             handleElementSwitch(player, old);
         }
 
         if (resetLevel) {
-            pd.setCurrentElement(type);
+            pd.setCurrentElement(id);
         } else {
             int currentUpgrade = pd.getCurrentElementUpgradeLevel();
-            pd.setCurrentElementWithoutReset(type);
+            pd.setCurrentElementWithoutReset(id);
             pd.setCurrentElementUpgradeLevel(currentUpgrade);
         }
 
         store.save(pd);
-        showElementTitle(player, type, titleText);
+        showElementTitle(player, id, titleText);
         applyUpsides(player);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
     }
 
-    private void handleElementSwitch(Player player, ElementType oldElement) {
-        returnElementCore(player, oldElement);
+    private String displayNameOf(ElementId id) {
+        Element element = elementRegistry.get(id);
+        return element != null ? element.getDisplayName() : id.key();
+    }
+
+    private void handleElementSwitch(Player player, ElementId oldId) {
+        ElementType oldType = oldId.toBuiltinType();
+        if (oldType != null) {
+            returnElementCore(player, oldType);
+        }
         effectService.clearAllElementEffects(player);
     }
 
@@ -312,15 +337,17 @@ public class ElementManager {
 
     private boolean useAbility(Player player, int number) {
         PlayerData pd = data(player.getUniqueId());
-        ElementType type = pd.getCurrentElement();
-        Element element = elementRegistry.get(type);
+        ElementId id = pd.getCurrentElementId();
+        if (id == null) return false;
 
+        Element element = elementRegistry.get(id);
         if (element == null) return false;
 
         ElementContext ctx = ElementContext.builder()
                 .player(player)
-                .upgradeLevel(pd.getUpgradeLevel(type))
-                .elementType(type)
+                .upgradeLevel(pd.getUpgradeLevel(id))
+                .elementType(id.toBuiltinType())
+                .elementId(id)
                 .manaManager(manaManager)
                 .trustManager(trustManager)
                 .configManager(configManager)
@@ -345,10 +372,14 @@ public class ElementManager {
         return store;
     }
 
-    private void showElementTitle(Player player, ElementType type, String title) {
+    private void showElementTitle(Player player, ElementId id, String title) {
+        // getDisplayName() carries legacy '&'/ChatColor codes for chat-message use;
+        // Adventure's Component.text() doesn't parse those, so strip them here.
+        String plainName = ChatColor.stripColor(displayNameOf(id));
+
         var titleObj = net.kyori.adventure.title.Title.title(
                 net.kyori.adventure.text.Component.text(title).color(net.kyori.adventure.text.format.NamedTextColor.GOLD),
-                net.kyori.adventure.text.Component.text(type.name()).color(net.kyori.adventure.text.format.NamedTextColor.AQUA),
+                net.kyori.adventure.text.Component.text(plainName).color(net.kyori.adventure.text.format.NamedTextColor.AQUA),
                 net.kyori.adventure.title.Title.Times.times(
                         java.time.Duration.ofMillis(500),
                         java.time.Duration.ofMillis(2000),

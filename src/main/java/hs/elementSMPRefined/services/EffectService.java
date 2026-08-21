@@ -3,6 +3,7 @@ package hs.elementSMPRefined.services;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.API.element.Element;
+import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
@@ -19,7 +20,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Coordinates element passive effect application and health management.
- * 
+ *
  * This service does NOT store hardcoded effect lists - each element owns
  * its effects in {@link Element#applyUpsides(Player, int)}.
  * EffectService simply ensures effects are re-applied when needed (after
@@ -43,12 +44,10 @@ public class EffectService implements Listener {
         PlayerData pd = elementManager.data(player.getUniqueId());
         ElementType currentElement = pd.getCurrentElement();
 
-        // Clear effects from ALL elements (including current one when switching)
-        for (ElementType type : ElementType.values()) {
-            Element element = elementManager.get(type);
-            if (element != null) {
-                element.clearEffects(player);
-            }
+        // Clear effects from ALL registered elements (builtin AND addon), including
+        // the current one when switching.
+        for (Element element : elementManager.getAllElements()) {
+            element.clearEffects(player);
         }
 
         // Reset health if not Life element
@@ -79,13 +78,13 @@ public class EffectService implements Listener {
      */
     public void applyPassiveEffects(Player player) {
         PlayerData pd = elementManager.data(player.getUniqueId());
-        ElementType type = pd.getCurrentElement();
+        ElementId id = pd.getCurrentElementId();
 
-        if (type == null) return;
+        if (id == null) return;
 
-        Element element = elementManager.get(type);
+        Element element = elementManager.get(id);
         if (element != null) {
-            element.applyUpsides(player, pd.getUpgradeLevel(type));
+            element.applyUpsides(player, pd.getUpgradeLevel(id));
         }
     }
 

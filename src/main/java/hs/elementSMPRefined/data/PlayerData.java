@@ -99,14 +99,7 @@ public final class PlayerData {
     }
 
     private ElementType toBuiltinType(ElementId id) {
-        if (id == null || !id.namespace().equals("elements")) {
-            return null;
-        }
-        try {
-            return ElementType.valueOf(id.key().toUpperCase());
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
+        return id == null ? null : id.toBuiltinType();
     }
 
     public void setCurrentElementUpgradeLevel(int level) {

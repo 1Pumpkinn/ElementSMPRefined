@@ -21,6 +21,22 @@ public record ElementId(String namespace, String key) {
         return new ElementId("elements", type.name().toLowerCase());
     }
 
+    /**
+     * The builtin {@link ElementType} this ID represents, or {@code null} if it's
+     * an addon element (any namespace other than {@code "elements"}) or otherwise
+     * doesn't map to a known type.
+     */
+    public ElementType toBuiltinType() {
+        if (!namespace.equals("elements")) {
+            return null;
+        }
+        try {
+            return ElementType.valueOf(key.toUpperCase());
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
     public static ElementId parse(String value) {
         if (value == null) {
             throw new IllegalArgumentException("Element ID cannot be null");

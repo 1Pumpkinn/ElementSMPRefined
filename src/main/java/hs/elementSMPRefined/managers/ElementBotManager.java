@@ -61,6 +61,14 @@ public final class ElementBotManager implements Listener {
     private static final double LOW_HEALTH_FRACTION = 0.3; // below this, bot fights defensively / tries to disengage
     private static final double KITE_TOO_CLOSE_FRACTION = 0.45; // fraction of a ranged element's ability1 range considered "too close"
 
+    // Bots run their own private mana pool - separate from the owner's ManaManager/
+    // PlayerData entirely, since the bot isn't a Player and shouldn't drain (or share)
+    // its owner's actual mana. Costs are flat across every element, matching the
+    // player-facing defaults (ConfigManager.DEFAULT_ABILITY_1_COST/2_COST).
+    private static final int BOT_ABILITY_1_COST = 50;
+    private static final int BOT_ABILITY_2_COST = 75;
+    private static final int MANA_REGEN_INTERVAL_TICKS = 20; // regen tick is once/second, like player mana
+
     // Debug instrumentation: prints exactly why the bot did/didn't act each cycle, so a
     // "bot won't use abilities" report can be diagnosed from the server console instead of
     // guessed at. Flip to false once the issue is found - it logs once per second per bot
@@ -83,6 +91,8 @@ public final class ElementBotManager implements Listener {
         int logTicks;      // throttles the periodic combat-state debug log
         UUID targetId;
         UUID loggedTargetId; // last target we printed an "acquired" log line for
+        int mana;           // bot's own private mana pool, separate from its owner's
+        int manaRegenTicks; // counts down to the next once-per-second regen tick
     }
 
     public ElementBotManager(ElementSMPRefined plugin) {
@@ -118,7 +128,7 @@ public final class ElementBotManager implements Listener {
         }
 
         bots.put(owner.getUniqueId(), bot);
-        BotState state = new BotState();
+        BotState state = newBotState();
         states.put(bot.getUniqueId(), state);
         applyPassiveTick(bot, element, state); // apply immediately instead of waiting for first refresh
 
@@ -137,6 +147,12 @@ public final class ElementBotManager implements Listener {
         bots.values().forEach(bot -> { if (bot.isValid()) bot.remove(); });
         bots.clear();
         states.clear();
+    }
+
+    private BotState newBotState() {
+        BotState state = new BotState();
+        state.mana = plugin.getConfigManager().getMaxMana(); // bots start topped up, same as a fresh player
+        return state;
     }
 
     public boolean owns(Entity entity) { return entity.hasMetadata(BOT_METADATA); }
@@ -162,9 +178,10 @@ public final class ElementBotManager implements Listener {
 
             ElementType element = elementOf(bot);
             if (element == null) continue;
-            BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> new BotState());
+            BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> newBotState());
 
             applyPassiveTick(bot, element, state);
+            regenManaTick(state);
 
             LivingEntity target = resolveTarget(bot, owner, state);
 
@@ -184,24 +201,31 @@ public final class ElementBotManager implements Listener {
                 double distSq = bot.getLocation().distanceSquared(target.getLocation());
                 boolean hasLineOfSight = bot.hasLineOfSight(target);
 
-                boolean ability1Ready = distSq <= abilityOneRangeSq(element) && state.ability1Cd <= 0 && hasLineOfSight;
-                boolean ability2Ready = distSq <= abilityTwoRangeSq(element) && state.ability2Cd <= 0 && hasLineOfSight;
+                boolean ability1Ready = distSq <= abilityOneRangeSq(element) && state.ability1Cd <= 0
+                        && hasLineOfSight && state.mana >= BOT_ABILITY_1_COST;
+                boolean ability2Ready = distSq <= abilityTwoRangeSq(element) && state.ability2Cd <= 0
+                        && hasLineOfSight && state.mana >= BOT_ABILITY_2_COST;
 
                 if (ability1Ready) {
                     castAbilityOne(bot, owner, target, element);
                     state.ability1Cd = abilityOneCooldown(element);
-                    if (DEBUG_LOGGING) log(owner, element, "CAST ability1 on " + describeEntity(target));
+                    state.mana -= BOT_ABILITY_1_COST;
+                    if (DEBUG_LOGGING) log(owner, element, "CAST ability1 on " + describeEntity(target)
+                            + " | mana " + (state.mana + BOT_ABILITY_1_COST) + " -> " + state.mana);
                 } else if (ability2Ready) {
                     castAbilityTwo(bot, owner, target, element);
                     state.ability2Cd = abilityTwoCooldown(element);
-                    if (DEBUG_LOGGING) log(owner, element, "CAST ability2 on " + describeEntity(target));
+                    state.mana -= BOT_ABILITY_2_COST;
+                    if (DEBUG_LOGGING) log(owner, element, "CAST ability2 on " + describeEntity(target)
+                            + " | mana " + (state.mana + BOT_ABILITY_2_COST) + " -> " + state.mana);
                 } else if (DEBUG_LOGGING && (state.logTicks -= RUN_PERIOD_TICKS) <= 0) {
                     state.logTicks = LOG_INTERVAL_TICKS;
                     log(owner, element, String.format(
-                            "idle vs %s | dist=%.1f (a1 range=%.1f, a2 range=%.1f) | LOS=%s | a1Cd=%d a2Cd=%d",
+                            "idle vs %s | dist=%.1f (a1 range=%.1f, a2 range=%.1f) | LOS=%s | a1Cd=%d a2Cd=%d | mana=%d/%d",
                             describeEntity(target), Math.sqrt(distSq),
                             Math.sqrt(abilityOneRangeSq(element)), Math.sqrt(abilityTwoRangeSq(element)),
-                            hasLineOfSight, state.ability1Cd, state.ability2Cd));
+                            hasLineOfSight, state.ability1Cd, state.ability2Cd,
+                            state.mana, plugin.getConfigManager().getMaxMana()));
                 }
 
                 handleTacticalMovement(bot, target, element, distSq);
@@ -218,9 +242,10 @@ public final class ElementBotManager implements Listener {
                 }
 
                 if (element == ElementType.LIFE && ownerDistSq <= LIFE_SUPPORT_RADIUS_SQ
-                        && state.ability1Cd <= 0 && isHurt(owner)) {
+                        && state.ability1Cd <= 0 && state.mana >= BOT_ABILITY_1_COST && isHurt(owner)) {
                     castLifeSupport(bot, owner);
                     state.ability1Cd = abilityOneCooldown(element);
+                    state.mana -= BOT_ABILITY_1_COST;
                 }
 
                 if (DEBUG_LOGGING && (state.logTicks -= RUN_PERIOD_TICKS) <= 0) {
@@ -412,6 +437,19 @@ public final class ElementBotManager implements Listener {
         }
     }
 
+    // Bots regen mana once per second, mirroring ManaManager's real-player regen rate/cap,
+    // but entirely in-memory - there's no PlayerData/disk persistence for a bot's pool.
+    private void regenManaTick(BotState state) {
+        int maxMana = plugin.getConfigManager().getMaxMana();
+        if (state.mana >= maxMana) {
+            state.mana = maxMana;
+            return;
+        }
+        if ((state.manaRegenTicks -= RUN_PERIOD_TICKS) > 0) return;
+        state.manaRegenTicks = MANA_REGEN_INTERVAL_TICKS;
+        state.mana = Math.min(maxMana, state.mana + plugin.getConfigManager().getManaRegenPerSecond());
+    }
+
     private boolean isSnowOrIce(Material material) {
         return switch (material) {
             case SNOW, SNOW_BLOCK, ICE, PACKED_ICE, BLUE_ICE, FROSTED_ICE -> true;
@@ -437,7 +475,7 @@ public final class ElementBotManager implements Listener {
         if (!attacker.getWorld().equals(bot.getWorld())) return;
         if (attacker.getLocation().distanceSquared(bot.getLocation()) > DEFENSE_CALL_RADIUS_SQ) return;
 
-        BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> new BotState());
+        BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> newBotState());
         state.targetId = attacker.getUniqueId();
         state.retargetTicks = RETARGET_INTERVAL_TICKS;
     }

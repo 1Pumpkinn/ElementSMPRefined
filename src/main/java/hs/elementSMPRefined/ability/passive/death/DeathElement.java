@@ -2,27 +2,34 @@ package hs.elementSMPRefined.ability.passive.death;
 
 import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
-import hs.elementSMPRefined.ability.main.death.DeathSummonUndeadAbility;
-import hs.elementSMPRefined.ability.main.death.DeathWitherSkullAbility;
-import hs.elementSMPRefined.services.EffectService;
+import hs.elementSMPRefined.API.element.ListenerProvider;
+import hs.elementSMPRefined.ability.main.death.DeathAbilityDisarmAbility;
+import hs.elementSMPRefined.ability.main.death.DeathSideStepAbility;
+import hs.elementSMPRefined.ability.passive.death.listeners.DeathNightInvisibilityListener;
+import hs.elementSMPRefined.ability.passive.death.listeners.DeathWitherOnHitListener;
+import hs.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class DeathElement extends BaseElement {
-    private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
+public class DeathElement extends BaseElement implements ListenerProvider {
+    private DeathNightInvisibilityListener nightInvisibilityListener;
 
     public DeathElement(JavaPlugin plugin) {
-        super(plugin, new DeathWitherSkullAbility(plugin), new DeathSummonUndeadAbility(plugin));
+        super(plugin, new DeathSideStepAbility(plugin), new DeathAbilityDisarmAbility(plugin));
+    }
+
+    @Override
+    public List<Listener> getListeners(JavaPlugin plugin) {
+        ElementSMPRefined elementPlugin = (ElementSMPRefined) plugin;
+        this.nightInvisibilityListener = new DeathNightInvisibilityListener(elementPlugin, elementPlugin.getElementManager());
+        return List.of(
+                nightInvisibilityListener,
+                new DeathWitherOnHitListener(elementPlugin.getElementManager(), elementPlugin.getTrustManager())
+        );
     }
 
     @Override
@@ -32,49 +39,17 @@ public class DeathElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Cancel any existing passive task for this player
-        cancelPassiveTask(player);
-
-        // Passive: Night Vision
-        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, PotionEffect.INFINITE_DURATION, 0, true, false));
-
-        // Upside 1: Any raw or undead foods act as golden apples (handled in a listener)
-        // Upside 2: Nearby enemies get hunger 1 in a 5x5 radius (if upgradeLevel >= 2)
-        if (upgradeLevel >= 2) {
-            BukkitTask task = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (!player.isOnline()) {
-                        cancel();
-                        passiveTasks.remove(player.getUniqueId());
-                        return;
-                    }
-
-                    int radius = 5;
-                    for (Player other : player.getWorld().getNearbyPlayers(player.getLocation(), radius)) {
-                        if (!other.equals(player)) {
-                            other.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 40, 0, true, true, true)); // 2 seconds
-                        }
-                    }
-                }
-            }.runTaskTimer(plugin, 0L, 20L); // Every second
-
-            passiveTasks.put(player.getUniqueId(), task);
-        }
-    }
-
-    private void cancelPassiveTask(Player player) {
-        BukkitTask task = passiveTasks.remove(player.getUniqueId());
-        if (task != null && !task.isCancelled()) {
-            task.cancel();
-        }
+        // Passive 1: Invisibility at night (handled by DeathNightInvisibilityListener)
+        // Passive 2: Chance to apply Wither on hit (handled by DeathWitherOnHitListener)
+        // Neither passive is a standing potion effect applied here.
     }
 
     @Override
     public void clearEffects(Player player) {
         super.clearEffects(player);
-        cancelPassiveTask(player);
-        EffectService.removeElementPotionEffect(player, PotionEffectType.NIGHT_VISION);
+        if (nightInvisibilityListener != null) {
+            nightInvisibilityListener.clear(player);
+        }
     }
 
     @Override
@@ -84,15 +59,14 @@ public class DeathElement extends BaseElement {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Master of decay and the undead. Death users can corrupt food and summon wither powers.";
+        return ChatColor.GRAY + "Master of decay. Death users slip away in the dark and rot what they strike.";
     }
 
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Permanent Night Vision",
-                "Raw/undead foods heal you",
-                "Nearby enemies get Hunger (Upgrade II)"
+                "Invisible at night",
+                "Chance to apply Wither for 5s on hit"
         );
     }
 }

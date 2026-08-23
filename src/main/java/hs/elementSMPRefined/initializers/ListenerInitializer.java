@@ -6,9 +6,6 @@ import hs.elementSMPRefined.API.element.ListenerProvider;
 import hs.elementSMPRefined.ability.passive.air.AirElement;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirCombatListener;
-import hs.elementSMPRefined.ability.passive.death.listeners.DeathFriendlyMobListener;
-import hs.elementSMPRefined.ability.passive.death.listeners.DeathPassiveHunger;
-import hs.elementSMPRefined.ability.passive.death.listeners.DeathRawFoodListener;
 import hs.elementSMPRefined.ability.passive.earth.listeners.EarthVeinMinerListener;
 import hs.elementSMPRefined.ability.passive.fire.listeners.FireCombatListener;
 import hs.elementSMPRefined.ability.passive.frost.listeners.FrostFrozenPunchListener;
@@ -44,7 +41,6 @@ public class ListenerInitializer {
     // Store references to listeners that need cleanup or cross-references
     private PlayerLifecycleListener playerLifecycleListener;
     private AirFallImpactListener airFallImpactListener;
-    private DeathFriendlyMobListener deathFriendlyMobListener;
     private FrostPassiveListener frostPassiveListener;
     private GUIListener guiListener;
     private AbilityListener abilityListener;
@@ -117,9 +113,6 @@ public class ListenerInitializer {
             airElementImpl.setFallImpactListener(airFallImpactListener);
         }
 
-        this.deathFriendlyMobListener = new DeathFriendlyMobListener(plugin, plugin.getTrustManager());
-        pluginManager.registerEvents(deathFriendlyMobListener, plugin);
-
         this.frostPassiveListener = new FrostPassiveListener(plugin, plugin.getElementManager());
         pluginManager.registerEvents(frostPassiveListener, plugin);
 
@@ -133,17 +126,9 @@ public class ListenerInitializer {
         // Upgrade II passives that were implemented but never wired in
         pluginManager.registerEvents(new AirCombatListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new FireCombatListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
-        pluginManager.registerEvents(new DeathRawFoodListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new MetalArrowImmunityListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
         pluginManager.registerEvents(new MetalChainStunListener(plugin), plugin);
         pluginManager.registerEvents(new FrostFrozenPunchListener(plugin, plugin.getElementManager()), plugin);
-
-        // Death Upgrade II passive (nearby enemies get Hunger) is a periodic pulse, not an event
-        var deathPassiveHunger = new DeathPassiveHunger(plugin.getElementManager());
-        plugin.getTaskScheduler().runTimerSeconds(
-                () -> plugin.getServer().getOnlinePlayers().forEach(deathPassiveHunger::applyPassiveHunger),
-                3, 3
-        );
     }
 
     private void storeSpecialListeners() {
@@ -167,9 +152,6 @@ public class ListenerInitializer {
     }
 
     public void cleanup() {
-        if (deathFriendlyMobListener != null) {
-            deathFriendlyMobListener.cleanup();
-        }
         if (frostPassiveListener != null) {
             frostPassiveListener.cleanup();
         }
@@ -178,10 +160,6 @@ public class ListenerInitializer {
     // Getters for listeners that need to be accessed elsewhere
     public AirFallImpactListener getAirFallImpactListener() {
         return airFallImpactListener;
-    }
-
-    public DeathFriendlyMobListener getDeathFriendlyMobListener() {
-        return deathFriendlyMobListener;
     }
 
     public FrostPassiveListener getFrostPassiveListener() {

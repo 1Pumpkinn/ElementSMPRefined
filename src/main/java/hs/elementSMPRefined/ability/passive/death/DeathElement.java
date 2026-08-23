@@ -8,6 +8,7 @@ import hs.elementSMPRefined.ability.main.death.DeathSideStepAbility;
 import hs.elementSMPRefined.ability.passive.death.listeners.DeathNightInvisibilityListener;
 import hs.elementSMPRefined.ability.passive.death.listeners.DeathWitherOnHitListener;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -18,8 +19,8 @@ import java.util.List;
 public class DeathElement extends BaseElement implements ListenerProvider {
     private DeathNightInvisibilityListener nightInvisibilityListener;
 
-    public DeathElement(JavaPlugin plugin) {
-        super(plugin, new DeathSideStepAbility(plugin), new DeathAbilityDisarmAbility(plugin));
+    public DeathElement(JavaPlugin plugin, ConfigManager configManager) {
+        super(plugin, new DeathSideStepAbility(plugin, configManager), new DeathAbilityDisarmAbility(plugin, configManager));
     }
 
     @Override

@@ -1,8 +1,10 @@
 package hs.elementSMPRefined.ability.main.life;
 
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -16,8 +18,8 @@ public class LifeRegenAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
 
-    public LifeRegenAbility(JavaPlugin plugin) {
-        super("life_regen", 30, 20, 1);
+    public LifeRegenAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("life_regen", ElementType.LIFE, 1, 20, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

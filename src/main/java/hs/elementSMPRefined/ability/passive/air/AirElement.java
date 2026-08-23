@@ -5,6 +5,7 @@ import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.air.AirDashAbility;
 import hs.elementSMPRefined.ability.main.air.SlicingWindAbility;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
+import hs.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -14,8 +15,8 @@ import java.util.List;
 public class AirElement extends BaseElement {
     private AirFallImpactListener fallImpactListener;
 
-    public AirElement(JavaPlugin plugin) {
-        super(plugin, new AirDashAbility(plugin), new SlicingWindAbility(plugin));
+    public AirElement(JavaPlugin plugin, ConfigManager configManager) {
+        super(plugin, new AirDashAbility(plugin, configManager), new SlicingWindAbility(plugin, configManager));
     }
 
     public void setFallImpactListener(AirFallImpactListener listener) {

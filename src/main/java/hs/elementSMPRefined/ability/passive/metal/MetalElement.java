@@ -4,6 +4,7 @@ import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.metal.MetalChainAbility;
 import hs.elementSMPRefined.ability.main.metal.MetalDashAbility;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -15,8 +16,8 @@ import java.util.List;
 
 public class MetalElement extends BaseElement {
 
-    public MetalElement(JavaPlugin plugin) {
-        super(plugin, new MetalChainAbility(plugin), new MetalDashAbility(plugin));
+    public MetalElement(JavaPlugin plugin, ConfigManager configManager) {
+        super(plugin, new MetalChainAbility(plugin, configManager), new MetalDashAbility(plugin, configManager));
     }
 
     public MetalDashAbility getMetalDashAbility() {

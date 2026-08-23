@@ -1,8 +1,10 @@
 package hs.elementSMPRefined.ability.main.air;
 
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -16,8 +18,8 @@ import org.bukkit.util.Vector;
 public class AirDashAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
-    public AirDashAbility(JavaPlugin plugin) {
-        super("air_dash", 30, 5, 1);
+    public AirDashAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("air_dash", ElementType.AIR, 1, 5, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

@@ -2,7 +2,9 @@ package hs.elementSMPRefined.ability.main.water;
 
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -34,8 +36,8 @@ public class WaterPullDownAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
 
-    public WaterPullDownAbility(JavaPlugin plugin) {
-        super("water_pull_down", 60, 12, 2);
+    public WaterPullDownAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("water_pull_down", ElementType.WATER, 2, 12, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

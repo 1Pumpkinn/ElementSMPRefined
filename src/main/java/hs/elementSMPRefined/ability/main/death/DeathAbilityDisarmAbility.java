@@ -3,6 +3,8 @@ package hs.elementSMPRefined.ability.main.death;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.status.StatusEffectType;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -26,8 +28,8 @@ public class DeathAbilityDisarmAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
 
-    public DeathAbilityDisarmAbility(JavaPlugin plugin) {
-        super("death_ability_disarm", 60, 20, 2);
+    public DeathAbilityDisarmAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("death_ability_disarm", ElementType.DEATH, 2, 20, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

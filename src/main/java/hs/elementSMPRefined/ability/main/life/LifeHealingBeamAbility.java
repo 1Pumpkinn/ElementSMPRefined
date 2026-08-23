@@ -1,8 +1,10 @@
 package hs.elementSMPRefined.ability.main.life;
 
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -17,8 +19,8 @@ public class LifeHealingBeamAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
 
-    public LifeHealingBeamAbility(JavaPlugin plugin) {
-        super("life_healing_beam", 60, 15, 2);
+    public LifeHealingBeamAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("life_healing_beam", ElementType.LIFE, 2, 15, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

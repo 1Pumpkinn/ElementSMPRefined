@@ -2,7 +2,9 @@ package hs.elementSMPRefined.ability.main.frost;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -26,8 +28,8 @@ public class FrostCircleAbility extends BaseAbility {
 
     public static final String META_CIRCLE_FROZEN = "frost_freezing_circle";
 
-    public FrostCircleAbility(JavaPlugin plugin) {
-        super("frost_freezing_circle", 30, 10, 1);
+    public FrostCircleAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("frost_freezing_circle", ElementType.FROST, 1, 10, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

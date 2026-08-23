@@ -1,9 +1,11 @@
 package hs.elementSMPRefined.ability.main.earth;
 
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.ability.passive.earth.EarthElement;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.util.bukkit.MetadataHelper;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -60,8 +62,8 @@ public class EarthTunnelAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
     private final MetadataHelper metadataHelper;
 
-    public EarthTunnelAbility(JavaPlugin plugin) {
-        super("earth_tunnel", 30, 10, 1);
+    public EarthTunnelAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("earth_tunnel", ElementType.EARTH, 1, 10, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         this.metadataHelper = ((ElementSMPRefined) plugin).getMetadataHelper();
     }

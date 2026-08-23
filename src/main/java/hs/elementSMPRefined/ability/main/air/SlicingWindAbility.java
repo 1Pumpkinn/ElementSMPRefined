@@ -1,8 +1,10 @@
 package hs.elementSMPRefined.ability.main.air;
 
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
@@ -20,8 +22,8 @@ import org.bukkit.util.Vector;
 public class SlicingWindAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
-    public SlicingWindAbility(JavaPlugin plugin) {
-        super("slicing_wind", 60, 6, 2);
+    public SlicingWindAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("slicing_wind", ElementType.AIR, 2, 6, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

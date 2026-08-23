@@ -2,7 +2,9 @@ package hs.elementSMPRefined.ability.main.water;
 
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -42,8 +44,8 @@ public class WaterBubbleAbility extends BaseAbility implements Listener {
     private final Set<UUID> activeUsers = ConcurrentHashMap.newKeySet();
     private final Map<UUID, BubbleState> bubbles = new ConcurrentHashMap<>();
 
-    public WaterBubbleAbility(JavaPlugin plugin) {
-        super("water_bubble", 30, 15, 1);
+    public WaterBubbleAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("water_bubble", ElementType.WATER, 1, 15, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }

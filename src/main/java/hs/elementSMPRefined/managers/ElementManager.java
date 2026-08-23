@@ -136,14 +136,14 @@ public class ElementManager {
      * "basic" starter element is decided separately, by {@link #getBasicElements()}.
      */
     private void registerAllElements() {
-        elementRegistry.register(new AirElement(plugin));
-        elementRegistry.register(new WaterElement(plugin));
-        elementRegistry.register(new FireElement(plugin));
-        elementRegistry.register(new EarthElement(plugin));
-        elementRegistry.register(new LifeElement(plugin));
-        elementRegistry.register(new DeathElement(plugin));
-        elementRegistry.register(new MetalElement(plugin));
-        elementRegistry.register(new FrostElement(plugin));
+        elementRegistry.register(new AirElement(plugin, configManager));
+        elementRegistry.register(new WaterElement(plugin, configManager));
+        elementRegistry.register(new FireElement(plugin, configManager));
+        elementRegistry.register(new EarthElement(plugin, configManager));
+        elementRegistry.register(new LifeElement(plugin, configManager));
+        elementRegistry.register(new DeathElement(plugin, configManager));
+        elementRegistry.register(new MetalElement(plugin, configManager));
+        elementRegistry.register(new FrostElement(plugin, configManager));
 
         // Freeze the registry to prevent further modifications
         elementRegistry.freeze();

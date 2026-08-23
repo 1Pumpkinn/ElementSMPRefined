@@ -2,7 +2,9 @@ package hs.elementSMPRefined.ability.main.fire;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.ChatColor;
@@ -50,8 +52,8 @@ public class MeteorCrashAbility extends BaseAbility {
     private static final double IMPACT_KNOCKBACK = 2.2;
     private static final double IMPACT_KNOCKBACK_UP = 1.6; // vertical launch applied to entities on ground-impact
 
-    public MeteorCrashAbility(JavaPlugin plugin) {
-        super("fire_meteor_crash", 60, 15, 2);
+    public MeteorCrashAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("fire_meteor_crash", ElementType.FIRE, 2, 15, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

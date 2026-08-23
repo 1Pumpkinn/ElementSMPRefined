@@ -6,6 +6,7 @@ import hs.elementSMPRefined.API.element.ListenerProvider;
 import hs.elementSMPRefined.ability.main.water.WaterBubbleAbility;
 import hs.elementSMPRefined.ability.main.water.WaterPullDownAbility;
 import hs.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Listener;
@@ -18,8 +19,8 @@ import java.util.List;
 
 public class WaterElement extends BaseElement implements ListenerProvider {
 
-    public WaterElement(JavaPlugin plugin) {
-        super(plugin, new WaterBubbleAbility(plugin), new WaterPullDownAbility(plugin));
+    public WaterElement(JavaPlugin plugin, ConfigManager configManager) {
+        super(plugin, new WaterBubbleAbility(plugin, configManager), new WaterPullDownAbility(plugin, configManager));
     }
 
     @Override

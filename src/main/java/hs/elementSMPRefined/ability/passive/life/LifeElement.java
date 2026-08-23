@@ -4,6 +4,7 @@ import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.life.LifeHealingBeamAbility;
 import hs.elementSMPRefined.ability.main.life.LifeRegenAbility;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
@@ -26,8 +27,8 @@ public class LifeElement extends BaseElement {
     // Only ONE passive task map, keyed by player
     private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
 
-    public LifeElement(JavaPlugin plugin) {
-        super(plugin, new LifeRegenAbility(plugin), new LifeHealingBeamAbility(plugin));
+    public LifeElement(JavaPlugin plugin, ConfigManager configManager) {
+        super(plugin, new LifeRegenAbility(plugin, configManager), new LifeHealingBeamAbility(plugin, configManager));
     }
 
     @Override

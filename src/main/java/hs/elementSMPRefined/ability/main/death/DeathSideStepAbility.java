@@ -2,6 +2,8 @@ package hs.elementSMPRefined.ability.main.death;
 
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -19,8 +21,8 @@ import org.bukkit.util.Vector;
  */
 public class DeathSideStepAbility extends BaseAbility {
 
-    public DeathSideStepAbility(JavaPlugin plugin) {
-        super("death_side_step", 30, 8, 1);
+    public DeathSideStepAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("death_side_step", ElementType.DEATH, 1, 8, 1, configManager);
     }
 
     @Override

@@ -2,7 +2,9 @@ package hs.elementSMPRefined.ability.main.frost;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
+import hs.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -15,8 +17,8 @@ public class FrostPunchAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
     public static final String META_FROZEN_PUNCH_READY = "frost_frozen_punch_ready";
 
-    public FrostPunchAbility(JavaPlugin plugin) {
-        super("frost_frozen_punch", 60, 10, 2);
+    public FrostPunchAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("frost_frozen_punch", ElementType.FROST, 2, 10, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

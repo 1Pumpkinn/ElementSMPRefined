@@ -5,6 +5,7 @@ import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.earth.EarthTunnelAbility;
 import hs.elementSMPRefined.ability.main.earth.GraspAbility;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -18,8 +19,8 @@ public class EarthElement extends BaseElement {
     public static final String META_MINE_UNTIL = "earth_mine_until";
     public static final String META_TUNNELING = "earth_tunneling";
 
-    public EarthElement(JavaPlugin plugin) {
-        super(plugin, new EarthTunnelAbility(plugin), new GraspAbility(plugin));
+    public EarthElement(JavaPlugin plugin, ConfigManager configManager) {
+        super(plugin, new EarthTunnelAbility(plugin, configManager), new GraspAbility(plugin, configManager));
     }
 
     @Override

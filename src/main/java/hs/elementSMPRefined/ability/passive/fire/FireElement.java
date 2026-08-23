@@ -4,6 +4,7 @@ import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.fire.FireGeyserAbility;
 import hs.elementSMPRefined.ability.main.fire.MeteorCrashAbility;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -15,8 +16,8 @@ import java.util.List;
 
 public class FireElement extends BaseElement {
 
-    public FireElement(JavaPlugin plugin) {
-        super(plugin, new FireGeyserAbility(plugin), new MeteorCrashAbility(plugin));
+    public FireElement(JavaPlugin plugin, ConfigManager configManager) {
+        super(plugin, new FireGeyserAbility(plugin, configManager), new MeteorCrashAbility(plugin, configManager));
     }
 
     @Override

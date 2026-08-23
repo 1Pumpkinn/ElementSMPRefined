@@ -2,8 +2,10 @@ package hs.elementSMPRefined.ability.main.fire;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
 import org.bukkit.plugin.java.JavaPlugin;
+import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
@@ -29,8 +31,8 @@ public class FireGeyserAbility extends BaseAbility {
     private static final double RING_RADIUS = 4.0;
     private static final double LAUNCH_RADIUS = 5.5; // radius around caster affected by all geysers combined
 
-    public FireGeyserAbility(JavaPlugin plugin) {
-        super("fire_geyser", 30, 8, 1);
+    public FireGeyserAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("fire_geyser", ElementType.FIRE, 1, 8, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

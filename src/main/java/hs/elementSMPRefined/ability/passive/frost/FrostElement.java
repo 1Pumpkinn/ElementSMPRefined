@@ -4,6 +4,7 @@ import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.frost.FrostCircleAbility;
 import hs.elementSMPRefined.ability.main.frost.FrostPunchAbility;
+import hs.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,8 +14,8 @@ import java.util.List;
 public class FrostElement extends BaseElement {
     public static final String META_FROZEN_PUNCH_READY = "frost_frozen_punch_ready";
 
-    public FrostElement(JavaPlugin plugin) {
-        super(plugin, new FrostCircleAbility(plugin), new FrostPunchAbility(plugin));
+    public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
+        super(plugin, new FrostCircleAbility(plugin, configManager), new FrostPunchAbility(plugin, configManager));
     }
 
     @Override

@@ -19,8 +19,8 @@ public class ConfigManager {
     // through every getter below.
     private static final int DEFAULT_MAX_MANA = 100;
     private static final int DEFAULT_MANA_REGEN_PER_SECOND = 1;
-    private static final int DEFAULT_ABILITY_1_COST = 50;
-    private static final int DEFAULT_ABILITY_2_COST = 75;
+    private static final int DEFAULT_ABILITY_1_COST = 30;
+    private static final int DEFAULT_ABILITY_2_COST = 60;
     private static final boolean DEFAULT_STATUS_EFFECTS_ENABLED = true;
     private static final boolean DEFAULT_STATUS_EFFECT_DAMAGE_ENABLED = true;
     private static final boolean DEFAULT_STATUS_EFFECT_NOTIFICATIONS_ENABLED = true;
@@ -85,6 +85,23 @@ public class ConfigManager {
         return getIntSafe("mana.regen_per_second", DEFAULT_MANA_REGEN_PER_SECOND);
     }
 
+    /**
+     * The flat, non-per-element ability cost baseline. This is what anything that isn't
+     * a real player with a per-element config entry should use - currently that's just
+     * the element bots (see ElementBotManager), plus the fallback for any element/addon
+     * that has no per-type config section. Backed by config.yml (mana.ability1_cost /
+     * mana.ability2_cost) so it can be tuned without touching Java at all; change it here
+     * (or in config.yml) and every caller picks it up automatically instead of having to
+     * hunt down a hardcoded copy in each class.
+     */
+    public int getDefaultAbility1Cost() {
+        return getIntSafe("mana.ability1_cost", DEFAULT_ABILITY_1_COST);
+    }
+
+    public int getDefaultAbility2Cost() {
+        return getIntSafe("mana.ability2_cost", DEFAULT_ABILITY_2_COST);
+    }
+
     // Status effect settings
     public boolean areStatusEffectsEnabled() {
         return getBooleanSafe("status_effects.enabled", DEFAULT_STATUS_EFFECTS_ENABLED);
@@ -108,14 +125,14 @@ public class ConfigManager {
         if (elementConfiguration.hasConfig(type)) {
             return elementConfiguration.getConfig(type).getAbility1Cost();
         }
-        return DEFAULT_ABILITY_1_COST;
+        return getDefaultAbility1Cost();
     }
 
     public int getAbility2Cost(ElementType type) {
         if (elementConfiguration.hasConfig(type)) {
             return elementConfiguration.getConfig(type).getAbility2Cost();
         }
-        return DEFAULT_ABILITY_2_COST;
+        return getDefaultAbility2Cost();
     }
 
     /**
@@ -126,12 +143,12 @@ public class ConfigManager {
      */
     public int getAbility1Cost(ElementId id) {
         ElementType type = id == null ? null : id.toBuiltinType();
-        return type != null ? getAbility1Cost(type) : DEFAULT_ABILITY_1_COST;
+        return type != null ? getAbility1Cost(type) : getDefaultAbility1Cost();
     }
 
     public int getAbility2Cost(ElementId id) {
         ElementType type = id == null ? null : id.toBuiltinType();
-        return type != null ? getAbility2Cost(type) : DEFAULT_ABILITY_2_COST;
+        return type != null ? getAbility2Cost(type) : getDefaultAbility2Cost();
     }
 
     public boolean isAdvancedRerollerRecipeEnabled() {

@@ -63,10 +63,10 @@ public final class ElementBotManager implements Listener {
 
     // Bots run their own private mana pool - separate from the owner's ManaManager/
     // PlayerData entirely, since the bot isn't a Player and shouldn't drain (or share)
-    // its owner's actual mana. Costs are flat across every element, matching the
-    // player-facing defaults (ConfigManager.DEFAULT_ABILITY_1_COST/2_COST).
-    private static final int BOT_ABILITY_1_COST = 30;
-    private static final int BOT_ABILITY_2_COST = 60;
+    // its owner's actual mana. Costs are flat across every element and pulled live from
+    // ConfigManager.getDefaultAbility1Cost()/2Cost() (config.yml: mana.ability1_cost /
+    // mana.ability2_cost) so there's a single place to change them instead of a copy
+    // hardcoded in this class.
     private static final int MANA_REGEN_INTERVAL_TICKS = 20; // regen tick is once/second, like player mana
 
     // Debug instrumentation: prints exactly why the bot did/didn't act each cycle, so a
@@ -180,6 +180,9 @@ public final class ElementBotManager implements Listener {
             if (element == null) continue;
             BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> newBotState());
 
+            int ability1Cost = plugin.getConfigManager().getDefaultAbility1Cost();
+            int ability2Cost = plugin.getConfigManager().getDefaultAbility2Cost();
+
             applyPassiveTick(bot, element, state);
             regenManaTick(state);
 
@@ -202,22 +205,22 @@ public final class ElementBotManager implements Listener {
                 boolean hasLineOfSight = bot.hasLineOfSight(target);
 
                 boolean ability1Ready = distSq <= abilityOneRangeSq(element) && state.ability1Cd <= 0
-                        && hasLineOfSight && state.mana >= BOT_ABILITY_1_COST;
+                        && hasLineOfSight && state.mana >= ability1Cost;
                 boolean ability2Ready = distSq <= abilityTwoRangeSq(element) && state.ability2Cd <= 0
-                        && hasLineOfSight && state.mana >= BOT_ABILITY_2_COST;
+                        && hasLineOfSight && state.mana >= ability2Cost;
 
                 if (ability1Ready) {
                     castAbilityOne(bot, owner, target, element);
                     state.ability1Cd = abilityOneCooldown(element);
-                    state.mana -= BOT_ABILITY_1_COST;
+                    state.mana -= ability1Cost;
                     if (DEBUG_LOGGING) log(owner, element, "CAST ability1 on " + describeEntity(target)
-                            + " | mana " + (state.mana + BOT_ABILITY_1_COST) + " -> " + state.mana);
+                            + " | mana " + (state.mana + ability1Cost) + " -> " + state.mana);
                 } else if (ability2Ready) {
                     castAbilityTwo(bot, owner, target, element);
                     state.ability2Cd = abilityTwoCooldown(element);
-                    state.mana -= BOT_ABILITY_2_COST;
+                    state.mana -= ability2Cost;
                     if (DEBUG_LOGGING) log(owner, element, "CAST ability2 on " + describeEntity(target)
-                            + " | mana " + (state.mana + BOT_ABILITY_2_COST) + " -> " + state.mana);
+                            + " | mana " + (state.mana + ability2Cost) + " -> " + state.mana);
                 } else if (DEBUG_LOGGING && (state.logTicks -= RUN_PERIOD_TICKS) <= 0) {
                     state.logTicks = LOG_INTERVAL_TICKS;
                     log(owner, element, String.format(
@@ -242,10 +245,10 @@ public final class ElementBotManager implements Listener {
                 }
 
                 if (element == ElementType.LIFE && ownerDistSq <= LIFE_SUPPORT_RADIUS_SQ
-                        && state.ability1Cd <= 0 && state.mana >= BOT_ABILITY_1_COST && isHurt(owner)) {
+                        && state.ability1Cd <= 0 && state.mana >= ability1Cost && isHurt(owner)) {
                     castLifeSupport(bot, owner);
                     state.ability1Cd = abilityOneCooldown(element);
-                    state.mana -= BOT_ABILITY_1_COST;
+                    state.mana -= ability1Cost;
                 }
 
                 if (DEBUG_LOGGING && (state.logTicks -= RUN_PERIOD_TICKS) <= 0) {
@@ -277,19 +280,50 @@ public final class ElementBotManager implements Listener {
 
         if (panicking) {
             bot.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, RUN_PERIOD_TICKS + 5, 1, true, false));
-            Vector away = bot.getLocation().toVector().subtract(target.getLocation().toVector());
-            if (away.lengthSquared() > 0.0001) {
-                bot.setVelocity(bot.getVelocity().add(away.normalize().multiply(0.25).setY(0.1)));
-            }
+            retreatFrom(bot, target, 0.25);
             return;
         }
 
         if (isRangedFavored && distSq < abilityRangeSq * KITE_TOO_CLOSE_FRACTION * KITE_TOO_CLOSE_FRACTION) {
-            Vector away = bot.getLocation().toVector().subtract(target.getLocation().toVector());
-            if (away.lengthSquared() > 0.0001) {
-                bot.setVelocity(bot.getVelocity().add(away.normalize().multiply(0.2).setY(0.05)));
-            }
+            retreatFrom(bot, target, 0.2);
         }
+    }
+
+    // Pushes the bot directly away from its target on the horizontal plane only. Vertical
+    // velocity is left untouched unless the bot is (a) actually standing on the ground and
+    // (b) about to back into a solid block - in which case it gets a single vanilla-style
+    // jump impulse instead of a repeated small upward nudge. The old code added +0.1/+0.05
+    // to Y on every AI tick this ran regardless of whether the bot was grounded, so if it
+    // got knocked airborne (e.g. hit mid-retreat) those nudges kept refreshing on top of
+    // existing upward knockback faster than gravity could cancel them out, and the bot
+    // would climb into the sky instead of just backpedalling.
+    private void retreatFrom(Mob bot, LivingEntity target, double speed) {
+        Vector away = bot.getLocation().toVector().subtract(target.getLocation().toVector());
+        away.setY(0);
+        if (away.lengthSquared() < 0.0001) return;
+        away.normalize();
+
+        Vector current = bot.getVelocity();
+        double newX = current.getX() + away.getX() * speed;
+        double newZ = current.getZ() + away.getZ() * speed;
+        double newY = current.getY();
+
+        if (bot.isOnGround() && isBlockedAhead(bot, away)) {
+            newY = 0.42; // vanilla jump velocity - only when grounded and something's actually in the way
+        }
+
+        bot.setVelocity(new Vector(newX, newY, newZ));
+    }
+
+    // Checks for a solid block at foot or knee height one step in the given horizontal
+    // direction, so the jump impulse in retreatFrom only fires when the bot would actually
+    // back into something, not on every retreat tick regardless of terrain.
+    private boolean isBlockedAhead(Mob bot, Vector horizontalDirection) {
+        Location feet = bot.getLocation();
+        Location probe = feet.clone().add(horizontalDirection.getX() * 0.6, 0, horizontalDirection.getZ() * 0.6);
+        Material atFeet = probe.getBlock().getType();
+        Material atKnee = probe.clone().add(0, 1, 0).getBlock().getType();
+        return atFeet.isSolid() || atKnee.isSolid();
     }
 
     private LivingEntity resolveTarget(Mob bot, Player owner, BotState state) {

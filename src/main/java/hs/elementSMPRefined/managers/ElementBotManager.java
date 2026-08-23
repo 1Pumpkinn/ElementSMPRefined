@@ -9,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
@@ -424,12 +425,15 @@ public final class ElementBotManager implements Listener {
 
     private void castAbilityOne(Mob bot, Player owner, LivingEntity target, ElementType element) {
         Location origin = bot.getLocation().add(0, 1, 0);
-        bot.getWorld().spawnParticle(particle(element), origin, 20, .5, .6, .5, .05);
+        // force=true so this renders regardless of a nearby player's particle setting
+        // (Minimal/Decreased) or view-distance culling - matches every player-cast ability.
+        bot.getWorld().spawnParticle(particle(element), origin, 20, .5, .6, .5, .05, null, true);
         bot.getWorld().playSound(bot.getLocation(), sound(element), .8f, 1.0f);
 
         switch (element) {
             case AIR -> { // Slicing Wind: ranged cutting gust
                 Vector dir = target.getLocation().toVector().subtract(bot.getLocation().toVector()).normalize();
+                spawnTravelLine(bot, target, Particle.CLOUD);
                 target.damage(4.0, bot);
                 target.setVelocity(target.getVelocity().add(dir.multiply(.6).setY(.2)));
             }
@@ -463,6 +467,7 @@ public final class ElementBotManager implements Listener {
                 target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 60, 0, false, true));
             }
             case METAL -> { // Metal Chain: pull target in and hit
+                spawnTravelLine(bot, target, Particle.CRIT);
                 target.damage(5.0, bot);
                 Vector pull = bot.getLocation().toVector().subtract(target.getLocation().toVector()).normalize().multiply(.8).setY(.15);
                 target.setVelocity(target.getVelocity().add(pull));
@@ -479,7 +484,7 @@ public final class ElementBotManager implements Listener {
 
     private void castAbilityTwo(Mob bot, Player owner, LivingEntity target, ElementType element) {
         Location origin = bot.getLocation().add(0, 1, 0);
-        bot.getWorld().spawnParticle(particle(element), origin, 26, .6, .7, .6, .06);
+        bot.getWorld().spawnParticle(particle(element), origin, 26, .6, .7, .6, .06, null, true);
         bot.getWorld().playSound(bot.getLocation(), sound(element), .9f, 1.2f);
 
         switch (element) {
@@ -529,7 +534,7 @@ public final class ElementBotManager implements Listener {
     }
 
     private void castLifeSupport(Mob bot, Player owner) {
-        bot.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, owner.getLocation().add(0, 1, 0), 20, .5, .6, .5, .05);
+        bot.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, owner.getLocation().add(0, 1, 0), 20, .5, .6, .5, .05, null, true);
         bot.getWorld().playSound(bot.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, .8f, 1.2f);
         var attr = owner.getAttribute(Attribute.MAX_HEALTH);
         double max = attr != null ? attr.getValue() : owner.getHealth();
@@ -559,6 +564,28 @@ public final class ElementBotManager implements Listener {
 
     private void slow(LivingEntity target, int duration, int amplifier) {
         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, duration, amplifier, false, true));
+    }
+
+    // Draws a short line of particles from the bot to the target so ranged abilities
+    // (Slicing Wind, Metal Chain) read as a projectile/slash travelling to its target
+    // instead of a puff of particles on the bot's own head that's easy to miss at range.
+    // Fired instantly rather than animated over ticks, but forced so it always renders.
+    private void spawnTravelLine(Mob bot, LivingEntity target, Particle trailParticle) {
+        Location from = bot.getLocation().add(0, 1.2, 0);
+        Location to = target.getLocation().add(0, 1.0, 0);
+        Vector direction = to.toVector().subtract(from.toVector());
+        double distance = direction.length();
+        if (distance < 0.1) return;
+
+        Vector step = direction.normalize().multiply(0.5); // one sample point every half block
+        int steps = (int) Math.ceil(distance / 0.5);
+        Location point = from.clone();
+        World world = bot.getWorld();
+        for (int i = 0; i <= steps; i++) {
+            world.spawnParticle(Particle.SWEEP_ATTACK, point, 0, 0, 0, 0, 0, null, true);
+            world.spawnParticle(trailParticle, point, 2, 0.08, 0.08, 0.08, 0.0, null, true);
+            point.add(step);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -625,7 +652,7 @@ public final class ElementBotManager implements Listener {
         return switch (element) {
             case FIRE -> Sound.ENTITY_BLAZE_SHOOT; case WATER -> Sound.ENTITY_PLAYER_SPLASH;
             case AIR -> Sound.ENTITY_PLAYER_ATTACK_SWEEP; case EARTH -> Sound.BLOCK_STONE_BREAK;
-            case LIFE -> Sound.BLOCK_AMETHYST_BLOCK_CHIME; case DEATH -> Sound.ENTITY_WITHER_AMBIENT;
+            case LIFE ->    Sound.BLOCK_AMETHYST_BLOCK_CHIME; case DEATH -> Sound.ENTITY_WITHER_AMBIENT;
             case METAL -> Sound.BLOCK_ANVIL_LAND; case FROST -> Sound.BLOCK_GLASS_BREAK;
         };
     }

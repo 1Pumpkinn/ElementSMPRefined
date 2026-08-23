@@ -45,7 +45,10 @@ import java.util.UUID;
 public final class ElementBotManager implements Listener {
     public static final String BOT_METADATA = "element_smp_bot";
 
-    private static final int RUN_PERIOD_TICKS = 5;      // AI tick rate (4x/sec)
+    private static final int RUN_PERIOD_TICKS = 2;      // AI tick rate (10x/sec) - fast enough to
+    // catch a human player's brief window inside
+    // ability range instead of only mobs, which
+    // hold still in melee far more predictably
     private static final int PASSIVE_REFRESH_TICKS = 100; // how often passive effects are re-applied
     private static final int RETARGET_INTERVAL_TICKS = 60; // how often we look for a new target
     private static final int REPATH_INTERVAL_TICKS = 10;   // how often we recompute the path
@@ -58,6 +61,14 @@ public final class ElementBotManager implements Listener {
     private static final double LOW_HEALTH_FRACTION = 0.3; // below this, bot fights defensively / tries to disengage
     private static final double KITE_TOO_CLOSE_FRACTION = 0.45; // fraction of a ranged element's ability1 range considered "too close"
 
+    // Debug instrumentation: prints exactly why the bot did/didn't act each cycle, so a
+    // "bot won't use abilities" report can be diagnosed from the server console instead of
+    // guessed at. Flip to false once the issue is found - it logs once per second per bot
+    // while it has a target, plus every time a target is gained/lost, so it's noisy on
+    // purpose but not tick-spammy.
+    private static final boolean DEBUG_LOGGING = true;
+    private static final int LOG_INTERVAL_TICKS = 20; // ~once a second
+
     private final ElementSMPRefined plugin;
     private final NamespacedKey elementKey;
     private final Map<UUID, Mob> bots = new HashMap<>();
@@ -69,7 +80,9 @@ public final class ElementBotManager implements Listener {
         int retargetTicks;
         int repathTicks;
         int passiveTicks;
+        int logTicks;      // throttles the periodic combat-state debug log
         UUID targetId;
+        UUID loggedTargetId; // last target we printed an "acquired" log line for
     }
 
     public ElementBotManager(ElementSMPRefined plugin) {
@@ -169,19 +182,42 @@ public final class ElementBotManager implements Listener {
                 bot.setTarget(target); // hands movement + melee swings to the zombie's own attack AI
                 state.repathTicks = REPATH_INTERVAL_TICKS; // reset so guard-mode repaths immediately if target is lost
 
+                if (DEBUG_LOGGING && !target.getUniqueId().equals(state.loggedTargetId)) {
+                    state.loggedTargetId = target.getUniqueId();
+                    log(owner, element, "ACQUIRED target " + describeEntity(target)
+                            + " dist=" + String.format("%.1f", Math.sqrt(bot.getLocation().distanceSquared(target.getLocation()))) + " blocks");
+                }
+
                 double distSq = bot.getLocation().distanceSquared(target.getLocation());
                 boolean hasLineOfSight = bot.hasLineOfSight(target);
 
-                if (distSq <= abilityOneRangeSq(element) && state.ability1Cd <= 0 && hasLineOfSight) {
+                boolean ability1Ready = distSq <= abilityOneRangeSq(element) && state.ability1Cd <= 0 && hasLineOfSight;
+                boolean ability2Ready = distSq <= abilityTwoRangeSq(element) && state.ability2Cd <= 0 && hasLineOfSight;
+
+                if (ability1Ready) {
                     castAbilityOne(bot, owner, target, element);
                     state.ability1Cd = abilityOneCooldown(element);
-                } else if (distSq <= abilityTwoRangeSq(element) && state.ability2Cd <= 0 && hasLineOfSight) {
+                    if (DEBUG_LOGGING) log(owner, element, "CAST ability1 on " + describeEntity(target));
+                } else if (ability2Ready) {
                     castAbilityTwo(bot, owner, target, element);
                     state.ability2Cd = abilityTwoCooldown(element);
+                    if (DEBUG_LOGGING) log(owner, element, "CAST ability2 on " + describeEntity(target));
+                } else if (DEBUG_LOGGING && (state.logTicks -= RUN_PERIOD_TICKS) <= 0) {
+                    state.logTicks = LOG_INTERVAL_TICKS;
+                    log(owner, element, String.format(
+                            "idle vs %s | dist=%.1f (a1 range=%.1f, a2 range=%.1f) | LOS=%s | a1Cd=%d a2Cd=%d",
+                            describeEntity(target), Math.sqrt(distSq),
+                            Math.sqrt(abilityOneRangeSq(element)), Math.sqrt(abilityTwoRangeSq(element)),
+                            hasLineOfSight, state.ability1Cd, state.ability2Cd));
                 }
 
                 handleTacticalMovement(bot, target, element, distSq);
             } else {
+                if (DEBUG_LOGGING && state.loggedTargetId != null) {
+                    state.loggedTargetId = null;
+                    log(owner, element, "LOST target - back to guarding owner");
+                }
+
                 double ownerDistSq = bot.getLocation().distanceSquared(owner.getLocation());
                 if (ownerDistSq > GUARD_LEASH_RADIUS_SQ && (state.repathTicks -= RUN_PERIOD_TICKS) <= 0) {
                     bot.getPathfinder().moveTo(owner, 1.0);
@@ -192,6 +228,11 @@ public final class ElementBotManager implements Listener {
                         && state.ability1Cd <= 0 && isHurt(owner)) {
                     castLifeSupport(bot, owner);
                     state.ability1Cd = abilityOneCooldown(element);
+                }
+
+                if (DEBUG_LOGGING && (state.logTicks -= RUN_PERIOD_TICKS) <= 0) {
+                    state.logTicks = LOG_INTERVAL_TICKS;
+                    log(owner, element, "no target found nearby (search radius=" + SEARCH_RADIUS + " blocks)");
                 }
             }
         }
@@ -257,6 +298,7 @@ public final class ElementBotManager implements Listener {
     // mobs (zombies, skeletons, etc.) when no enemy player is around, per the bot's guard
     // duty. Players are always preferred over mobs even if a mob is slightly closer.
     private LivingEntity findHostileTarget(Mob bot, Player owner) {
+        ElementType element = elementOf(bot);
         LivingEntity bestPlayer = null;
         double bestPlayerDistSq = SEARCH_RADIUS * SEARCH_RADIUS;
         LivingEntity bestMob = null;
@@ -267,8 +309,16 @@ public final class ElementBotManager implements Listener {
             double distSq = nearby.getLocation().distanceSquared(bot.getLocation());
 
             if (nearby instanceof Player p) {
-                if (isProtected(nearby, owner)) continue;
-                if (!p.isOnline() || p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) continue;
+                if (isProtected(nearby, owner)) {
+                    if (DEBUG_LOGGING) log(owner, element, "scan: skipping " + p.getName()
+                            + " - protected (this is the owner, or a player the owner trusts)");
+                    continue;
+                }
+                if (!p.isOnline() || p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) {
+                    if (DEBUG_LOGGING) log(owner, element, "scan: skipping " + p.getName()
+                            + " - gamemode=" + p.getGameMode());
+                    continue;
+                }
                 if (distSq < bestPlayerDistSq) {
                     bestPlayerDistSq = distSq;
                     bestPlayer = nearby;
@@ -280,7 +330,21 @@ public final class ElementBotManager implements Listener {
                 }
             }
         }
-        return bestPlayer != null ? bestPlayer : bestMob;
+
+        LivingEntity chosen = bestPlayer != null ? bestPlayer : bestMob;
+        if (DEBUG_LOGGING && chosen == null) {
+            log(owner, element, "scan: no valid hostile target within " + SEARCH_RADIUS + " blocks");
+        }
+        return chosen;
+    }
+
+    private void log(Player owner, ElementType element, String message) {
+        plugin.getLogger().info("[ElementBot] " + owner.getName() + "'s " + element + " bot: " + message);
+    }
+
+    private String describeEntity(LivingEntity entity) {
+        if (entity instanceof Player p) return "player " + p.getName();
+        return entity.getType().name().toLowerCase() + " (" + entity.getUniqueId().toString().substring(0, 8) + ")";
     }
 
     private boolean isProtected(LivingEntity entity, Player owner) {
@@ -606,13 +670,27 @@ public final class ElementBotManager implements Listener {
         };
     }
 
-    private double abilityOneRangeSq(ElementType element) {
+    // Real players get knocked back on every melee hit (vanilla applies some knockback
+    // even with no enchant) and actively juke/retreat, unlike hostile mobs which mostly
+    // hold still in melee. Without a little tolerance here, the bot's target constantly
+    // slips just outside its exact ability radius between AI ticks and abilities never
+    // fire in PvP even though they fire constantly against mobs. This buffer is added to
+    // the *linear* range before squaring, so it's a flat few blocks of forgiveness rather
+    // than compounding oddly at long vs. short range.
+    private static final double RANGE_BUFFER_BLOCKS = 1.5;
+
+    private double abilityOneRange(ElementType element) {
         return switch (element) {
-            case AIR -> 144.0;               // ranged gust
-            case METAL -> 100.0;              // chain pull reaches out
-            case WATER, FIRE, FROST -> 36.0;  // close-range AoE burst
-            case EARTH, DEATH, LIFE -> 16.0;  // melee range
+            case AIR -> 12.0;               // ranged gust
+            case METAL -> 10.0;              // chain pull reaches out
+            case WATER, FIRE, FROST -> 6.0;  // close-range AoE burst
+            case EARTH, DEATH, LIFE -> 4.0;  // melee range
         };
+    }
+
+    private double abilityOneRangeSq(ElementType element) {
+        double r = abilityOneRange(element) + RANGE_BUFFER_BLOCKS;
+        return r * r;
     }
 
     // Ability two was previously allowed to fire at any distance, which let e.g. Water's
@@ -620,14 +698,19 @@ public final class ElementBotManager implements Listener {
     // closers (dashes/leaps/tunnels) legitimately need range so they can close the
     // distance; direct-damage finishers are kept to a real melee/short-range window,
     // mirroring the ranges their player-facing ability counterparts use.
-    private double abilityTwoRangeSq(ElementType element) {
+    private double abilityTwoRange(ElementType element) {
         return switch (element) {
-            case AIR -> 144.0;    // Air Dash: gap-closing leap
-            case METAL -> 121.0;  // Metal Dash: gap-closing charge
-            case EARTH -> 100.0;  // Earth Tunnel: gap-closing teleport
-            case WATER, FIRE, DEATH, LIFE -> 36.0; // short-range finishers/utility
-            case FROST -> 16.0;   // Frost Punch: melee-range heavy hit
+            case AIR -> 12.0;    // Air Dash: gap-closing leap
+            case METAL -> 11.0;  // Metal Dash: gap-closing charge
+            case EARTH -> 10.0;  // Earth Tunnel: gap-closing teleport
+            case WATER, FIRE, DEATH, LIFE -> 6.0; // short-range finishers/utility
+            case FROST -> 4.0;   // Frost Punch: melee-range heavy hit
         };
+    }
+
+    private double abilityTwoRangeSq(ElementType element) {
+        double r = abilityTwoRange(element) + RANGE_BUFFER_BLOCKS;
+        return r * r;
     }
 
     // Relative to the mob's default MOVEMENT_SPEED attribute (vanilla zombie ~0.23),
@@ -652,7 +735,7 @@ public final class ElementBotManager implements Listener {
         return switch (element) {
             case FIRE -> Sound.ENTITY_BLAZE_SHOOT; case WATER -> Sound.ENTITY_PLAYER_SPLASH;
             case AIR -> Sound.ENTITY_PLAYER_ATTACK_SWEEP; case EARTH -> Sound.BLOCK_STONE_BREAK;
-            case LIFE ->    Sound.BLOCK_AMETHYST_BLOCK_CHIME; case DEATH -> Sound.ENTITY_WITHER_AMBIENT;
+            case LIFE -> Sound.BLOCK_AMETHYST_BLOCK_CHIME; case DEATH -> Sound.ENTITY_WITHER_AMBIENT;
             case METAL -> Sound.BLOCK_ANVIL_LAND; case FROST -> Sound.BLOCK_GLASS_BREAK;
         };
     }

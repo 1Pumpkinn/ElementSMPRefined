@@ -1,0 +1,47 @@
+name: ElementSMPRefined
+version: '1.0-SNAPSHOT'
+main: hs.elementSMPRefined.ElementSMPRefined
+website: https://ko-fi.com/1pumpkinn
+api-version: '1.21'
+load: STARTUP
+authors: [ ___Pumpkinn ]
+contributors: [ ___Vishini ]
+
+commands:
+  trust:
+    description: Manage trust relationships
+    usage: /trust <list|add|remove|accept|deny> [player]
+
+  element:
+    description: Element admin commands
+    usage: /element <set|debug|roll> [player] [element]
+    permission: element.admin
+
+  mana:
+    description: Manage mana (reset or set)
+    usage: /mana <reset|set> [player] [amount]
+    permission: element.mana
+
+  util:
+    description: Get utility items (upgraders and reroller)
+    usage: /util
+    permission: element.admin
+
+  elements:
+    description: View information about all elements
+    usage: /elements [element_name]
+    aliases: [ elementinfo, elinfo ]
+
+  togglerecipe:
+    description: Toggle recipe availability
+    usage: /togglerecipe <upgrader1|upgrader2|reroller|advancedreroller>
+    permission: element.admin
+
+permissions:
+  element.admin:
+    description: Allows use of element admin commands
+    default: op
+
+  element.mana:
+    description: Allows use of mana management commands
+    default: op

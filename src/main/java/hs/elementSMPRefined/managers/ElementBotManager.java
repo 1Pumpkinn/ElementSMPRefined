@@ -15,10 +15,12 @@ import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
@@ -51,6 +53,9 @@ public final class ElementBotManager implements Listener {
     private static final double GUARD_LEASH_RADIUS_SQ = 64.0;   // start following owner past 8 blocks
     private static final double LIFE_SUPPORT_RADIUS_SQ = 100.0; // heal owner within 10 blocks
     private static final double AOE_RADIUS = 4.0;
+    private static final double DEFENSE_CALL_RADIUS_SQ = 40.0 * 40.0; // owner's cry for help travels further than passive search
+    private static final double LOW_HEALTH_FRACTION = 0.3; // below this, bot fights defensively / tries to disengage
+    private static final double KITE_TOO_CLOSE_FRACTION = 0.45; // fraction of a ranged element's ability1 range considered "too close"
 
     private final ElementSMPRefined plugin;
     private final NamespacedKey elementKey;
@@ -164,13 +169,17 @@ public final class ElementBotManager implements Listener {
                 state.repathTicks = REPATH_INTERVAL_TICKS; // reset so guard-mode repaths immediately if target is lost
 
                 double distSq = bot.getLocation().distanceSquared(target.getLocation());
-                if (distSq <= abilityOneRangeSq(element) && state.ability1Cd <= 0) {
+                boolean hasLineOfSight = bot.hasLineOfSight(target);
+
+                if (distSq <= abilityOneRangeSq(element) && state.ability1Cd <= 0 && hasLineOfSight) {
                     castAbilityOne(bot, owner, target, element);
                     state.ability1Cd = abilityOneCooldown(element);
-                } else if (state.ability2Cd <= 0) {
+                } else if (distSq <= abilityTwoRangeSq(element) && state.ability2Cd <= 0 && hasLineOfSight) {
                     castAbilityTwo(bot, owner, target, element);
                     state.ability2Cd = abilityTwoCooldown(element);
                 }
+
+                handleTacticalMovement(bot, target, element, distSq);
             } else {
                 double ownerDistSq = bot.getLocation().distanceSquared(owner.getLocation());
                 if (ownerDistSq > GUARD_LEASH_RADIUS_SQ && (state.repathTicks -= RUN_PERIOD_TICKS) <= 0) {
@@ -183,6 +192,42 @@ public final class ElementBotManager implements Listener {
                     castLifeSupport(bot, owner);
                     state.ability1Cd = abilityOneCooldown(element);
                 }
+            }
+        }
+    }
+
+    /**
+     * Light tactical repositioning layered on top of the vanilla melee-attack goal:
+     * - Ranged-favored elements back off a little when the enemy closes inside their
+     *   effective ability range instead of always walking into melee, so they actually
+     *   use their ranged kit like a player would rather than beelining every fight.
+     * - Bots below the low-health threshold get a brief panic burst of speed so they can
+     *   disengage or reposition instead of standing still and trading hits to the death.
+     */
+    private void handleTacticalMovement(Mob bot, LivingEntity target, ElementType element, double distSq) {
+        double abilityRangeSq = abilityOneRangeSq(element);
+        // Only AIR (gust, 12 blocks) and METAL (chain, 10 blocks) meaningfully out-range
+        // melee; the 6-block AoE bursts (WATER/FIRE/FROST) are still close-quarters kits
+        // and shouldn't be treated as "ranged" or they'd back off from their own AoE.
+        boolean isRangedFavored = abilityRangeSq > 64.0;
+
+        var maxHealthAttr = bot.getAttribute(Attribute.MAX_HEALTH);
+        double maxHealth = maxHealthAttr != null ? maxHealthAttr.getValue() : bot.getHealth();
+        boolean panicking = bot.getHealth() <= maxHealth * LOW_HEALTH_FRACTION;
+
+        if (panicking) {
+            bot.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, RUN_PERIOD_TICKS + 5, 1, true, false));
+            Vector away = bot.getLocation().toVector().subtract(target.getLocation().toVector());
+            if (away.lengthSquared() > 0.0001) {
+                bot.setVelocity(bot.getVelocity().add(away.normalize().multiply(0.25).setY(0.1)));
+            }
+            return;
+        }
+
+        if (isRangedFavored && distSq < abilityRangeSq * KITE_TOO_CLOSE_FRACTION * KITE_TOO_CLOSE_FRACTION) {
+            Vector away = bot.getLocation().toVector().subtract(target.getLocation().toVector());
+            if (away.lengthSquared() > 0.0001) {
+                bot.setVelocity(bot.getVelocity().add(away.normalize().multiply(0.2).setY(0.05)));
             }
         }
     }
@@ -207,19 +252,34 @@ public final class ElementBotManager implements Listener {
         return null;
     }
 
+    // Hunts hostile players first (the real threat to the owner), falling back to hostile
+    // mobs (zombies, skeletons, etc.) when no enemy player is around, per the bot's guard
+    // duty. Players are always preferred over mobs even if a mob is slightly closer.
     private LivingEntity findHostileTarget(Mob bot, Player owner) {
-        LivingEntity best = null;
-        double bestDistSq = SEARCH_RADIUS * SEARCH_RADIUS;
+        LivingEntity bestPlayer = null;
+        double bestPlayerDistSq = SEARCH_RADIUS * SEARCH_RADIUS;
+        LivingEntity bestMob = null;
+        double bestMobDistSq = SEARCH_RADIUS * SEARCH_RADIUS;
+
         for (LivingEntity nearby : bot.getLocation().getNearbyLivingEntities(SEARCH_RADIUS)) {
-            if (!(nearby instanceof Player p) || isProtected(nearby, owner) || owns(nearby)) continue;
-            if (!p.isOnline() || p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) continue;
+            if (nearby.equals(bot) || owns(nearby)) continue;
             double distSq = nearby.getLocation().distanceSquared(bot.getLocation());
-            if (distSq < bestDistSq) {
-                bestDistSq = distSq;
-                best = nearby;
+
+            if (nearby instanceof Player p) {
+                if (isProtected(nearby, owner)) continue;
+                if (!p.isOnline() || p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) continue;
+                if (distSq < bestPlayerDistSq) {
+                    bestPlayerDistSq = distSq;
+                    bestPlayer = nearby;
+                }
+            } else if (nearby instanceof Monster) {
+                if (distSq < bestMobDistSq) {
+                    bestMobDistSq = distSq;
+                    bestMob = nearby;
+                }
             }
         }
-        return best;
+        return bestPlayer != null ? bestPlayer : bestMob;
     }
 
     private boolean isProtected(LivingEntity entity, Player owner) {
@@ -310,6 +370,29 @@ public final class ElementBotManager implements Listener {
             case SNOW, SNOW_BLOCK, ICE, PACKED_ICE, BLUE_ICE, FROSTED_ICE -> true;
             default -> false;
         };
+    }
+
+    // Reactive defense: if the bot's owner gets hit by a hostile, un-trusted player, the
+    // bot immediately locks onto the attacker instead of waiting up to RETARGET_INTERVAL_TICKS
+    // for its next passive scan. This is what makes the bot feel like a teammate reacting to
+    // a fight rather than a turret idly sweeping the area - it responds the moment its owner
+    // is threatened, even from further away than its normal search radius.
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onOwnerAttacked(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player owner)) return;
+        Mob bot = bots.get(owner.getUniqueId());
+        if (bot == null || !bot.isValid() || bot.isDead()) return;
+
+        Entity rawDamager = event.getDamager();
+        Entity source = (rawDamager instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter)
+                ? shooter : rawDamager;
+        if (!(source instanceof Player attacker) || attacker.equals(owner) || isProtected(attacker, owner)) return;
+        if (!attacker.getWorld().equals(bot.getWorld())) return;
+        if (attacker.getLocation().distanceSquared(bot.getLocation()) > DEFENSE_CALL_RADIUS_SQ) return;
+
+        BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> new BotState());
+        state.targetId = attacker.getUniqueId();
+        state.retargetTicks = RETARGET_INTERVAL_TICKS;
     }
 
     // On-hit passives that need a real combat event: Fire Aspect and Wither-on-hit for the
@@ -502,6 +585,21 @@ public final class ElementBotManager implements Listener {
             case METAL -> 100.0;              // chain pull reaches out
             case WATER, FIRE, FROST -> 36.0;  // close-range AoE burst
             case EARTH, DEATH, LIFE -> 16.0;  // melee range
+        };
+    }
+
+    // Ability two was previously allowed to fire at any distance, which let e.g. Water's
+    // "Pull Down" or Frost's "Frost Punch" land instant damage from across the map. Gap
+    // closers (dashes/leaps/tunnels) legitimately need range so they can close the
+    // distance; direct-damage finishers are kept to a real melee/short-range window,
+    // mirroring the ranges their player-facing ability counterparts use.
+    private double abilityTwoRangeSq(ElementType element) {
+        return switch (element) {
+            case AIR -> 144.0;    // Air Dash: gap-closing leap
+            case METAL -> 121.0;  // Metal Dash: gap-closing charge
+            case EARTH -> 100.0;  // Earth Tunnel: gap-closing teleport
+            case WATER, FIRE, DEATH, LIFE -> 36.0; // short-range finishers/utility
+            case FROST -> 16.0;   // Frost Punch: melee-range heavy hit
         };
     }
 

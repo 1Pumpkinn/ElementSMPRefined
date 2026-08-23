@@ -164,13 +164,6 @@ public final class ElementBotManager implements Listener {
             if (element == null) continue;
             BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> new BotState());
 
-            // Safety net: vanilla hostile-mob AI can otherwise latch onto the owner (or a
-            // trusted player) as a target. Never let that stick.
-            LivingEntity vanillaTarget = bot.getTarget();
-            if (vanillaTarget != null && isProtected(vanillaTarget, owner)) {
-                bot.setTarget(null);
-            }
-
             applyPassiveTick(bot, element, state);
 
             LivingEntity target = resolveTarget(bot, owner, state);
@@ -279,8 +272,7 @@ public final class ElementBotManager implements Listener {
             Entity candidate = plugin.getServer().getEntity(state.targetId);
             if (candidate instanceof LivingEntity le && le.isValid() && !le.isDead()
                     && le.getWorld().equals(bot.getWorld())
-                    && le.getLocation().distanceSquared(bot.getLocation()) <= TARGET_LOSE_RADIUS_SQ
-                    && !isProtected(le, owner)) {
+                    && le.getLocation().distanceSquared(bot.getLocation()) <= TARGET_LOSE_RADIUS_SQ) {
                 return le;
             }
             state.targetId = null;
@@ -309,11 +301,6 @@ public final class ElementBotManager implements Listener {
             double distSq = nearby.getLocation().distanceSquared(bot.getLocation());
 
             if (nearby instanceof Player p) {
-                if (isProtected(nearby, owner)) {
-                    if (DEBUG_LOGGING) log(owner, element, "scan: skipping " + p.getName()
-                            + " - protected (this is the owner, or a player the owner trusts)");
-                    continue;
-                }
                 if (!p.isOnline() || p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) {
                     if (DEBUG_LOGGING) log(owner, element, "scan: skipping " + p.getName()
                             + " - gamemode=" + p.getGameMode());
@@ -347,16 +334,11 @@ public final class ElementBotManager implements Listener {
         return entity.getType().name().toLowerCase() + " (" + entity.getUniqueId().toString().substring(0, 8) + ")";
     }
 
-    private boolean isProtected(LivingEntity entity, Player owner) {
-        if (entity.equals(owner)) return true;
-        if (entity instanceof Player p) {
-            return plugin.getTrustManager().isTrusted(owner.getUniqueId(), p.getUniqueId());
-        }
-        return false;
-    }
-
+    // No ownership/trust protection: this bot is for testing and should be willing to
+    // hit any living entity in range, including its own owner. The only exclusions are
+    // itself and other element bots, so bots don't end up fighting each other.
     private boolean isValidVictim(LivingEntity le, Mob bot, Player owner) {
-        return !le.equals(bot) && !owns(le) && !isProtected(le, owner);
+        return !le.equals(bot) && !owns(le);
     }
 
     private boolean isHurt(Player owner) {
@@ -437,11 +419,11 @@ public final class ElementBotManager implements Listener {
         };
     }
 
-    // Reactive defense: if the bot's owner gets hit by a hostile, un-trusted player, the
-    // bot immediately locks onto the attacker instead of waiting up to RETARGET_INTERVAL_TICKS
-    // for its next passive scan. This is what makes the bot feel like a teammate reacting to
-    // a fight rather than a turret idly sweeping the area - it responds the moment its owner
-    // is threatened, even from further away than its normal search radius.
+    // Reactive defense: if the bot's owner gets hit by another player, the bot immediately
+    // locks onto the attacker instead of waiting up to RETARGET_INTERVAL_TICKS for its next
+    // passive scan. This is what makes the bot feel like a teammate reacting to a fight
+    // rather than a turret idly sweeping the area - it responds the moment its owner is
+    // threatened, even from further away than its normal search radius.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onOwnerAttacked(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player owner)) return;
@@ -451,7 +433,7 @@ public final class ElementBotManager implements Listener {
         Entity rawDamager = event.getDamager();
         Entity source = (rawDamager instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter)
                 ? shooter : rawDamager;
-        if (!(source instanceof Player attacker) || attacker.equals(owner) || isProtected(attacker, owner)) return;
+        if (!(source instanceof Player attacker) || attacker.equals(owner)) return;
         if (!attacker.getWorld().equals(bot.getWorld())) return;
         if (attacker.getLocation().distanceSquared(bot.getLocation()) > DEFENSE_CALL_RADIUS_SQ) return;
 

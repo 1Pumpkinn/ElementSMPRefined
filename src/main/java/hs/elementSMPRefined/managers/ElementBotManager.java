@@ -65,8 +65,8 @@ public final class ElementBotManager implements Listener {
     // PlayerData entirely, since the bot isn't a Player and shouldn't drain (or share)
     // its owner's actual mana. Costs are flat across every element, matching the
     // player-facing defaults (ConfigManager.DEFAULT_ABILITY_1_COST/2_COST).
-    private static final int BOT_ABILITY_1_COST = 50;
-    private static final int BOT_ABILITY_2_COST = 75;
+    private static final int BOT_ABILITY_1_COST = 30;
+    private static final int BOT_ABILITY_2_COST = 60;
     private static final int MANA_REGEN_INTERVAL_TICKS = 20; // regen tick is once/second, like player mana
 
     // Debug instrumentation: prints exactly why the bot did/didn't act each cycle, so a

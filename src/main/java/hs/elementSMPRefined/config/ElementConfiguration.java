@@ -12,8 +12,8 @@ import java.util.Map;
 public class ElementConfiguration {
 
     // Kept in sync with the defaults in config.yml and ConfigManager.
-    private static final int DEFAULT_ABILITY1_COST = 50;
-    private static final int DEFAULT_ABILITY2_COST = 75;
+    private static final int DEFAULT_ABILITY1_COST = 30;
+    private static final int DEFAULT_ABILITY2_COST = 60;
 
     private final Map<ElementType, ElementConfig> configs = new HashMap<>();
 

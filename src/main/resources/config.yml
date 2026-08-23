@@ -23,8 +23,8 @@ elements:
     color: "LIGHT_PURPLE"
     enabled: true
     is_basic: true
-    ability1_cost: 50
-    ability2_cost: 75
+    ability1_cost: 30
+    ability2_cost: 60
 
   water:
     display_name: "Water"
@@ -32,8 +32,8 @@ elements:
     color: "AQUA"
     enabled: true
     is_basic: true
-    ability1_cost: 50
-    ability2_cost: 75
+    ability1_cost: 30
+    ability2_cost: 60
 
   fire:
     display_name: "Fire"
@@ -41,8 +41,8 @@ elements:
     color: "RED"
     enabled: true
     is_basic: true
-    ability1_cost: 50
-    ability2_cost: 75
+    ability1_cost: 30
+    ability2_cost: 60
 
   earth:
     display_name: "Earth"
@@ -50,8 +50,8 @@ elements:
     color: "GREEN"
     enabled: true
     is_basic: true
-    ability1_cost: 50
-    ability2_cost: 75
+    ability1_cost: 30
+    ability2_cost: 60
 
   life:
     display_name: "Life"
@@ -59,8 +59,8 @@ elements:
     color: "LIGHT_GREEN"
     enabled: true
     is_basic: false
-    ability1_cost: 50
-    ability2_cost: 75
+    ability1_cost: 30
+    ability2_cost: 60
 
   death:
     display_name: "Death"
@@ -68,8 +68,8 @@ elements:
     color: "DARK_GRAY"
     enabled: true
     is_basic: false
-    ability1_cost: 50
-    ability2_cost: 75
+    ability1_cost: 30
+    ability2_cost: 60
 
   metal:
     display_name: "Metal"
@@ -77,8 +77,8 @@ elements:
     color: "GRAY"
     enabled: true
     is_basic: false
-    ability1_cost: 50
-    ability2_cost: 75
+    ability1_cost: 30
+    ability2_cost: 60
 
   frost:
     display_name: "Frost"
@@ -86,5 +86,5 @@ elements:
     color: "WHITE"
     enabled: true
     is_basic: false
-    ability1_cost: 50
-    ability2_cost: 75
+    ability1_cost: 30
+    ability2_cost: 60

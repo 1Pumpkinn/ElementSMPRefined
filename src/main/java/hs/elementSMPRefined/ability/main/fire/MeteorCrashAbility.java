@@ -51,7 +51,7 @@ public class MeteorCrashAbility extends BaseAbility {
     private static final double IMPACT_KNOCKBACK_UP = 1.6; // vertical launch applied to entities on ground-impact
 
     public MeteorCrashAbility(JavaPlugin plugin) {
-        super("fire_meteor_crash", 75, 15, 2);
+        super("fire_meteor_crash", 60, 15, 2);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

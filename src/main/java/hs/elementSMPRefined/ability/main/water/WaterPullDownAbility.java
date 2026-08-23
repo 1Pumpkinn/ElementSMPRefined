@@ -35,7 +35,7 @@ public class WaterPullDownAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public WaterPullDownAbility(JavaPlugin plugin) {
-        super("water_pull_down", 75, 12, 2);
+        super("water_pull_down", 60, 12, 2);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

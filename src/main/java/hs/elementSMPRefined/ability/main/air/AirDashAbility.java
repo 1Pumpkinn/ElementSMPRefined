@@ -17,7 +17,7 @@ public class AirDashAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public AirDashAbility(JavaPlugin plugin) {
-        super("air_dash", 75, 5, 1);
+        super("air_dash", 30, 5, 1);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

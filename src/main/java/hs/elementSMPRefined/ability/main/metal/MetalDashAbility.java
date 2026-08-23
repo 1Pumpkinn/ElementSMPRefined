@@ -26,7 +26,7 @@ public class MetalDashAbility extends BaseAbility implements Listener {
     private final Map<UUID, Boolean> pendingStuns = new ConcurrentHashMap<>();
 
     public MetalDashAbility(JavaPlugin plugin) {
-        super("metal_dash", 75, 15, 2);
+        super("metal_dash", 60, 15, 2);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }

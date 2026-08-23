@@ -27,7 +27,7 @@ public class FrostCircleAbility extends BaseAbility {
     public static final String META_CIRCLE_FROZEN = "frost_freezing_circle";
 
     public FrostCircleAbility(JavaPlugin plugin) {
-        super("frost_freezing_circle", 50, 10, 1);
+        super("frost_freezing_circle", 30, 10, 1);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

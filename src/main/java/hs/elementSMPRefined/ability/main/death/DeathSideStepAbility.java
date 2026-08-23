@@ -20,7 +20,7 @@ import org.bukkit.util.Vector;
 public class DeathSideStepAbility extends BaseAbility {
 
     public DeathSideStepAbility(JavaPlugin plugin) {
-        super("death_side_step", 50, 8, 1);
+        super("death_side_step", 30, 8, 1);
     }
 
     @Override

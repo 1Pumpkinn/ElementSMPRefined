@@ -21,7 +21,7 @@ public class MetalChainAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public MetalChainAbility(JavaPlugin plugin) {
-        super("metal_chain", 50, 10, 1);
+        super("metal_chain", 30, 10, 1);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

@@ -61,7 +61,7 @@ public class EarthTunnelAbility extends BaseAbility {
     private final MetadataHelper metadataHelper;
 
     public EarthTunnelAbility(JavaPlugin plugin) {
-        super("earth_tunnel", 50, 10, 1);
+        super("earth_tunnel", 30, 10, 1);
         this.plugin = (ElementSMPRefined) plugin;
         this.metadataHelper = ((ElementSMPRefined) plugin).getMetadataHelper();
     }

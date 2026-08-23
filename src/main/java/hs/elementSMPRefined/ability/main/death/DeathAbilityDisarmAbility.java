@@ -27,7 +27,7 @@ public class DeathAbilityDisarmAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public DeathAbilityDisarmAbility(JavaPlugin plugin) {
-        super("death_ability_disarm", 75, 20, 2);
+        super("death_ability_disarm", 60, 20, 2);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

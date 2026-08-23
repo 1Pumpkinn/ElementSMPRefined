@@ -30,7 +30,7 @@ public class FireGeyserAbility extends BaseAbility {
     private static final double LAUNCH_RADIUS = 5.5; // radius around caster affected by all geysers combined
 
     public FireGeyserAbility(JavaPlugin plugin) {
-        super("fire_geyser", 50, 8, 1);
+        super("fire_geyser", 30, 8, 1);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

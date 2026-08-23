@@ -16,7 +16,7 @@ public class FrostPunchAbility extends BaseAbility {
     public static final String META_FROZEN_PUNCH_READY = "frost_frozen_punch_ready";
 
     public FrostPunchAbility(JavaPlugin plugin) {
-        super("frost_frozen_punch", 75, 10, 2);
+        super("frost_frozen_punch", 60, 10, 2);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

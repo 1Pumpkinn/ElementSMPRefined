@@ -33,7 +33,7 @@ tasks {
     }
 
     runServer {
-        enabled = false
+        enabled = true
         minecraftVersion("1.21.11")
         jvmArgs("-Xms2G", "-Xmx2G")
     }

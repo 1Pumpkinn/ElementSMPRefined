@@ -31,6 +31,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected TrustManager trustManager;
     protected ItemManager itemManager;
     protected AddonManager addonManager;
+    protected ElementBotManager elementBotManager;
 
     // Services
     protected StatusEffectManager statusEffectManager;
@@ -118,6 +119,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.statusEffectManager = new StatusEffectManager(this);
         this.disarmManager = new DisarmManager(this);
         this.addonManager = new AddonManager((hs.elementSMPRefined.ElementSMPRefined) this);
+        this.elementBotManager = new ElementBotManager((hs.elementSMPRefined.ElementSMPRefined) this);
     }
 
     private void initializeServices() {
@@ -157,6 +159,9 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         if (listenerInitializer != null) {
             listenerInitializer.cleanup();
         }
+        if (elementBotManager != null) {
+            elementBotManager.stopAll();
+        }
     }
 
     private void saveAllData() {
@@ -173,6 +178,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public TrustManager getTrustManager() { return trustManager; }
     public ItemManager getItemManager() { return itemManager; }
     public AddonManager getAddonManager() { return addonManager; }
+    public ElementBotManager getElementBotManager() { return elementBotManager; }
     public StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
     public DisarmManager getDisarmManager() { return disarmManager; }
     public EffectService getEffectService() { return effectService; }

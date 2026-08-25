@@ -117,7 +117,6 @@ public final class ElementBotManager implements Listener {
         bot.setShouldBurnInDay(false);
         bot.setPersistent(true);
         bot.setRemoveWhenFarAway(false);
-        bot.getEquipment().setItemInMainHand(new ItemStack(Material.IRON_SWORD));
         equipProtectedDiamondArmor(bot);
         bot.setTarget(null);
 
@@ -664,14 +663,19 @@ public final class ElementBotManager implements Listener {
         ItemStack chestplate = new ItemStack(Material.DIAMOND_CHESTPLATE);
         ItemStack leggings = new ItemStack(Material.DIAMOND_LEGGINGS);
         ItemStack boots = new ItemStack(Material.DIAMOND_BOOTS);
+        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
         for (ItemStack piece : new ItemStack[]{helmet, chestplate, leggings, boots}) {
             piece.addUnsafeEnchantment(Enchantment.PROTECTION, 3);
+        }
+        for (ItemStack piece : new ItemStack[]{sword}) {
+            piece.addUnsafeEnchantment(Enchantment.SHARPNESS, 5);
         }
         var equipment = bot.getEquipment();
         equipment.setHelmet(helmet);
         equipment.setChestplate(chestplate);
         equipment.setLeggings(leggings);
         equipment.setBoots(boots);
+        equipment.setItemInMainHand(sword);
         // Don't let it drop the gear if it dies.
         equipment.setHelmetDropChance(0f);
         equipment.setChestplateDropChance(0f);

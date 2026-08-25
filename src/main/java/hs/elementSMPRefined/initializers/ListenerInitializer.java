@@ -24,6 +24,7 @@ import hs.elementSMPRefined.listeners.item.ElementItemInteractionListener;
 import hs.elementSMPRefined.listeners.item.RerollerHandler;
 import hs.elementSMPRefined.listeners.item.UpgraderHandler;
 import hs.elementSMPRefined.listeners.player.GameModeListener;
+import hs.elementSMPRefined.listeners.player.InvisibilityNameHider;
 import hs.elementSMPRefined.listeners.player.PlayerLifecycleListener;
 import hs.elementSMPRefined.listeners.status.DisarmListener;
 import hs.elementSMPRefined.listeners.status.StatusEffectListener;
@@ -59,6 +60,7 @@ public class ListenerInitializer {
     }
 
     private void registerCoreListeners() {
+        pluginManager.registerEvents(new InvisibilityNameHider(), plugin);
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
         pluginManager.registerEvents(new GameModeListener(plugin.getManaManager(), plugin.getConfigManager()), plugin);
         pluginManager.registerEvents(new CombatListener(plugin.getTrustManager(), plugin.getElementManager()), plugin);

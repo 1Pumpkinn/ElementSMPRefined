@@ -16,6 +16,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -202,6 +203,19 @@ public class WaterBubbleAbility extends BaseAbility implements Listener {
             state.task.cancel();
         }
         activeUsers.remove(playerUuid);
+    }
+
+    /**
+     * Without this, a player who disconnects while their bubble is active never
+     * gets cleared from {@link #bubbles}/{@link #activeUsers} (the render task's
+     * offline check only cancels itself, it doesn't touch the maps) - so
+     * {@link #isActiveFor(Player)} stays permanently true for them and Water
+     * Bubble becomes unusable for the rest of that server's uptime, even after
+     * they rejoin.
+     */
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        onPlayerQuit(event.getPlayer().getUniqueId());
     }
 
     @Override

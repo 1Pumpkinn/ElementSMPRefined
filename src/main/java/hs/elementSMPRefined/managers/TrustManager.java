@@ -67,4 +67,17 @@ public class TrustManager {
         }
         return out;
     }
+
+    /**
+     * Drops this player's cached trusted-set now that any changes are already
+     * saved to disk via {@code store.setTrusted}. Without this, {@link #trusted}
+     * grows by one entry for every unique player who has ever used {@code /trust}
+     * and never shrinks for the life of the server - the same cache-growth bug
+     * {@code DataStore} used to have (see {@code PlayerLifecycleListener}).
+     * Safe to evict: {@link #getTrusted(UUID)} will transparently reload from
+     * {@code store} the next time it's needed.
+     */
+    public void onPlayerQuit(UUID uuid) {
+        trusted.remove(uuid);
+    }
 }

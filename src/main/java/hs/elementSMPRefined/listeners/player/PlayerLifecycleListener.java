@@ -100,6 +100,8 @@ public class PlayerLifecycleListener implements Listener {
         // this, DataStore's cache grows for every unique player who has
         // ever joined and never shrinks for the life of the server.
         plugin.getDataStore().invalidateCache(playerUuid);
+        // Same cache-growth issue as DataStore above, applied to the trusted-set cache.
+        plugin.getTrustManager().onPlayerQuit(playerUuid);
         ElementSelectionGUI.removeGUI(playerUuid);
         if (frostPassiveListener != null) {
             frostPassiveListener.onPlayerQuit(playerUuid);

@@ -29,7 +29,7 @@ import org.bukkit.util.Vector;
 public class DeathSideStepAbility extends BaseAbility {
 
     /** Max blink range in blocks. */
-    private static final double BLINK_DISTANCE = 5.0;
+    private static final double BLINK_DISTANCE = 12.0;
     /** How finely we sweep the path for solid blocks - smaller = safer, more checks. */
     private static final double SWEEP_STEP = 0.25;
     /** Pure black dust for both the vanish and reappear bursts. */

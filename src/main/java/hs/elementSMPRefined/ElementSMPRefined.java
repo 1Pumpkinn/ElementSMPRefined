@@ -6,7 +6,7 @@ import hs.elementSMPRefined.API.element.Element;
 import org.bukkit.event.Listener;
 
 /**
- * Main plugin class - significantly simplified by extending AbstractElementPlugin.
+ * Main plugin class which significantly simplified by extending AbstractElementPlugin.
  * This class now only contains plugin-specific logic, with common functionality
  * handled by the abstract base class.
  */

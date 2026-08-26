@@ -1,7 +1,8 @@
-package hs.elementSMPRefined.items;
+package hs.elementSMPRefined.items.builder;
 
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.element.ElementId;
+import hs.elementSMPRefined.items.ItemKeys;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

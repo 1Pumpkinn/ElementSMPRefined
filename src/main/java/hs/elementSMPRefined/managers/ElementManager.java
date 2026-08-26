@@ -17,6 +17,7 @@ import hs.elementSMPRefined.ability.passive.frost.FrostElement;
 import hs.elementSMPRefined.ability.passive.life.LifeElement;
 import hs.elementSMPRefined.ability.passive.metal.MetalElement;
 import hs.elementSMPRefined.ability.passive.water.WaterElement;
+import hs.elementSMPRefined.items.builder.ElementCoreItem;
 import hs.elementSMPRefined.registry.ElementRegistry;
 import hs.elementSMPRefined.services.EffectService;
 import hs.elementSMPRefined.util.visual.SoundUtils;
@@ -308,7 +309,7 @@ public class ElementManager {
     public void returnElementCore(Player player, ElementType oldElement) {
         if (oldElement == null) return;
 
-        var core = hs.elementSMPRefined.items.ElementCoreItem.createCore(plugin, oldElement);
+        var core = ElementCoreItem.createCore(plugin, oldElement);
         if (core == null) return; // this element type has no physical core
 
         var leftover = player.getInventory().addItem(core);
@@ -358,7 +359,7 @@ public class ElementManager {
     }
 
     public void giveElementItem(Player player, ElementType type) {
-        var item = hs.elementSMPRefined.items.ElementCoreItem.createCore(plugin, type);
+        var item = ElementCoreItem.createCore(plugin, type);
         if (item != null) {
             player.getInventory().addItem(item);
             // Track that the player now owns this element item

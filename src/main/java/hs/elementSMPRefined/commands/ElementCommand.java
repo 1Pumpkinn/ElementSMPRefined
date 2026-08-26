@@ -5,7 +5,7 @@ import hs.elementSMPRefined.data.DataStore;
 import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.gui.ElementSelectionGUI;
-import hs.elementSMPRefined.items.ElementCoreItem;
+import hs.elementSMPRefined.items.builder.ElementCoreItem;
 import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.visual.ParticlePreset;

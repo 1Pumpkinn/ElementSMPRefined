@@ -1,5 +1,6 @@
-package hs.elementSMPRefined.items;
+package hs.elementSMPRefined.items.recipes;
 
+import hs.elementSMPRefined.items.ItemKeys;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -12,21 +13,21 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
-public final class RerollerItem {
-    private RerollerItem() {}
+public final class AdvancedRerollerItem {
+    private AdvancedRerollerItem() {}
 
-    public static final String KEY = "element_reroller";
+    public static final String KEY = "advanced_reroller";
 
     public static ItemStack make(JavaPlugin plugin) {
-        ItemStack item = new ItemStack(Material.HEART_OF_THE_SEA);
+        ItemStack item = new ItemStack(Material.RECOVERY_COMPASS);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Element Reroller");
+        meta.setDisplayName(ChatColor.DARK_PURPLE + "Advanced Reroller");
         meta.setLore(List.of(
-            ChatColor.GRAY + "Allows you to change your element",
-            ChatColor.YELLOW + "Right-click to randomly reroll your element"
+                ChatColor.GRAY + "Unlocks advanced elements",
+                ChatColor.YELLOW + "Right-click to reroll"
         ));
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        pdc.set(ItemKeys.reroller(plugin), PersistentDataType.BYTE, (byte)1);
+        pdc.set(ItemKeys.advancedReroller(plugin), PersistentDataType.BYTE, (byte)1);
         item.setItemMeta(meta);
         return item;
     }
@@ -35,22 +36,20 @@ public final class RerollerItem {
         try {
             ItemStack result = make(plugin);
             NamespacedKey key = new NamespacedKey(plugin, KEY);
-            
+
             // Remove existing recipe if it exists
             plugin.getServer().removeRecipe(key);
-            
+
             ShapedRecipe recipe = new ShapedRecipe(key, result);
-            recipe.shape("IEG", "ETE", "DEM");
-            recipe.setIngredient('I', Material.IRON_BLOCK);
-            recipe.setIngredient('G', Material.GOLD_BLOCK);
+            recipe.shape("DED", "ETE", "DED");
             recipe.setIngredient('D', Material.DIAMOND_BLOCK);
-            recipe.setIngredient('M', Material.EMERALD_BLOCK);
-            recipe.setIngredient('E', Material.NETHERITE_SCRAP);
+            recipe.setIngredient('E', Material.NETHERITE_INGOT);
             recipe.setIngredient('T', Material.TOTEM_OF_UNDYING);
-            
+
             plugin.getServer().addRecipe(recipe);
         } catch (Exception e) {
-            plugin.getLogger().severe("Error registering Element Reroller recipe: " + e.getMessage());
+            plugin.getLogger().severe("Error registering Advanced Reroller recipe: " + e.getMessage());
         }
     }
 }
+

@@ -1,10 +1,10 @@
 package hs.elementSMPRefined.commands;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.items.AdvancedRerollerItem;
-import hs.elementSMPRefined.items.RerollerItem;
-import hs.elementSMPRefined.items.Upgrader1Item;
-import hs.elementSMPRefined.items.Upgrader2Item;
+import hs.elementSMPRefined.items.recipes.AdvancedRerollerItem;
+import hs.elementSMPRefined.items.recipes.RerollerItem;
+import hs.elementSMPRefined.items.recipes.Upgrader1Item;
+import hs.elementSMPRefined.items.recipes.Upgrader2Item;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

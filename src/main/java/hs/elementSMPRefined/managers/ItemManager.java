@@ -1,6 +1,8 @@
 package hs.elementSMPRefined.managers;
 
 import hs.elementSMPRefined.items.api.ElementItem;
+import hs.elementSMPRefined.items.recipes.Upgrader1Item;
+import hs.elementSMPRefined.items.recipes.Upgrader2Item;
 import hs.elementSMPRefined.registry.ItemRegistry;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
@@ -97,7 +99,7 @@ public class ItemManager {
      * @return The created ItemStack
      */
     public ItemStack createUpgrader1() {
-        return hs.elementSMPRefined.items.Upgrader1Item.make(plugin);
+        return Upgrader1Item.make(plugin);
     }
 
     /**
@@ -105,6 +107,6 @@ public class ItemManager {
      * @return The created ItemStack
      */
     public ItemStack createUpgrader2() {
-        return hs.elementSMPRefined.items.Upgrader2Item.make(plugin);
+        return Upgrader2Item.make(plugin);
     }
 }

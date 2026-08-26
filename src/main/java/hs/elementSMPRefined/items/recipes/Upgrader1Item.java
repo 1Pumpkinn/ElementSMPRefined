@@ -1,5 +1,6 @@
-package hs.elementSMPRefined.items;
+package hs.elementSMPRefined.items.recipes;
 
+import hs.elementSMPRefined.items.ItemKeys;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -11,18 +12,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
-public final class  Upgrader2Item {
-    private Upgrader2Item() {}
+public final class Upgrader1Item {
+    private Upgrader1Item() {}
 
-    public static final String KEY = "upgrader_2";
+    public static final String KEY = "upgrader_1";
 
     public static ItemStack make(JavaPlugin plugin) {
-        ItemStack item = new ItemStack(Material.ECHO_SHARD);
+        ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§bUpgrader II");
-        meta.setLore(List.of("Use by crafting to unlock", "Ability 2 + Upside 2 for your element"));
+        meta.setDisplayName("§aUpgrader I");
+        meta.setLore(List.of("Use by crafting to unlock", "Ability 1 for your element"));
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        pdc.set(ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER, 2);
+        pdc.set(ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER, 1);
         item.setItemMeta(meta);
         return item;
     }
@@ -36,18 +37,19 @@ public final class  Upgrader2Item {
             plugin.getServer().removeRecipe(key);
             
             ShapedRecipe recipe = new ShapedRecipe(key, result);
-            recipe.shape("DFD", "WNB", "DAD");
+            recipe.shape("GFG", "WDB", "GAG");
+            recipe.setIngredient('G', Material.GOLD_BLOCK);
             recipe.setIngredient('D', Material.DIAMOND_BLOCK);
-            recipe.setIngredient('N', Material.NETHERITE_INGOT);
 
             recipe.setIngredient('F', Material.FIRE_CHARGE);
             recipe.setIngredient('W', Material.WATER_BUCKET);
             recipe.setIngredient('B', Material.GRASS_BLOCK);
             recipe.setIngredient('A', Material.FEATHER);
-            
+
+
             plugin.getServer().addRecipe(recipe);
         } catch (Exception e) {
-            plugin.getLogger().severe("Error registering Upgrader II recipe: " + e.getMessage());
+            plugin.getLogger().severe("Error registering Upgrader I recipe: " + e.getMessage());
         }
     }
 }

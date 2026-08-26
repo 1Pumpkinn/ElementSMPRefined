@@ -16,17 +16,16 @@ import hs.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListen
 import hs.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener;
 import hs.elementSMPRefined.listeners.GUIListener;
 import hs.elementSMPRefined.listeners.ability.AbilityListener;
-import hs.elementSMPRefined.listeners.combat.CombatListener;
-import hs.elementSMPRefined.listeners.item.AdvancedRerollerHandler;
+import hs.elementSMPRefined.listeners.handler.AdvancedRerollerHandler;
 import hs.elementSMPRefined.listeners.item.ElementCombatListener;
 import hs.elementSMPRefined.listeners.item.ElementItemCraftingListener;
-import hs.elementSMPRefined.listeners.item.ElementItemDeathListener;
+import hs.elementSMPRefined.listeners.item.PlayerDeathListener;
 import hs.elementSMPRefined.listeners.item.ElementItemInteractionListener;
-import hs.elementSMPRefined.listeners.item.RerollerHandler;
-import hs.elementSMPRefined.listeners.item.UpgraderHandler;
+import hs.elementSMPRefined.listeners.handler.RerollerHandler;
+import hs.elementSMPRefined.listeners.handler.UpgraderHandler;
 import hs.elementSMPRefined.listeners.player.GameModeListener;
 import hs.elementSMPRefined.listeners.player.InvisibilityNameHider;
-import hs.elementSMPRefined.listeners.player.PlayerLifecycleListener;
+import hs.elementSMPRefined.listeners.player.PlayerLifecycle;
 import hs.elementSMPRefined.listeners.status.DisarmListener;
 import hs.elementSMPRefined.listeners.status.StatusEffectListener;
 import org.bukkit.plugin.PluginManager;
@@ -41,7 +40,7 @@ public class ListenerInitializer {
     private final PluginManager pluginManager;
 
     // Store references to listeners that need cleanup or cross-references
-    private PlayerLifecycleListener playerLifecycleListener;
+    private PlayerLifecycle playerLifecycleListener;
     private AirFallImpactListener airFallImpactListener;
     private FrostPassiveListener frostPassiveListener;
     private GUIListener guiListener;
@@ -65,7 +64,7 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new InvisibilityNameHider(), plugin);
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
         pluginManager.registerEvents(new GameModeListener(plugin.getManaManager(), plugin.getConfigManager()), plugin);
-        pluginManager.registerEvents(new CombatListener(plugin.getTrustManager(), plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new hs.elementSMPRefined.listeners.combat.CombatListener(plugin.getTrustManager(), plugin.getElementManager()), plugin);
 
         this.abilityListener = new AbilityListener(plugin, plugin.getElementManager(), plugin.getDisarmManager());
         pluginManager.registerEvents(abilityListener, plugin);
@@ -80,7 +79,7 @@ public class ListenerInitializer {
     private void registerItemListeners() {
         pluginManager.registerEvents(new ElementItemInteractionListener(plugin, plugin.getItemManager()), plugin);
         pluginManager.registerEvents(new ElementItemCraftingListener(plugin, plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new ElementItemDeathListener(plugin, plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new PlayerDeathListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new ElementCombatListener(plugin.getItemManager()), plugin);
         pluginManager.registerEvents(new RerollerHandler(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new AdvancedRerollerHandler(plugin, plugin.getElementManager()), plugin);
@@ -140,7 +139,7 @@ public class ListenerInitializer {
     }
 
     private void registerLifecycleListener() {
-        this.playerLifecycleListener = new PlayerLifecycleListener(
+        this.playerLifecycleListener = new PlayerLifecycle(
                 plugin,
                 plugin.getElementManager(),
                 plugin.getManaManager(),

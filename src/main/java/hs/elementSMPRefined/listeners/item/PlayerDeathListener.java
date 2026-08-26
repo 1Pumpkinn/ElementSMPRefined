@@ -19,14 +19,14 @@ import org.bukkit.scheduler.BukkitRunnable;
  * 1. Upgrade items are dropped matching their upgrade level
  * 2. Passive upsides are reapplied after a short delay
  */
-public class ElementItemDeathListener implements Listener {
+public class PlayerDeathListener implements Listener {
     
     private static final long REAPPLY_DELAY_TICKS = 1L;
 
     private final ElementSMPRefined plugin;
     private final ElementManager elements;
 
-    public ElementItemDeathListener(ElementSMPRefined plugin, ElementManager elements) {
+    public PlayerDeathListener(ElementSMPRefined plugin, ElementManager elements) {
         this.plugin = plugin;
         this.elements = elements;
     }

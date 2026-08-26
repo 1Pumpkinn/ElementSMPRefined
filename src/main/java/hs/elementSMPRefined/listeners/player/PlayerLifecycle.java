@@ -25,7 +25,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 
 import java.util.UUID;
 
-public class PlayerLifecycleListener implements Listener {
+public class PlayerLifecycle implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
     private final ManaManager manaManager;
@@ -38,14 +38,14 @@ public class PlayerLifecycleListener implements Listener {
     private final AbilityListener abilityListener;
     private final MetalDashAbility metalDashAbility;
 
-    public PlayerLifecycleListener(ElementSMPRefined plugin, ElementManager elementManager,
-                                   ManaManager manaManager, EffectService effectService,
-                                   DisarmManager disarmManager,
-                                   FrostPassiveListener frostPassiveListener,
-                                   AirFallImpactListener airFallImpactListener,
-                                   GUIListener guiListener,
-                                   AbilityListener abilityListener,
-                                   MetalDashAbility metalDashAbility) {
+    public PlayerLifecycle(ElementSMPRefined plugin, ElementManager elementManager,
+                           ManaManager manaManager, EffectService effectService,
+                           DisarmManager disarmManager,
+                           FrostPassiveListener frostPassiveListener,
+                           AirFallImpactListener airFallImpactListener,
+                           GUIListener guiListener,
+                           AbilityListener abilityListener,
+                           MetalDashAbility metalDashAbility) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.manaManager = manaManager;

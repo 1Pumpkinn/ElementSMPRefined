@@ -13,6 +13,7 @@ import hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener
 import hs.elementSMPRefined.ability.passive.metal.MetalElement;
 import hs.elementSMPRefined.ability.passive.metal.listeners.MetalArrowImmunityListener;
 import hs.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListener;
+import hs.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener;
 import hs.elementSMPRefined.listeners.GUIListener;
 import hs.elementSMPRefined.listeners.ability.AbilityListener;
 import hs.elementSMPRefined.listeners.combat.CombatListener;
@@ -46,6 +47,7 @@ public class ListenerInitializer {
     private GUIListener guiListener;
     private AbilityListener abilityListener;
     private hs.elementSMPRefined.ability.main.metal.MetalDashAbility metalDashAbility;
+    private WaterInvisibilityListener waterInvisibilityListener;
 
     public ListenerInitializer(JavaPlugin plugin) {
         this.plugin = (ElementSMPRefined) plugin;

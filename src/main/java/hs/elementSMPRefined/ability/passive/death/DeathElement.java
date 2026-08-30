@@ -3,7 +3,7 @@ package hs.elementSMPRefined.ability.passive.death;
 import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.element.ListenerProvider;
-import hs.elementSMPRefined.ability.main.death.DeathAbilityDisarmAbility;
+import hs.elementSMPRefined.ability.main.death.DeathBackstabAbility;
 import hs.elementSMPRefined.ability.main.death.DeathSideStepAbility;
 import hs.elementSMPRefined.ability.passive.death.listeners.DeathNightInvisibilityListener;
 import hs.elementSMPRefined.ability.passive.death.listeners.DeathWitherOnHitListener;
@@ -20,7 +20,7 @@ public class DeathElement extends BaseElement implements ListenerProvider {
     private DeathNightInvisibilityListener nightInvisibilityListener;
 
     public DeathElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new DeathSideStepAbility(plugin, configManager), new DeathAbilityDisarmAbility(plugin, configManager));
+        super(plugin, new DeathSideStepAbility(plugin, configManager), new DeathBackstabAbility(plugin, configManager));
     }
 
     @Override

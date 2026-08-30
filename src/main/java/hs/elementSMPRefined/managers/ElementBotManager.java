@@ -631,10 +631,10 @@ public final class ElementBotManager implements Listener {
                 Vector push = bot.getLocation().toVector().subtract(target.getLocation().toVector()).multiply(-1).normalize().multiply(.6).setY(.3);
                 target.setVelocity(target.getVelocity().add(push));
             }
-            case DEATH -> { // Disarm: heavy debuff
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 80, 1, false, true));
-                target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 0, false, true));
-                target.damage(3.0, bot);
+            case DEATH -> { // Backstab: blink behind the target and stab for true damage + weaken
+                bot.teleport(target.getLocation().clone().subtract(target.getLocation().getDirection().multiply(1.2)));
+                target.damage(8.0, bot);
+                target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 200, 0, false, true));
             }
             case METAL -> { // Metal Dash: charge through the target
                 Vector dash = target.getLocation().toVector().subtract(bot.getLocation().toVector()).normalize().multiply(1.4);

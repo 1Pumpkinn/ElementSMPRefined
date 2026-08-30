@@ -24,7 +24,7 @@ import org.bukkit.util.Vector;
  * reappearing the same way. A block-safety sweep keeps it from ever
  * dropping you inside a wall.
  * <p>
- * See {@link DeathAbilityDisarmAbility} for the disarm (that's ability2).
+ * See {@link DeathBackstabAbility} for the backstab (that's ability2).
  */
 public class DeathSideStepAbility extends BaseAbility {
 

@@ -4,10 +4,9 @@ import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.API.addon.ElementAddon;
 import hs.elementSMPRefined.API.element.Element;
 import hs.elementSMPRefined.API.element.ElementId;
-import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.event.AbilityActivateEvent;
 import hs.elementSMPRefined.API.event.ElementAssignEvent;
-import hs.elementSMPRefined.API.event.ManaSpendEvent;
+import hs.elementSMPRefined.API.event.ElementSetEvent;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.items.api.ElementItem;
 import hs.elementSMPRefined.managers.ElementManager;
@@ -116,78 +115,44 @@ public final class ElementApi {
     }
 
     /**
-     * Assigns an element to a player. Fires a cancellable {@link ElementAssignEvent}
-     * first - if cancelled, the player's element is left unchanged.
+     * Assigns an element to a player (initial roll, admin grant, altar reward,
+     * etc.) - resets their upgrade level for the new element. Delegates to
+     * {@link ElementManager#assignElement(Player, ElementId)}, which is the
+     * single source of truth for this action and fires {@link ElementAssignEvent}
+     * once the assignment is saved. That event is informational only and is
+     * not cancellable - to block an assignment, intervene before calling this.
      */
     public void assignElement(Player player, ElementId id) {
-        ElementId previous = elements.getPlayerElementId(player);
-        ElementAssignEvent event = new ElementAssignEvent(player, previous, id);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return;
-
         elements.assignElement(player, id);
     }
 
     /**
-     * Sets a player's element outright. Fires a cancellable {@link ElementAssignEvent}
-     * first - if cancelled, the player's element is left unchanged.
+     * Sets a player's element outright (e.g. a GUI reroll) - preserves their
+     * existing upgrade level. Delegates to {@link ElementManager#setElement(Player, ElementId)},
+     * which fires {@link ElementSetEvent} once the change is saved.
      */
     public void setElement(Player player, ElementId id) {
-        ElementId previous = elements.getPlayerElementId(player);
-        ElementAssignEvent event = new ElementAssignEvent(player, previous, id);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return;
-
         elements.setElement(player, id);
     }
 
     /**
-     * Activates an ability by ID, subject to the normal upgrade-level and mana
-     * checks. Fires a cancellable {@link AbilityActivateEvent} after those
-     * checks pass but before mana is spent or the ability executes, then a
-     * {@link ManaSpendEvent} once mana is actually deducted.
+     * Activates an addon-registered ability by ID, subject to the normal
+     * upgrade-level and mana checks. Delegates to
+     * {@link ElementManager#activateAbility(Player, String)}, which spends
+     * mana and fires {@link AbilityActivateEvent} only once the ability has
+     * actually succeeded - so listeners never see an event for a failed
+     * activation.
      */
     public boolean activateAbility(Player player, String id) {
-        Ability ability = getAbility(id);
-        if (ability == null) return false;
-
-        var data = elements.data(player.getUniqueId());
-        ElementId elementId = data.getCurrentElementId();
-        if (elementId == null || data.getUpgradeLevel(elementId) < ability.getRequiredUpgradeLevel()) return false;
-        if (!plugin.getManaManager().hasMana(player, ability.getManaCost())) return false;
-
-        AbilityActivateEvent activateEvent = new AbilityActivateEvent(player, ability, elementId);
-        Bukkit.getPluginManager().callEvent(activateEvent);
-        if (activateEvent.isCancelled()) return false;
-
-        ElementContext context = ElementContext.builder()
-                .player(player)
-                .upgradeLevel(data.getUpgradeLevel(elementId))
-                .elementType(elementId.toBuiltinType())
-                .elementId(elementId)
-                .manaManager(plugin.getManaManager())
-                .trustManager(plugin.getTrustManager())
-                .configManager(plugin.getConfigManager())
-                .plugin(plugin)
-                .build();
-
-        if (!ability.execute(context)) return false;
-
-        int cost = ability.getManaCost();
-        plugin.getManaManager().spend(player, cost);
-        int remaining = plugin.getManaManager().get(player.getUniqueId()).getMana();
-        Bukkit.getPluginManager().callEvent(new ManaSpendEvent(player, cost, remaining));
-
-        return true;
+        return elements.activateAbility(player, id);
     }
 
     /**
-     * Activates the ability bound to slot 1 or 2. NOTE: this delegates straight
-     * to {@link ElementManager#useAbility1}/{@code useAbility2} and does not
-     * currently route through the event-firing {@link #activateAbility(Player, String)}
-     * path above - {@link AbilityActivateEvent} and {@link ManaSpendEvent} are
-     * not fired for slot-based casts until ElementManager's own ability
-     * handling is updated to fire them too.
+     * Activates the ability bound to slot 1 or 2. Delegates to
+     * {@link ElementManager#useAbility1} / {@code useAbility2}, which fire
+     * {@link AbilityActivateEvent} on success - the same path a real player's
+     * slot-1/slot-2 cast takes, so addon-triggered and player-triggered casts
+     * behave identically.
      */
     public boolean activateAbility(Player player, int slot) {
         return switch (slot) {

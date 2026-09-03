@@ -1,5 +1,6 @@
 package hs.elementSMPRefined.managers;
 
+import hs.elementSMPRefined.API.event.ManaSpendEvent;
 import hs.elementSMPRefined.data.DataStore;
 import hs.elementSMPRefined.data.PlayerData;
 import org.bukkit.Bukkit;
@@ -124,7 +125,8 @@ public class ManaManager {
     }
 
     public boolean spend(Player player, int amount) {
-        // Creative mode players don't spend mana
+        // Creative mode players don't spend mana - nothing was actually
+        // deducted, so no ManaSpendEvent fires for this bypass.
         if (player.getGameMode() == GameMode.CREATIVE) {
             return true;
         }
@@ -133,6 +135,9 @@ public class ManaManager {
         if (pd.getMana() < amount) return false;
         pd.addMana(-amount);
         dirty.add(player.getUniqueId());
+
+        Bukkit.getPluginManager().callEvent(new ManaSpendEvent(player, amount, pd.getMana()));
+
         return true;
     }
 

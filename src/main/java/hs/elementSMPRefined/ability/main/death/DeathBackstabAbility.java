@@ -21,7 +21,7 @@ import org.bukkit.util.Vector;
 /**
  * Death ability2: Backstab.
  * <p>
- * Looks for a player within {@link #RANGE} blocks that the caster is looking
+ * Looks for a living entity within {@link #RANGE} blocks that the caster is looking
  * at, blinks the caster directly behind them, and stabs them for
  * {@link #TRUE_DAMAGE} true damage (bypasses armor/resistance/enchants -
  * same convention as {@code MetalDashAbility}/{@code WaterPullDownAbility}),
@@ -55,7 +55,7 @@ public class DeathBackstabAbility extends BaseAbility {
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
 
-        Player target = findLookedAtTarget(context);
+        LivingEntity target = findLookedAtTarget(context);
         if (target == null) {
             player.sendMessage(ChatColor.RED + "No target in range.");
             return false;
@@ -83,26 +83,34 @@ public class DeathBackstabAbility extends BaseAbility {
         world.playSound(hitLoc, Sound.ENTITY_WITHER_HURT, 0.5f, 1.6f);
 
         dealTrueDamage(target, player);
-        plugin.getStatusEffectManager().applyEffect(target, StatusEffectType.WEAKNESS, WEAKNESS_DURATION_TICKS);
+        if (target instanceof Player targetPlayer) {
+            plugin.getStatusEffectManager().applyEffect(targetPlayer, StatusEffectType.WEAKNESS, WEAKNESS_DURATION_TICKS);
+        }
 
         return true;
     }
 
-    /** Finds the nearest player within RANGE that the caster is currently looking at (cone check, not just proximity). */
-    private Player findLookedAtTarget(ElementContext context) {
+    /**
+     * Finds the nearest living entity within RANGE that the caster is currently
+     * looking at (cone check, not just proximity). Trust is only checked against
+     * other players - mobs have no trust relationship and are always valid targets.
+     */
+    private LivingEntity findLookedAtTarget(ElementContext context) {
         Player player = context.getPlayer();
         Location eyeLoc = player.getEyeLocation();
         Vector direction = eyeLoc.getDirection().normalize();
 
-        Player best = null;
+        LivingEntity best = null;
         double bestDistance = RANGE;
 
         for (LivingEntity entity : eyeLoc.getNearbyLivingEntities(RANGE)) {
-            if (!(entity instanceof Player targetPlayer)) continue; // only players carry element abilities/are valid backstab targets
-            if (targetPlayer.equals(player)) continue;
-            if (context.getTrustManager().isTrusted(player.getUniqueId(), targetPlayer.getUniqueId())) continue;
+            if (entity.equals(player)) continue;
+            if (entity instanceof Player targetPlayer
+                    && context.getTrustManager().isTrusted(player.getUniqueId(), targetPlayer.getUniqueId())) {
+                continue;
+            }
 
-            Vector toEntity = targetPlayer.getEyeLocation().toVector().subtract(eyeLoc.toVector());
+            Vector toEntity = entity.getEyeLocation().toVector().subtract(eyeLoc.toVector());
             double distance = toEntity.length();
             if (distance == 0 || distance > RANGE) continue;
 
@@ -111,7 +119,7 @@ public class DeathBackstabAbility extends BaseAbility {
 
             if (dot > LOOK_DOT_THRESHOLD && distance < bestDistance) {
                 bestDistance = distance;
-                best = targetPlayer;
+                best = entity;
             }
         }
         return best;
@@ -122,7 +130,7 @@ public class DeathBackstabAbility extends BaseAbility {
      * first unblocked spot. Falls back to right on top of the target if the
      * whole sweep is blocked, same fail-safe spirit as DeathSideStepAbility.
      */
-    private Location findSafeSpotBehind(Player target) {
+    private Location findSafeSpotBehind(LivingEntity target) {
         Location targetLoc = target.getLocation();
 
         // Horizontal-only facing direction (yaw alone), so looking straight up/down
@@ -157,13 +165,20 @@ public class DeathBackstabAbility extends BaseAbility {
      * through {@link LivingEntity#damage} instead of setHealth so death events
      * and totems of undying still fire correctly (same edge case handled in
      * WaterPullDownAbility).
+     * <p>
+     * Non-lethal hits also fire a negligible real {@code damage()} call first -
+     * a bare {@code setHealth()} never triggers the vanilla hurt animation/red
+     * damage overlay/hurt sound, since those are driven off the damage event,
+     * not the health value. The tiny amount can be soaked up by
+     * armor/resistance without meaningfully affecting the true-damage total.
      */
-    private void dealTrueDamage(Player target, Player attacker) {
+    private void dealTrueDamage(LivingEntity target, Player attacker) {
         double newHealth = target.getHealth() - TRUE_DAMAGE;
         if (newHealth <= 0) {
             target.damage(TRUE_DAMAGE, attacker);
         } else {
-            target.setHealth(newHealth);
+            target.damage(0.001, attacker); // triggers hurt overlay/animation/sound only
+            target.setHealth(Math.max(0.0, target.getHealth() - (TRUE_DAMAGE - 0.001)));
         }
     }
 
@@ -179,6 +194,6 @@ public class DeathBackstabAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Look at a player within 8 blocks to blink behind them, dealing 4 hearts of true damage and applying Weakness for 10 seconds. (60 mana)";
+        return ChatColor.GRAY + "Look at a living entity within 8 blocks to blink behind them, dealing 4 hearts of true damage and applying Weakness for 10 seconds. (60 mana)";
     }
 }

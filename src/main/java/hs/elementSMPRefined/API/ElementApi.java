@@ -5,14 +5,19 @@ import hs.elementSMPRefined.API.addon.ElementAddon;
 import hs.elementSMPRefined.API.element.Element;
 import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ElementContext;
+import hs.elementSMPRefined.API.event.AbilityActivateEvent;
+import hs.elementSMPRefined.API.event.ElementAssignEvent;
+import hs.elementSMPRefined.API.event.ManaSpendEvent;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.items.api.ElementItem;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.registry.ItemRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
@@ -27,6 +32,20 @@ public final class ElementApi {
     public ElementApi(ElementSMPRefined plugin) {
         this.plugin = plugin;
         this.elements = plugin.getElementManager();
+    }
+
+    /**
+     * Get the ElementSMPRefined API.
+     *
+     * @return The registered instance of the API.
+     * @throws IllegalStateException if the plugin is not loaded.
+     */
+    public static @NotNull ElementApi get() {
+        var instance = Bukkit.getServicesManager().load(ElementApi.class);
+        if (instance == null) {
+            throw new IllegalStateException("ElementApi is not loaded!");
+        }
+        return instance;
     }
 
     public ElementSMPRefined getPlugin() {
@@ -96,14 +115,38 @@ public final class ElementApi {
         return data.getUpgradeLevel(data.getCurrentElementId());
     }
 
+    /**
+     * Assigns an element to a player. Fires a cancellable {@link ElementAssignEvent}
+     * first - if cancelled, the player's element is left unchanged.
+     */
     public void assignElement(Player player, ElementId id) {
+        ElementId previous = elements.getPlayerElementId(player);
+        ElementAssignEvent event = new ElementAssignEvent(player, previous, id);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return;
+
         elements.assignElement(player, id);
     }
 
+    /**
+     * Sets a player's element outright. Fires a cancellable {@link ElementAssignEvent}
+     * first - if cancelled, the player's element is left unchanged.
+     */
     public void setElement(Player player, ElementId id) {
+        ElementId previous = elements.getPlayerElementId(player);
+        ElementAssignEvent event = new ElementAssignEvent(player, previous, id);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return;
+
         elements.setElement(player, id);
     }
 
+    /**
+     * Activates an ability by ID, subject to the normal upgrade-level and mana
+     * checks. Fires a cancellable {@link AbilityActivateEvent} after those
+     * checks pass but before mana is spent or the ability executes, then a
+     * {@link ManaSpendEvent} once mana is actually deducted.
+     */
     public boolean activateAbility(Player player, String id) {
         Ability ability = getAbility(id);
         if (ability == null) return false;
@@ -112,6 +155,10 @@ public final class ElementApi {
         ElementId elementId = data.getCurrentElementId();
         if (elementId == null || data.getUpgradeLevel(elementId) < ability.getRequiredUpgradeLevel()) return false;
         if (!plugin.getManaManager().hasMana(player, ability.getManaCost())) return false;
+
+        AbilityActivateEvent activateEvent = new AbilityActivateEvent(player, ability, elementId);
+        Bukkit.getPluginManager().callEvent(activateEvent);
+        if (activateEvent.isCancelled()) return false;
 
         ElementContext context = ElementContext.builder()
                 .player(player)
@@ -125,10 +172,23 @@ public final class ElementApi {
                 .build();
 
         if (!ability.execute(context)) return false;
-        plugin.getManaManager().spend(player, ability.getManaCost());
+
+        int cost = ability.getManaCost();
+        plugin.getManaManager().spend(player, cost);
+        int remaining = plugin.getManaManager().get(player.getUniqueId()).getMana();
+        Bukkit.getPluginManager().callEvent(new ManaSpendEvent(player, cost, remaining));
+
         return true;
     }
 
+    /**
+     * Activates the ability bound to slot 1 or 2. NOTE: this delegates straight
+     * to {@link ElementManager#useAbility1}/{@code useAbility2} and does not
+     * currently route through the event-firing {@link #activateAbility(Player, String)}
+     * path above - {@link AbilityActivateEvent} and {@link ManaSpendEvent} are
+     * not fired for slot-based casts until ElementManager's own ability
+     * handling is updated to fire them too.
+     */
     public boolean activateAbility(Player player, int slot) {
         return switch (slot) {
             case 1 -> elements.useAbility1(player);

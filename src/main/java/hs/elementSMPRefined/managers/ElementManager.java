@@ -1,10 +1,14 @@
 package hs.elementSMPRefined.managers;
 
+import hs.elementSMPRefined.API.ability.Ability;
 import hs.elementSMPRefined.API.element.Element;
 import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ListenerProvider;
+import hs.elementSMPRefined.API.event.AbilityActivateEvent;
+import hs.elementSMPRefined.API.event.ElementAssignEvent;
+import hs.elementSMPRefined.API.event.ElementSetEvent;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.DataStore;
@@ -260,6 +264,8 @@ public class ElementManager {
 
         player.sendMessage(ChatColor.GOLD + "Your element is now " + ChatColor.AQUA + displayNameOf(id));
         applyUpsides(player);
+
+        plugin.getServer().getPluginManager().callEvent(new ElementSetEvent(player, id, old));
     }
 
     private void assignElementInternal(Player player, ElementType type, String titleText) {
@@ -286,6 +292,8 @@ public class ElementManager {
         showElementTitle(player, id, titleText);
         applyUpsides(player);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
+
+        plugin.getServer().getPluginManager().callEvent(new ElementAssignEvent(player, id, old));
     }
 
     private String displayNameOf(ElementId id) {
@@ -355,7 +363,50 @@ public class ElementManager {
                 .plugin(plugin)
                 .build();
 
-        return number == 1 ? element.ability1(ctx) : element.ability2(ctx);
+        boolean success = number == 1 ? element.ability1(ctx) : element.ability2(ctx);
+        if (success) {
+            String abilityName = number == 1 ? element.getAbility1Name() : element.getAbility2Name();
+            plugin.getServer().getPluginManager()
+                    .callEvent(new AbilityActivateEvent(player, id, number, abilityName));
+        }
+        return success;
+    }
+
+    /**
+     * Activates an addon-registered ability by ID rather than by slot - for
+     * abilities that aren't tied to a specific element's slot 1/2, e.g. an
+     * item-triggered or event-triggered ability an addon registers via
+     * {@link hs.elementSMPRefined.API.ElementApi#registerAbility}.
+     * <p>
+     * Requires the player's current element to meet the ability's upgrade-level
+     * requirement and enough mana, exactly like a core ability would.
+     */
+    public boolean activateAbility(Player player, String abilityId) {
+        Ability ability = plugin.getAddonManager().abilities().get(abilityId);
+        if (ability == null) return false;
+
+        PlayerData pd = data(player.getUniqueId());
+        ElementId id = pd.getCurrentElementId();
+        if (id == null || pd.getUpgradeLevel(id) < ability.getRequiredUpgradeLevel()) return false;
+        if (!manaManager.hasMana(player, ability.getManaCost())) return false;
+
+        ElementContext ctx = ElementContext.builder()
+                .player(player)
+                .upgradeLevel(pd.getUpgradeLevel(id))
+                .elementType(id.toBuiltinType())
+                .elementId(id)
+                .manaManager(manaManager)
+                .trustManager(trustManager)
+                .configManager(configManager)
+                .plugin(plugin)
+                .build();
+
+        if (!ability.execute(ctx)) return false;
+        manaManager.spend(player, ability.getManaCost());
+
+        plugin.getServer().getPluginManager()
+                .callEvent(new AbilityActivateEvent(player, id, -1, ability.getName()));
+        return true;
     }
 
     public void giveElementItem(Player player, ElementType type) {

@@ -4,6 +4,7 @@ import hs.elementSMPRefined.core.AbstractElementPlugin;
 import hs.elementSMPRefined.API.ElementApi;
 import hs.elementSMPRefined.API.element.Element;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.ServicePriority;
 
 /**
  * Main plugin class which significantly simplified by extending AbstractElementPlugin.
@@ -16,6 +17,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
     @Override
     protected void beforeRegisterComponents() {
         elementApi = new ElementApi(this);
+        getServer().getServicesManager().register(ElementApi.class, elementApi, this, ServicePriority.Normal);
     }
 
     /** Returns the supported facade for external plugins and addons. */
@@ -43,6 +45,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
 
     @Override
     protected void onPluginDisable() {
+        getServer().getServicesManager().unregisterAll(this);
         getLogger().info("ElementSMPRefined plugin disabled successfully!");
     }
 }

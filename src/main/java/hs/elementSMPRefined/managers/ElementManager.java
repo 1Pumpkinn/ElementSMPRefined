@@ -9,6 +9,7 @@ import hs.elementSMPRefined.API.element.ListenerProvider;
 import hs.elementSMPRefined.API.event.AbilityActivateEvent;
 import hs.elementSMPRefined.API.event.ElementAssignEvent;
 import hs.elementSMPRefined.API.event.ElementSetEvent;
+import hs.elementSMPRefined.API.event.UpgradeLevelChangeEvent;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.DataStore;

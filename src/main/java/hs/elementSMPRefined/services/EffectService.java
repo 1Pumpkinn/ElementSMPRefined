@@ -38,7 +38,8 @@ public class EffectService implements Listener {
 
     /**
      * Clear ALL element effects from a player.
-     * Used when switching elements or logging out.
+     * Used when logging out, where we don't know for certain only one
+     * element's effects are active and want a full safety-net sweep.
      */
     public void clearAllElementEffects(Player player) {
         PlayerData pd = elementManager.data(player.getUniqueId());
@@ -52,6 +53,27 @@ public class EffectService implements Listener {
 
         // Reset health if not Life element
         updatePlayerHealth(player, currentElement);
+    }
+
+    /**
+     * Clear effects for a single element (by ID, so this also covers addon
+     * elements that have no {@link ElementType}) and update health
+     * accordingly. Prefer this over {@link #clearAllElementEffects} for
+     * element switches (rerolls, manual sets) - only one element's effects
+     * can ever be active on a player at a time, so there's no need to also
+     * loop through and call clearEffects on every OTHER registered element
+     * (builtin and addon) just to switch away from this one. That full
+     * sweep is for the logout safety net, not the hot path every reroll
+     * runs through.
+     */
+    public void clearElementEffects(Player player, ElementId id) {
+        if (id != null) {
+            Element element = elementManager.get(id);
+            if (element != null) {
+                element.clearEffects(player);
+            }
+        }
+        updatePlayerHealth(player, id == null ? null : id.toBuiltinType());
     }
 
     /**

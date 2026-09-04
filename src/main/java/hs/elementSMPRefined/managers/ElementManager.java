@@ -303,7 +303,13 @@ public class ElementManager {
             pd.setCurrentElementUpgradeLevel(currentUpgrade);
         }
 
-        store.save(pd);
+        // saveAsync() updates the in-memory cache immediately (so the player's
+        // effects/data are correct right away) and defers the actual YAML
+        // read-modify-write to a background thread. store.save() reloads and
+        // rewrites the ENTIRE players.yml synchronously on the main thread -
+        // that cost scales with total player count/history, not with this one
+        // reroll, and was the cause of the reroll lag spikes.
+        store.saveAsync(pd);
         showElementTitle(player, id, titleText);
         applyUpsides(player);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
@@ -321,7 +327,10 @@ public class ElementManager {
         if (oldType != null) {
             returnElementCore(player, oldType);
         }
-        effectService.clearAllElementEffects(player);
+        // Only clear the element actually being left - see EffectService.clearElementEffects
+        // for why this replaced the old full-registry clearAllElementEffects() call here.
+        // Pass the full ElementId (not oldType) so this still works for addon elements.
+        effectService.clearElementEffects(player, oldId);
     }
 
     /**

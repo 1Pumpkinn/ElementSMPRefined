@@ -11,7 +11,6 @@ import hs.elementSMPRefined.API.event.ElementAssignEvent;
 import hs.elementSMPRefined.API.event.ElementSetEvent;
 import hs.elementSMPRefined.API.event.UpgradeLevelChangeEvent;
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.DataStore;
 import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.ability.passive.air.AirElement;
@@ -29,7 +28,6 @@ import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -199,14 +197,13 @@ public class ElementManager {
 
     /**
      * Queues a basic reroller item to be handed back next time this player
-     * joins. Called when a roll aborts (player logged off mid-animation)
-     * after the item was already consumed - see {@code RollingAnimation}
-     * below. Persisted immediately (synchronous save is fine here: this
-     * only runs once, right as the player disconnects, not on any hot
-     * path) so the refund survives even if the server restarts before
-     * they come back.
+     * joins. Called by {@code RerollerHandler} when a roll aborts (player
+     * logged off mid-animation) after the item was already consumed.
+     * Persisted immediately (synchronous save is fine here: this only runs
+     * once, right as the player disconnects, not on any hot path) so the
+     * refund survives even if the server restarts before they come back.
      */
-    private void queueRerollerRefund(Player player) {
+    public void queueRerollerRefund(Player player) {
         PlayerData pd = data(player.getUniqueId());
         pd.addPendingRerollerRefund();
         store.save(pd);
@@ -224,36 +221,13 @@ public class ElementManager {
         store.save(pd);
     }
 
-    public void rollAndAssign(Player player) {
-        if (!beginRoll(player)) return;
-
-        SoundUtils.playTo(player, SoundUtils.UI.ROLL);
-
-        new RollingAnimation(player, BASIC_ELEMENTS)
-                .start(() -> {
-                    assignRandomElement(player);
-                    endRoll(player);
-                });
-    }
-
-    public void rollAndAssignBasic(Player player) {
-        if (!beginRoll(player)) return;
-
-        SoundUtils.playTo(player, SoundUtils.UI.ROLL);
-
-        new RollingAnimation(player, getBasicElements())
-                .start(() -> {
-                    assignRandomBasicElement(player);
-                    endRoll(player);
-                });
-    }
-
-    private void assignRandomElement(Player player) {
-        ElementType randomType = BASIC_ELEMENTS[random.nextInt(BASIC_ELEMENTS.length)];
-        assignElementInternal(player, randomType, "Element Assigned!");
-    }
-
-    private void assignRandomBasicElement(Player player) {
+    /**
+     * Picks a random basic element and assigns it to the player. Public so
+     * {@code RerollerHandler} can call this once its own "Rolling..." title
+     * animation finishes, the same way {@code AdvancedRerollerHandler} calls
+     * its own assignment method after its animation completes.
+     */
+    public void assignRandomBasicElement(Player player) {
         ElementType[] basicElements = getBasicElements();
         ElementType randomType = basicElements[random.nextInt(basicElements.length)];
         assignElementInternal(player, randomType, "Element Assigned!");
@@ -503,53 +477,5 @@ public class ElementManager {
 
     private void endRoll(Player player) {
         currentlyRolling.remove(player.getUniqueId());
-    }
-
-    /**
-     * Reusable rolling animation
-     */
-    private class RollingAnimation {
-        private final Player player;
-        private final ElementType[] elements;
-
-        RollingAnimation(Player player, ElementType[] elements) {
-            this.player = player;
-            this.elements = elements;
-        }
-
-        void start(Runnable onComplete) {
-            new BukkitRunnable() {
-                int tick = 0;
-
-                @Override
-                public void run() {
-                    if (!player.isOnline()) {
-                        // Player disconnected mid-roll - the item was already
-                        // consumed when they used it, so queue it to be
-                        // handed back next time they join.
-                        queueRerollerRefund(player);
-                        endRoll(player);
-                        cancel();
-                        return;
-                    }
-
-                    if (!isCurrentlyRolling(player)) {
-                        endRoll(player);
-                        cancel();
-                        return;
-                    }
-
-                    if (tick >= Constants.Animation.ROLL_STEPS) {
-                        if (onComplete != null) onComplete.run();
-                        cancel();
-                        return;
-                    }
-
-                    String name = elements[random.nextInt(elements.length)].name();
-                    player.sendTitle(ChatColor.GOLD + "Rolling...", ChatColor.AQUA + name, 0, 10, 0);
-                    tick++;
-                }
-            }.runTaskTimer(plugin, 0L, Constants.Animation.ROLL_DELAY_TICKS);
-        }
     }
 }

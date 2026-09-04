@@ -46,10 +46,11 @@ public class AdvancedRerollerHandler implements Listener {
 
         event.setCancelled(true);
 
-        if (elementManager.isCurrentlyRolling(player)) {
-            player.sendMessage(ChatColor.RED + "You are already rerolling your element!");
-            return;
-        }
+        // Claim the shared rolling lock so a basic reroller, the element
+        // selection GUI, or a second advanced reroller can't be used
+        // concurrently on the same player. beginRolling() already messages
+        // the player if it returns false, so there's nothing else to do here.
+        if (!elementManager.beginRolling(player)) return;
 
         PlayerData playerData = elementManager.data(player.getUniqueId());
         ElementType currentElement = playerData.getCurrentElement();
@@ -120,9 +121,25 @@ public class AdvancedRerollerHandler implements Listener {
 
             @Override
             public void run() {
-                if (tick >= steps) {
-                    assignAdvancedElement(player, targetElement);
+                // Mirror RerollerHandler/ElementSelectionGUI: if the player
+                // logs off (or the roll gets externally cancelled) partway
+                // through the animation, stop here and never assign the new
+                // element. Cancelling the task BEFORE touching the player
+                // also means a stray exception on an offline player can't
+                // leave this timer running forever.
+                if (!player.isOnline() || !elementManager.isCurrentlyRolling(player)) {
                     cancel();
+                    elementManager.endRolling(player);
+                    return;
+                }
+
+                if (tick >= steps) {
+                    cancel();
+                    try {
+                        assignAdvancedElement(player, targetElement);
+                    } finally {
+                        elementManager.endRolling(player);
+                    }
                     return;
                 }
 

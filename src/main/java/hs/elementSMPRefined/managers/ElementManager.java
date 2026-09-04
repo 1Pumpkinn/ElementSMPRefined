@@ -183,6 +183,20 @@ public class ElementManager {
         currentlyRolling.remove(player.getUniqueId());
     }
 
+    /**
+     * Public entry point for handlers that run their own animation loop
+     * (e.g. {@code AdvancedRerollerHandler}) but still need to share the
+     * same "is this player mid-reroll" lock as the basic reroller and the
+     * element-selection GUI, so the three can't overlap on one player.
+     */
+    public boolean beginRolling(Player player) {
+        return beginRoll(player);
+    }
+
+    public void endRolling(Player player) {
+        endRoll(player);
+    }
+
     public void rollAndAssign(Player player) {
         if (!beginRoll(player)) return;
 

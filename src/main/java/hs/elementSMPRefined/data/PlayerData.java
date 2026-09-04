@@ -30,6 +30,8 @@ public final class PlayerData {
     private int mana;
     private int currentElementUpgradeLevel;
     private final Set<UUID> trustedPlayers;
+    private int pendingRerollerRefunds;
+    private int pendingAdvancedRerollerRefunds;
 
     public PlayerData(UUID uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
@@ -201,6 +203,52 @@ public final class PlayerData {
         if (trusted != null) {
             trustedPlayers.addAll(trusted);
         }
+    }
+
+    /**
+     * Reroller items consumed by a roll that never finished (the player
+     * logged off mid-animation) are owed back to the player. These are
+     * queued here rather than handed back immediately since the player is
+     * already offline by the time a roll aborts - see
+     * {@link hs.elementSMPRefined.listeners.player.PlayerLifecycle} for
+     * where they actually get delivered, on the player's next join.
+     */
+    public int getPendingRerollerRefunds() {
+        return pendingRerollerRefunds;
+    }
+
+    public void addPendingRerollerRefund() {
+        pendingRerollerRefunds++;
+    }
+
+    /** Used by the serializer to restore the count from disk. */
+    public void setPendingRerollerRefunds(int count) {
+        this.pendingRerollerRefunds = Math.max(0, count);
+    }
+
+    /** Returns the owed count and resets it to zero - call only once the item has actually been handed back. */
+    public int consumePendingRerollerRefunds() {
+        int count = pendingRerollerRefunds;
+        pendingRerollerRefunds = 0;
+        return count;
+    }
+
+    public int getPendingAdvancedRerollerRefunds() {
+        return pendingAdvancedRerollerRefunds;
+    }
+
+    public void addPendingAdvancedRerollerRefund() {
+        pendingAdvancedRerollerRefunds++;
+    }
+
+    public void setPendingAdvancedRerollerRefunds(int count) {
+        this.pendingAdvancedRerollerRefunds = Math.max(0, count);
+    }
+
+    public int consumePendingAdvancedRerollerRefunds() {
+        int count = pendingAdvancedRerollerRefunds;
+        pendingAdvancedRerollerRefunds = 0;
+        return count;
     }
 
     @Override

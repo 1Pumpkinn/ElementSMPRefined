@@ -38,6 +38,8 @@ public final class PlayerDataSerializer {
 
         data.setMana(section.getInt("mana", PlayerData.DEFAULT_MANA));
         data.setCurrentElementUpgradeLevel(section.getInt("currentUpgradeLevel", 0));
+        data.setPendingRerollerRefunds(section.getInt("pendingRerollerRefunds", 0));
+        data.setPendingAdvancedRerollerRefunds(section.getInt("pendingAdvancedRerollerRefunds", 0));
 
         for (String name : section.getStringList("items")) {
             try {
@@ -66,6 +68,8 @@ public final class PlayerDataSerializer {
         section.set("element", data.getCurrentElementId() == null ? null : data.getCurrentElementId().toString());
         section.set("mana", data.getMana());
         section.set("currentUpgradeLevel", data.getCurrentElementUpgradeLevel());
+        section.set("pendingRerollerRefunds", data.getPendingRerollerRefunds());
+        section.set("pendingAdvancedRerollerRefunds", data.getPendingAdvancedRerollerRefunds());
 
         List<String> items = new ArrayList<>();
         for (ElementId id : data.getOwnedItemIds()) {

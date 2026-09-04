@@ -197,6 +197,21 @@ public class ElementManager {
         endRoll(player);
     }
 
+    /**
+     * Queues a basic reroller item to be handed back next time this player
+     * joins. Called when a roll aborts (player logged off mid-animation)
+     * after the item was already consumed - see {@code RollingAnimation}
+     * below. Persisted immediately (synchronous save is fine here: this
+     * only runs once, right as the player disconnects, not on any hot
+     * path) so the refund survives even if the server restarts before
+     * they come back.
+     */
+    private void queueRerollerRefund(Player player) {
+        PlayerData pd = data(player.getUniqueId());
+        pd.addPendingRerollerRefund();
+        store.save(pd);
+    }
+
     public void rollAndAssign(Player player) {
         if (!beginRoll(player)) return;
 

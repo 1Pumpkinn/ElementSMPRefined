@@ -44,7 +44,6 @@ public class ElementManager {
     private final EffectService effectService;
     private final ElementRegistry elementRegistry;
     private final Set<UUID> currentlyRolling = new HashSet<>();
-    private final Random random = new Random();
 
     public ElementManager(JavaPlugin plugin, DataStore store, ManaManager manaManager,
                           TrustManager trustManager, ConfigManager configManager) {
@@ -222,28 +221,16 @@ public class ElementManager {
     }
 
     /**
-     * Picks a random basic element and assigns it to the player. Public so
-     * {@code RerollerHandler} can call this once its own "Rolling..." title
-     * animation finishes, the same way {@code AdvancedRerollerHandler} calls
-     * its own assignment method after its animation completes.
+     * Assigns a specific basic element, chosen by {@code RerollerHandler}'s
+     * own {@code determineNewElement}. This stays in ElementManager (rather
+     * than moving fully into the handler like the advanced reroller does)
+     * because it goes through {@code assignElementInternal} - the same
+     * shared plumbing used by element-selection and altar-granted elements,
+     * which fires {@code ElementAssignEvent} and handles the old-element
+     * switch. That's genuinely shared machinery, not reroller-specific code.
      */
-    public void assignRandomBasicElement(Player player) {
-        ElementType[] basicElements = getBasicElements();
-        ElementType randomType = basicElements[random.nextInt(basicElements.length)];
-        assignElementInternal(player, randomType, "Element Assigned!");
-    }
-
-    public void assignRandomDifferentElement(Player player) {
-        ElementType current = getPlayerElement(player);
-        List<ElementType> available = Arrays.stream(BASIC_ELEMENTS)
-                .filter(type -> type != current)
-                .toList();
-
-        ElementType newType = available.isEmpty() ?
-                BASIC_ELEMENTS[random.nextInt(BASIC_ELEMENTS.length)] :
-                available.get(random.nextInt(available.size()));
-
-        assignElementInternal(player, newType, "Element Rerolled!");
+    public void assignBasicElement(Player player, ElementType type) {
+        assignElementInternal(player, type, "Element Assigned!");
     }
 
     public void assignElement(Player player, ElementType type) {

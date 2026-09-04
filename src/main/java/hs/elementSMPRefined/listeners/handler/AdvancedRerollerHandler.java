@@ -52,9 +52,7 @@ public class AdvancedRerollerHandler implements Listener {
         // the player if it returns false, so there's nothing else to do here.
         if (!elementManager.beginRolling(player)) return;
 
-        PlayerData playerData = elementManager.data(player.getUniqueId());
-        ElementType currentElement = playerData.getCurrentElement();
-        ElementType newElement = determineNewElement(currentElement);
+        ElementType newElement = determineNewElement();
 
         consumeItem(player, item);
         performAdvancedRoll(player, newElement);
@@ -65,27 +63,17 @@ public class AdvancedRerollerHandler implements Listener {
                 .has(ItemKeys.advancedReroller(plugin), PersistentDataType.BYTE);
     }
 
-    private ElementType determineNewElement(ElementType current) {
+    /**
+     * Picks a random advanced element with no exclusion of the player's
+     * current element - unlike the basic reroller, the advanced reroller is
+     * allowed to reroll back into the same element you already have.
+     */
+    private ElementType determineNewElement() {
         ElementType[] advancedElements = elementManager.getAdvancedElements();
 
         if (advancedElements.length == 0) {
             // Fallback to default behavior
-            return switch (current) {
-                case METAL -> ElementType.FROST;
-                case FROST -> ElementType.METAL;
-                default -> random.nextBoolean() ? ElementType.METAL : ElementType.FROST;
-            };
-        }
-
-        // Filter out current element and choose from remaining
-        if (current != null) {
-            ElementType[] available = java.util.Arrays.stream(advancedElements)
-                    .filter(type -> type != current)
-                    .toArray(ElementType[]::new);
-
-            if (available.length > 0) {
-                return available[random.nextInt(available.length)];
-            }
+            return random.nextBoolean() ? ElementType.METAL : ElementType.FROST;
         }
 
         return advancedElements[random.nextInt(advancedElements.length)];

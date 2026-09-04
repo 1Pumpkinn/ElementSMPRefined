@@ -20,15 +20,20 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.List;
+import java.util.Random;
+
 /**
  * Handles basic element reroller item usage. Owns its own "Rolling..."
- * title animation the same way {@code AdvancedRerollerHandler} does, rather
- * than delegating that to ElementManager, so both rerollers are structured
- * the same way and ElementManager only deals with element data/assignment.
+ * title animation and its own element-picking logic the same way
+ * {@code AdvancedRerollerHandler} does, rather than delegating that to
+ * ElementManager, so both rerollers are structured the same way and
+ * ElementManager only deals with the shared element-assignment plumbing.
  */
 public class RerollerHandler implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
+    private final Random random = new Random();
 
     public RerollerHandler(ElementSMPRefined plugin, ElementManager elementManager) {
         this.plugin = plugin;
@@ -52,14 +57,34 @@ public class RerollerHandler implements Listener {
         // element selection GUI can't be used concurrently on this player.
         if (!elementManager.beginRolling(player)) return;
 
+        ElementType newElement = determineNewElement(player);
+
         consumeItem(player, item);
         clearOldElementEffects(player);
-        performBasicRoll(player);
+        performBasicRoll(player, newElement);
     }
 
     private boolean isReroller(ItemStack item) {
         return item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer()
                 .has(ItemKeys.reroller(plugin), PersistentDataType.BYTE);
+    }
+
+    /**
+     * Picks a random basic element, excluding the player's current element
+     * so a basic reroll can never leave you right back where you started -
+     * unlike the advanced reroller, which allows repeats.
+     */
+    private ElementType determineNewElement(Player player) {
+        ElementType[] basicElements = elementManager.getBasicElements();
+        ElementType current = elementManager.getPlayerElement(player);
+
+        List<ElementType> available = java.util.Arrays.stream(basicElements)
+                .filter(type -> type != current)
+                .toList();
+
+        return available.isEmpty() ?
+                basicElements[random.nextInt(basicElements.length)] :
+                available.get(random.nextInt(available.size()));
     }
 
     private void consumeItem(Player player, ItemStack item) {
@@ -94,11 +119,12 @@ public class RerollerHandler implements Listener {
 
     /**
      * Runs the "Rolling..." title animation and, once it finishes, assigns
-     * the actual random basic element. Cycles through the basic elements in
-     * a fixed round-robin (rather than picking randomly each tick) so the
-     * title never shows the same name twice in a row mid-animation.
+     * the element already chosen by {@code determineNewElement}. Cycles
+     * through the basic elements in a fixed round-robin (rather than picking
+     * randomly each tick) so the title never shows the same name twice in a
+     * row mid-animation.
      */
-    private void performBasicRoll(Player player) {
+    private void performBasicRoll(Player player, ElementType targetElement) {
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
         String[] names = java.util.Arrays.stream(elementManager.getBasicElements())
@@ -138,7 +164,7 @@ public class RerollerHandler implements Listener {
                 if (tick >= steps) {
                     cancel();
                     try {
-                        elementManager.assignRandomBasicElement(player);
+                        elementManager.assignBasicElement(player, targetElement);
                         player.sendMessage(Component.text("Your element has been rerolled!").color(NamedTextColor.GREEN));
                     } finally {
                         elementManager.endRolling(player);

@@ -127,7 +127,17 @@ public class AdvancedRerollerHandler implements Listener {
                 // element. Cancelling the task BEFORE touching the player
                 // also means a stray exception on an offline player can't
                 // leave this timer running forever.
-                if (!player.isOnline() || !elementManager.isCurrentlyRolling(player)) {
+                if (!player.isOnline()) {
+                    // Player disconnected mid-roll - the item was already
+                    // consumed when they used it, so queue it to be handed
+                    // back next time they join.
+                    elementManager.queueAdvancedRerollerRefund(player);
+                    cancel();
+                    elementManager.endRolling(player);
+                    return;
+                }
+
+                if (!elementManager.isCurrentlyRolling(player)) {
                     cancel();
                     elementManager.endRolling(player);
                     return;

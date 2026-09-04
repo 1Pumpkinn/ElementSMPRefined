@@ -212,6 +212,18 @@ public class ElementManager {
         store.save(pd);
     }
 
+    /**
+     * Same as {@link #queueRerollerRefund(Player)} but for the advanced
+     * reroller. Public because {@code AdvancedRerollerHandler} runs its own
+     * animation loop outside this class and needs to queue the refund
+     * itself when a player logs off mid-roll.
+     */
+    public void queueAdvancedRerollerRefund(Player player) {
+        PlayerData pd = data(player.getUniqueId());
+        pd.addPendingAdvancedRerollerRefund();
+        store.save(pd);
+    }
+
     public void rollAndAssign(Player player) {
         if (!beginRoll(player)) return;
 
@@ -511,7 +523,17 @@ public class ElementManager {
 
                 @Override
                 public void run() {
-                    if (!player.isOnline() || !isCurrentlyRolling(player)) {
+                    if (!player.isOnline()) {
+                        // Player disconnected mid-roll - the item was already
+                        // consumed when they used it, so queue it to be
+                        // handed back next time they join.
+                        queueRerollerRefund(player);
+                        endRoll(player);
+                        cancel();
+                        return;
+                    }
+
+                    if (!isCurrentlyRolling(player)) {
                         endRoll(player);
                         cancel();
                         return;

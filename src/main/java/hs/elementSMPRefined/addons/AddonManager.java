@@ -38,7 +38,7 @@ public final class AddonManager {
             return;
         }
 
-        addon.register(plugin);
+        addon.register(plugin.getElementApi());
         plugin.getLogger().info("Registered addon: " + addon.getName());
     }
 

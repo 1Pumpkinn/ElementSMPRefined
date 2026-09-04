@@ -75,6 +75,11 @@ public final class ElementApi {
         plugin.getAddonManager().registerListener(id, listener);
     }
 
+    /** Passives use the same Bukkit listener lifecycle, but have a semantic API name. */
+    public void registerPassive(String id, Listener listener) {
+        plugin.getAddonManager().registerPassive(id, listener);
+    }
+
     public void registerDimension(NamespacedKey id, World world) {
         plugin.getAddonManager().registerDimension(id, world);
     }

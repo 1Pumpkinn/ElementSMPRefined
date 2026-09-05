@@ -156,4 +156,46 @@ public class ManaManager {
         PlayerData pd = get(player.getUniqueId());
         return pd.getMana() >= amount;
     }
+
+    /**
+     * Forcibly removes mana from a player without firing {@link ManaSpendEvent}
+     * - this is a drain being done TO the player (e.g. mana steal), not a spend
+     * BY the player. Creative mode players are immune (infinite mana, nothing
+     * to drain).
+     *
+     * @param target the player being drained
+     * @param amount the amount to attempt to remove
+     * @return the amount actually removed (capped at the player's current mana)
+     */
+    public int drain(Player target, int amount) {
+        if (amount <= 0) return 0;
+        if (target.getGameMode() == GameMode.CREATIVE) return 0;
+
+        PlayerData pd = get(target.getUniqueId());
+        int actual = Math.min(amount, pd.getMana());
+        if (actual <= 0) return 0;
+
+        pd.addMana(-actual);
+        dirty.add(target.getUniqueId());
+        return actual;
+    }
+
+    /**
+     * Grants mana to a player, capped at their configured max mana. Used to
+     * hand a caster the mana stolen from a mana-steal target.
+     *
+     * @param player the player receiving mana
+     * @param amount the amount to add
+     */
+    public void restore(Player player, int amount) {
+        if (amount <= 0) return;
+
+        PlayerData pd = get(player.getUniqueId());
+        int maxMana = configManager.getMaxMana();
+        pd.addMana(amount);
+        if (pd.getMana() > maxMana) {
+            pd.setMana(maxMana);
+        }
+        dirty.add(player.getUniqueId());
+    }
 }

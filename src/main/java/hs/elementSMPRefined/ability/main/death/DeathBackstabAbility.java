@@ -84,7 +84,7 @@ public class DeathBackstabAbility extends BaseAbility {
 
         dealTrueDamage(target, player);
         if (target instanceof Player targetPlayer) {
-            plugin.getStatusEffectManager().applyEffect(targetPlayer, StatusEffectType.WEAKNESS, WEAKNESS_DURATION_TICKS);
+            plugin.getStatusEffectManager().applyManaSteal(player, targetPlayer, 200); // 10 seconds
         }
 
         return true;

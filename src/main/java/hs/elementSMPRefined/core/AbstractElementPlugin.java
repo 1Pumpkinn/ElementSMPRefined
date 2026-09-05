@@ -116,7 +116,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.manaManager = new ManaManager(this, dataStore, configManager);
         this.elementManager = new ElementManager(this, dataStore, manaManager, trustManager, configManager);
         this.itemManager = new ItemManager(this, manaManager, configManager);
-        this.statusEffectManager = new StatusEffectManager(this);
+        this.statusEffectManager = new StatusEffectManager(this, manaManager);
         this.disarmManager = new DisarmManager(this);
         this.addonManager = new AddonManager((hs.elementSMPRefined.ElementSMPRefined) this);
         this.elementBotManager = new ElementBotManager((hs.elementSMPRefined.ElementSMPRefined) this);

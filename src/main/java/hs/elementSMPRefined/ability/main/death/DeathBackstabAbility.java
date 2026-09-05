@@ -25,8 +25,6 @@ import org.bukkit.util.Vector;
  * at, blinks the caster directly behind them, and stabs them for
  * {@link #TRUE_DAMAGE} true damage (bypasses armor/resistance/enchants -
  * same convention as {@code MetalDashAbility}/{@code WaterPullDownAbility}),
- * then applies {@link StatusEffectType#WEAKNESS} for
- * {@link #WEAKNESS_DURATION_TICKS}.
  * <p>
  * Replaces the old Ability Disarm (formerly {@code DeathAbilityDisarmAbility}).
  */
@@ -38,8 +36,10 @@ public class DeathBackstabAbility extends BaseAbility {
     private static final double MIN_BEHIND_DISTANCE = 0.4;
     private static final double SWEEP_STEP = 0.2;
     private static final double TRUE_DAMAGE = 8.0; // 4 hearts
-    private static final int WEAKNESS_DURATION_TICKS = 200; // 10 seconds
-
+    /** Flat mana stolen from the target on a successful backstab (instant, not over time). */
+    private static final int MANA_STEAL_AMOUNT = 30;
+    /** Whether the drained mana is credited back to the caster (true) or just removed from the target (false). */
+    private static final boolean MANA_STEAL_GIVES_CASTER = true;
     /** Pure black dust, matching the vanish/reappear look used by DeathSideStepAbility. */
     private static final Particle.DustOptions BLACK_DUST =
             new Particle.DustOptions(Color.fromRGB(5, 5, 5), 1.4F);
@@ -84,7 +84,7 @@ public class DeathBackstabAbility extends BaseAbility {
 
         dealTrueDamage(target, player);
         if (target instanceof Player targetPlayer) {
-            plugin.getStatusEffectManager().applyManaSteal(player, targetPlayer, 200); // 10 seconds
+            plugin.getStatusEffectManager().applyManaSteal(player, targetPlayer, MANA_STEAL_AMOUNT, MANA_STEAL_GIVES_CASTER);
         }
 
         return true;
@@ -194,6 +194,7 @@ public class DeathBackstabAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Look at a living entity within 8 blocks to blink behind them, dealing 4 hearts of true damage and applying Weakness for 10 seconds. (60 mana)";
+        String manaVerb = MANA_STEAL_GIVES_CASTER ? "stealing" : "draining";
+        return ChatColor.GRAY + "Look at a living entity within 8 blocks to blink behind them, dealing 4 hearts of true damage and instantly " + manaVerb + " " + MANA_STEAL_AMOUNT + " mana if they're a player. (60 mana)";
     }
 }

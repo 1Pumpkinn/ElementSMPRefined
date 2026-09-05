@@ -23,8 +23,6 @@ public enum StatusEffectType {
     PARTIAL_STUN,        // Cannot move or look around, but can interact
     STUN,                // Cannot move, but can look and interact// Same as STUN (cannot move but can look and interact)
 
-    MANA_STEAL,           // Drains mana from the afflicted player each second and gives it to the caster who applied it
-
     // Disarm types - handled by DisarmManager, not StatusEffectManager,
     ABILITY_DISARM,      // Cannot use element abilities
     WEAPON_DISARM,       // A random weapon the player owns (sword/axe/spear/mace) goes on cooldown

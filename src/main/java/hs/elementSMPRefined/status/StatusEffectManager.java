@@ -126,17 +126,6 @@ public class StatusEffectManager {
                 .damagePerSecond(2.0)
                 .build());
 
-        // Mana Steal - drains mana from the target every second and hands it to
-        // whoever applied the effect. Requires the caster overload of applyEffect
-        // (or applyManaSteal) so there's a source to credit; applying it through
-        // the sourceless overload just drains with nowhere for the mana to go.
-        registerEffectData(StatusEffectType.MANA_STEAL, StatusEffectData.builder()
-                .displayName("Mana Steal")
-                .description("Mana is being drained by an opponent")
-                .isStackable(true)
-                .maxDuration(600) // 10 seconds max
-                .manaStealPerSecond(5)
-                .build());
     }
 
     /**
@@ -159,9 +148,8 @@ public class StatusEffectManager {
 
     /**
      * Apply a status effect to a player with an attributed source/caster.
-     * Effects that need to credit someone else - currently just
-     * {@link StatusEffectType#MANA_STEAL} - use {@code caster} to know who to
-     * pay out to. For effects that don't care about a source this behaves
+     * Effects that need to credit someone else use {@code caster} to know who
+     * to pay out to. For effects that don't care about a source this behaves
      * identically to {@link #applyEffect(Player, StatusEffectType, int, int)}.
      *
      * @param caster the player who applied the effect, or null if none
@@ -196,8 +184,8 @@ public class StatusEffectManager {
                 // Refresh duration for non-stackable effects
                 existing.refreshDuration(actualDuration);
             }
-            // Most recent caster takes over credit for future ticks (e.g. a
-            // second attacker re-applying mana steal starts collecting it).
+            // Most recent caster takes over credit for future ticks, for any
+            // effect that cares about a source.
             if (sourceUuid != null) {
                 existing.setSource(sourceUuid);
             }
@@ -249,15 +237,36 @@ public class StatusEffectManager {
     }
 
     /**
-     * Convenience method to steal mana from {@code target}, crediting it to
-     * {@code caster} every second for the duration of the effect.
+     * Instantly drains a flat amount of mana from {@code target}, optionally
+     * handing it to {@code caster}. This is a one-shot transfer, not a
+     * lingering status effect - each ability decides its own drain amount
+     * (e.g. one ability might drain 10 mana, another 30), the same way
+     * ability mana costs work.
      *
-     * @param caster the player who gets the drained mana
+     * @param caster the player who applied the drain (receives the stolen
+     *                mana only if {@code giveToCaster} is true)
      * @param target the player being drained
-     * @param duration duration in ticks (20 ticks = 1 second)
+     * @param amount how much mana to attempt to drain
+     * @param giveToCaster if true, the drained mana is credited to
+     *                      {@code caster}; if false the mana is just removed
+     *                      from the target and nobody receives it
+     * @return the amount actually drained (capped at the target's current mana)
      */
-    public void applyManaSteal(Player caster, Player target, int duration) {
-        applyEffect(caster, target, StatusEffectType.MANA_STEAL, duration, 1);
+    public int applyManaSteal(Player caster, Player target, int amount, boolean giveToCaster) {
+        int stolen = manaManager.drain(target, amount);
+        if (giveToCaster && stolen > 0 && caster != null && caster.isOnline()) {
+            manaManager.restore(caster, stolen);
+        }
+        return stolen;
+    }
+
+    /**
+     * Convenience overload that always credits the stolen mana to
+     * {@code caster}. Equivalent to {@code applyManaSteal(caster, target,
+     * amount, true)}.
+     */
+    public int applyManaSteal(Player caster, Player target, int amount) {
+        return applyManaSteal(caster, target, amount, true);
     }
 
     /**
@@ -378,13 +387,6 @@ public class StatusEffectManager {
     }
 
     /**
-     * Check if a player is having their mana stolen
-     */
-    public boolean isManaStolen(Player player) {
-        return hasEffect(player, StatusEffectType.MANA_STEAL);
-    }
-
-    /**
      * Apply potion effects for a status effect
      * Note: Stun and Freeze are handled by event listeners, not potion effects
      */
@@ -449,18 +451,6 @@ public class StatusEffectManager {
                                 double damage = data.damagePerSecond() * instance.getAmplifier();
                                 player.damage(damage);
                             }
-
-                            // Process mana-steal drain, crediting whoever cast it
-                            if (data.manaStealPerSecond() > 0 && instance.shouldApplyManaSteal()) {
-                                int amount = (int) Math.round(data.manaStealPerSecond() * instance.getAmplifier());
-                                int stolen = manaManager.drain(player, amount);
-                                if (stolen > 0 && instance.getSource() != null) {
-                                    Player caster = Bukkit.getPlayer(instance.getSource());
-                                    if (caster != null && caster.isOnline()) {
-                                        manaManager.restore(caster, stolen);
-                                    }
-                                }
-                            }
                         }
 
                         // Check if effect has expired
@@ -501,8 +491,7 @@ public class StatusEffectManager {
             PotionEffect[] potionEffects,
             boolean isStackable,
             int maxDuration,
-            double damagePerSecond,
-            double manaStealPerSecond
+            double damagePerSecond
     ) {
         public static Builder builder() {
             return new Builder();
@@ -515,7 +504,6 @@ public class StatusEffectManager {
             private boolean isStackable = false;
             private int maxDuration = 1200; // 1 minute default
             private double damagePerSecond = 0.0;
-            private double manaStealPerSecond = 0.0;
 
             public Builder displayName(String displayName) {
                 this.displayName = displayName;
@@ -547,12 +535,6 @@ public class StatusEffectManager {
                 return this;
             }
 
-            /** Mana drained from the afflicted player per second (before amplifier). */
-            public Builder manaStealPerSecond(double manaStealPerSecond) {
-                this.manaStealPerSecond = manaStealPerSecond;
-                return this;
-            }
-
             public StatusEffectData build() {
                 if (displayName == null) {
                     throw new IllegalStateException("Display name is required");
@@ -563,8 +545,7 @@ public class StatusEffectManager {
                         potionEffects.toArray(new PotionEffect[0]),
                         isStackable,
                         maxDuration,
-                        damagePerSecond,
-                        manaStealPerSecond
+                        damagePerSecond
                 );
             }
         }
@@ -578,8 +559,7 @@ public class StatusEffectManager {
         private long expiryTime;
         private int amplifier;
         private long lastDamageTick;
-        private long lastManaStealTick;
-        /** Who applied this effect (e.g. the caster of a mana steal), or null. */
+        /** Who applied this effect, or null. */
         private UUID source;
 
         public StatusEffectInstance(StatusEffectType type, int durationTicks, int amplifier, UUID source) {
@@ -587,7 +567,6 @@ public class StatusEffectManager {
             this.expiryTime = System.currentTimeMillis() + (durationTicks * 50L); // Convert ticks to ms
             this.amplifier = amplifier;
             this.lastDamageTick = System.currentTimeMillis();
-            this.lastManaStealTick = System.currentTimeMillis();
             this.source = source;
         }
 
@@ -628,15 +607,6 @@ public class StatusEffectManager {
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastDamageTick >= 1000) { // 1 second
                 lastDamageTick = currentTime;
-                return true;
-            }
-            return false;
-        }
-
-        public boolean shouldApplyManaSteal() {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastManaStealTick >= 1000) { // 1 second
-                lastManaStealTick = currentTime;
                 return true;
             }
             return false;

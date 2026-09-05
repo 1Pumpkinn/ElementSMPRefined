@@ -10,7 +10,7 @@ import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Random;
 
@@ -173,7 +174,11 @@ public class RerollerHandler implements Listener {
                 }
 
                 String name = names[tick % names.length];
-                player.sendTitle(ChatColor.GOLD + "Rolling...", ChatColor.AQUA + name, 0, 10, 0);
+                player.showTitle(Title.title(
+                        Component.text("Rolling...").color(NamedTextColor.GOLD),
+                        Component.text(name).color(NamedTextColor.AQUA),
+                        Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ZERO)
+                ));
                 tick++;
             }
         }.runTaskTimer(plugin, 0L, interval);

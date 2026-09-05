@@ -7,8 +7,9 @@ import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import hs.elementSMPRefined.util.visual.SoundUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
-import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -142,11 +143,11 @@ public class AdvancedRerollerHandler implements Listener {
                 }
 
                 String name = names[tick % names.length];
-                player.sendTitle(
-                        ChatColor.GOLD + "Rolling...",
-                        ChatColor.AQUA + name,
-                        0, 10, 0
-                );
+                player.showTitle(Title.title(
+                        Component.text("Rolling...").color(NamedTextColor.GOLD),
+                        Component.text(name).color(NamedTextColor.AQUA),
+                        Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ZERO)
+                ));
                 tick++;
             }
         }.runTaskTimer(plugin, 0L, interval);
@@ -163,10 +164,8 @@ public class AdvancedRerollerHandler implements Listener {
         plugin.getDataStore().save(playerData);
 
         Title title = Title.title(
-                net.kyori.adventure.text.Component.text("Element Chosen!")
-                        .color(net.kyori.adventure.text.format.NamedTextColor.GOLD),
-                net.kyori.adventure.text.Component.text(element.name())
-                        .color(net.kyori.adventure.text.format.NamedTextColor.AQUA),
+                Component.text("Element Chosen!").color(NamedTextColor.GOLD),
+                Component.text(element.name()).color(NamedTextColor.AQUA),
                 Title.Times.times(
                         Duration.ofMillis(500),
                         Duration.ofMillis(2000),
@@ -178,7 +177,7 @@ public class AdvancedRerollerHandler implements Listener {
         elementManager.applyUpsides(player);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
 
-        player.sendMessage(ChatColor.GREEN + "Your element has been rerolled");
+        player.sendMessage(Component.text("Your element has been rerolled").color(NamedTextColor.GREEN));
     }
 
     private void clearOldElementEffects(Player player, PlayerData playerData) {

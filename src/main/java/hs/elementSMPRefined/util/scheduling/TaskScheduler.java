@@ -5,29 +5,31 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 /**
- * Enhanced task scheduler with async support, task management, and better timing utilities.
- * Provides comprehensive scheduling capabilities with task tracking and cancellation.
+ * Thin wrapper around Bukkit's scheduler for the plugin's basic task-scheduling
+ * needs (sync/async, delayed, repeating).
+ * <p>
+ * There used to be a lot more on this class - named task registries, per-player
+ * task tracking/cancellation, retry/timeout/sequence helpers - none of which
+ * were ever actually called anywhere in the plugin. That surface was deleted
+ * rather than kept "just in case"; add it back deliberately, with a real call
+ * site, if a future feature needs it. Only the methods with an actual caller
+ * (or that are trivial one-line Bukkit wrappers other code is likely to reach
+ * for next) were kept.
+ * <p>
+ * Always use {@code plugin.getTaskScheduler()} rather than constructing a new
+ * instance - there was previously a bug where a second, unrelated instance got
+ * created in {@code PlayerLifecycle}, which is exactly the kind of bug this
+ * class exists to avoid if there's ever a reason to track tasks by name again.
  */
 public final class TaskScheduler {
     private final JavaPlugin plugin;
-    private final Map<String, BukkitTask> namedTasks = new ConcurrentHashMap<>();
-    private final Map<UUID, Map<String, BukkitTask>> playerTasks = new ConcurrentHashMap<>();
 
     public TaskScheduler(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
-    /**
-     * Run a task immediately on the main thread
-     */
+    /** Run a task immediately on the main thread. */
     public BukkitTask runNow(Runnable task) {
         return new BukkitRunnable() {
             @Override
@@ -37,9 +39,7 @@ public final class TaskScheduler {
         }.runTask(plugin);
     }
 
-    /**
-     * Run a task later on the main thread
-     */
+    /** Run a task later on the main thread. */
     public BukkitTask runLater(Runnable task, long delayTicks) {
         return new BukkitRunnable() {
             @Override
@@ -49,16 +49,12 @@ public final class TaskScheduler {
         }.runTaskLater(plugin, delayTicks);
     }
 
-    /**
-     * Run a task later in seconds
-     */
+    /** Run a task later on the main thread, with the delay given in seconds. */
     public BukkitTask runLaterSeconds(Runnable task, int seconds) {
         return runLater(task, seconds * Constants.Timing.TICKS_PER_SECOND);
     }
 
-    /**
-     * Run a repeating task on the main thread
-     */
+    /** Run a repeating task on the main thread. */
     public BukkitTask runTimer(Runnable task, long delayTicks, long periodTicks) {
         return new BukkitRunnable() {
             @Override
@@ -68,19 +64,7 @@ public final class TaskScheduler {
         }.runTaskTimer(plugin, delayTicks, periodTicks);
     }
 
-    /**
-     * Run a repeating task in seconds
-     */
-    public BukkitTask runTimerSeconds(Runnable task, int delaySeconds, int periodSeconds) {
-        return runTimer(task,
-                delaySeconds * Constants.Timing.TICKS_PER_SECOND,
-                periodSeconds * Constants.Timing.TICKS_PER_SECOND
-        );
-    }
-
-    /**
-     * Run a task asynchronously
-     */
+    /** Run a task asynchronously (off the main thread). */
     public BukkitTask runAsync(Runnable task) {
         return new BukkitRunnable() {
             @Override
@@ -91,317 +75,10 @@ public final class TaskScheduler {
     }
 
     /**
-     * Run a task asynchronously after a delay
-     */
-    public BukkitTask runAsyncLater(Runnable task, long delayTicks) {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        }.runTaskLaterAsynchronously(plugin, delayTicks);
-    }
-
-    /**
-     * Run a repeating task asynchronously
-     */
-    public BukkitTask runAsyncTimer(Runnable task, long delayTicks, long periodTicks) {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        }.runTaskTimerAsynchronously(plugin, delayTicks, periodTicks);
-    }
-
-    /**
-     * Run a named task that can be cancelled by name
-     */
-    public BukkitTask runNamed(String name, Runnable task, long delayTicks) {
-        cancelNamed(name); // Cancel existing task with same name
-        BukkitTask bukkitTask = runLater(task, delayTicks);
-        namedTasks.put(name, bukkitTask);
-        return bukkitTask;
-    }
-
-    /**
-     * Run a named repeating task
-     */
-    public BukkitTask runNamedTimer(String name, Runnable task, long delayTicks, long periodTicks) {
-        cancelNamed(name); // Cancel existing task with same name
-        BukkitTask bukkitTask = runTimer(task, delayTicks, periodTicks);
-        namedTasks.put(name, bukkitTask);
-        return bukkitTask;
-    }
-
-    /**
-     * Cancel a named task
-     */
-    public void cancelNamed(String name) {
-        BukkitTask task = namedTasks.remove(name);
-        if (task != null && !task.isCancelled()) {
-            task.cancel();
-        }
-    }
-
-    /**
-     * Check if a named task exists
-     */
-    public boolean hasNamedTask(String name) {
-        BukkitTask task = namedTasks.get(name);
-        return task != null && !task.isCancelled();
-    }
-
-    /**
-     * Run a task for a specific player
-     */
-    public BukkitTask runForPlayer(UUID playerId, String taskName, Runnable task, long delayTicks) {
-        cancelPlayerTask(playerId, taskName);
-
-        Map<String, BukkitTask> tasks = playerTasks.computeIfAbsent(playerId, k -> new HashMap<>());
-        BukkitTask bukkitTask = runLater(task, delayTicks);
-        tasks.put(taskName, bukkitTask);
-        return bukkitTask;
-    }
-
-    /**
-     * Run a repeating task for a specific player
-     */
-    public BukkitTask runTimerForPlayer(UUID playerId, String taskName, Runnable task,
-                                       long delayTicks, long periodTicks) {
-        cancelPlayerTask(playerId, taskName);
-
-        Map<String, BukkitTask> tasks = playerTasks.computeIfAbsent(playerId, k -> new HashMap<>());
-        BukkitTask bukkitTask = runTimer(task, delayTicks, periodTicks);
-        tasks.put(taskName, bukkitTask);
-        return bukkitTask;
-    }
-
-    /**
-     * Cancel a specific player's task
-     */
-    public void cancelPlayerTask(UUID playerId, String taskName) {
-        Map<String, BukkitTask> tasks = playerTasks.get(playerId);
-        if (tasks != null) {
-            BukkitTask task = tasks.remove(taskName);
-            if (task != null && !task.isCancelled()) {
-                task.cancel();
-            }
-        }
-    }
-
-    /**
-     * Cancel all tasks for a specific player
-     */
-    public void cancelAllPlayerTasks(UUID playerId) {
-        Map<String, BukkitTask> tasks = playerTasks.remove(playerId);
-        if (tasks != null) {
-            tasks.values().forEach(task -> {
-                if (!task.isCancelled()) {
-                    task.cancel();
-                }
-            });
-        }
-    }
-
-    /**
-     * Run a task repeatedly until a condition is met
-     */
-    public BukkitTask runUntil(Runnable task, Supplier<Boolean> condition,
-                              long delayTicks, long periodTicks) {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (condition.get()) {
-                    this.cancel();
-                } else {
-                    task.run();
-                }
-            }
-        }.runTaskTimer(plugin, delayTicks, periodTicks);
-    }
-
-    /**
-     * Run a task repeatedly while a condition is true
-     */
-    public BukkitTask runWhile(Runnable task, Supplier<Boolean> condition,
-                               long delayTicks, long periodTicks) {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (condition.get()) {
-                    task.run();
-                } else {
-                    this.cancel();
-                }
-            }
-        }.runTaskTimer(plugin, delayTicks, periodTicks);
-    }
-
-    /**
-     * Run a task after a condition is met
-     */
-    public BukkitTask runWhen(Runnable task, Supplier<Boolean> condition, long checkInterval) {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (condition.get()) {
-                    task.run();
-                    this.cancel();
-                }
-            }
-        }.runTaskTimer(plugin, 0, checkInterval);
-    }
-
-    /**
-     * Run multiple tasks in sequence
-     */
-    public BukkitTask runSequence(Runnable... tasks) {
-        if (tasks.length == 0) return null;
-
-        return new BukkitRunnable() {
-            private int index = 0;
-
-            @Override
-            public void run() {
-                if (index < tasks.length) {
-                    tasks[index].run();
-                    index++;
-                } else {
-                    this.cancel();
-                }
-            }
-        }.runTaskTimer(plugin, 0, 1);
-    }
-
-    /**
-     * Run tasks with delays between them
-     */
-    public BukkitTask runSequenceWithDelays(long delayBetween, Runnable... tasks) {
-        if (tasks.length == 0) return null;
-
-        return new BukkitRunnable() {
-            private int index = 0;
-            private long ticksSinceLast = 0;
-
-            @Override
-            public void run() {
-                ticksSinceLast++;
-                if (ticksSinceLast >= delayBetween) {
-                    if (index < tasks.length) {
-                        tasks[index].run();
-                        index++;
-                        ticksSinceLast = 0;
-                    } else {
-                        this.cancel();
-                    }
-                }
-            }
-        }.runTaskTimer(plugin, 0, 1);
-    }
-
-    /**
-     * Run a task after player load
+     * Run a task shortly after a player-related event, once their client-side
+     * state has had a moment to settle (join, respawn, totem pop, etc).
      */
     public BukkitTask runAfterPlayerLoad(Runnable task) {
         return runLater(task, Constants.Timing.HALF_SECOND);
     }
-
-    /**
-     * Run a cleanup task
-     */
-    public BukkitTask runCleanup(Runnable task) {
-        return runLater(task, Constants.Animation.TAP_CLEANUP_DELAY);
-    }
-
-    /**
-     * Run a task with retry logic
-     */
-    public BukkitTask runWithRetry(Runnable task, int maxAttempts, long delayBetweenAttempts) {
-        return new BukkitRunnable() {
-            private int attempts = 0;
-
-            @Override
-            public void run() {
-                try {
-                    task.run();
-                    this.cancel(); // Success, cancel retry
-                } catch (Exception e) {
-                    attempts++;
-                    if (attempts >= maxAttempts) {
-                        this.cancel(); // Max attempts reached
-                    }
-                }
-            }
-        }.runTaskTimer(plugin, 0, delayBetweenAttempts);
-    }
-
-    /**
-     * Run a task with timeout
-     */
-    public BukkitTask runWithTimeout(Runnable task, long timeoutTicks, Consumer<Exception> onTimeout) {
-        BukkitTask timeoutTask = runLater(() -> {
-            onTimeout.accept(new RuntimeException("Task timed out"));
-        }, timeoutTicks);
-
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                timeoutTask.cancel();
-                task.run();
-                this.cancel();
-            }
-        }.runTask(plugin);
-    }
-
-    /**
-     * Cancel all tasks managed by this scheduler
-     */
-    public void cancelAll() {
-        namedTasks.values().forEach(task -> {
-            if (!task.isCancelled()) {
-                task.cancel();
-            }
-        });
-        namedTasks.clear();
-
-        playerTasks.values().forEach(tasks -> {
-            tasks.values().forEach(task -> {
-                if (!task.isCancelled()) {
-                    task.cancel();
-                }
-            });
-        });
-        playerTasks.clear();
-    }
-
-    /**
-     * Get the number of active tasks
-     */
-    public int getActiveTaskCount() {
-        int count = (int) namedTasks.values().stream()
-                .filter(task -> !task.isCancelled())
-                .count();
-
-        count += playerTasks.values().stream()
-                .flatMap(tasks -> tasks.values().stream())
-                .filter(task -> !task.isCancelled())
-                .count();
-
-        return count;
-    }
-
-    /**
-     * Clean up tasks for offline players
-     */
-    public void cleanupOfflinePlayers(java.util.Set<UUID> onlinePlayers) {
-        playerTasks.keySet().removeIf(playerId -> {
-            if (!onlinePlayers.contains(playerId)) {
-                cancelAllPlayerTasks(playerId);
-                return true;
-            }
-            return false;
-        });
-    }
 }
-

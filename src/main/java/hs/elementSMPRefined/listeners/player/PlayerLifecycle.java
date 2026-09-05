@@ -53,7 +53,7 @@ public class PlayerLifecycle implements Listener {
         this.manaManager = manaManager;
         this.effectService = effectService;
         this.disarmManager = disarmManager;
-        this.scheduler = new TaskScheduler(plugin);
+        this.scheduler = plugin.getTaskScheduler();
         this.frostPassiveListener = frostPassiveListener;
         this.airFallImpactListener = airFallImpactListener;
         this.guiListener = guiListener;

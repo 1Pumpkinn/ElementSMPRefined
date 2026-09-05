@@ -1,16 +1,12 @@
 package hs.elementSMPRefined.items.recipes;
 
 import hs.elementSMPRefined.items.ItemKeys;
+import hs.elementSMPRefined.items.builder.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.List;
 
 public final class Upgrader1Item {
     private Upgrader1Item() {}
@@ -18,14 +14,11 @@ public final class Upgrader1Item {
     public static final String KEY = "upgrader_1";
 
     public static ItemStack make(JavaPlugin plugin) {
-        ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§aUpgrader I");
-        meta.setLore(List.of("Use by crafting to unlock", "Ability 1 for your element"));
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        pdc.set(ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER, 1);
-        item.setItemMeta(meta);
-        return item;
+        return ItemBuilder.of(Material.AMETHYST_SHARD)
+                .name("&aUpgrader I")
+                .lore("Use by crafting to unlock", "Ability 1 for your element")
+                .data(ItemKeys.upgraderLevel(plugin), 1)
+                .build();
     }
 
     public static void registerRecipe(JavaPlugin plugin) {

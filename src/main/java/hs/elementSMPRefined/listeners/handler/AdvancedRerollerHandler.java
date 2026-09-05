@@ -5,6 +5,7 @@ import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import net.kyori.adventure.title.Title;
 import org.bukkit.ChatColor;
@@ -59,8 +60,7 @@ public class AdvancedRerollerHandler implements Listener {
     }
 
     private boolean isAdvancedReroller(ItemStack item) {
-        return item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer()
-                .has(ItemKeys.advancedReroller(plugin), PersistentDataType.BYTE);
+        return ItemUtil.hasTag(item, ItemKeys.advancedReroller(plugin), PersistentDataType.BYTE);
     }
 
     /**

@@ -5,16 +5,15 @@ import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
@@ -61,19 +60,12 @@ public class UpgraderHandler implements Listener {
         
         Material type = item.getType();
         if (type != Material.AMETHYST_SHARD && type != Material.ECHO_SHARD) return false;
-        
-        if (!item.hasItemMeta()) return false;
-        
-        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
-        NamespacedKey upgraderKey = ItemKeys.upgraderLevel(plugin);
-        
-        return pdc.has(upgraderKey, PersistentDataType.INTEGER);
+
+        return ItemUtil.hasTag(item, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER);
     }
 
     private int getUpgraderLevel(ItemStack item) {
-        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
-        NamespacedKey upgraderKey = ItemKeys.upgraderLevel(plugin);
-        return pdc.get(upgraderKey, PersistentDataType.INTEGER);
+        return ItemUtil.getTag(item, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER).orElseThrow();
     }
 
     private void handleUpgradeI(Player player, ItemStack item, PlayerData playerData, 

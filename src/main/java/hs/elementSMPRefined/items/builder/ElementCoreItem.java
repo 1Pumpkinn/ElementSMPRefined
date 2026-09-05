@@ -6,9 +6,6 @@ import hs.elementSMPRefined.items.ItemKeys;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.util.HashMap;
 import java.util.List;
@@ -66,39 +63,29 @@ public final class ElementCoreItem {
         ElementCoreProperties props = properties(type);
         if (props == null) return null;
 
-        ItemStack item = new ItemStack(props.material());
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(props.color() + props.displayName());
-            if (props.lore() != null) {
-                meta.setLore(props.lore());
-            }
-            PersistentDataContainer pdc = meta.getPersistentDataContainer();
-            pdc.set(ItemKeys.elementType(plugin), PersistentDataType.STRING, type.name());
-            pdc.set(ItemKeys.elementItem(plugin), PersistentDataType.BYTE, (byte) 1);
-
-            item.setItemMeta(meta);
-        }
-        return item;
+        return buildCore(plugin, props, type.name());
     }
 
     public static ItemStack createCore(JavaPlugin plugin, ElementId id) {
         ElementCoreProperties props = properties(id);
         if (props == null) return null;
 
-        ItemStack item = new ItemStack(props.material());
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(props.color() + props.displayName());
-            if (props.lore() != null) {
-                meta.setLore(props.lore());
-            }
-            PersistentDataContainer pdc = meta.getPersistentDataContainer();
-            pdc.set(ItemKeys.elementType(plugin), PersistentDataType.STRING, id.toString());
-            pdc.set(ItemKeys.elementItem(plugin), PersistentDataType.BYTE, (byte) 1);
-            item.setItemMeta(meta);
+        return buildCore(plugin, props, id.toString());
+    }
+
+    private static ItemStack buildCore(JavaPlugin plugin, ElementCoreProperties props, String elementTypeValue) {
+        ItemBuilder builder = ItemBuilder.of(props.material())
+                // Name already carries a resolved ChatColor, not a raw '&' code -
+                // rawName() skips the color-code translation ItemBuilder#name() does.
+                .rawName(props.color() + props.displayName())
+                .data(ItemKeys.elementType(plugin), elementTypeValue)
+                .data(ItemKeys.elementItem(plugin), (byte) 1);
+
+        if (props.lore() != null) {
+            builder.rawLore(props.lore());
         }
-        return item;
+
+        return builder.build();
     }
 
     public static String getDisplayName(ElementType type) {

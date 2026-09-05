@@ -6,6 +6,7 @@ import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -14,7 +15,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
@@ -35,25 +35,22 @@ public class ElementItemCraftingListener implements Listener {
         
         ItemStack result = event.getRecipe() == null ? null : event.getRecipe().getResult();
         if (result == null) return;
-        
-        ItemMeta meta = result.getItemMeta();
-        if (meta == null) return;
 
-        Integer upgraderLevel = meta.getPersistentDataContainer()
-                .get(ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER);
-        
+        Integer upgraderLevel = ItemUtil.getTag(result, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER)
+                .orElse(null);
+
         if (upgraderLevel != null) {
             handleUpgraderCrafting(event, player, upgraderLevel);
             return;
         }
 
-        Byte isElementItem = meta.getPersistentDataContainer()
-                .get(ItemKeys.elementItem(plugin), PersistentDataType.BYTE);
-        
+        Byte isElementItem = ItemUtil.getTag(result, ItemKeys.elementItem(plugin), PersistentDataType.BYTE)
+                .orElse(null);
+
         if (isElementItem != null && isElementItem == 1) {
-            String typeString = meta.getPersistentDataContainer()
-                    .get(ItemKeys.elementType(plugin), PersistentDataType.STRING);
-            
+            String typeString = ItemUtil.getTag(result, ItemKeys.elementType(plugin), PersistentDataType.STRING)
+                    .orElse(null);
+
             try {
                 ElementType type = ElementType.valueOf(typeString);
                 if (isBasicElement(type)) {

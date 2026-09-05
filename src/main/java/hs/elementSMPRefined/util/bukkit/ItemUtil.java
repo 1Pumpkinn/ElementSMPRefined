@@ -4,9 +4,10 @@ import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.items.ItemKeys;
-import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Optional;
@@ -20,12 +21,37 @@ public final class ItemUtil {
     private ItemUtil() {}
 
     /**
+     * Safely get an item's PersistentDataContainer, if it has meta at all.
+     * Replaces the repeated {@code item.hasItemMeta() ? item.getItemMeta()
+     * .getPersistentDataContainer() : ...} null-check dance that used to be
+     * copy-pasted across GUIListener, UpgraderHandler, RerollerHandler,
+     * AdvancedRerollerHandler, and ElementItemCraftingListener.
+     */
+    public static Optional<PersistentDataContainer> pdc(ItemStack stack) {
+        if (stack == null || !stack.hasItemMeta()) return Optional.empty();
+        return Optional.of(stack.getItemMeta().getPersistentDataContainer());
+    }
+
+    /**
+     * Check whether an item has a given PersistentDataContainer key set at all,
+     * regardless of value - useful for boolean-flag-style tags.
+     */
+    public static <T, Z> boolean hasTag(ItemStack stack, NamespacedKey key, PersistentDataType<T, Z> type) {
+        return pdc(stack).map(c -> c.has(key, type)).orElse(false);
+    }
+
+    /**
+     * Read a PersistentDataContainer value from an item, if present.
+     */
+    public static <T, Z> Optional<Z> getTag(ItemStack stack, NamespacedKey key, PersistentDataType<T, Z> type) {
+        return pdc(stack).map(c -> c.get(key, type));
+    }
+
+    /**
      * Check if an item stack is an element item
      */
     public static boolean isElementItem(ElementSMPRefined plugin, ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) return false;
-        Byte flag = stack.getItemMeta().getPersistentDataContainer()
-                .get(ItemKeys.elementItem(plugin), PersistentDataType.BYTE);
+        Byte flag = getTag(stack, ItemKeys.elementItem(plugin), PersistentDataType.BYTE).orElse(null);
         return flag != null && flag == (byte)1;
     }
 
@@ -55,9 +81,7 @@ public final class ItemUtil {
 
     /** Read both canonical namespaced IDs and legacy enum names from core items. */
     public static Optional<ElementId> getElementIdOptional(ElementSMPRefined plugin, ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) return Optional.empty();
-        String value = stack.getItemMeta().getPersistentDataContainer()
-                .get(ItemKeys.elementType(plugin), PersistentDataType.STRING);
+        String value = getTag(stack, ItemKeys.elementType(plugin), PersistentDataType.STRING).orElse(null);
         if (value == null) return Optional.empty();
         try {
             return Optional.of(value.contains(":")
@@ -87,7 +111,7 @@ public final class ItemUtil {
     public static ItemStack setCustomData(ElementSMPRefined plugin, ItemStack stack, String key, String value) {
         return modifyMeta(stack, meta -> {
             meta.getPersistentDataContainer().set(
-                    new org.bukkit.NamespacedKey(plugin, key),
+                    new NamespacedKey(plugin, key),
                     PersistentDataType.STRING,
                     value
             );
@@ -98,24 +122,7 @@ public final class ItemUtil {
      * Get a custom persistent data value from an item
      */
     public static Optional<String> getCustomData(ElementSMPRefined plugin, ItemStack stack, String key) {
-        if (stack == null || !stack.hasItemMeta()) return Optional.empty();
-        String value = stack.getItemMeta().getPersistentDataContainer()
-                .get(new org.bukkit.NamespacedKey(plugin, key), PersistentDataType.STRING);
-        return Optional.ofNullable(value);
-    }
-
-    /**
-     * Create a builder for item stack creation
-     */
-    public static ItemBuilder builder(Material material) {
-        return new ItemBuilder(material);
-    }
-
-    /**
-     * Create a builder from existing item stack
-     */
-    public static ItemBuilder builder(ItemStack stack) {
-        return new ItemBuilder(stack);
+        return getTag(stack, new NamespacedKey(plugin, key), PersistentDataType.STRING);
     }
 
     /**
@@ -171,75 +178,5 @@ public final class ItemUtil {
         return amount - remaining;
     }
 
-    /**
-     * Builder class for creating ItemStacks with a fluent API
-     */
-    public static class ItemBuilder {
-        private final ItemStack item;
-        private final ItemMeta meta;
-
-        public ItemBuilder(Material material) {
-            this.item = new ItemStack(material);
-            this.meta = item.getItemMeta();
-        }
-
-        public ItemBuilder(ItemStack stack) {
-            this.item = stack.clone();
-            this.meta = item.getItemMeta();
-        }
-
-        public ItemBuilder amount(int amount) {
-            item.setAmount(amount);
-            return this;
-        }
-
-        public ItemBuilder name(String name) {
-            meta.setDisplayName(name);
-            return this;
-        }
-
-        public ItemBuilder lore(String... lore) {
-            meta.setLore(java.util.Arrays.asList(lore));
-            return this;
-        }
-
-        public ItemBuilder unbreakable(boolean unbreakable) {
-            meta.setUnbreakable(unbreakable);
-            return this;
-        }
-
-        public ItemBuilder customModelData(int data) {
-            meta.setCustomModelData(data);
-            return this;
-        }
-
-        public ItemBuilder enchant(org.bukkit.enchantments.Enchantment enchantment, int level) {
-            meta.addEnchant(enchantment, level, true);
-            return this;
-        }
-
-        public ItemBuilder persistentData(ElementSMPRefined plugin, String key, String value) {
-            meta.getPersistentDataContainer().set(
-                    new org.bukkit.NamespacedKey(plugin, key),
-                    PersistentDataType.STRING,
-                    value
-            );
-            return this;
-        }
-
-        public ItemBuilder persistentData(ElementSMPRefined plugin, String key, int value) {
-            meta.getPersistentDataContainer().set(
-                    new org.bukkit.NamespacedKey(plugin, key),
-                    PersistentDataType.INTEGER,
-                    value
-            );
-            return this;
-        }
-
-        public ItemStack build() {
-            item.setItemMeta(meta);
-            return item;
-        }
-    }
 }
 

@@ -4,6 +4,7 @@ import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.gui.ElementSelectionGUI;
 import hs.elementSMPRefined.items.ItemKeys;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
@@ -131,13 +132,13 @@ public class GUIListener implements Listener {
         }
 
         // Check if this is an element item
-        var pdc = item.getItemMeta().getPersistentDataContainer();
-        if (!pdc.has(ItemKeys.elementItem(plugin), PersistentDataType.BYTE)) {
+        if (!ItemUtil.hasTag(item, ItemKeys.elementItem(plugin), PersistentDataType.BYTE)) {
             return;
         }
 
         // Get the element type from the item
-        String elementTypeString = pdc.get(ItemKeys.elementType(plugin), PersistentDataType.STRING);
+        String elementTypeString = ItemUtil.getTag(item, ItemKeys.elementType(plugin), PersistentDataType.STRING)
+                .orElse(null);
         if (elementTypeString == null) {
             player.sendMessage(Component.text("Invalid element item!")
                     .color(NamedTextColor.RED));

@@ -1,17 +1,12 @@
 package hs.elementSMPRefined.items.recipes;
 
 import hs.elementSMPRefined.items.ItemKeys;
-import org.bukkit.ChatColor;
+import hs.elementSMPRefined.items.builder.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.List;
 
 public final class AdvancedRerollerItem {
     private AdvancedRerollerItem() {}
@@ -19,17 +14,14 @@ public final class AdvancedRerollerItem {
     public static final String KEY = "advanced_reroller";
 
     public static ItemStack make(JavaPlugin plugin) {
-        ItemStack item = new ItemStack(Material.RECOVERY_COMPASS);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_PURPLE + "Advanced Reroller");
-        meta.setLore(List.of(
-                ChatColor.GRAY + "Unlocks advanced elements",
-                ChatColor.YELLOW + "Right-click to reroll"
-        ));
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        pdc.set(ItemKeys.advancedReroller(plugin), PersistentDataType.BYTE, (byte)1);
-        item.setItemMeta(meta);
-        return item;
+        return ItemBuilder.of(Material.RECOVERY_COMPASS)
+                .name("&5Advanced Reroller")
+                .lore(
+                        "&7Unlocks advanced elements",
+                        "&eRight-click to reroll"
+                )
+                .data(ItemKeys.advancedReroller(plugin), (byte) 1)
+                .build();
     }
 
     public static void registerRecipe(JavaPlugin plugin) {
@@ -52,4 +44,3 @@ public final class AdvancedRerollerItem {
         }
     }
 }
-

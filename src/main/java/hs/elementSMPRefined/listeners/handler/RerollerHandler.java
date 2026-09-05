@@ -6,6 +6,7 @@ import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
+import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -65,8 +66,7 @@ public class RerollerHandler implements Listener {
     }
 
     private boolean isReroller(ItemStack item) {
-        return item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer()
-                .has(ItemKeys.reroller(plugin), PersistentDataType.BYTE);
+        return ItemUtil.hasTag(item, ItemKeys.reroller(plugin), PersistentDataType.BYTE);
     }
 
     /**

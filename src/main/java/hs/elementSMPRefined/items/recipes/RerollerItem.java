@@ -1,17 +1,12 @@
 package hs.elementSMPRefined.items.recipes;
 
 import hs.elementSMPRefined.items.ItemKeys;
-import org.bukkit.ChatColor;
+import hs.elementSMPRefined.items.builder.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.List;
 
 public final class RerollerItem {
     private RerollerItem() {}
@@ -19,17 +14,14 @@ public final class RerollerItem {
     public static final String KEY = "element_reroller";
 
     public static ItemStack make(JavaPlugin plugin) {
-        ItemStack item = new ItemStack(Material.HEART_OF_THE_SEA);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Element Reroller");
-        meta.setLore(List.of(
-            ChatColor.GRAY + "Allows you to change your element",
-            ChatColor.YELLOW + "Right-click to randomly reroll your element"
-        ));
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        pdc.set(ItemKeys.reroller(plugin), PersistentDataType.BYTE, (byte)1);
-        item.setItemMeta(meta);
-        return item;
+        return ItemBuilder.of(Material.HEART_OF_THE_SEA)
+                .name("&dElement Reroller")
+                .lore(
+                        "&7Allows you to change your element",
+                        "&eRight-click to randomly reroll your element"
+                )
+                .data(ItemKeys.reroller(plugin), (byte) 1)
+                .build();
     }
 
     public static void registerRecipe(JavaPlugin plugin) {

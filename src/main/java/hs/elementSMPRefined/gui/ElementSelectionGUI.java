@@ -2,6 +2,7 @@ package hs.elementSMPRefined.gui;
 
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.items.builder.ItemBuilder;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.Bukkit;
@@ -11,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -73,16 +73,12 @@ public class ElementSelectionGUI implements InventoryHolder {
     }
 
     private ItemStack createBorderItem() {
-        ItemStack border = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        ItemMeta meta = border.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(" ");
-            border.setItemMeta(meta);
-        }
-        return border;
+        return ItemBuilder.of(Material.BLACK_STAINED_GLASS_PANE)
+                .rawName(" ")
+                .build();
     }
 
-    private ItemStack createElementItem(ElementType type) {
+    private ItemStack createElementItem(ElementType type, List<String> lore) {
         Material material;
         ChatColor color;
         String name;
@@ -114,16 +110,10 @@ public class ElementSelectionGUI implements InventoryHolder {
                 name = "Unknown";
         }
 
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(color + name);
-            List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.GRAY + "Rolling...");
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-        }
-        return item;
+        return ItemBuilder.of(material)
+                .rawName(color + name)
+                .rawLore(lore)
+                .build();
     }
 
     private void startAnimation() {
@@ -179,36 +169,22 @@ public class ElementSelectionGUI implements InventoryHolder {
 
     private void updateCenterSlot() {
         ElementType currentElement = BASIC_ELEMENTS[currentIndex];
-        ItemStack item = createElementItem(currentElement);
 
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            List<String> lore = new ArrayList<>();
-            if (isAnimating && ticksElapsed < 20) {
-                lore.add(ChatColor.GRAY + "Rolling...");
-            } else if (currentElement == selectedElement && ticksElapsed >= 20) {
-                lore.add(ChatColor.GREEN + "Selected!");
-            }
-            meta.setLore(lore);
-            item.setItemMeta(meta);
+        List<String> lore = new ArrayList<>();
+        if (isAnimating && ticksElapsed < 20) {
+            lore.add(ChatColor.GRAY + "Rolling...");
+        } else if (currentElement == selectedElement && ticksElapsed >= 20) {
+            lore.add(ChatColor.GREEN + "Selected!");
         }
 
-        inventory.setItem(13, item);
+        inventory.setItem(13, createElementItem(currentElement, lore));
     }
 
     private void finishAnimation() {
         isAnimating = false;
 
-        ItemStack finalItem = createElementItem(selectedElement);
-        ItemMeta meta = finalItem.getItemMeta();
-        if (meta != null) {
-            List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "SELECTED!");
-            meta.setLore(lore);
-            finalItem.setItemMeta(meta);
-        }
-
-        inventory.setItem(13, finalItem);
+        List<String> lore = List.of(ChatColor.GREEN + "" + ChatColor.BOLD + "SELECTED!");
+        inventory.setItem(13, createElementItem(selectedElement, lore));
 
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
         SoundUtils.playTo(player, SoundUtils.Ability.ACTIVATE);

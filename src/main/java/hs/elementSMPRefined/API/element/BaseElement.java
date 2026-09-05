@@ -54,6 +54,15 @@ public abstract class BaseElement implements Element {
     /**
      * Shared activation flow: check upgrade level, let an active/cancellable ability
      * toggle off for free, otherwise check and spend mana on a successful cast.
+     * <p>
+     * Cost is spent BEFORE {@link Ability#execute} runs, not after. If the ability
+     * fails (returns false), the cost is refunded. This ordering matters for
+     * anything that hands mana back to the caster mid-execute (e.g. a mana-steal
+     * ability restoring stolen mana) - {@link ManaManager#restore} caps at max
+     * mana, so restoring while the caster still has their pre-cost mana sitting
+     * there (as happened when cost was spent afterward) silently ate the stolen
+     * amount into that cap whenever the caster was at or near full mana. Spending
+     * the cost first opens up headroom under the cap for the steal to actually land in.
      */
     private boolean activate(ElementContext context, Ability ability, int requiredLevel, int cost,
                              java.util.function.Predicate<ElementContext> canCancel) {
@@ -67,10 +76,13 @@ public abstract class BaseElement implements Element {
 
         if (!hasMana(player, context.getManaManager(), cost)) return false;
 
+        context.getManaManager().spend(player, cost);
         if (ability.execute(context)) {
-            context.getManaManager().spend(player, cost);
             return true;
         }
+        // Ability didn't go through (no target, blocked, etc.) - refund the cost
+        // that was pre-spent above so a failed cast stays free, like before.
+        context.getManaManager().restore(player, cost);
         return false;
     }
 

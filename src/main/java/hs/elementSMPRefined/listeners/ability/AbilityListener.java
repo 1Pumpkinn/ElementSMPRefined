@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.listeners.ability;
 
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.PlayerData;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.status.DisarmManager;
@@ -18,9 +19,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AbilityListener implements Listener {
-    private static final long DOUBLE_TAP_THRESHOLD_MS = 250;
-    private static final long CHECK_DELAY_TICKS = 6;
-    private static final long CLEANUP_DELAY_TICKS = 2;
     private static final Component ABILITY_DISARMED = Component.text(
             "You are disarmed and cannot use abilities!", NamedTextColor.RED);
 
@@ -90,7 +88,7 @@ public class AbilityListener implements Listener {
                     scheduleCleanup(playerId);
                 }
             }
-        }.runTaskLater(plugin, CHECK_DELAY_TICKS);
+        }.runTaskLater(plugin, Constants.Animation.TAP_CHECK_DELAY);
     }
 
     private void scheduleCleanup(UUID playerId) {
@@ -99,7 +97,7 @@ public class AbilityListener implements Listener {
             public void run() {
                 tapTrackers.remove(playerId);
             }
-        }.runTaskLater(plugin, CLEANUP_DELAY_TICKS);
+        }.runTaskLater(plugin, Constants.Animation.TAP_CLEANUP_DELAY);
     }
 
     private static class TapTracker {
@@ -107,7 +105,7 @@ public class AbilityListener implements Listener {
         private boolean wasShiftHeld = false;
 
         boolean isDoubleTap(long currentTime) {
-            return lastTapTime > 0 && (currentTime - lastTapTime) <= DOUBLE_TAP_THRESHOLD_MS;
+            return lastTapTime > 0 && (currentTime - lastTapTime) <= Constants.Animation.DOUBLE_TAP_THRESHOLD_MS;
         }
 
         void recordTap(long time, boolean shiftHeld) {

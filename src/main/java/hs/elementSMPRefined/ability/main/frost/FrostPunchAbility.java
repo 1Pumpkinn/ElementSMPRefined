@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.ability.main.frost;
 
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
@@ -27,7 +28,7 @@ public class FrostPunchAbility extends BaseAbility {
         Player player = context.getPlayer();
 
         // Set metadata indicating the next punch will freeze
-        long until = System.currentTimeMillis() + 10_000L; // 10 seconds to use it
+        long until = System.currentTimeMillis() + Constants.Duration.FROST_PUNCH_READY_MS;
         player.setMetadata(META_FROZEN_PUNCH_READY, new FixedMetadataValue(plugin, until));
 
         // Visual and audio feedback

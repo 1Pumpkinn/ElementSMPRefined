@@ -12,11 +12,6 @@ public enum StatusEffectType {
     FREEZE,
     BLEED,
     BURN,
-    POISON,
-    BLIND,
-    WITHER,
-    FEAR,
-    CONFUSION,
     ROOT,
 
     FULL_STUN,           // Cannot move, look around, or interact

@@ -1,5 +1,6 @@
 package hs.elementSMPRefined.ability.main.life;
 
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
@@ -26,7 +27,7 @@ public class LifeRegenAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
-        int radius = 5;
+        double radius = Constants.Distance.LIFE_REGEN_RADIUS;
         
         // Show radius with red dust particles (like redstone) that follow the player
         new BukkitRunnable() {

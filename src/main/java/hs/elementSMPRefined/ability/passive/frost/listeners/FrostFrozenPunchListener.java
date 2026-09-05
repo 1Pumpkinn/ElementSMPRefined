@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.ability.passive.frost.listeners;
 
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.frost.FrostPunchAbility;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -81,7 +82,7 @@ public class FrostFrozenPunchListener implements Listener {
     }
 
     private void applyFreezeEffect(LivingEntity entity) {
-        long freezeUntil = System.currentTimeMillis() + 5000L; // 5 seconds
+        long freezeUntil = System.currentTimeMillis() + Constants.Duration.FROST_FREEZE_MS;
         entity.setMetadata(META_FROZEN, new FixedMetadataValue(plugin, freezeUntil));
 
         entity.setFreezeTicks(entity.getMaxFreezeTicks());

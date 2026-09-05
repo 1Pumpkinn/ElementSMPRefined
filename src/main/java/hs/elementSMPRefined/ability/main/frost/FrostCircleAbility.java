@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.ability.main.frost;
 
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
@@ -50,11 +51,11 @@ public class FrostCircleAbility extends BaseAbility {
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0f, 0.5f);
 
         final Location centerLocation = player.getLocation().clone();
-        final double radius = 5.0;
+        final double radius = Constants.Distance.FROST_CIRCLE_RADIUS;
 
         new BukkitRunnable() {
             int ticks = 0;
-            final int maxTicks = 200; // 10 seconds
+            final int maxTicks = (int) (Constants.Duration.FROST_CIRCLE_MS / 50L); // ms -> ticks
 
             @Override
             public void run() {

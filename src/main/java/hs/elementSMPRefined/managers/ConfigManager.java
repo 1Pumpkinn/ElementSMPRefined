@@ -2,6 +2,7 @@ package hs.elementSMPRefined.managers;
 
 import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ElementType;
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.config.ElementConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -17,8 +18,6 @@ public class ConfigManager {
 
     // Defaults - named so they're not scattered as unexplained numbers
     // through every getter below.
-    private static final int DEFAULT_MAX_MANA = 100;
-    private static final int DEFAULT_MANA_REGEN_PER_SECOND = 1;
     private static final int DEFAULT_ABILITY_1_COST = 30;
     private static final int DEFAULT_ABILITY_2_COST = 60;
     private static final boolean DEFAULT_STATUS_EFFECTS_ENABLED = true;
@@ -78,11 +77,11 @@ public class ConfigManager {
 
     // Mana settings
     public int getMaxMana() {
-        return getIntSafe("mana.max", DEFAULT_MAX_MANA);
+        return getIntSafe("mana.max", Constants.Mana.DEFAULT_MAX);
     }
 
     public int getManaRegenPerSecond() {
-        return getIntSafe("mana.regen_per_second", DEFAULT_MANA_REGEN_PER_SECOND);
+        return getIntSafe("mana.regen_per_second", Constants.Mana.DEFAULT_REGEN);
     }
 
     /**

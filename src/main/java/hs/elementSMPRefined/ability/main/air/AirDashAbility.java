@@ -1,5 +1,6 @@
 package hs.elementSMPRefined.ability.main.air;
 
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
@@ -43,7 +44,7 @@ public class AirDashAbility extends BaseAbility {
 				player.getWorld().spawnParticle(Particle.CLOUD, loc, 5, 0.3, 0.3, 0.3, 0.05, null, true);
 
                 if (ticks % 5 == 0) {
-                    for (LivingEntity entity : loc.getNearbyLivingEntities(3.0)) {
+                    for (LivingEntity entity : loc.getNearbyLivingEntities(Constants.Distance.AIR_DASH_RADIUS)) {
                         if (entity.equals(player)) continue;
                         if (!AirDashAbility.this.isValidTarget(context, entity)) continue;
 

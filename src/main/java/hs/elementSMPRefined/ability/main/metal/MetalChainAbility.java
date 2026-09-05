@@ -1,5 +1,6 @@
 package hs.elementSMPRefined.ability.main.metal;
 
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
@@ -21,6 +22,9 @@ import org.bukkit.util.Vector;
 
 public class MetalChainAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
+
+    /** Stun duration for the pulled target, in ticks (ms -> ticks). */
+    private static final int STUN_DURATION_TICKS = (int) (Constants.Duration.METAL_CHAIN_STUN_MS / 50L);
 
     public MetalChainAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("metal_chain", ElementType.METAL, 1, 10, 1, configManager);
@@ -107,9 +111,9 @@ public class MetalChainAbility extends BaseAbility {
                     // Set velocity to zero to stop movement
                     finalTarget.setVelocity(new Vector(0, 0, 0));
 
-                    // Apply stun using StatusEffectManager (3 seconds = 60 ticks)
+                    // Apply stun using StatusEffectManager
                     if (finalTarget instanceof Player targetPlayer) {
-                        plugin.getStatusEffectManager().applyStun(targetPlayer, 60);
+                        plugin.getStatusEffectManager().applyStun(targetPlayer, STUN_DURATION_TICKS);
                     } else {
                         // For mobs, stop movement by disabling AI and applying slowness
                         if (finalTarget instanceof Mob mob) {
@@ -123,7 +127,7 @@ public class MetalChainAbility extends BaseAbility {
                             // Apply slowness potion effect to further reduce movement
                             mob.addPotionEffect(new PotionEffect(
                                     PotionEffectType.SLOWNESS,
-                                    60, // 3 seconds
+                                    STUN_DURATION_TICKS,
                                     10, // High amplifier
                                     false, // No particles
                                     false  // No icon
@@ -132,7 +136,7 @@ public class MetalChainAbility extends BaseAbility {
                             // Set velocity to zero immediately
                             finalTarget.setVelocity(new Vector(0, 0, 0));
 
-                            // Re-enable AI after 3 seconds
+                            // Re-enable AI once the stun expires
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
@@ -142,7 +146,7 @@ public class MetalChainAbility extends BaseAbility {
                                         m.removePotionEffect(PotionEffectType.SLOWNESS);
                                     }
                                 }
-                            }.runTaskLater(plugin, 60L);
+                            }.runTaskLater(plugin, STUN_DURATION_TICKS);
                         }
                     }
 

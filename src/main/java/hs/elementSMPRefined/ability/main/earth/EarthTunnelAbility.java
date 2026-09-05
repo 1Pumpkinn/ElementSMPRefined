@@ -1,5 +1,6 @@
 package hs.elementSMPRefined.ability.main.earth;
 
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
@@ -82,7 +83,7 @@ public class EarthTunnelAbility extends BaseAbility {
         }
 
         // Start the tunneling ability
-        metadataHelper.setLong(player, EarthElement.META_TUNNELING, System.currentTimeMillis() + 20_000L);
+        metadataHelper.setLong(player, EarthElement.META_TUNNELING, System.currentTimeMillis() + Constants.Duration.EARTH_TUNNEL_MS);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_STONE_BREAK, 1f, 0.8f);
         player.sendMessage(ChatColor.GOLD + "Tunneling started Press again to cancel.");
 

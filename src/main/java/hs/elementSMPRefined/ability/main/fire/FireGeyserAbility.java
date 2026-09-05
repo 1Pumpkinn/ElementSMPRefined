@@ -1,6 +1,7 @@
 package hs.elementSMPRefined.ability.main.fire;
 
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.API.element.ElementContext;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.ability.BaseAbility;
@@ -29,7 +30,6 @@ public class FireGeyserAbility extends BaseAbility {
     // Ring configuration
     private static final int GEYSER_COUNT = 6;
     private static final double RING_RADIUS = 4.0;
-    private static final double LAUNCH_RADIUS = 5.5; // radius around caster affected by all geysers combined
 
     public FireGeyserAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("fire_geyser", ElementType.FIRE, 1, 8, 1, configManager);
@@ -120,7 +120,7 @@ public class FireGeyserAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
 
         // Damage and launch everything caught around the caster (covers the whole ring at once).
-        for (LivingEntity entity : center.getNearbyLivingEntities(LAUNCH_RADIUS)) {
+        for (LivingEntity entity : center.getNearbyLivingEntities(Constants.Distance.FIRE_GEYSER_RADIUS)) {
             if (entity.equals(player)) continue;
             if (entity instanceof Player other && trust.isTrusted(player.getUniqueId(), other.getUniqueId())) continue;
 

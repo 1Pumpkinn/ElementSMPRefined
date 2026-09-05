@@ -84,7 +84,10 @@ public class DeathBackstabAbility extends BaseAbility {
 
         dealTrueDamage(target, player);
         if (target instanceof Player targetPlayer) {
-            plugin.getStatusEffectManager().applyManaSteal(player, targetPlayer, MANA_STEAL_AMOUNT, MANA_STEAL_GIVES_CASTER);
+            int stolen = plugin.getStatusEffectManager().applyManaSteal(player, targetPlayer, MANA_STEAL_AMOUNT, MANA_STEAL_GIVES_CASTER);
+            player.sendMessage(ChatColor.DARK_GRAY + "[debug] stolen=" + stolen
+                    + " casterGM=" + player.getGameMode()
+                    + " casterManaAfter=" + plugin.getManaManager().get(player.getUniqueId()).getMana());
         }
 
         return true;

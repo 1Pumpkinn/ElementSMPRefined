@@ -10,7 +10,8 @@ import hs.elementSMPRefined.commands.element.GiveCoreCommand;
 import hs.elementSMPRefined.commands.element.ParticlesCommand;
 import hs.elementSMPRefined.commands.element.RollCommand;
 import hs.elementSMPRefined.commands.element.SetCommand;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -61,7 +62,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!sender.hasPermission("element.admin")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+            sender.sendMessage(Component.text("You don't have permission to use this command.", NamedTextColor.RED));
             return true;
         }
 
@@ -111,14 +112,14 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.GOLD + "=== Element Admin Commands ===");
-        sender.sendMessage(ChatColor.YELLOW + "/element particles <preset> - Preview a particle pattern at your feet");
-        sender.sendMessage(ChatColor.YELLOW + "/element set <player> <element> - Set player's element");
-        sender.sendMessage(ChatColor.YELLOW + "/element debug <player> - Debug player's element data");
-        sender.sendMessage(ChatColor.YELLOW + "/element roll - Roll for a new element (OP only)");
-        sender.sendMessage(ChatColor.YELLOW + "/element config <action> - Configuration management");
-        sender.sendMessage(ChatColor.GRAY + "  Actions: reload, reset, set <key> <value>, element <element> <key> <value>");
-        sender.sendMessage(ChatColor.YELLOW + "/element givecore <player> <element> - Give a player an element core item");
-        sender.sendMessage(ChatColor.YELLOW + "/element bot <spawn|stop> [element] - Spawn or remove an elemental 1v1 bot");
+        sender.sendMessage(Component.text("=== Element Admin Commands ===", NamedTextColor.GOLD));
+        sender.sendMessage(Component.text("/element particles <preset> - Preview a particle pattern at your feet", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("/element set <player> <element> - Set player's element", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("/element debug <player> - Debug player's element data", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("/element roll - Roll for a new element (OP only)", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("  Actions: reload, reset, set <key> <value>, element <element> <key> <value>", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/element givecore <player> <element> - Give a player an element core item", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("/element bot <spawn|stop> [element] - Spawn or remove an elemental 1v1 bot", NamedTextColor.YELLOW));
     }
 }

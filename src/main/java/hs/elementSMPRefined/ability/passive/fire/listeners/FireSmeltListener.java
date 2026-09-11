@@ -35,7 +35,7 @@ public class FireSmeltListener implements Listener {
         SMELT_RESULTS.put(Material.RAW_IRON, Material.IRON_INGOT);
         SMELT_RESULTS.put(Material.RAW_GOLD, Material.GOLD_INGOT);
         SMELT_RESULTS.put(Material.RAW_COPPER, Material.COPPER_INGOT);
-        SMELT_RESULTS.put(Material.ANCIENT_DEBRIS, Material.NETHERITE_SCRAP);
+       // SMELT_RESULTS.put(Material.ANCIENT_DEBRIS, Material.NETHERITE_SCRAP);
     }
 
     private final ElementManager elementManager;

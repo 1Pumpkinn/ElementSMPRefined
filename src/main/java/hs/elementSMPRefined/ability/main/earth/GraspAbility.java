@@ -8,6 +8,7 @@ import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
+import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -18,11 +19,17 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Grasp - Grab an entity and squeeze them, dealing suffocation damage
@@ -34,6 +41,13 @@ import java.util.UUID;
  * {@link PlayerMoveEvent} lock) so they can't fight the hold with camera
  * movement; mobs have their AI disabled for the same reason. Either way the
  * target takes suffocation damage every tick for the duration.</p>
+ *
+ * <p>While held, the target is visually gripped by a chunky stone fist built
+ * from {@link #FIST_PIECES} block displays — the same technique used by
+ * ElementSfive's Stone Hand ability: pieces positioned relative to the
+ * caster's live forward/right facing (so the fist turns as they turn),
+ * overlapping enough with a random tumble rotation per piece to read as one
+ * clustered mass of rock instead of separate floating cubes.</p>
  */
 public class GraspAbility extends BaseAbility implements Listener {
 
@@ -41,6 +55,30 @@ public class GraspAbility extends BaseAbility implements Listener {
     private static final double DAMAGE_PER_TICK = 1.0; // 20 damage over 3 s
     private static final double HOLD_DISTANCE = 1.6;
     private static final double GRAB_RANGE = 15.0;
+
+    /** How smoothly the fist pieces glide to their new spot each tick. */
+    private static final int ENCASE_TELEPORT_DURATION = 2;
+
+    /**
+     * Chunky stone pieces that make up the gripping fist around the grasped
+     * target, expressed relative to the caster's live forward/right facing so
+     * the fist turns with them. {@code f} is forward distance (negative =
+     * toward the caster, i.e. wrapping over the front), {@code r} is sideways
+     * distance, {@code u} is a fraction of the target's height. Deliberately
+     * leaves the front-centre open so the grasped target stays visible.
+     *
+     * <p>Offsets are tight enough that neighbouring pieces overlap — combined
+     * with a random tumble rotation given to each piece at spawn time (see
+     * {@link #randomTumble()}), that keeps it reading as one clustered mass
+     * of rock instead of separate floating cubes. Ported as-is from
+     * ElementSfive's StoneHand ability.</p>
+     */
+    private static final List<FistPiece> FIST_PIECES = List.of(
+            new FistPiece(0.20, -0.05, 0.0, 0.85f, Material.STONE),          // back of hand
+            new FistPiece(-0.12, 0.20, 0.0, 0.6f, Material.COBBLESTONE),     // top finger, curling over
+            new FistPiece(-0.06, 0.02, -0.26, 0.6f, Material.ANDESITE),      // left finger
+            new FistPiece(-0.06, 0.02, 0.26, 0.6f, Material.COBBLESTONE),    // right finger
+            new FistPiece(-0.04, -0.20, -0.12, 0.5f, Material.STONE));       // thumb
 
     private final ElementSMPRefined plugin;
 
@@ -120,7 +158,6 @@ public class GraspAbility extends BaseAbility implements Listener {
         UUID playerId = player.getUniqueId();
         World world = player.getWorld();
 
-        world.playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_STARE, 1.0f, 0.8f);
         world.playSound(target.getLocation(), Sound.BLOCK_GRAVEL_BREAK, 0.8f, 1.2f);
 
         GraspSession session = new GraspSession(playerId, target.getLocation().getYaw(), target.getLocation().getPitch());
@@ -135,6 +172,8 @@ public class GraspAbility extends BaseAbility implements Listener {
             session.wasAiEnabled = mob.hasAI();
             mob.setAI(false);
         }
+
+        spawnEncasement(session, player, target);
 
         // Carry the target in front of the caster every tick, wherever they walk/turn.
         session.carryTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
@@ -154,6 +193,13 @@ public class GraspAbility extends BaseAbility implements Listener {
             target.setVelocity(new Vector(0, 0, 0));
             target.setFallDistance(0f);
             target.damage(DAMAGE_PER_TICK, caster);
+
+            double height = target.getBoundingBox().getHeight();
+            Location center = hold.clone().add(0, height / 2.0, 0);
+            Vector[] basis = casterHorizontalBasis(caster);
+            for (int i = 0; i < session.encasement.size(); i++) {
+                session.encasement.get(i).teleport(fistPiecePosition(center, basis, FIST_PIECES.get(i), height));
+            }
 
             spawnGraspVisuals(world, hold.clone().add(0, 1, 0), session.tick);
 
@@ -198,6 +244,75 @@ public class GraspAbility extends BaseAbility implements Listener {
     }
 
     /**
+     * Spawns the stone fist (BlockDisplays) gripping the target's body, laid
+     * out relative to the caster's current facing. Each piece gets a random
+     * tumble rotation, picked once here and left alone for the rest of the
+     * grasp, so the cluster doesn't read as neatly grid-aligned cubes.
+     */
+    private void spawnEncasement(GraspSession session, Player caster, LivingEntity target) {
+        double height = target.getBoundingBox().getHeight();
+        Location center = target.getLocation().add(0, height / 2.0, 0);
+        Vector[] basis = casterHorizontalBasis(caster);
+
+        for (FistPiece piece : FIST_PIECES) {
+            Location pos = fistPiecePosition(center, basis, piece, height);
+            Transformation transform = centeredTransform(piece.scale(), randomTumble());
+            BlockDisplay shard = target.getWorld().spawn(pos, BlockDisplay.class, d -> {
+                d.setBlock(piece.material().createBlockData());
+                d.setTeleportDuration(ENCASE_TELEPORT_DURATION);
+                d.setTransformation(transform);
+            });
+            session.encasement.add(shard);
+        }
+    }
+
+    /** A random small-to-moderate rotation around a random axis, for an irregular tumbled-rock look. */
+    private static AxisAngle4f randomTumble() {
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        float angle = (float) Math.toRadians(15 + r.nextDouble() * 40);
+        float theta = (float) (r.nextDouble() * Math.PI * 2);
+        float z = (float) (r.nextDouble() * 2 - 1);
+        float s = (float) Math.sqrt(Math.max(0, 1 - z * z));
+        return new AxisAngle4f(angle, (float) (s * Math.cos(theta)), (float) (s * Math.sin(theta)), z);
+    }
+
+    /** Caster's live horizontal forward/right vectors, used to orient the fist as they turn. */
+    private Vector[] casterHorizontalBasis(Player caster) {
+        Vector forward = caster.getEyeLocation().getDirection().clone();
+        forward.setY(0);
+        if (forward.lengthSquared() < 1.0e-4) forward = new Vector(0, 0, 1);
+        else forward.normalize();
+        Vector right = forward.clone().crossProduct(new Vector(0, 1, 0)).normalize();
+        return new Vector[]{forward, right};
+    }
+
+    /** World position of a fist piece, given the body centre and the caster's current facing. */
+    private Location fistPiecePosition(Location center, Vector[] basis, FistPiece piece, double height) {
+        return center.clone()
+                .add(basis[0].clone().multiply(piece.f()))
+                .add(basis[1].clone().multiply(piece.r()))
+                .add(0, piece.u() * height, 0);
+    }
+
+    private static Transformation centeredTransform(float scale, AxisAngle4f rotation) {
+        float half = scale / 2f;
+        return new Transformation(
+                new Vector3f(-half, -half, -half),
+                rotation,
+                new Vector3f(scale, scale, scale),
+                new AxisAngle4f(0, 0, 0, 1));
+    }
+
+    /** Removes the stone fist pieces when a grasp ends, however it ends. */
+    private void removeEncasement(List<BlockDisplay> encasement) {
+        if (encasement == null) return;
+        for (BlockDisplay display : encasement) {
+            if (display != null && display.isValid()) display.remove();
+        }
+        encasement.clear();
+    }
+
+    /**
      * Camera lock for players — snaps every attempted look/move (since
      * {@link PlayerMoveEvent} fires on rotation-only updates too) back to the
      * current hold position. The per-tick carry task is what actually moves
@@ -217,6 +332,7 @@ public class GraspAbility extends BaseAbility implements Listener {
 
         if (session.carryTask != null) session.carryTask.cancel();
         activeGrasps.remove(session.casterId);
+        removeEncasement(session.encasement);
 
         if (target instanceof Mob mob && target.isValid()) {
             mob.setAI(session.wasAiEnabled);
@@ -238,6 +354,7 @@ public class GraspAbility extends BaseAbility implements Listener {
             grasped.entrySet().removeIf(entry -> {
                 if (entry.getValue() != asCaster) return false;
                 if (asCaster.carryTask != null) asCaster.carryTask.cancel();
+                removeEncasement(asCaster.encasement);
                 Object targetEntity = Bukkit.getEntity(entry.getKey());
                 if (targetEntity instanceof Mob mob && mob.isValid()) {
                     mob.setAI(asCaster.wasAiEnabled);
@@ -251,6 +368,7 @@ public class GraspAbility extends BaseAbility implements Listener {
         GraspSession asTarget = grasped.remove(id);
         if (asTarget != null) {
             if (asTarget.carryTask != null) asTarget.carryTask.cancel();
+            removeEncasement(asTarget.encasement);
             activeGrasps.remove(asTarget.casterId);
         }
     }
@@ -275,11 +393,22 @@ public class GraspAbility extends BaseAbility implements Listener {
         BukkitTask carryTask;
         boolean wasAiEnabled = true;
         int tick = 0;
+        /** Stone fist pieces gripping the target; kept glued to them every tick. */
+        final List<BlockDisplay> encasement = new ArrayList<>();
 
         GraspSession(UUID casterId, float frozenYaw, float frozenPitch) {
             this.casterId = casterId;
             this.frozenYaw = frozenYaw;
             this.frozenPitch = frozenPitch;
         }
+    }
+
+    /**
+     * One chunky stone piece of the gripping fist. {@code f}/{@code r} are
+     * forward/right distances from the body centre using the caster's live
+     * facing (negative f = toward the caster, wrapping over the front);
+     * {@code u} is a fraction of the target's height.
+     */
+    private record FistPiece(double f, double u, double r, float scale, Material material) {
     }
 }

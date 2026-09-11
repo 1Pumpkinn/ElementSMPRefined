@@ -513,8 +513,9 @@ public final class ElementBotManager implements Listener {
         state.retargetTicks = RETARGET_INTERVAL_TICKS;
     }
 
-    // On-hit passives that need a real combat event: Fire Aspect and Wither-on-hit for the
-    // bot's own attacks, and arrow immunity for Metal bots.
+    // On-hit passives that need a real combat event: set-target-on-fire and Wither-on-hit for
+    // the bot's own attacks, and arrow immunity for Metal bots. (Flavor only - independent of
+    // the player Fire passive, which is now Auto Smelt rather than an on-hit effect.)
     @EventHandler(ignoreCancelled = true)
     public void onBotCombat(EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof Mob victimBot && owns(victimBot)

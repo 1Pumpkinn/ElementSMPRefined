@@ -27,11 +27,15 @@ public class FireElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passive 1: Infinite Fire Resistance
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 0, true, false));
-
-        // Passive 2: Fire Aspect on hits (handled in listener - applies to all attacks)
+        // Passive: Auto Smelt on mined ores (handled in FireSmeltListener)
         // No passive effect needed here
+
+        // Upgrade II: Infinite Fire Resistance
+        if (upgradeLevel >= 2) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 0, true, false));
+        } else {
+            EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
+        }
     }
 
     @Override
@@ -47,14 +51,14 @@ public class FireElement extends BaseElement {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Masters of flame and destruction. Fire users are immune to fire damage and ignite enemies with every attack.";
+        return ChatColor.GRAY + "Masters of flame and destruction. Fire users auto-smelt the ores they mine, and gain fire immunity at Upgrade II.";
     }
 
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Immune to fire/lava damage",
-                "Apply Fire Aspect to all attacks (Upgrade II)"
+                "Auto smelt mined ores",
+                "Immune to fire/lava damage (Upgrade II)"
         );
     }
 }

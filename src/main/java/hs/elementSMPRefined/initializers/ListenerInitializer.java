@@ -7,7 +7,7 @@ import hs.elementSMPRefined.ability.passive.air.AirElement;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirCombatListener;
 import hs.elementSMPRefined.ability.passive.earth.listeners.EarthVeinMinerListener;
-import hs.elementSMPRefined.ability.passive.fire.listeners.FireCombatListener;
+import hs.elementSMPRefined.ability.passive.fire.listeners.FireSmeltListener;
 import hs.elementSMPRefined.ability.passive.frost.listeners.FrostFrozenPunchListener;
 import hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;
 import hs.elementSMPRefined.ability.passive.metal.MetalElement;
@@ -128,7 +128,7 @@ public class ListenerInitializer {
 
         // Upgrade II passives that were implemented but never wired in
         pluginManager.registerEvents(new AirCombatListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new FireCombatListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
+        pluginManager.registerEvents(new FireSmeltListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new MetalArrowImmunityListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
         pluginManager.registerEvents(new MetalChainStunListener(plugin), plugin);
         pluginManager.registerEvents(new FrostFrozenPunchListener(plugin, plugin.getElementManager()), plugin);

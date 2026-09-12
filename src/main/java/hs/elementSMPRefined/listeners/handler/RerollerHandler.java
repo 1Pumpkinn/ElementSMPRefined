@@ -7,6 +7,7 @@ import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.bukkit.ItemUtil;
+    import hs.elementSMPRefined.util.visual.ElementColours;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -128,9 +129,19 @@ public class RerollerHandler implements Listener {
     private void performBasicRoll(Player player, ElementType targetElement) {
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
-        String[] names = java.util.Arrays.stream(elementManager.getBasicElements())
+        ElementType[] basicElements = elementManager.getBasicElements();
+        String[] names = java.util.Arrays.stream(basicElements)
                 .map(Enum::name)
                 .toArray(String[]::new);
+        // Parallel array, same order as `names` - each element's own real color
+        // (pulled from that element's getDisplayName()) instead of one fixed color
+        // for every name shown during the animation.
+        NamedTextColor[] colors = java.util.Arrays.stream(basicElements)
+                .map(type -> {
+                    var element = elementManager.get(type);
+                    return element != null ? ElementColours.fromLegacy(element.getDisplayName()) : NamedTextColor.AQUA;
+                })
+                .toArray(NamedTextColor[]::new);
 
         final int steps = Constants.Animation.ROLL_STEPS;
         final long interval = Constants.Animation.ROLL_DELAY_TICKS;
@@ -174,9 +185,10 @@ public class RerollerHandler implements Listener {
                 }
 
                 String name = names[tick % names.length];
+                NamedTextColor color = colors[tick % colors.length];
                 player.showTitle(Title.title(
                         Component.text("Rolling...").color(NamedTextColor.GOLD),
-                        Component.text(name).color(NamedTextColor.AQUA),
+                        Component.text(name).color(color),
                         Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ZERO)
                 ));
                 tick++;

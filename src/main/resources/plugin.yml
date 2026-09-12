@@ -1,11 +1,9 @@
 name: ElementSMPRefined
 version: '1.0-SNAPSHOT'
 main: hs.elementSMPRefined.ElementSMPRefined
-website: https://ko-fi.com/1pumpkinn
+author: PumpkinDev
 api-version: '1.21'
 load: STARTUP
-authors: [ ___Pumpkinn ]
-contributors: [ ___Vishini ]
 
 commands:
   trust:

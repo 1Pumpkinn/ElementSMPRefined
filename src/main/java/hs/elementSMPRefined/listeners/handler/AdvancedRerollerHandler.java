@@ -6,6 +6,7 @@ import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.managers.ElementManager;
 import hs.elementSMPRefined.util.bukkit.ItemUtil;
+import hs.elementSMPRefined.util.visual.ElementColours;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -92,15 +93,22 @@ public class AdvancedRerollerHandler implements Listener {
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
         ElementType[] advancedElements = elementManager.getAdvancedElements();
-        final String[] names;
+        final ElementType[] rollPool = advancedElements.length == 0
+                ? new ElementType[]{ElementType.METAL, ElementType.FROST}
+                : advancedElements;
 
-        if (advancedElements.length == 0) {
-            names = new String[]{"METAL", "FROST"};
-        } else {
-            names = java.util.Arrays.stream(advancedElements)
-                    .map(Enum::name)
-                    .toArray(String[]::new);
-        }
+        final String[] names = java.util.Arrays.stream(rollPool)
+                .map(Enum::name)
+                .toArray(String[]::new);
+        // Parallel array, same order as `names` - each element's own real color
+        // (pulled from that element's getDisplayName()) instead of one fixed color
+        // for every name shown during the animation.
+        final NamedTextColor[] colors = java.util.Arrays.stream(rollPool)
+                .map(type -> {
+                    var element = elementManager.get(type);
+                    return element != null ? ElementColours.fromLegacy(element.getDisplayName()) : NamedTextColor.AQUA;
+                })
+                .toArray(NamedTextColor[]::new);
 
         final int steps = 20;
         final long interval = 3L;
@@ -143,9 +151,10 @@ public class AdvancedRerollerHandler implements Listener {
                 }
 
                 String name = names[tick % names.length];
+                NamedTextColor color = colors[tick % colors.length];
                 player.showTitle(Title.title(
                         Component.text("Rolling...").color(NamedTextColor.GOLD),
-                        Component.text(name).color(NamedTextColor.AQUA),
+                        Component.text(name).color(color),
                         Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ZERO)
                 ));
                 tick++;
@@ -163,9 +172,14 @@ public class AdvancedRerollerHandler implements Listener {
         playerData.setCurrentElementUpgradeLevel(currentUpgradeLevel);
         plugin.getDataStore().save(playerData);
 
+        var chosenElement = elementManager.get(element);
+        NamedTextColor titleColor = chosenElement != null
+                ? ElementColours.fromLegacy(chosenElement.getDisplayName())
+                : NamedTextColor.AQUA;
+
         Title title = Title.title(
                 Component.text("Element Chosen!").color(NamedTextColor.GOLD),
-                Component.text(element.name()).color(NamedTextColor.AQUA),
+                Component.text(element.name()).color(titleColor),
                 Title.Times.times(
                         Duration.ofMillis(500),
                         Duration.ofMillis(2000),

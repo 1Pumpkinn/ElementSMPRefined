@@ -9,7 +9,6 @@ import hs.elementSMPRefined.API.element.ListenerProvider;
 import hs.elementSMPRefined.API.event.AbilityActivateEvent;
 import hs.elementSMPRefined.API.event.ElementAssignEvent;
 import hs.elementSMPRefined.API.event.ElementSetEvent;
-import hs.elementSMPRefined.API.event.UpgradeLevelChangeEvent;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.data.DataStore;
 import hs.elementSMPRefined.data.PlayerData;
@@ -24,6 +23,7 @@ import hs.elementSMPRefined.ability.passive.water.WaterElement;
 import hs.elementSMPRefined.items.builder.ElementCoreItem;
 import hs.elementSMPRefined.registry.ElementRegistry;
 import hs.elementSMPRefined.services.EffectService;
+import hs.elementSMPRefined.util.visual.ElementColours;
 import hs.elementSMPRefined.util.visual.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -438,12 +438,16 @@ public class ElementManager {
 
     private void showElementTitle(Player player, ElementId id, String title) {
         // getDisplayName() carries legacy '&'/ChatColor codes for chat-message use;
-        // Adventure's Component.text() doesn't parse those, so strip them here.
-        String plainName = ChatColor.stripColor(displayNameOf(id));
+        // Adventure's Component.text() doesn't parse those, so strip them for the
+        // displayed text but pull the actual color out first via ElementColors so
+        // the title shows this element's real color instead of one fixed color.
+        String rawName = displayNameOf(id);
+        String plainName = ChatColor.stripColor(rawName);
+        net.kyori.adventure.text.format.NamedTextColor nameColor = ElementColours.fromLegacy(rawName);
 
         var titleObj = net.kyori.adventure.title.Title.title(
                 net.kyori.adventure.text.Component.text(title).color(net.kyori.adventure.text.format.NamedTextColor.GOLD),
-                net.kyori.adventure.text.Component.text(plainName).color(net.kyori.adventure.text.format.NamedTextColor.AQUA),
+                net.kyori.adventure.text.Component.text(plainName).color(nameColor),
                 net.kyori.adventure.title.Title.Times.times(
                         java.time.Duration.ofMillis(500),
                         java.time.Duration.ofMillis(2000),

@@ -3,6 +3,7 @@ package hs.elementSMPRefined.initializers;
 import hs.elementSMPRefined.ElementSMPRefined;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.API.element.ListenerProvider;
+import hs.elementSMPRefined.ability.main.metal.MetalShardAbility;
 import hs.elementSMPRefined.ability.passive.air.AirElement;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirCombatListener;
@@ -45,7 +46,7 @@ public class ListenerInitializer {
     private FrostPassiveListener frostPassiveListener;
     private GUIListener guiListener;
     private AbilityListener abilityListener;
-    private hs.elementSMPRefined.ability.main.metal.MetalDashAbility metalDashAbility;
+    private MetalShardAbility metalShardAbility;
     private WaterInvisibilityListener waterInvisibilityListener;
 
     public ListenerInitializer(JavaPlugin plugin) {
@@ -123,7 +124,7 @@ public class ListenerInitializer {
 
         var metalElement = plugin.getElementManager().get(ElementType.METAL);
         if (metalElement instanceof MetalElement metalElementImpl) {
-            this.metalDashAbility = metalElementImpl.getMetalDashAbility();
+            this.metalShardAbility = metalElementImpl.getMetalDashAbility();
         }
 
         // Upgrade II passives that were implemented but never wired in
@@ -149,7 +150,7 @@ public class ListenerInitializer {
                 airFallImpactListener,
                 guiListener,
                 abilityListener,
-                metalDashAbility
+                metalShardAbility
         );
         pluginManager.registerEvents(playerLifecycleListener, plugin);
     }

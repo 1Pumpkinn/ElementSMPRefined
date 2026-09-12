@@ -3,7 +3,7 @@ package hs.elementSMPRefined.ability.passive.metal;
 import hs.elementSMPRefined.API.element.BaseElement;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.metal.MetalChainAbility;
-import hs.elementSMPRefined.ability.main.metal.MetalDashAbility;
+import hs.elementSMPRefined.ability.main.metal.MetalShardAbility;
 import hs.elementSMPRefined.managers.ConfigManager;
 import hs.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
@@ -17,11 +17,11 @@ import java.util.List;
 public class MetalElement extends BaseElement {
 
     public MetalElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new MetalChainAbility(plugin, configManager), new MetalDashAbility(plugin, configManager));
+        super(plugin, new MetalChainAbility(plugin, configManager), new MetalShardAbility(plugin, configManager));
     }
 
-    public MetalDashAbility getMetalDashAbility() {
-        return (MetalDashAbility) ability2;
+    public MetalShardAbility getMetalDashAbility() {
+        return (MetalShardAbility) ability2;
     }
 
     @Override

@@ -1,7 +1,7 @@
 package hs.elementSMPRefined.listeners.player;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.ability.main.metal.MetalDashAbility;
+import hs.elementSMPRefined.ability.main.metal.MetalShardAbility;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;
 import hs.elementSMPRefined.config.Constants;
@@ -38,7 +38,7 @@ public class PlayerLifecycle implements Listener {
     private final AirFallImpactListener airFallImpactListener;
     private final GUIListener guiListener;
     private final AbilityListener abilityListener;
-    private final MetalDashAbility metalDashAbility;
+    private final MetalShardAbility metalShardAbility;
 
     public PlayerLifecycle(ElementSMPRefined plugin, ElementManager elementManager,
                            ManaManager manaManager, EffectService effectService,
@@ -47,7 +47,7 @@ public class PlayerLifecycle implements Listener {
                            AirFallImpactListener airFallImpactListener,
                            GUIListener guiListener,
                            AbilityListener abilityListener,
-                           MetalDashAbility metalDashAbility) {
+                           MetalShardAbility metalDashAbility) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.manaManager = manaManager;
@@ -58,7 +58,7 @@ public class PlayerLifecycle implements Listener {
         this.airFallImpactListener = airFallImpactListener;
         this.guiListener = guiListener;
         this.abilityListener = abilityListener;
-        this.metalDashAbility = metalDashAbility;
+        this.metalShardAbility = metalDashAbility;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -172,8 +172,8 @@ public class PlayerLifecycle implements Listener {
         if (abilityListener != null) {
             abilityListener.onPlayerQuit(playerUuid);
         }
-        if (metalDashAbility != null) {
-            metalDashAbility.onPlayerQuit(playerUuid);
+        if (metalShardAbility != null) {
+            metalShardAbility.onPlayerQuit(playerUuid);
         }
     }
 

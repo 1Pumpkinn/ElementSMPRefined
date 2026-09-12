@@ -1,12 +1,12 @@
 package hs.elementSMPRefined.listeners.player;
 
 import hs.elementSMPRefined.ElementSMPRefined;
+import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ability.main.metal.MetalShardAbility;
 import hs.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import hs.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.data.PlayerData;
-import hs.elementSMPRefined.gui.ElementSelectionGUI;
 import hs.elementSMPRefined.items.recipes.AdvancedRerollerItem;
 import hs.elementSMPRefined.items.recipes.RerollerItem;
 import hs.elementSMPRefined.listeners.GUIListener;
@@ -16,6 +16,11 @@ import hs.elementSMPRefined.managers.ManaManager;
 import hs.elementSMPRefined.services.EffectService;
 import hs.elementSMPRefined.status.DisarmManager;
 import hs.elementSMPRefined.util.scheduling.TaskScheduler;
+import hs.elementSMPRefined.util.visual.ElementColours;
+import hs.elementSMPRefined.util.visual.SoundUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -24,7 +29,10 @@ import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import java.time.Duration;
+import java.util.Random;
 import java.util.UUID;
 
 public class PlayerLifecycle implements Listener {
@@ -39,6 +47,7 @@ public class PlayerLifecycle implements Listener {
     private final GUIListener guiListener;
     private final AbilityListener abilityListener;
     private final MetalShardAbility metalShardAbility;
+    private final Random random = new Random();
 
     public PlayerLifecycle(ElementSMPRefined plugin, ElementManager elementManager,
                            ManaManager manaManager, EffectService effectService,
@@ -75,9 +84,12 @@ public class PlayerLifecycle implements Listener {
         }
 
         if (pd.getCurrentElement() == null) {
+            // First join: skip ElementSelectionGUI entirely and roll the
+            // player's starter element the same way the basic reroller
+            // item does (title animation, then a random basic element).
             scheduler.runAfterPlayerLoad(() -> {
                 if (player.isOnline()) {
-                    new ElementSelectionGUI(plugin, player, false).open();
+                    rollStarterElement(player);
                 }
             });
         } else {
@@ -97,6 +109,77 @@ public class PlayerLifecycle implements Listener {
                 refundPendingRerollers(player, pd);
             }
         });
+    }
+
+    /**
+     * Runs the same "Rolling..." title animation as {@code RerollerHandler}
+     * and assigns a random basic element once it finishes. Used for a
+     * player's very first element assignment instead of opening
+     * {@code ElementSelectionGUI}, so first join and a basic reroll feel
+     * identical.
+     */
+    private void rollStarterElement(Player player) {
+        if (!elementManager.beginRolling(player)) return;
+
+        ElementType[] basicElements = elementManager.getBasicElements();
+        ElementType targetElement = basicElements[random.nextInt(basicElements.length)];
+
+        SoundUtils.playTo(player, SoundUtils.UI.ROLL);
+
+        String[] names = java.util.Arrays.stream(basicElements)
+                .map(Enum::name)
+                .toArray(String[]::new);
+        NamedTextColor[] colors = java.util.Arrays.stream(basicElements)
+                .map(type -> {
+                    var element = elementManager.get(type);
+                    return element != null ? ElementColours.fromLegacy(element.getDisplayName()) : NamedTextColor.AQUA;
+                })
+                .toArray(NamedTextColor[]::new);
+
+        final int steps = Constants.Animation.ROLL_STEPS;
+        final long interval = Constants.Animation.ROLL_DELAY_TICKS;
+
+        new BukkitRunnable() {
+            int tick = 0;
+
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    // Player disconnected mid-roll - nothing was consumed
+                    // (this isn't an item use), so just stop; they'll roll
+                    // again next join since getCurrentElement() is still null.
+                    cancel();
+                    elementManager.endRolling(player);
+                    return;
+                }
+
+                if (!elementManager.isCurrentlyRolling(player)) {
+                    cancel();
+                    elementManager.endRolling(player);
+                    return;
+                }
+
+                if (tick >= steps) {
+                    cancel();
+                    try {
+                        elementManager.assignBasicElement(player, targetElement);
+                        player.sendMessage(Component.text("Your element has been rolled!").color(NamedTextColor.GREEN));
+                    } finally {
+                        elementManager.endRolling(player);
+                    }
+                    return;
+                }
+
+                String name = names[tick % names.length];
+                NamedTextColor color = colors[tick % colors.length];
+                player.showTitle(Title.title(
+                        Component.text("Rolling...").color(NamedTextColor.GOLD),
+                        Component.text(name).color(color),
+                        Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ZERO)
+                ));
+                tick++;
+            }
+        }.runTaskTimer(plugin, 0L, interval);
     }
 
     private void refundPendingRerollers(Player player, PlayerData pd) {
@@ -159,7 +242,6 @@ public class PlayerLifecycle implements Listener {
         plugin.getDataStore().invalidateCache(playerUuid);
         // Same cache-growth issue as DataStore above, applied to the trusted-set cache.
         plugin.getTrustManager().onPlayerQuit(playerUuid);
-        ElementSelectionGUI.removeGUI(playerUuid);
         if (frostPassiveListener != null) {
             frostPassiveListener.onPlayerQuit(playerUuid);
         }

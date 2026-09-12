@@ -1,7 +1,6 @@
 package hs.elementSMPRefined.commands.element;
 
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.gui.ElementSelectionGUI;
 import hs.elementSMPRefined.managers.ElementManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -33,9 +32,6 @@ public class RollCommand implements ElementSubCommand {
             player.sendMessage(ChatColor.RED + "You are already rolling for an element!");
             return true;
         }
-
-        new ElementSelectionGUI(plugin, player, true).open();
-        player.sendMessage(ChatColor.GREEN + "Rolling for a new element...");
 
         return true;
     }

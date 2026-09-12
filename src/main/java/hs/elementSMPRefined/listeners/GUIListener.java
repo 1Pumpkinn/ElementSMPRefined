@@ -2,7 +2,6 @@ package hs.elementSMPRefined.listeners;
 
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.ElementSMPRefined;
-import hs.elementSMPRefined.gui.ElementSelectionGUI;
 import hs.elementSMPRefined.items.ItemKeys;
 import hs.elementSMPRefined.util.bukkit.ItemUtil;
 import net.kyori.adventure.text.Component;
@@ -43,73 +42,6 @@ public class GUIListener implements Listener {
         suppressReopen.remove(playerUuid);
     }
 
-    /**
-     * Handle element selection GUI clicks.
-     * Uses InventoryHolder pattern for robust GUI identification.
-     */
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            return;
-        }
-
-        // Identify GUI via InventoryHolder - robust and doesn't rely on title strings
-        if (!(event.getInventory().getHolder() instanceof ElementSelectionGUI gui)) {
-            return;
-        }
-
-        event.setCancelled(true);
-        gui.handleClick(event.getRawSlot());
-    }
-
-    /**
-     * Handle GUI close events.
-     * Validates element selection is complete and reopens if needed.
-     */
-    @EventHandler(priority = EventPriority.NORMAL)
-    public void onInventoryClose(InventoryCloseEvent event) {
-        if (!(event.getPlayer() instanceof Player player)) {
-            return;
-        }
-
-        if (!(event.getInventory().getHolder() instanceof ElementSelectionGUI)) {
-            return;
-        }
-
-        ElementSelectionGUI.removeGUI(player.getUniqueId());
-        
-        // Capture close reason to avoid reopening during inventory transitions
-        InventoryCloseEvent.Reason reason = event.getReason();
-        
-        // Skip reopen checks for automatic inventory events
-        if (reason == InventoryCloseEvent.Reason.OPEN_NEW ||
-            reason == InventoryCloseEvent.Reason.PLUGIN) {
-            return;
-        }
-
-        // Delay the check to the next tick so element assignment can complete
-        plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (suppressReopen.contains(player.getUniqueId())) {
-                return;
-            }
-
-            // Check if player has selected an element
-            var elementManager = plugin.getElementManager();
-            if (elementManager.data(player.getUniqueId()).getCurrentElement() == null) {
-                player.sendMessage(Component.text("You must choose an element to play!")
-                        .color(NamedTextColor.RED));
-                suppressReopen.add(player.getUniqueId());
-                
-                // Reopen the GUI
-                new ElementSelectionGUI(plugin, player, false).open();
-                
-                // Remove suppression shortly after to allow future legitimate closes
-                plugin.getServer().getScheduler().runTaskLater(plugin, 
-                    () -> suppressReopen.remove(player.getUniqueId()), 
-                    REOPEN_SUPPRESSION_DURATION_TICKS);
-            }
-        });
-    }
 
     /**
      * Handle element core item right-click usage.

@@ -12,7 +12,7 @@ commands:
 
   element:
     description: Element admin commands
-    usage: /element <set|debug|roll> [player] [element]
+    usage: /element <set|debug> [player] [element]
     permission: element.admin
 
   mana:

@@ -8,7 +8,6 @@ import hs.elementSMPRefined.commands.element.DebugCommand;
 import hs.elementSMPRefined.commands.element.ElementSubCommand;
 import hs.elementSMPRefined.commands.element.GiveCoreCommand;
 import hs.elementSMPRefined.commands.element.ParticlesCommand;
-import hs.elementSMPRefined.commands.element.RollCommand;
 import hs.elementSMPRefined.commands.element.SetCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -42,7 +41,6 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         commands.put("particles", new ParticlesCommand(plugin));
         commands.put("set", new SetCommand(plugin.getElementManager()));
         commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager()));
-        commands.put("roll", new RollCommand(plugin, plugin.getElementManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
         commands.put("givecore", new GiveCoreCommand(plugin));
         commands.put("bot", new BotCommand(plugin));
@@ -116,7 +114,6 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("/element particles <preset> - Preview a particle pattern at your feet", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element set <player> <element> - Set player's element", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element debug <player> - Debug player's element data", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("/element roll - Roll for a new element (OP only)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("  reload | reset [key] | reset element <element> [key]", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("  set <key> <value> | element <element> <key> <value>", NamedTextColor.GRAY));

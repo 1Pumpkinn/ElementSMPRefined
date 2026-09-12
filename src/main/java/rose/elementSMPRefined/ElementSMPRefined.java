@@ -1,0 +1,51 @@
+package rose.elementSMPRefined;
+
+import rose.elementSMPRefined.core.AbstractElementPlugin;
+import rose.elementSMPRefined.API.ElementApi;
+import rose.elementSMPRefined.API.element.Element;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.ServicePriority;
+
+/**
+ * Main plugin class which significantly simplified by extending AbstractElementPlugin.
+ * This class now only contains plugin-specific logic, with common functionality
+ * handled by the abstract base class.
+ */
+public final class ElementSMPRefined extends AbstractElementPlugin {
+    private ElementApi elementApi;
+
+    @Override
+    protected void beforeRegisterComponents() {
+        elementApi = new ElementApi(this);
+        getServer().getServicesManager().register(ElementApi.class, elementApi, this, ServicePriority.Normal);
+    }
+
+    /** Returns the supported facade for external plugins and addons. */
+    public ElementApi getElementApi() {
+        return elementApi;
+    }
+
+    /** Register an addon element and its optional provider listeners. */
+    public void registerAddonElement(Element element) {
+        getElementManager().registerAddonElement(element);
+    }
+
+    /** Register a listener owned by an external addon. */
+    public void registerAddonListener(Listener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Addon listener cannot be null");
+        }
+        getServer().getPluginManager().registerEvents(listener, this);
+    }
+
+    @Override
+    protected void onPluginEnable() {
+        getLogger().info("ElementSMPRefined plugin enabled successfully!");
+    }
+
+    @Override
+    protected void onPluginDisable() {
+        getServer().getServicesManager().unregisterAll(this);
+        getLogger().info("ElementSMPRefined plugin disabled successfully!");
+    }
+}

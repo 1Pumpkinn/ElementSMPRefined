@@ -53,11 +53,10 @@ public class ElementConfiguration {
      */
     public void setConfigValue(ElementType type, String key, Object value) {
         ElementConfig existing = configs.getOrDefault(type,
-                new ElementConfig("Unknown", "No description", "WHITE", true, false,
+                new ElementConfig("Unknown", "WHITE", true, false,
                         DEFAULT_ABILITY1_COST, DEFAULT_ABILITY2_COST));
 
         String displayName = existing.displayName;
-        String description = existing.description;
         String color = existing.color;
         boolean enabled = existing.enabled;
         boolean isBasic = existing.isBasic;
@@ -68,10 +67,6 @@ public class ElementConfiguration {
             case "display_name" -> {
                 if (!(value instanceof String s)) return;
                 displayName = s;
-            }
-            case "description" -> {
-                if (!(value instanceof String s)) return;
-                description = s;
             }
             case "color" -> {
                 if (!(value instanceof String s)) return;
@@ -98,7 +93,7 @@ public class ElementConfiguration {
             }
         }
 
-        configs.put(type, new ElementConfig(displayName, description, color, enabled, isBasic, ability1Cost, ability2Cost));
+        configs.put(type, new ElementConfig(displayName, color, enabled, isBasic, ability1Cost, ability2Cost));
     }
 
     /**
@@ -106,7 +101,6 @@ public class ElementConfiguration {
      */
     public static class ElementConfig {
         private final String displayName;
-        private final String description;
         private final String color;
         private final boolean enabled;
         private final boolean isBasic;
@@ -115,7 +109,6 @@ public class ElementConfiguration {
 
         public ElementConfig(ConfigurationSection section) {
             this.displayName = section.getString("display_name", "Unknown");
-            this.description = section.getString("description", "No description");
             this.color = section.getString("color", "WHITE");
             this.enabled = section.getBoolean("enabled", true);
             this.isBasic = section.getBoolean("is_basic", false);
@@ -124,10 +117,9 @@ public class ElementConfiguration {
         }
 
         // Constructor for creating config programmatically
-        public ElementConfig(String displayName, String description, String color, boolean enabled,
+        public ElementConfig(String displayName, String color, boolean enabled,
                              boolean isBasic, int ability1Cost, int ability2Cost) {
             this.displayName = displayName;
-            this.description = description;
             this.color = color;
             this.enabled = enabled;
             this.isBasic = isBasic;
@@ -136,7 +128,6 @@ public class ElementConfiguration {
         }
 
         public String getDisplayName() { return displayName; }
-        public String getDescription() { return description; }
         public String getColor() { return color; }
         public boolean isEnabled() { return enabled; }
         public boolean isBasic() { return isBasic; }

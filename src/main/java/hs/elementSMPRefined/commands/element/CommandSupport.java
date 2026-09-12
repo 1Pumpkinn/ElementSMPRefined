@@ -92,7 +92,7 @@ public final class CommandSupport {
 
     /** Every settable per-element config key, relative to "elements.<type>.". */
     public static final List<String> ELEMENT_CONFIG_KEYS = List.of("ability1_cost", "ability2_cost", "is_basic",
-            "enabled", "display_name", "description", "color");
+            "enabled", "display_name", "color");
 
     public static List<String> getConfigKeys(String prefix) {
         return filterStartingWith(GLOBAL_CONFIG_KEYS, prefix);

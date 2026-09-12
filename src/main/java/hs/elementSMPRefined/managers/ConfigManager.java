@@ -4,9 +4,15 @@ import hs.elementSMPRefined.API.element.ElementId;
 import hs.elementSMPRefined.API.element.ElementType;
 import hs.elementSMPRefined.config.Constants;
 import hs.elementSMPRefined.config.ElementConfiguration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
 import java.util.logging.Level;
 
 /**
@@ -28,6 +34,11 @@ public class ConfigManager {
     private final JavaPlugin plugin;
     private FileConfiguration config;
     private ElementConfiguration elementConfiguration;
+
+    // The config.yml bundled inside the plugin jar, kept as the single source of
+    // truth for "reset to default" - loaded once and reused rather than a second
+    // hardcoded copy of every default drifting out of sync with config.yml.
+    private FileConfiguration defaultConfig;
 
     public ConfigManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -55,6 +66,84 @@ public class ConfigManager {
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to reload configuration", e);
         }
+    }
+
+    /**
+     * The shipped defaults from the jar's bundled config.yml, lazily loaded once.
+     * Independent of the live on-disk config, so editing/resetting the live file
+     * never affects what "default" means.
+     */
+    private FileConfiguration getDefaultConfig() {
+        if (defaultConfig == null) {
+            try (InputStream stream = plugin.getResource("config.yml")) {
+                if (stream != null) {
+                    defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+                } else {
+                    defaultConfig = new YamlConfiguration();
+                }
+            } catch (Exception e) {
+                plugin.getLogger().log(Level.WARNING, "Could not load bundled default config.yml", e);
+                defaultConfig = new YamlConfiguration();
+            }
+        }
+        return defaultConfig;
+    }
+
+    /** The shipped default value for a dotted config path, or null if the path has no default. */
+    public Object getDefaultValue(String path) {
+        return getDefaultConfig().get(path);
+    }
+
+    /**
+     * Resets a single dotted config path back to its shipped default and persists it.
+     * Returns false (no-op) if the path has no default to reset to.
+     */
+    public boolean resetToDefault(String path) {
+        FileConfiguration defaults = getDefaultConfig();
+        if (!defaults.contains(path)) {
+            return false;
+        }
+        config.set(path, defaults.get(path));
+        plugin.saveConfig();
+        reload();
+        return true;
+    }
+
+    /**
+     * Resets an entire config section (e.g. "elements.fire") back to its shipped
+     * defaults, wiping any extra keys that had been added under it too.
+     * Returns false (no-op) if the section has no shipped default.
+     */
+    public boolean resetSectionToDefault(String path) {
+        FileConfiguration defaults = getDefaultConfig();
+        ConfigurationSection defaultSection = defaults.getConfigurationSection(path);
+        if (defaultSection == null) {
+            return false;
+        }
+        config.set(path, null);
+        for (String key : defaultSection.getKeys(true)) {
+            if (defaultSection.isConfigurationSection(key)) continue;
+            config.set(path + "." + key, defaultSection.get(key));
+        }
+        plugin.saveConfig();
+        reload();
+        return true;
+    }
+
+    /** Resets the entire live config.yml back to the shipped defaults, in place. */
+    public void resetAllToDefault() {
+        FileConfiguration defaults = getDefaultConfig();
+        Set<String> existingKeys = config.getKeys(true);
+        for (String key : existingKeys) {
+            if (config.isConfigurationSection(key)) continue;
+            config.set(key, null);
+        }
+        for (String key : defaults.getKeys(true)) {
+            if (defaults.isConfigurationSection(key)) continue;
+            config.set(key, defaults.get(key));
+        }
+        plugin.saveConfig();
+        reload();
     }
 
     private int getIntSafe(String path, int fallback) {

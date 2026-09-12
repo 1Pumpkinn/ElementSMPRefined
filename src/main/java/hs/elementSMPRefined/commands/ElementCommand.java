@@ -118,7 +118,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("/element debug <player> - Debug player's element data", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element roll - Roll for a new element (OP only)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("  Actions: reload, reset, set <key> <value>, element <element> <key> <value>", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("  reload | reset [key] | reset element <element> [key]", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("  set <key> <value> | element <element> <key> <value>", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("/element givecore <player> <element> - Give a player an element core item", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element bot <spawn|stop> [element] - Spawn or remove an elemental 1v1 bot", NamedTextColor.YELLOW));
     }

@@ -84,15 +84,22 @@ public final class CommandSupport {
         return names;
     }
 
+    /** Every settable global config key, in dotted-path form (e.g. "mana.max"). */
+    public static final List<String> GLOBAL_CONFIG_KEYS = List.of("mana.max", "mana.regen_per_second",
+            "mana.ability1_cost", "mana.ability2_cost", "status_effects.enabled",
+            "status_effects.damage_per_tick", "status_effects.notification_messages",
+            "recipes.advanced_reroller_enabled");
+
+    /** Every settable per-element config key, relative to "elements.<type>.". */
+    public static final List<String> ELEMENT_CONFIG_KEYS = List.of("ability1_cost", "ability2_cost", "is_basic",
+            "enabled", "display_name", "description", "color");
+
     public static List<String> getConfigKeys(String prefix) {
-        return filterStartingWith(List.of("mana.max", "mana.regen_per_second", "status_effects.enabled",
-                "status_effects.damage_per_tick", "status_effects.notification_messages",
-                "recipes.advanced_reroller_enabled"), prefix);
+        return filterStartingWith(GLOBAL_CONFIG_KEYS, prefix);
     }
 
     public static List<String> getElementConfigKeys(String prefix) {
-        return filterStartingWith(List.of("ability1_cost", "ability2_cost", "is_basic", "enabled",
-                "display_name", "description", "color"), prefix);
+        return filterStartingWith(ELEMENT_CONFIG_KEYS, prefix);
     }
 
     public static List<String> getParticleNameSuggestions() {

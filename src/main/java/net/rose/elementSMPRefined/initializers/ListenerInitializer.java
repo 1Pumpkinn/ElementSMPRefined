@@ -14,7 +14,6 @@ import net.rose.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveLi
 import net.rose.elementSMPRefined.ability.passive.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.metal.listeners.MetalArrowImmunityListener;
 import net.rose.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListener;
-import net.rose.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener;
 import net.rose.elementSMPRefined.listeners.GUIListener;
 import net.rose.elementSMPRefined.listeners.ability.AbilityListener;
 import net.rose.elementSMPRefined.listeners.handler.AdvancedRerollerHandler;
@@ -47,7 +46,6 @@ public class ListenerInitializer {
     private GUIListener guiListener;
     private AbilityListener abilityListener;
     private MetalShardAbility metalShardAbility;
-    private WaterInvisibilityListener waterInvisibilityListener;
 
     public ListenerInitializer(JavaPlugin plugin) {
         this.plugin = (ElementSMPRefined) plugin;
@@ -99,9 +97,6 @@ public class ListenerInitializer {
                 });
             }
         });
-
-        // Store special listeners that need cross-references
-        storeSpecialListeners();
     }
 
     /**
@@ -127,16 +122,11 @@ public class ListenerInitializer {
             this.metalShardAbility = metalElementImpl.getMetalDashAbility();
         }
 
-        // Upgrade II passives that were implemented but never wired in
         pluginManager.registerEvents(new AirCombatListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new FireSmeltListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new MetalArrowImmunityListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
         pluginManager.registerEvents(new MetalChainStunListener(plugin), plugin);
         pluginManager.registerEvents(new FrostFrozenPunchListener(plugin, plugin.getElementManager()), plugin);
-    }
-
-    private void storeSpecialListeners() {
-        // Listeners are now available for PlayerLifecycleListener
     }
 
     private void registerLifecycleListener() {

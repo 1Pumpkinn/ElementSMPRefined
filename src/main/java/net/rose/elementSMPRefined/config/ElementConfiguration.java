@@ -11,6 +11,9 @@ import java.util.Map;
  */
 public class ElementConfiguration {
 
+    // Most elements use these costs - kept as named constants (not hardcoded
+    // inline) so it's one line to change the "usual" cost, but any element
+    // can still override ability1_cost/ability2_cost in config.yml to differ.
     // Kept in sync with the defaults in config.yml and ConfigManager.
     private static final int DEFAULT_ABILITY1_COST = 30;
     private static final int DEFAULT_ABILITY2_COST = 60;
@@ -53,13 +56,12 @@ public class ElementConfiguration {
      */
     public void setConfigValue(ElementType type, String key, Object value) {
         ElementConfig existing = configs.getOrDefault(type,
-                new ElementConfig("Unknown", "WHITE", true, false,
+                new ElementConfig("Unknown", "WHITE", true,
                         DEFAULT_ABILITY1_COST, DEFAULT_ABILITY2_COST));
 
         String displayName = existing.displayName;
         String color = existing.color;
         boolean enabled = existing.enabled;
-        boolean isBasic = existing.isBasic;
         int ability1Cost = existing.ability1Cost;
         int ability2Cost = existing.ability2Cost;
 
@@ -76,10 +78,6 @@ public class ElementConfiguration {
                 if (!(value instanceof Boolean b)) return;
                 enabled = b;
             }
-            case "is_basic" -> {
-                if (!(value instanceof Boolean b)) return;
-                isBasic = b;
-            }
             case "ability1_cost" -> {
                 if (!(value instanceof Integer i)) return;
                 ability1Cost = i;
@@ -93,7 +91,7 @@ public class ElementConfiguration {
             }
         }
 
-        configs.put(type, new ElementConfig(displayName, color, enabled, isBasic, ability1Cost, ability2Cost));
+        configs.put(type, new ElementConfig(displayName, color, enabled, ability1Cost, ability2Cost));
     }
 
     /**
@@ -103,7 +101,6 @@ public class ElementConfiguration {
         private final String displayName;
         private final String color;
         private final boolean enabled;
-        private final boolean isBasic;
         private final int ability1Cost;
         private final int ability2Cost;
 
@@ -111,18 +108,19 @@ public class ElementConfiguration {
             this.displayName = section.getString("display_name", "Unknown");
             this.color = section.getString("color", "WHITE");
             this.enabled = section.getBoolean("enabled", true);
-            this.isBasic = section.getBoolean("is_basic", false);
+            // Falls back to DEFAULT_ABILITY1/2_COST (30/60) when config.yml
+            // doesn't set a cost for this element - most elements just take
+            // the default, but any element can still override it explicitly.
             this.ability1Cost = section.getInt("ability1_cost", DEFAULT_ABILITY1_COST);
             this.ability2Cost = section.getInt("ability2_cost", DEFAULT_ABILITY2_COST);
         }
 
         // Constructor for creating config programmatically
         public ElementConfig(String displayName, String color, boolean enabled,
-                             boolean isBasic, int ability1Cost, int ability2Cost) {
+                             int ability1Cost, int ability2Cost) {
             this.displayName = displayName;
             this.color = color;
             this.enabled = enabled;
-            this.isBasic = isBasic;
             this.ability1Cost = ability1Cost;
             this.ability2Cost = ability2Cost;
         }
@@ -130,7 +128,6 @@ public class ElementConfiguration {
         public String getDisplayName() { return displayName; }
         public String getColor() { return color; }
         public boolean isEnabled() { return enabled; }
-        public boolean isBasic() { return isBasic; }
         public int getAbility1Cost() { return ability1Cost; }
         public int getAbility2Cost() { return ability2Cost; }
     }

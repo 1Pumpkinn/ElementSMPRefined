@@ -32,23 +32,38 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 /**
  * Manages elemental companion bots: spawning, AI (targeting/movement/ability use),
- * and passive effects. Bots actively hunt hostile players/mobs near their owner,
- * alternate between both of their element's abilities based on cooldown and range,
- * and carry the same passive perks a player of that element would have.
+ * and passive effects. Bots hunt hostile players/mobs near their owner, alternate
+ * between both of their element's abilities based on cooldown and range, and carry
+ * the same passive perks a player of that element would have.
+ *
+ * Combat AI summary (see the "AI loop" section for the actual code):
+ * - A near-dead target makes the bot lead with whichever ready ability hits harder,
+ *   so it closes out kills instead of chipping away with the weaker option.
+ * - Abilities are tagged DAMAGE, GAP_CLOSER, or SUPPORT ({@link AbilityKind}); closing
+ *   the gap with a mobility ability commits the bot to a short melee brawl instead of
+ *   immediately kiting back out.
+ * - Ranged elements only kite when it's worth it: out of mana or with nothing coming
+ *   off cooldown soon, they brawl in melee instead of dancing at range doing nothing.
+ * - Getting hit - or the owner getting hit - makes the bot retaliate immediately, and
+ *   getting comboed (several hits in quick succession) makes it break off and create
+ *   space rather than eating the whole combo.
+ * - Movement (strafing, kiting, retreating) only steers the bot while it's grounded,
+ *   so getting knocked airborne doesn't turn into free mid-air repositioning.
  */
 public final class ElementBotManager implements Listener {
     public static final String BOT_METADATA = "element_smp_bot";
 
-    private static final int RUN_PERIOD_TICKS = 2;      // AI tick rate (10x/sec) - fast enough to
-    // catch a human player's brief window inside
-    // ability range instead of only mobs, which
-    // hold still in melee far more predictably
+    private static final int RUN_PERIOD_TICKS = 2; // AI tick rate (10x/sec) - fast enough to catch
+    // a human player's brief window inside ability range, not just slow-moving mobs
     private static final int PASSIVE_REFRESH_TICKS = 100; // how often passive effects are re-applied
     private static final int RETARGET_INTERVAL_TICKS = 60; // how often we look for a new target
     private static final int REPATH_INTERVAL_TICKS = 10;   // how often we recompute the path
@@ -60,21 +75,36 @@ public final class ElementBotManager implements Listener {
     private static final double DEFENSE_CALL_RADIUS_SQ = 40.0 * 40.0; // owner's cry for help travels further than passive search
     private static final double LOW_HEALTH_FRACTION = 0.3; // below this, bot fights defensively / tries to disengage
     private static final double KITE_TOO_CLOSE_FRACTION = 0.45; // fraction of a ranged element's ability1 range considered "too close"
+    private static final double EXECUTE_HEALTH_FRACTION = 0.25; // below this, target's death takes priority over ability economy
+    private static final double MELEE_ADJACENT_RANGE_SQ = 9.0;  // ~3 blocks - close enough to jump-attack
 
-    // Bots run their own private mana pool - separate from the owner's ManaManager/
-    // PlayerData entirely, since the bot isn't a Player and shouldn't drain (or share)
-    // its owner's actual mana. Costs are flat across every element and pulled live from
-    // ConfigManager.getDefaultAbility1Cost()/2Cost() (config.yml: mana.ability1_cost /
-    // mana.ability2_cost) so there's a single place to change them instead of a copy
-    // hardcoded in this class.
+    // A cooldown further out than this isn't "coming back soon" - the bot just brawls
+    // instead of kiting to preserve range for a spell that's still seconds away.
+    private static final int BRAWL_COOLDOWN_GRACE_TICKS = 40;
+    // How long a gap-closer (Air Dash, Metal Dash, Earth Tunnel, Backstab) commits the
+    // bot to melee afterward, instead of immediately kiting back out to range.
+    private static final int BRAWL_COMMIT_TICKS = 70;
+
+    // A single hit isn't a combo - only several landing within this window count toward
+    // one, and only past COMBO_HIT_THRESHOLD does the bot break off to create space
+    // (COMBO_ESCAPE_TICKS) rather than eating the whole combo standing still.
+    private static final int COMBO_WINDOW_TICKS = 30;
+    private static final int COMBO_HIT_THRESHOLD = 3;
+    private static final int COMBO_ESCAPE_TICKS = 60;
+
+    // Real players juke/retreat and apply knockback on every hit, unlike hostile mobs
+    // which mostly hold still in melee; without this buffer the bot's target keeps
+    // slipping just outside ability range between AI ticks. Added to the linear range
+    // before squaring, so it's a flat few blocks of forgiveness at any distance.
+    private static final double RANGE_BUFFER_BLOCKS = 1.5;
+
+    // Bots run their own private mana pool, separate from the owner's ManaManager, using
+    // the same per-element cost/regen lookups a real player's cast goes through.
     private static final int MANA_REGEN_INTERVAL_TICKS = 20; // regen tick is once/second, like player mana
 
-    // Debug instrumentation: prints exactly why the bot did/didn't act each cycle, so a
-    // "bot won't use abilities" report can be diagnosed from the server console instead of
-    // guessed at. Flip to false once the issue is found - it logs once per second per bot
-    // while it has a target, plus every time a target is gained/lost, so it's noisy on
-    // purpose but not tick-spammy.
-    private static final boolean DEBUG_LOGGING = true;
+    // Prints what a bot is doing and why (targeting, casts, retargets, movement mode) to
+    // the console. Flip to false to quiet things down once you're done watching a fight.
+    private static final boolean DEBUG_LOGGING = false;
     private static final int LOG_INTERVAL_TICKS = 20; // ~once a second
 
     private final ElementSMPRefined plugin;
@@ -93,6 +123,77 @@ public final class ElementBotManager implements Listener {
         UUID loggedTargetId; // last target we printed an "acquired" log line for
         int mana;           // bot's own private mana pool, separate from its owner's
         int manaRegenTicks; // counts down to the next once-per-second regen tick
+        int strafeTicks;    // ticks left before flipping circle-strafe direction
+        int strafeDir = 1;  // +1/-1, which way we're currently side-stepping
+        int jumpTicks;      // ticks left before the next jump-attack is allowed
+        int aggressiveTicks; // >0 while the bot is committed to brawling in melee
+        int comboWindowTicks; // ticks left before a new hit no longer counts toward the same combo
+        int comboHitsTaken;   // hits landed on us within the current combo window
+        int comboEscapeTicks; // >0 while backing off after being comboed
+        String loggedMoveMode; // last movement-mode string we printed, so logs only fire on change
+    }
+
+    /**
+     * What an ability is *for*: DAMAGE hurts the target, GAP_CLOSER primarily moves the
+     * bot into melee (damage is a bonus), SUPPORT doesn't damage the target at all.
+     */
+    private enum AbilityKind { DAMAGE, GAP_CLOSER, SUPPORT }
+
+    /**
+     * Tuning table for one element's combat kit, keyed by {@link ElementType} - one place
+     * for every cooldown/range/speed/fx number instead of six separate switch methods.
+     *
+     * ability1/2Damage are representative single-target figures used only to pick a
+     * finisher against a low-health target (see {@link #tickBots()}) - they mirror, but
+     * don't drive, the actual damage in {@link #castAbilityOne}/{@link #castAbilityTwo},
+     * so keep both in sync when retuning.
+     */
+    private record CombatProfile(
+            int ability1Cooldown,
+            int ability2Cooldown,
+            double ability1Range,
+            double ability2Range,
+            AbilityKind ability1Kind,
+            AbilityKind ability2Kind,
+            double speedMultiplier, // relative to the mob's default MOVEMENT_SPEED (vanilla zombie ~0.23)
+            double ability1Damage,
+            double ability2Damage,
+            Particle particle,
+            Sound sound
+    ) {
+        double ability1RangeSq() {
+            double r = ability1Range + RANGE_BUFFER_BLOCKS;
+            return r * r;
+        }
+
+        double ability2RangeSq() {
+            double r = ability2Range + RANGE_BUFFER_BLOCKS;
+            return r * r;
+        }
+    }
+
+    private static final Map<ElementType, CombatProfile> PROFILES = buildProfiles();
+
+    private static Map<ElementType, CombatProfile> buildProfiles() {
+        Map<ElementType, CombatProfile> map = new EnumMap<>(ElementType.class);
+        //                                       a1Cd a2Cd  a1Rng a2Rng  a1Kind              a2Kind                   speed  a1Dmg a2Dmg   particle                  sound
+        map.put(ElementType.AIR, new CombatProfile(50, 80, 12.0, 12.0, AbilityKind.DAMAGE, AbilityKind.GAP_CLOSER, 1.15, 4.0, 3.0,
+                Particle.CLOUD, Sound.ENTITY_PLAYER_ATTACK_SWEEP));
+        map.put(ElementType.WATER, new CombatProfile(55, 90, 6.0, 6.0, AbilityKind.DAMAGE, AbilityKind.DAMAGE, 1.0, 4.0, 4.0,
+                Particle.BUBBLE, Sound.ENTITY_PLAYER_SPLASH));
+        map.put(ElementType.FIRE, new CombatProfile(70, 140, 6.0, 6.0, AbilityKind.DAMAGE, AbilityKind.DAMAGE, 1.0, 5.0, 7.0,
+                Particle.FLAME, Sound.ENTITY_BLAZE_SHOOT));
+        map.put(ElementType.EARTH, new CombatProfile(65, 100, 4.0, 10.0, AbilityKind.DAMAGE, AbilityKind.GAP_CLOSER, 0.85, 6.0, 4.0,
+                Particle.SMOKE, Sound.BLOCK_STONE_BREAK));
+        map.put(ElementType.LIFE, new CombatProfile(80, 160, 4.0, 6.0, AbilityKind.DAMAGE, AbilityKind.SUPPORT, 1.0, 3.0, 0.0,
+                Particle.HAPPY_VILLAGER, Sound.BLOCK_AMETHYST_BLOCK_CHIME));
+        map.put(ElementType.DEATH, new CombatProfile(60, 110, 4.0, 6.0, AbilityKind.DAMAGE, AbilityKind.GAP_CLOSER, 1.0, 5.0, 10.0,
+                Particle.SOUL, Sound.ENTITY_WITHER_AMBIENT));
+        map.put(ElementType.METAL, new CombatProfile(55, 90, 10.0, 11.0, AbilityKind.DAMAGE, AbilityKind.GAP_CLOSER, 1.15, 5.0, 6.0,
+                Particle.CRIT, Sound.BLOCK_ANVIL_LAND));
+        map.put(ElementType.FROST, new CombatProfile(60, 130, 6.0, 4.0, AbilityKind.DAMAGE, AbilityKind.DAMAGE, 1.0, 3.0, 7.0,
+                Particle.SNOWFLAKE, Sound.BLOCK_GLASS_BREAK));
+        return Map.copyOf(map);
     }
 
     public ElementBotManager(ElementSMPRefined plugin) {
@@ -120,10 +221,19 @@ public final class ElementBotManager implements Listener {
         equipProtectedDiamondArmor(bot);
         bot.setTarget(null);
 
+        CombatProfile profile = PROFILES.get(element);
+
         var speedAttr = bot.getAttribute(Attribute.MOVEMENT_SPEED);
         if (speedAttr != null) {
             double naturalBase = speedAttr.getBaseValue(); // zombie's actual spawn speed (~0.23), not the attribute's generic default
-            speedAttr.setBaseValue(naturalBase * speedMultiplier(element));
+            speedAttr.setBaseValue(naturalBase * profile.speedMultiplier());
+        }
+
+        // A little baseline knockback resistance stops the bot being juggled clean out of
+        // its own ability range on every hit; EARTH's passive raises this further (0.5).
+        var knockbackAttr = bot.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
+        if (knockbackAttr != null) {
+            knockbackAttr.setBaseValue(Math.max(knockbackAttr.getBaseValue(), 0.1));
         }
 
         bots.put(owner.getUniqueId(), bot);
@@ -166,21 +276,28 @@ public final class ElementBotManager implements Listener {
     // ------------------------------------------------------------------
 
     private void tickBots() {
-        for (Map.Entry<UUID, Mob> entry : Map.copyOf(bots).entrySet()) {
+        // Iterate the live map directly and defer any removals until after the loop,
+        // instead of allocating a defensive copy of the whole map every AI tick (10x/sec).
+        List<UUID> toRemove = null;
+        for (Map.Entry<UUID, Mob> entry : bots.entrySet()) {
             Mob bot = entry.getValue();
             Player owner = plugin.getServer().getPlayer(entry.getKey());
             if (!bot.isValid() || bot.isDead() || owner == null || !owner.isOnline()
                     || !owner.getWorld().equals(bot.getWorld())) {
-                stopById(entry.getKey(), bot);
+                states.remove(bot.getUniqueId());
+                if (bot.isValid()) bot.remove();
+                if (toRemove == null) toRemove = new ArrayList<>();
+                toRemove.add(entry.getKey());
                 continue;
             }
 
             ElementType element = elementOf(bot);
             if (element == null) continue;
+            CombatProfile profile = PROFILES.get(element);
             BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> newBotState());
 
-            int ability1Cost = plugin.getConfigManager().getDefaultAbility1Cost();
-            int ability2Cost = plugin.getConfigManager().getDefaultAbility2Cost();
+            int ability1Cost = plugin.getConfigManager().getAbility1Cost(element);
+            int ability2Cost = plugin.getConfigManager().getAbility2Cost(element);
 
             applyPassiveTick(bot, element, state);
             regenManaTick(state);
@@ -189,6 +306,8 @@ public final class ElementBotManager implements Listener {
 
             if (state.ability1Cd > 0) state.ability1Cd -= RUN_PERIOD_TICKS;
             if (state.ability2Cd > 0) state.ability2Cd -= RUN_PERIOD_TICKS;
+            if (state.comboWindowTicks > 0) state.comboWindowTicks -= RUN_PERIOD_TICKS;
+            if (state.comboEscapeTicks > 0) state.comboEscapeTicks -= RUN_PERIOD_TICKS;
 
             if (target != null) {
                 bot.setTarget(target); // hands movement + melee swings to the zombie's own attack AI
@@ -203,37 +322,41 @@ public final class ElementBotManager implements Listener {
                 double distSq = bot.getLocation().distanceSquared(target.getLocation());
                 boolean hasLineOfSight = bot.hasLineOfSight(target);
 
-                boolean ability1Ready = distSq <= abilityOneRangeSq(element) && state.ability1Cd <= 0
+                boolean ability1Ready = distSq <= profile.ability1RangeSq() && state.ability1Cd <= 0
                         && hasLineOfSight && state.mana >= ability1Cost;
-                boolean ability2Ready = distSq <= abilityTwoRangeSq(element) && state.ability2Cd <= 0
+                boolean ability2Ready = distSq <= profile.ability2RangeSq() && state.ability2Cd <= 0
                         && hasLineOfSight && state.mana >= ability2Cost;
 
-                if (ability1Ready) {
-                    castAbilityOne(bot, owner, target, element);
-                    state.ability1Cd = abilityOneCooldown(element);
-                    state.mana -= ability1Cost;
-                    if (DEBUG_LOGGING) log(owner, element, "CAST ability1 on " + describeEntity(target)
-                            + " | mana " + (state.mana + ability1Cost) + " -> " + state.mana);
+                // A near-dead target's death takes priority over normal ability economy:
+                // lead with whichever ready ability actually hits harder instead of always
+                // defaulting to ability1, so the bot closes out the kill instead of poking
+                // with the weaker option while the finish is sitting right there.
+                boolean finishWithAbilityTwo = isExecutable(target) && ability2Ready
+                        && (!ability1Ready || profile.ability2Damage() > profile.ability1Damage());
+
+                if (finishWithAbilityTwo) {
+                    performAbilityTwo(bot, owner, target, element, profile, state, ability2Cost,
+                            "EXECUTE finisher, target at " + String.format("%.0f%%", targetHealthPercent(target)) + " HP");
+                } else if (ability1Ready) {
+                    performAbilityOne(bot, owner, target, element, profile, state, ability1Cost, "primary");
                 } else if (ability2Ready) {
-                    castAbilityTwo(bot, owner, target, element);
-                    state.ability2Cd = abilityTwoCooldown(element);
-                    state.mana -= ability2Cost;
-                    if (DEBUG_LOGGING) log(owner, element, "CAST ability2 on " + describeEntity(target)
-                            + " | mana " + (state.mana + ability2Cost) + " -> " + state.mana);
+                    performAbilityTwo(bot, owner, target, element, profile, state, ability2Cost,
+                            "fallback (ability1 not ready/in range)");
                 } else if (DEBUG_LOGGING && (state.logTicks -= RUN_PERIOD_TICKS) <= 0) {
                     state.logTicks = LOG_INTERVAL_TICKS;
                     log(owner, element, String.format(
                             "idle vs %s | dist=%.1f (a1 range=%.1f, a2 range=%.1f) | LOS=%s | a1Cd=%d a2Cd=%d | mana=%d/%d",
                             describeEntity(target), Math.sqrt(distSq),
-                            Math.sqrt(abilityOneRangeSq(element)), Math.sqrt(abilityTwoRangeSq(element)),
+                            profile.ability1Range(), profile.ability2Range(),
                             hasLineOfSight, state.ability1Cd, state.ability2Cd,
                             state.mana, plugin.getConfigManager().getMaxMana()));
                 }
 
-                handleTacticalMovement(bot, target, element, distSq);
+                handleTacticalMovement(bot, owner, element, target, profile, distSq, state, ability1Cost, ability2Cost);
             } else {
                 if (DEBUG_LOGGING && state.loggedTargetId != null) {
                     state.loggedTargetId = null;
+                    state.loggedMoveMode = null;
                     log(owner, element, "LOST target - back to guarding owner");
                 }
 
@@ -246,8 +369,11 @@ public final class ElementBotManager implements Listener {
                 if (element == ElementType.LIFE && ownerDistSq <= LIFE_SUPPORT_RADIUS_SQ
                         && state.ability1Cd <= 0 && state.mana >= ability1Cost && isHurt(owner)) {
                     castLifeSupport(bot, owner);
-                    state.ability1Cd = abilityOneCooldown(element);
+                    state.ability1Cd = profile.ability1Cooldown();
+                    int before = state.mana;
                     state.mana -= ability1Cost;
+                    if (DEBUG_LOGGING) log(owner, element, "CAST life-support heal on owner"
+                            + " | mana " + before + " -> " + state.mana);
                 }
 
                 if (DEBUG_LOGGING && (state.logTicks -= RUN_PERIOD_TICKS) <= 0) {
@@ -256,47 +382,163 @@ public final class ElementBotManager implements Listener {
                 }
             }
         }
+        if (toRemove != null) {
+            for (UUID id : toRemove) bots.remove(id);
+        }
+    }
+
+    private void performAbilityOne(Mob bot, Player owner, LivingEntity target, ElementType element,
+                                   CombatProfile profile, BotState state, int cost, String reason) {
+        castAbilityOne(bot, owner, target, element, profile);
+        state.ability1Cd = profile.ability1Cooldown();
+        int before = state.mana;
+        state.mana -= cost;
+        if (DEBUG_LOGGING) log(owner, element, "CAST ability1 [" + profile.ability1Kind() + "] (" + reason + ") on "
+                + describeEntity(target) + " | mana " + before + " -> " + state.mana + " | ability1 cd -> " + state.ability1Cd + "t");
+    }
+
+    private void performAbilityTwo(Mob bot, Player owner, LivingEntity target, ElementType element,
+                                   CombatProfile profile, BotState state, int cost, String reason) {
+        castAbilityTwo(bot, owner, target, element, profile);
+        state.ability2Cd = profile.ability2Cooldown();
+        int before = state.mana;
+        state.mana -= cost;
+        if (profile.ability2Kind() == AbilityKind.GAP_CLOSER) {
+            // Closed the gap on purpose - commit to the brawl for a few seconds instead of
+            // immediately turning back around and kiting out to range again.
+            state.aggressiveTicks = BRAWL_COMMIT_TICKS;
+        }
+        if (DEBUG_LOGGING) log(owner, element, "CAST ability2 [" + profile.ability2Kind() + "] (" + reason + ") on "
+                + describeEntity(target) + " | mana " + before + " -> " + state.mana + " | ability2 cd -> " + state.ability2Cd + "t");
+    }
+
+    private boolean isExecutable(LivingEntity target) {
+        return targetHealthPercent(target) <= EXECUTE_HEALTH_FRACTION * 100.0;
+    }
+
+    private double targetHealthPercent(LivingEntity target) {
+        var attr = target.getAttribute(Attribute.MAX_HEALTH);
+        double max = attr != null ? attr.getValue() : target.getHealth();
+        return max > 0 ? (target.getHealth() / max) * 100.0 : 100.0;
     }
 
     /**
-     * Light tactical repositioning layered on top of the vanilla melee-attack goal:
-     * - Ranged-favored elements back off a little when the enemy closes inside their
-     *   effective ability range instead of always walking into melee, so they actually
-     *   use their ranged kit like a player would rather than beelining every fight.
-     * - Bots below the low-health threshold get a brief panic burst of speed so they can
-     *   disengage or reposition instead of standing still and trading hits to the death.
+     * Tactical repositioning layered on top of the vanilla melee-attack goal:
+     * - Critically low health triggers a panic burst of speed + a moment of Resistance
+     *   so the bot can actually disengage instead of trading hits to the death.
+     * - Getting comboed (see {@link #onBotAttacked}) makes the bot back off and create
+     *   space for a few seconds, same as panic but without the buffs.
+     * - Ranged elements only kite when it's worth it - out of resources, they brawl in
+     *   melee instead of backpedaling with nothing to show for it.
+     * - Landing a gap-closer commits the bot to that brawl for a few seconds rather than
+     *   immediately turning around and kiting back out.
+     * - Otherwise the bot circle-strafes and throws in the odd jump-attack at melee range
+     *   while abilities cool down, so it reads as an active opponent, not a punching bag.
      */
-    private void handleTacticalMovement(Mob bot, LivingEntity target, ElementType element, double distSq) {
-        double abilityRangeSq = abilityOneRangeSq(element);
+    private void handleTacticalMovement(Mob bot, Player owner, ElementType element, LivingEntity target,
+                                        CombatProfile profile, double distSq, BotState state,
+                                        int ability1Cost, int ability2Cost) {
         // Only AIR (gust, 12 blocks) and METAL (chain, 10 blocks) meaningfully out-range
         // melee; the 6-block AoE bursts (WATER/FIRE/FROST) are still close-quarters kits
         // and shouldn't be treated as "ranged" or they'd back off from their own AoE.
-        boolean isRangedFavored = abilityRangeSq > 64.0;
+        boolean isRangedFavored = profile.ability1Range() >= 8.0;
 
         var maxHealthAttr = bot.getAttribute(Attribute.MAX_HEALTH);
         double maxHealth = maxHealthAttr != null ? maxHealthAttr.getValue() : bot.getHealth();
         boolean panicking = bot.getHealth() <= maxHealth * LOW_HEALTH_FRACTION;
 
         if (panicking) {
+            logMoveMode(owner, element, state, String.format(
+                    "PANIC - health %.1f/%.1f (%.0f%%), disengaging from %s",
+                    bot.getHealth(), maxHealth, (bot.getHealth() / maxHealth) * 100.0, describeEntity(target)));
             bot.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, RUN_PERIOD_TICKS + 5, 1, true, false));
+            bot.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, RUN_PERIOD_TICKS + 5, 0, true, false));
             retreatFrom(bot, target, 0.25);
             return;
         }
 
-        if (isRangedFavored && distSq < abilityRangeSq * KITE_TOO_CLOSE_FRACTION * KITE_TOO_CLOSE_FRACTION) {
-            retreatFrom(bot, target, 0.2);
+        if (state.comboEscapeTicks > 0) {
+            logMoveMode(owner, element, state, "ESCAPE - creating space after being comboed by " + describeEntity(target));
+            retreatFrom(bot, target, 0.22);
+            return;
         }
+
+        if (state.aggressiveTicks > 0) state.aggressiveTicks -= RUN_PERIOD_TICKS;
+
+        boolean canAffordEither = state.mana >= Math.min(ability1Cost, ability2Cost);
+        boolean anyAbilitySoon = state.ability1Cd <= BRAWL_COOLDOWN_GRACE_TICKS || state.ability2Cd <= BRAWL_COOLDOWN_GRACE_TICKS;
+        boolean brawling = state.aggressiveTicks > 0 || !canAffordEither || !anyAbilitySoon;
+
+        double kiteThreshold = profile.ability1Range() * KITE_TOO_CLOSE_FRACTION;
+        if (!brawling && isRangedFavored && distSq < kiteThreshold * kiteThreshold) {
+            logMoveMode(owner, element, state, String.format(
+                    "KITE - %s closed to %.1f blocks (kite threshold %.1f), backing off",
+                    describeEntity(target), Math.sqrt(distSq), kiteThreshold));
+            retreatFrom(bot, target, 0.2);
+            return;
+        }
+
+        logMoveMode(owner, element, state, brawling
+                ? "BRAWL - mana/cooldowns not ready for ranged play, fighting " + describeEntity(target) + " in melee"
+                : "ENGAGE - strafing/jump-attacking " + describeEntity(target));
+
+        // Right on top of the target, strafing just reads as jitter - let plain melee
+        // (plus the jump-attack crits below) take over instead of fighting the vanilla
+        // attack goal for control of those last couple of blocks.
+        if (distSq > MELEE_ADJACENT_RANGE_SQ) {
+            applyCircleStrafe(bot, target, state);
+        }
+        maybeJumpAttack(bot, distSq, state, brawling);
     }
 
-    // Pushes the bot directly away from its target on the horizontal plane only. Vertical
-    // velocity is left untouched unless the bot is (a) actually standing on the ground and
-    // (b) about to back into a solid block - in which case it gets a single vanilla-style
-    // jump impulse instead of a repeated small upward nudge. The old code added +0.1/+0.05
-    // to Y on every AI tick this ran regardless of whether the bot was grounded, so if it
-    // got knocked airborne (e.g. hit mid-retreat) those nudges kept refreshing on top of
-    // existing upward knockback faster than gravity could cancel them out, and the bot
-    // would climb into the sky instead of just backpedalling.
+    // Logs a movement-mode line only when the mode actually changes, so the console shows
+    // "the bot started kiting" once instead of every single tick it spends kiting.
+    private void logMoveMode(Player owner, ElementType element, BotState state, String mode) {
+        if (!DEBUG_LOGGING || mode.equals(state.loggedMoveMode)) return;
+        state.loggedMoveMode = mode;
+        log(owner, element, "MOVE: " + mode);
+    }
+
+    // Side-steps the bot around its target between ability casts instead of standing
+    // still, making it harder to hit. Grounded-only (no free mid-air steering), and
+    // stronger than a subtle nudge would be, since it has to overcome the vanilla melee
+    // goal's pull straight toward the target or it just reads as barely moving.
+    private void applyCircleStrafe(Mob bot, LivingEntity target, BotState state) {
+        if (!bot.isOnGround()) return;
+
+        if ((state.strafeTicks -= RUN_PERIOD_TICKS) <= 0) {
+            state.strafeTicks = 30 + (int) (Math.random() * 40);
+            state.strafeDir = -state.strafeDir;
+        }
+
+        Vector towardTarget = target.getLocation().toVector().subtract(bot.getLocation().toVector());
+        towardTarget.setY(0);
+        if (towardTarget.lengthSquared() < 0.0001) return;
+        towardTarget.normalize();
+
+        Vector perpendicular = new Vector(-towardTarget.getZ(), 0, towardTarget.getX()).multiply(state.strafeDir);
+        bot.setVelocity(bot.getVelocity().add(perpendicular.multiply(0.22)));
+    }
+
+    // Occasional grounded hop at melee range, mirroring a player's jump-attack crits.
+    // While brawling (out of mana/cooldowns), hops more often for a "crit flurry" - the
+    // bot's stand-in for a player who's out of spells and just fighting hard.
+    private void maybeJumpAttack(Mob bot, double distSq, BotState state, boolean aggressive) {
+        if (!bot.isOnGround() || distSq > MELEE_ADJACENT_RANGE_SQ) return;
+        if ((state.jumpTicks -= RUN_PERIOD_TICKS) > 0) return;
+        state.jumpTicks = aggressive ? (12 + (int) (Math.random() * 15)) : (25 + (int) (Math.random() * 30));
+
+        Vector velocity = bot.getVelocity();
+        bot.setVelocity(new Vector(velocity.getX(), 0.42, velocity.getZ()));
+    }
+
+    // Pushes the bot away from its target on the horizontal plane, grounded-only (a mob
+    // knocked airborne shouldn't be able to steer itself back down mid-flight). Also
+    // fires a single jump impulse instead of a per-tick upward nudge when something is
+    // actually blocking the retreat path.
     private void retreatFrom(Mob bot, LivingEntity target, double speed) {
+        if (!bot.isOnGround()) return;
+
         Vector away = bot.getLocation().toVector().subtract(target.getLocation().toVector());
         away.setY(0);
         if (away.lengthSquared() < 0.0001) return;
@@ -305,18 +547,13 @@ public final class ElementBotManager implements Listener {
         Vector current = bot.getVelocity();
         double newX = current.getX() + away.getX() * speed;
         double newZ = current.getZ() + away.getZ() * speed;
-        double newY = current.getY();
-
-        if (bot.isOnGround() && isBlockedAhead(bot, away)) {
-            newY = 0.42; // vanilla jump velocity - only when grounded and something's actually in the way
-        }
+        double newY = isBlockedAhead(bot, away) ? 0.42 : current.getY(); // vanilla jump velocity if something's in the way
 
         bot.setVelocity(new Vector(newX, newY, newZ));
     }
 
-    // Checks for a solid block at foot or knee height one step in the given horizontal
-    // direction, so the jump impulse in retreatFrom only fires when the bot would actually
-    // back into something, not on every retreat tick regardless of terrain.
+    // Solid block at foot/knee height one step ahead - gates the jump impulse in
+    // retreatFrom to only fire when the bot would actually back into something.
     private boolean isBlockedAhead(Mob bot, Vector horizontalDirection) {
         Location feet = bot.getLocation();
         Location probe = feet.clone().add(horizontalDirection.getX() * 0.6, 0, horizontalDirection.getZ() * 0.6);
@@ -387,6 +624,24 @@ public final class ElementBotManager implements Listener {
         plugin.getLogger().info("[ElementBot] " + owner.getName() + "'s " + element + " bot: " + message);
     }
 
+    // Same as log(), but for call sites that only have the bot entity, not a resolved
+    // owner Player (falls back to "owner" if the owner is offline).
+    private void logBot(Mob bot, String message) {
+        if (!DEBUG_LOGGING) return;
+        ElementType element = elementOf(bot);
+        String ownerName = "owner";
+        if (bot.hasMetadata(BOT_METADATA) && !bot.getMetadata(BOT_METADATA).isEmpty()) {
+            try {
+                UUID ownerId = UUID.fromString(bot.getMetadata(BOT_METADATA).get(0).asString());
+                Player owner = plugin.getServer().getPlayer(ownerId);
+                if (owner != null) ownerName = owner.getName();
+            } catch (IllegalArgumentException ignored) {
+                // malformed/missing metadata - keep the "owner" fallback
+            }
+        }
+        plugin.getLogger().info("[ElementBot] " + ownerName + "'s " + element + " bot: " + message);
+    }
+
     private String describeEntity(LivingEntity entity) {
         if (entity instanceof Player p) return "player " + p.getName();
         return entity.getType().name().toLowerCase() + " (" + entity.getUniqueId().toString().substring(0, 8) + ")";
@@ -403,12 +658,6 @@ public final class ElementBotManager implements Listener {
         var attr = owner.getAttribute(Attribute.MAX_HEALTH);
         double max = attr != null ? attr.getValue() : owner.getHealth();
         return owner.getHealth() < max;
-    }
-
-    private void stopById(UUID ownerId, Mob bot) {
-        bots.remove(ownerId);
-        states.remove(bot.getUniqueId());
-        if (bot.isValid()) bot.remove();
     }
 
     private ElementType elementOf(Mob bot) {
@@ -490,11 +739,8 @@ public final class ElementBotManager implements Listener {
         };
     }
 
-    // Reactive defense: if the bot's owner gets hit by another player, the bot immediately
-    // locks onto the attacker instead of waiting up to RETARGET_INTERVAL_TICKS for its next
-    // passive scan. This is what makes the bot feel like a teammate reacting to a fight
-    // rather than a turret idly sweeping the area - it responds the moment its owner is
-    // threatened, even from further away than its normal search radius.
+    // If the owner gets hit by another player, the bot locks onto the attacker right away
+    // instead of waiting for its next passive scan - reacts like a teammate, not a turret.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onOwnerAttacked(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player owner)) return;
@@ -511,6 +757,50 @@ public final class ElementBotManager implements Listener {
         BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> newBotState());
         state.targetId = attacker.getUniqueId();
         state.retargetTicks = RETARGET_INTERVAL_TICKS;
+        state.loggedMoveMode = null; // force the next movement-mode line to print, since the situation changed
+        if (DEBUG_LOGGING) {
+            log(owner, elementOf(bot), "REACT: owner attacked by " + describeEntity(attacker)
+                    + " (" + String.format("%.1f", Math.sqrt(attacker.getLocation().distanceSquared(bot.getLocation())))
+                    + " blocks away) - defending");
+        }
+    }
+
+    // Self-defense: a bot that gets hit retaliates against its attacker immediately rather
+    // than waiting for the next passive scan. Also tracks how many hits have landed in
+    // quick succession - past COMBO_HIT_THRESHOLD within COMBO_WINDOW_TICKS, that's a
+    // combo, and the bot breaks off to create space (handleTacticalMovement) instead of
+    // eating the rest of it standing still. Ignores the bot's own owner and other bots.
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBotAttacked(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Mob bot) || !owns(bot)) return;
+
+        Entity rawDamager = event.getDamager();
+        Entity source = (rawDamager instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter)
+                ? shooter : rawDamager;
+        if (!(source instanceof LivingEntity attacker) || attacker.equals(bot) || owns(attacker)) return;
+
+        String ownerIdStr = bot.hasMetadata(BOT_METADATA) && !bot.getMetadata(BOT_METADATA).isEmpty()
+                ? bot.getMetadata(BOT_METADATA).get(0).asString() : null;
+        if (ownerIdStr != null && attacker instanceof Player attackerPlayer
+                && attackerPlayer.getUniqueId().toString().equals(ownerIdStr)) {
+            return; // don't retaliate against our own owner
+        }
+
+        BotState state = states.computeIfAbsent(bot.getUniqueId(), id -> newBotState());
+        state.targetId = attacker.getUniqueId();
+        state.retargetTicks = RETARGET_INTERVAL_TICKS;
+        state.loggedMoveMode = null; // force the next movement-mode line to print, since the situation changed
+
+        state.comboHitsTaken = state.comboWindowTicks > 0 ? state.comboHitsTaken + 1 : 1;
+        state.comboWindowTicks = COMBO_WINDOW_TICKS;
+        if (state.comboHitsTaken >= COMBO_HIT_THRESHOLD) {
+            state.comboHitsTaken = 0;
+            state.aggressiveTicks = 0; // an in-progress brawl commitment doesn't override fleeing a combo
+            state.comboEscapeTicks = COMBO_ESCAPE_TICKS;
+            logBot(bot, "COMBO: took " + COMBO_HIT_THRESHOLD + "+ hits from " + describeEntity(attacker) + " in quick succession - breaking off");
+        } else {
+            logBot(bot, "REACT: hit by " + describeEntity(attacker) + " - retaliating");
+        }
     }
 
     // On-hit passives that need a real combat event: set-target-on-fire and Wither-on-hit for
@@ -538,15 +828,15 @@ public final class ElementBotManager implements Listener {
     }
 
     // ------------------------------------------------------------------
-    // Abilities - two per element, chosen by range/cooldown in tickBots()
+    // Abilities - two per element, chosen by range/cooldown/execute-priority in tickBots()
     // ------------------------------------------------------------------
 
-    private void castAbilityOne(Mob bot, Player owner, LivingEntity target, ElementType element) {
+    private void castAbilityOne(Mob bot, Player owner, LivingEntity target, ElementType element, CombatProfile profile) {
         Location origin = bot.getLocation().add(0, 1, 0);
         // force=true so this renders regardless of a nearby player's particle setting
         // (Minimal/Decreased) or view-distance culling - matches every player-cast ability.
-        bot.getWorld().spawnParticle(particle(element), origin, 20, .5, .6, .5, .05, null, true);
-        bot.getWorld().playSound(bot.getLocation(), sound(element), .8f, 1.0f);
+        bot.getWorld().spawnParticle(profile.particle(), origin, 20, .5, .6, .5, .05, null, true);
+        bot.getWorld().playSound(bot.getLocation(), profile.sound(), .8f, 1.0f);
 
         switch (element) {
             case AIR -> { // Slicing Wind: ranged cutting gust
@@ -600,10 +890,10 @@ public final class ElementBotManager implements Listener {
         }
     }
 
-    private void castAbilityTwo(Mob bot, Player owner, LivingEntity target, ElementType element) {
+    private void castAbilityTwo(Mob bot, Player owner, LivingEntity target, ElementType element, CombatProfile profile) {
         Location origin = bot.getLocation().add(0, 1, 0);
-        bot.getWorld().spawnParticle(particle(element), origin, 26, .6, .7, .6, .06, null, true);
-        bot.getWorld().playSound(bot.getLocation(), sound(element), .9f, 1.2f);
+        bot.getWorld().spawnParticle(profile.particle(), origin, 26, .6, .7, .6, .06, null, true);
+        bot.getWorld().playSound(bot.getLocation(), profile.sound(), .9f, 1.2f);
 
         switch (element) {
             case AIR -> { // Air Dash: leap gap-closer
@@ -683,16 +973,21 @@ public final class ElementBotManager implements Listener {
         equipment.setLeggingsDropChance(0f);
         equipment.setBootsDropChance(0f);
         equipment.setItemInMainHandDropChance(0f);
+
+        // Flat damage bump: mobs don't get the attack-cooldown mechanic a player wielding
+        // this sword would, so basic attacks stay relevant even with abilities on cooldown.
+        var damageAttr = bot.getAttribute(Attribute.ATTACK_DAMAGE);
+        if (damageAttr != null) {
+            damageAttr.setBaseValue(damageAttr.getBaseValue() + 2.0);
+        }
     }
 
     private void slow(LivingEntity target, int duration, int amplifier) {
         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, duration, amplifier, false, true));
     }
 
-    // Draws a short line of particles from the bot to the target so ranged abilities
-    // (Slicing Wind, Metal Chain) read as a projectile/slash travelling to its target
-    // instead of a puff of particles on the bot's own head that's easy to miss at range.
-    // Fired instantly rather than animated over ticks, but forced so it always renders.
+    // Short particle trail from bot to target so ranged abilities (Slicing Wind, Metal
+    // Chain) read as travelling to the target instead of a puff on the bot's own head.
     private void spawnTravelLine(Mob bot, LivingEntity target, Particle trailParticle) {
         Location from = bot.getLocation().add(0, 1.2, 0);
         Location to = target.getLocation().add(0, 1.0, 0);
@@ -709,93 +1004,5 @@ public final class ElementBotManager implements Listener {
             world.spawnParticle(trailParticle, point, 2, 0.08, 0.08, 0.08, 0.0, null, true);
             point.add(step);
         }
-    }
-
-    // ------------------------------------------------------------------
-    // Tuning tables
-    // ------------------------------------------------------------------
-
-    private int abilityOneCooldown(ElementType element) {
-        return switch (element) {
-            case FIRE -> 70; case WATER -> 55; case AIR -> 50; case EARTH -> 65;
-            case LIFE -> 80; case DEATH -> 60; case METAL -> 55; case FROST -> 60;
-        };
-    }
-
-    private int abilityTwoCooldown(ElementType element) {
-        return switch (element) {
-            case FIRE -> 140; case WATER -> 90; case AIR -> 80; case EARTH -> 100;
-            case LIFE -> 160; case DEATH -> 110; case METAL -> 90; case FROST -> 130;
-        };
-    }
-
-    // Real players get knocked back on every melee hit (vanilla applies some knockback
-    // even with no enchant) and actively juke/retreat, unlike hostile mobs which mostly
-    // hold still in melee. Without a little tolerance here, the bot's target constantly
-    // slips just outside its exact ability radius between AI ticks and abilities never
-    // fire in PvP even though they fire constantly against mobs. This buffer is added to
-    // the *linear* range before squaring, so it's a flat few blocks of forgiveness rather
-    // than compounding oddly at long vs. short range.
-    private static final double RANGE_BUFFER_BLOCKS = 1.5;
-
-    private double abilityOneRange(ElementType element) {
-        return switch (element) {
-            case AIR -> 12.0;               // ranged gust
-            case METAL -> 10.0;              // chain pull reaches out
-            case WATER, FIRE, FROST -> 6.0;  // close-range AoE burst
-            case EARTH, DEATH, LIFE -> 4.0;  // melee range
-        };
-    }
-
-    private double abilityOneRangeSq(ElementType element) {
-        double r = abilityOneRange(element) + RANGE_BUFFER_BLOCKS;
-        return r * r;
-    }
-
-    // Ability two was previously allowed to fire at any distance, which let e.g. Water's
-    // "Pull Down" or Frost's "Frost Punch" land instant damage from across the map. Gap
-    // closers (dashes/leaps/tunnels) legitimately need range so they can close the
-    // distance; direct-damage finishers are kept to a real melee/short-range window,
-    // mirroring the ranges their player-facing ability counterparts use.
-    private double abilityTwoRange(ElementType element) {
-        return switch (element) {
-            case AIR -> 12.0;    // Air Dash: gap-closing leap
-            case METAL -> 11.0;  // Metal Dash: gap-closing charge
-            case EARTH -> 10.0;  // Earth Tunnel: gap-closing teleport
-            case WATER, FIRE, DEATH, LIFE -> 6.0; // short-range finishers/utility
-            case FROST -> 4.0;   // Frost Punch: melee-range heavy hit
-        };
-    }
-
-    private double abilityTwoRangeSq(ElementType element) {
-        double r = abilityTwoRange(element) + RANGE_BUFFER_BLOCKS;
-        return r * r;
-    }
-
-    // Relative to the mob's default MOVEMENT_SPEED attribute (vanilla zombie ~0.23),
-    // not an absolute speed value — 1.0 means "normal zombie speed".
-    private double speedMultiplier(ElementType element) {
-        return switch (element) {
-            case AIR, METAL -> 1.15;
-            case EARTH -> 0.85;
-            default -> 1.0;
-        };
-    }
-
-    private Particle particle(ElementType element) {
-        return switch (element) {
-            case FIRE -> Particle.FLAME; case WATER -> Particle.BUBBLE; case AIR -> Particle.CLOUD;
-            case EARTH -> Particle.SMOKE; case LIFE -> Particle.HAPPY_VILLAGER; case DEATH -> Particle.SOUL;
-            case METAL -> Particle.CRIT; case FROST -> Particle.SNOWFLAKE;
-        };
-    }
-
-    private Sound sound(ElementType element) {
-        return switch (element) {
-            case FIRE -> Sound.ENTITY_BLAZE_SHOOT; case WATER -> Sound.ENTITY_PLAYER_SPLASH;
-            case AIR -> Sound.ENTITY_PLAYER_ATTACK_SWEEP; case EARTH -> Sound.BLOCK_STONE_BREAK;
-            case LIFE -> Sound.BLOCK_AMETHYST_BLOCK_CHIME; case DEATH -> Sound.ENTITY_WITHER_AMBIENT;
-            case METAL -> Sound.BLOCK_ANVIL_LAND; case FROST -> Sound.BLOCK_GLASS_BREAK;
-        };
     }
 }

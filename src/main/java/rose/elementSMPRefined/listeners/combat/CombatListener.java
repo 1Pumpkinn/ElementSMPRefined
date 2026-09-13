@@ -1,6 +1,5 @@
 package rose.elementSMPRefined.listeners.combat;
 
-import rose.elementSMPRefined.managers.ElementManager;
 import rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -12,42 +11,38 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 /**
  * Listener for preventing damage between trusted players.
  * Supports both direct damage and projectile attacks.
- * 
- * Trust is bidirectional - either trusting the other player prevents damage.
+ *
+ * Trust is granted/revoked only via {@link TrustManager#addMutualTrust} and
+ * {@link TrustManager#removeMutualTrust} everywhere in this codebase, so
+ * isTrusted(a, b) and isTrusted(b, a) are always kept in sync - a single
+ * direction check below is enough (and avoids a second map lookup on every
+ * non-trusted hit, which is the common case in combat). If a one-directional
+ * trust grant is ever added elsewhere, this needs to go back to checking
+ * both directions.
  */
 public class CombatListener implements Listener {
     private final TrustManager trust;
-    private final ElementManager elements;
 
-    public CombatListener(TrustManager trust, ElementManager elements) {
+    public CombatListener(TrustManager trust) {
         this.trust = trust;
-        this.elements = elements;
     }
 
     /**
      * Prevent damage between trusted players.
      * Runs at HIGHEST priority to ensure this runs before other damage modifiers.
-     * 
-     * Trust check is bidirectional:
-     * - Victim trusts damager OR
-     * - Damager trusts victim
-     * 
-     * This prevents accidental damage in both directions.
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player victim)) {
             return;
         }
-        
+
         Player damager = extractDamager(event);
         if (damager == null || damager.equals(victim)) {
             return;
         }
 
-        // Check bidirectional trust
-        if (trust.isTrusted(victim.getUniqueId(), damager.getUniqueId()) || 
-            trust.isTrusted(damager.getUniqueId(), victim.getUniqueId())) {
+        if (trust.isTrusted(victim.getUniqueId(), damager.getUniqueId())) {
             event.setCancelled(true);
         }
     }
@@ -73,4 +68,3 @@ public class CombatListener implements Listener {
         return null;
     }
 }
-

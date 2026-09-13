@@ -65,7 +65,7 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new InvisibilityNameHider(), plugin);
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
         pluginManager.registerEvents(new GameModeListener(plugin.getManaManager(), plugin.getConfigManager()), plugin);
-        pluginManager.registerEvents(new rose.elementSMPRefined.listeners.combat.CombatListener(plugin.getTrustManager(), plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new rose.elementSMPRefined.listeners.combat.CombatListener(plugin.getTrustManager()), plugin);
 
         this.abilityListener = new AbilityListener(plugin, plugin.getElementManager(), plugin.getDisarmManager());
         pluginManager.registerEvents(abilityListener, plugin);

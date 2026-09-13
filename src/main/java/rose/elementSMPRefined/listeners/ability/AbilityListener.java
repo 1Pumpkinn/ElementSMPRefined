@@ -14,9 +14,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class AbilityListener implements Listener {
     private static final Component ABILITY_DISARMED = Component.text(
@@ -25,7 +25,13 @@ public class AbilityListener implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elements;
     private final DisarmManager disarmManager;
-    private final Map<UUID, TapTracker> tapTrackers = new ConcurrentHashMap<>();
+    // Plain HashMap, not ConcurrentHashMap: every access point (this event
+    // handler, the two BukkitRunnable callbacks below via runTaskLater, and
+    // PlayerLifecycle's onPlayerQuit call to onPlayerQuit(UUID)) runs
+    // synchronously on the main server thread - nothing here ever touches
+    // this map off-thread, so the concurrency bookkeeping was pure overhead
+    // on a per-tap hot path.
+    private final Map<UUID, TapTracker> tapTrackers = new HashMap<>();
 
     public AbilityListener(ElementSMPRefined plugin, ElementManager elements, DisarmManager disarmManager) {
         this.plugin = plugin;

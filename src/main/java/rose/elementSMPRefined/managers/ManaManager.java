@@ -3,6 +3,8 @@ package rose.elementSMPRefined.managers;
 import rose.elementSMPRefined.API.event.ManaSpendEvent;
 import rose.elementSMPRefined.data.DataStore;
 import rose.elementSMPRefined.data.PlayerData;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -29,6 +31,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ManaManager {
     private static final int FLUSH_INTERVAL_SECONDS = 30;
+    private static final String INFINITE_MANA_DISPLAY = "\u221E"; // ∞, shown for creative mode
+
+    // The label never changes, so it's built once instead of on every tick
+    // for every online player - the only parts that vary per player/tick
+    // are the current-mana value and (once per tick) the max-mana suffix.
+    private static final Component MANA_LABEL =
+            Component.text("\u24C2 Mana: ").color(NamedTextColor.AQUA); // Ⓜ Mana:
 
     private final JavaPlugin plugin;
     private final DataStore store;
@@ -47,41 +56,50 @@ public class ManaManager {
 
     public void start() {
         if (task != null) return;
-        task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            int maxMana = configManager.getMaxMana();
-            int regenRate = configManager.getManaRegenPerSecond();
+        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+    }
 
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                PlayerData pd = get(p.getUniqueId());
+    /** Runs once per second: regen everyone online, refresh their action bar, flush if due. */
+    private void tick() {
+        int maxMana = configManager.getMaxMana();
+        int regenRate = configManager.getManaRegenPerSecond();
+        // Same for every player this tick, so build it once rather than per player.
+        Component maxManaSuffix = Component.text("/" + maxMana).color(NamedTextColor.GRAY);
 
-                // Creative mode players have infinite mana
-                if (p.getGameMode() == GameMode.CREATIVE) {
-                    pd.setMana(maxMana);
-                } else {
-                    // Normal mana regen for survival/adventure/spectator
-                    int before = pd.getMana();
-                    if (before < maxMana) {
-                        pd.addMana(regenRate);
-                        // Ensure we don't exceed max mana
-                        if (pd.getMana() > maxMana) {
-                            pd.setMana(maxMana);
-                        }
-                        dirty.add(p.getUniqueId());
-                    }
-                }
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            PlayerData pd = get(player.getUniqueId());
+            boolean creative = player.getGameMode() == GameMode.CREATIVE;
 
-                // Action bar display with mana emoji
-                String manaDisplay = p.getGameMode() == GameMode.CREATIVE ? "∞" : String.valueOf(pd.getMana());
-                p.sendActionBar(
-                        net.kyori.adventure.text.Component.text("Ⓜ Mana: ")
-                                .color(net.kyori.adventure.text.format.NamedTextColor.AQUA)
-                                .append(net.kyori.adventure.text.Component.text(manaDisplay, net.kyori.adventure.text.format.NamedTextColor.WHITE))
-                                .append(net.kyori.adventure.text.Component.text("/" + maxMana, net.kyori.adventure.text.format.NamedTextColor.GRAY))
-                );
+            if (creative) {
+                pd.setMana(maxMana);
+            } else {
+                regenMana(player.getUniqueId(), pd, maxMana, regenRate);
             }
 
-            flushDirtyIfDue();
-        }, 20L, 20L);
+            sendManaActionBar(player, pd, maxMana, maxManaSuffix, creative);
+        }
+
+        flushDirtyIfDue();
+    }
+
+    /** Adds regen to a non-creative player's mana, capping at max, and marks them dirty if it changed. */
+    private void regenMana(UUID uuid, PlayerData pd, int maxMana, int regenRate) {
+        if (pd.getMana() >= maxMana) return;
+
+        pd.addMana(regenRate);
+        if (pd.getMana() > maxMana) {
+            pd.setMana(maxMana);
+        }
+        dirty.add(uuid);
+    }
+
+    private void sendManaActionBar(Player player, PlayerData pd, int maxMana, Component maxManaSuffix, boolean creative) {
+        String manaDisplay = creative ? INFINITE_MANA_DISPLAY : String.valueOf(pd.getMana());
+        player.sendActionBar(
+                MANA_LABEL
+                        .append(Component.text(manaDisplay).color(NamedTextColor.WHITE))
+                        .append(maxManaSuffix)
+        );
     }
 
     /** Every FLUSH_INTERVAL_SECONDS ticks of this task, persist whatever changed since the last flush. */

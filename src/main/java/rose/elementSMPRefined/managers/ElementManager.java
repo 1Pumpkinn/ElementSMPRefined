@@ -25,16 +25,28 @@ import rose.elementSMPRefined.registry.ElementRegistry;
 import rose.elementSMPRefined.services.EffectService;
 import rose.elementSMPRefined.util.visual.ElementColours;
 import rose.elementSMPRefined.util.visual.SoundUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.*;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class ElementManager {
-    private static final ElementType[] BASIC_ELEMENTS = {
-            ElementType.AIR, ElementType.WATER, ElementType.FIRE, ElementType.EARTH
-    };
+    // Default classification, used only where config.yml doesn't override a
+    // type's isBasic() flag. Kept as a single set (rather than separate
+    // basic/advanced arrays) so every ElementType is classified exactly once -
+    // "advanced" is always just "everything not basic", never a second,
+    // independently-maintained list that could drift out of sync with it.
+    private static final EnumSet<ElementType> DEFAULT_BASIC_ELEMENTS =
+            EnumSet.of(ElementType.AIR, ElementType.WATER, ElementType.FIRE, ElementType.EARTH);
 
     private final ElementSMPRefined plugin;
     private final DataStore store;
@@ -74,55 +86,46 @@ public class ElementManager {
     }
 
     /**
-     * Get all basic elements that can be rolled initially
+     * All basic elements that can be rolled initially (starter rolls, basic
+     * reroller), per {@link ElementType} default plus any config.yml override.
      */
     public ElementType[] getBasicElements() {
-        // Start with default basic elements
-        List<ElementType> basicElements = new ArrayList<>(Arrays.asList(BASIC_ELEMENTS));
-
-        // Add or remove elements based on configuration
-        for (ElementType type : ElementType.values()) {
-            var config = configManager.getElementConfiguration().getConfig(type);
-            if (config != null) {
-                // If configured as basic, add it (if not already there)
-                if (config.isBasic() && !basicElements.contains(type)) {
-                    basicElements.add(type);
-                }
-                // If configured as not basic and it's in default basics, remove it
-                else if (!config.isBasic() && basicElements.contains(type)) {
-                    basicElements.remove(type);
-                }
-            }
-        }
-
-        return basicElements.toArray(new ElementType[0]);
+        return classifyBasicElements().toArray(new ElementType[0]);
     }
 
     /**
-     * Get all advanced (non-basic) elements that can be rolled with advanced reroller
+     * All advanced (non-basic) elements that can be rolled with the advanced
+     * reroller. Always the exact complement of {@link #getBasicElements()} -
+     * every {@link ElementType} lands in exactly one of the two lists.
      */
     public ElementType[] getAdvancedElements() {
-        // Start with default advanced elements
-        List<ElementType> advancedElements = new ArrayList<>(Arrays.asList(
-                ElementType.LIFE, ElementType.DEATH, ElementType.METAL, ElementType.FROST
-        ));
+        EnumSet<ElementType> advanced = EnumSet.allOf(ElementType.class);
+        advanced.removeAll(classifyBasicElements());
+        return advanced.toArray(new ElementType[0]);
+    }
 
-        // Add or remove elements based on configuration
+    /**
+     * Applies config.yml's per-element {@code isBasic} override (if any) on
+     * top of {@link #DEFAULT_BASIC_ELEMENTS}. Single source of truth for the
+     * basic/advanced split, queried fresh each call so a {@code /elementconfig
+     * reload} takes effect immediately.
+     */
+    private EnumSet<ElementType> classifyBasicElements() {
+        EnumSet<ElementType> basic = EnumSet.copyOf(DEFAULT_BASIC_ELEMENTS);
+        var elementConfig = configManager.getElementConfiguration();
+
         for (ElementType type : ElementType.values()) {
-            var config = configManager.getElementConfiguration().getConfig(type);
-            if (config != null) {
-                // If configured as not basic, add it to advanced (if not already there)
-                if (!config.isBasic() && !advancedElements.contains(type)) {
-                    advancedElements.add(type);
-                }
-                // If configured as basic and it's in default advanced, remove it
-                else if (config.isBasic() && advancedElements.contains(type)) {
-                    advancedElements.remove(type);
-                }
+            var config = elementConfig.getConfig(type);
+            if (config == null) continue;
+
+            if (config.isBasic()) {
+                basic.add(type);
+            } else {
+                basic.remove(type);
             }
         }
 
-        return advancedElements.toArray(new ElementType[0]);
+        return basic;
     }
 
     /**
@@ -230,7 +233,7 @@ public class ElementManager {
      * switch. That's genuinely shared machinery, not reroller-specific code.
      */
     public void assignBasicElement(Player player, ElementType type) {
-        assignElementInternal(player, type, "Element Assigned!");
+        assignElementInternal(player, ElementId.builtin(type), "Element Assigned!", false);
     }
 
     public void assignElement(Player player, ElementType type) {
@@ -269,10 +272,6 @@ public class ElementManager {
         applyUpsides(player);
 
         plugin.getServer().getPluginManager().callEvent(new ElementSetEvent(player, id, old));
-    }
-
-    private void assignElementInternal(Player player, ElementType type, String titleText) {
-        assignElementInternal(player, ElementId.builtin(type), titleText, false);
     }
 
     private void assignElementInternal(Player player, ElementId id, String titleText, boolean resetLevel) {
@@ -364,16 +363,7 @@ public class ElementManager {
         Element element = elementRegistry.get(id);
         if (element == null) return false;
 
-        ElementContext ctx = ElementContext.builder()
-                .player(player)
-                .upgradeLevel(pd.getUpgradeLevel(id))
-                .elementType(id.toBuiltinType())
-                .elementId(id)
-                .manaManager(manaManager)
-                .trustManager(trustManager)
-                .configManager(configManager)
-                .plugin(plugin)
-                .build();
+        ElementContext ctx = buildContext(player, pd, id);
 
         boolean success = number == 1 ? element.ability1(ctx) : element.ability2(ctx);
         if (success) {
@@ -402,7 +392,19 @@ public class ElementManager {
         if (id == null || pd.getUpgradeLevel(id) < ability.getRequiredUpgradeLevel()) return false;
         if (!manaManager.hasMana(player, ability.getManaCost())) return false;
 
-        ElementContext ctx = ElementContext.builder()
+        ElementContext ctx = buildContext(player, pd, id);
+
+        if (!ability.execute(ctx)) return false;
+        manaManager.spend(player, ability.getManaCost());
+
+        plugin.getServer().getPluginManager()
+                .callEvent(new AbilityActivateEvent(player, id, -1, ability.getName()));
+        return true;
+    }
+
+    /** Shared builder for the {@link ElementContext} every ability call needs. */
+    private ElementContext buildContext(Player player, PlayerData pd, ElementId id) {
+        return ElementContext.builder()
                 .player(player)
                 .upgradeLevel(pd.getUpgradeLevel(id))
                 .elementType(id.toBuiltinType())
@@ -412,13 +414,6 @@ public class ElementManager {
                 .configManager(configManager)
                 .plugin(plugin)
                 .build();
-
-        if (!ability.execute(ctx)) return false;
-        manaManager.spend(player, ability.getManaCost());
-
-        plugin.getServer().getPluginManager()
-                .callEvent(new AbilityActivateEvent(player, id, -1, ability.getName()));
-        return true;
     }
 
     public void giveElementItem(Player player, ElementType type) {
@@ -439,19 +434,19 @@ public class ElementManager {
     private void showElementTitle(Player player, ElementId id, String title) {
         // getDisplayName() carries legacy '&'/ChatColor codes for chat-message use;
         // Adventure's Component.text() doesn't parse those, so strip them for the
-        // displayed text but pull the actual color out first via ElementColors so
+        // displayed text but pull the actual color out first via ElementColours so
         // the title shows this element's real color instead of one fixed color.
         String rawName = displayNameOf(id);
         String plainName = ChatColor.stripColor(rawName);
-        net.kyori.adventure.text.format.NamedTextColor nameColor = ElementColours.fromLegacy(rawName);
+        NamedTextColor nameColor = ElementColours.fromLegacy(rawName);
 
-        var titleObj = net.kyori.adventure.title.Title.title(
-                net.kyori.adventure.text.Component.text(title).color(net.kyori.adventure.text.format.NamedTextColor.GOLD),
-                net.kyori.adventure.text.Component.text(plainName).color(nameColor),
-                net.kyori.adventure.title.Title.Times.times(
-                        java.time.Duration.ofMillis(500),
-                        java.time.Duration.ofMillis(2000),
-                        java.time.Duration.ofMillis(500)
+        var titleObj = Title.title(
+                Component.text(title).color(NamedTextColor.GOLD),
+                Component.text(plainName).color(nameColor),
+                Title.Times.times(
+                        Duration.ofMillis(500),
+                        Duration.ofMillis(2000),
+                        Duration.ofMillis(500)
                 )
         );
         player.showTitle(titleObj);

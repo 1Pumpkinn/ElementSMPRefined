@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined.ability.passive.death;
 
-import net.rose.elementSMPRefined.API.element.BaseElement;
-import net.rose.elementSMPRefined.API.element.ElementType;
-import net.rose.elementSMPRefined.API.element.ListenerProvider;
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.death.DeathBackstabAbility;
 import net.rose.elementSMPRefined.ability.main.death.DeathSideStepAbility;
 import net.rose.elementSMPRefined.ability.passive.death.listeners.DeathNightInvisibilityListener;

@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.managers;
 
-import net.rose.elementSMPRefined.API.element.ElementId;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.config.Constants;
 import net.rose.elementSMPRefined.config.ElementConfiguration;
 import org.bukkit.configuration.ConfigurationSection;

@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.commands;
 
-import net.rose.elementSMPRefined.API.element.Element;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.Element;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.ElementManager;

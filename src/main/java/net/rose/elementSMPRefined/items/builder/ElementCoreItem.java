@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.items.builder;
 
-import net.rose.elementSMPRefined.API.element.ElementType;
-import net.rose.elementSMPRefined.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

@@ -1,10 +1,10 @@
 package net.rose.elementSMPRefined.core;
 
 import net.rose.elementSMPRefined.data.DataStore;
-import net.rose.elementSMPRefined.addons.AddonManager;
-import net.rose.elementSMPRefined.initializers.CommandInitializer;
-import net.rose.elementSMPRefined.initializers.ListenerInitializer;
-import net.rose.elementSMPRefined.initializers.RecipeInitializer;
+import net.rose.elementSMPRefined.core.addons.AddonManager;
+import net.rose.elementSMPRefined.core.initializers.CommandInitializer;
+import net.rose.elementSMPRefined.core.initializers.ListenerInitializer;
+import net.rose.elementSMPRefined.core.initializers.RecipeInitializer;
 import net.rose.elementSMPRefined.managers.*;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.services.ValidationService;

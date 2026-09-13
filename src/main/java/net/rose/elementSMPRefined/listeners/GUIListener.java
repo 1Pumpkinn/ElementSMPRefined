@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.listeners;
 
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;

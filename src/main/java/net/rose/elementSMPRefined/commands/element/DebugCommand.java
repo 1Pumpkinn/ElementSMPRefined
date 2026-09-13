@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.commands.element;
 
-import net.rose.elementSMPRefined.API.element.ElementId;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;

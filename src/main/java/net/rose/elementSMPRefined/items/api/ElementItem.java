@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.items.api;
 
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.ManaManager;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;

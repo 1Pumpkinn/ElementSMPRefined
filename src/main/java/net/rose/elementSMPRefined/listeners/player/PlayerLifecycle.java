@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.listeners.player;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.metal.MetalShardAbility;
 import net.rose.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import net.rose.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;

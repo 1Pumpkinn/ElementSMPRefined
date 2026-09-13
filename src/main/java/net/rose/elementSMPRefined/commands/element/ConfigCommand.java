@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.commands.element;
 
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;

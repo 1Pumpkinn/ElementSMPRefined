@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.water.listeners;
 
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;

@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.data;
 
-import net.rose.elementSMPRefined.API.element.ElementType;
-import net.rose.elementSMPRefined.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementId;
 
 import java.util.*;
 

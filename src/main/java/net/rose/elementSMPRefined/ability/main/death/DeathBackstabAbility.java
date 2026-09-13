@@ -1,9 +1,9 @@
 package net.rose.elementSMPRefined.ability.main.death;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.API.ability.BaseAbility;
-import net.rose.elementSMPRefined.API.element.ElementContext;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
+import net.rose.elementSMPRefined.core.API.element.ElementContext;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;

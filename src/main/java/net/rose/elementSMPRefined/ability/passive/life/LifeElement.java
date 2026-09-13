@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.life;
 
-import net.rose.elementSMPRefined.API.element.BaseElement;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.life.LifeHealingBeamAbility;
 import net.rose.elementSMPRefined.ability.main.life.LifeRegenAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;

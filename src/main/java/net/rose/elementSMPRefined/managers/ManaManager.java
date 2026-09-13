@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.managers;
 
-import net.rose.elementSMPRefined.API.event.ManaSpendEvent;
+import net.rose.elementSMPRefined.core.API.event.ManaSpendEvent;
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.kyori.adventure.text.Component;

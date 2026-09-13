@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.config;
 
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;

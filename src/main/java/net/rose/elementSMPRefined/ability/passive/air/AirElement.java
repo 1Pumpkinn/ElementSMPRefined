@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.air;
 
-import net.rose.elementSMPRefined.API.element.BaseElement;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.air.AirDashAbility;
 import net.rose.elementSMPRefined.ability.main.air.SlicingWindAbility;
 import net.rose.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;

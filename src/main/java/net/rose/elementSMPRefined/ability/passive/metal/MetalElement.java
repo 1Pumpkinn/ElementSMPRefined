@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.metal;
 
-import net.rose.elementSMPRefined.API.element.BaseElement;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.metal.MetalChainAbility;
 import net.rose.elementSMPRefined.ability.main.metal.MetalShardAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;

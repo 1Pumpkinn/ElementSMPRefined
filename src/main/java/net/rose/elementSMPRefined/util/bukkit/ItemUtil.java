@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined.util.bukkit;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.API.element.ElementType;
-import net.rose.elementSMPRefined.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;

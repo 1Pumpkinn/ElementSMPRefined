@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.managers;
 import net.rose.elementSMPRefined.items.api.ElementItem;
 import net.rose.elementSMPRefined.items.recipes.Upgrader1Item;
 import net.rose.elementSMPRefined.items.recipes.Upgrader2Item;
-import net.rose.elementSMPRefined.registry.ItemRegistry;
+import net.rose.elementSMPRefined.core.registry.ItemRegistry;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;

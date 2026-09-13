@@ -1,14 +1,14 @@
 package net.rose.elementSMPRefined.managers;
 
-import net.rose.elementSMPRefined.API.ability.Ability;
-import net.rose.elementSMPRefined.API.element.Element;
-import net.rose.elementSMPRefined.API.element.ElementContext;
-import net.rose.elementSMPRefined.API.element.ElementType;
-import net.rose.elementSMPRefined.API.element.ElementId;
-import net.rose.elementSMPRefined.API.element.ListenerProvider;
-import net.rose.elementSMPRefined.API.event.AbilityActivateEvent;
-import net.rose.elementSMPRefined.API.event.ElementAssignEvent;
-import net.rose.elementSMPRefined.API.event.ElementSetEvent;
+import net.rose.elementSMPRefined.core.API.ability.Ability;
+import net.rose.elementSMPRefined.core.API.element.Element;
+import net.rose.elementSMPRefined.core.API.element.ElementContext;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
+import net.rose.elementSMPRefined.core.API.event.AbilityActivateEvent;
+import net.rose.elementSMPRefined.core.API.event.ElementAssignEvent;
+import net.rose.elementSMPRefined.core.API.event.ElementSetEvent;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.data.PlayerData;
@@ -21,7 +21,7 @@ import net.rose.elementSMPRefined.ability.passive.life.LifeElement;
 import net.rose.elementSMPRefined.ability.passive.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.water.WaterElement;
 import net.rose.elementSMPRefined.items.builder.ElementCoreItem;
-import net.rose.elementSMPRefined.registry.ElementRegistry;
+import net.rose.elementSMPRefined.core.registry.ElementRegistry;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.util.visual.ElementColours;
 import net.rose.elementSMPRefined.util.visual.SoundUtils;
@@ -137,7 +137,7 @@ public class ElementManager {
 
     /**
      * Every element's own class already knows its display name, description, and
-     * abilities (see {@link net.rose.elementSMPRefined.API.element.BaseElement}) - so
+     * abilities (see {@link net.rose.elementSMPRefined.core.API.element.BaseElement}) - so
      * registering a new element is just adding one line here. Whether it's a
      * "basic" starter element is decided separately, by {@link #getBasicElements()}.
      */
@@ -378,7 +378,7 @@ public class ElementManager {
      * Activates an addon-registered ability by ID rather than by slot - for
      * abilities that aren't tied to a specific element's slot 1/2, e.g. an
      * item-triggered or event-triggered ability an addon registers via
-     * {@link net.rose.elementSMPRefined.API.ElementApi#registerAbility}.
+     * {@link net.rose.elementSMPRefined.core.API.ElementApi#registerAbility}.
      * <p>
      * Requires the player's current element to meet the ability's upgrade-level
      * requirement and enough mana, exactly like a core ability would.

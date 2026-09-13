@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined.ability.passive.water;
 
-import net.rose.elementSMPRefined.API.element.BaseElement;
-import net.rose.elementSMPRefined.API.element.ElementType;
-import net.rose.elementSMPRefined.API.element.ListenerProvider;
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.water.WaterBubbleAbility;
 import net.rose.elementSMPRefined.ability.main.water.WaterPullDownAbility;
 import net.rose.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener;

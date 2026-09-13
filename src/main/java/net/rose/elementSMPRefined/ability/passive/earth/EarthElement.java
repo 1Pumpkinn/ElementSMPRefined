@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined.ability.passive.earth;
 
-import net.rose.elementSMPRefined.API.element.BaseElement;
-import net.rose.elementSMPRefined.API.element.ElementContext;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementContext;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.earth.EarthTunnelAbility;
 import net.rose.elementSMPRefined.ability.main.earth.GraspAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;

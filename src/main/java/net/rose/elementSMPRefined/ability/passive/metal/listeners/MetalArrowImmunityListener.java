@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.metal.listeners;
 
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.Arrow;

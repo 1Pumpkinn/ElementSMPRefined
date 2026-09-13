@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.fire;
 
-import net.rose.elementSMPRefined.API.element.BaseElement;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.fire.FireGeyserAbility;
 import net.rose.elementSMPRefined.ability.main.fire.MeteorCrashAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;

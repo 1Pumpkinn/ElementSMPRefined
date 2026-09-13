@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.death.listeners;
 
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;

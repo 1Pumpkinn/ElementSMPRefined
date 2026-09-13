@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined;
 
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
-import net.rose.elementSMPRefined.API.ElementApi;
-import net.rose.elementSMPRefined.API.element.Element;
+import net.rose.elementSMPRefined.core.API.ElementApi;
+import net.rose.elementSMPRefined.core.API.element.Element;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.ServicePriority;
 

@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.frost;
 
-import net.rose.elementSMPRefined.API.element.BaseElement;
-import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.frost.FrostCircleAbility;
 import net.rose.elementSMPRefined.ability.main.frost.FrostPunchAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;

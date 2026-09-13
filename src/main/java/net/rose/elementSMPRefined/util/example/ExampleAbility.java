@@ -10,6 +10,11 @@ import org.bukkit.entity.Player;
  * {@link #execute}. Extending {@link BaseAbility} gives you mana cost,
  * cooldown, required upgrade level, and active-player tracking for free -
  * you only need to describe the ability and implement what it does.
+ * <p>
+ * You never call execute() yourself - BaseElement.ability1()/ability2() do,
+ * after already checking upgrade level and spending mana. If you return
+ * false here, that spent mana is automatically refunded (treat false as
+ * "the cast didn't actually happen, e.g. no valid target").
  */
 public class ExampleAbility extends BaseAbility {
 
@@ -22,7 +27,10 @@ public class ExampleAbility extends BaseAbility {
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
 
-        // Toggle off if already active - useful for channelled/held abilities.
+        // isActiveFor/setActive just track "is this ability currently on" per
+        // player - handy for toggled/held abilities like this one. For a
+        // one-shot ability (e.g. a single burst of damage) you can ignore
+        // these and just run your effect once, then return true.
         if (isActiveFor(player)) {
             setActive(player, false);
             player.sendMessage(ChatColor.RED + "Example ability deactivated");
@@ -32,7 +40,9 @@ public class ExampleAbility extends BaseAbility {
         setActive(player, true);
         player.sendMessage(ChatColor.GREEN + "Example ability activated");
 
-        // Add your ability logic here: deal damage, apply effects, spawn particles, etc.
+        // Ability logic goes here: deal damage, apply effects, spawn particles,
+        // etc. context also gives you managers (mana, trust, config) and the
+        // caster's upgrade level via context.getUpgradeLevel().
 
         return true;
     }

@@ -34,7 +34,9 @@ import java.util.List;
 public class ExampleElement extends BaseElement implements ListenerProvider {
 
     public ExampleElement(JavaPlugin plugin) {
-        // Hand BaseElement the two abilities this element casts.
+        // Hand BaseElement the two abilities this element casts. First one is
+        // ability1 (Upgrade I), second is ability2 (needs Upgrade II) -
+        // use two different Ability classes here, this is just reusing one for the demo.
         super(plugin, new ExampleAbility(), new ExampleAbility());
     }
 
@@ -54,8 +56,11 @@ public class ExampleElement extends BaseElement implements ListenerProvider {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Permanent passive effects go here. Guard stronger effects behind
-        // upgradeLevel so Upgrade II feels like an upgrade.
+        // Passive effects for holding this element. Not a one-time thing -
+        // this gets re-run periodically (and after events like drinking milk)
+        // to keep the effects topped up, so just re-apply them here each time
+        // rather than worrying about "is it already active". Gate stronger
+        // effects behind upgradeLevel so Upgrade II actually feels stronger.
         player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 0, true, false));
 
         if (upgradeLevel >= 2) {
@@ -65,8 +70,9 @@ public class ExampleElement extends BaseElement implements ListenerProvider {
 
     @Override
     public void clearEffects(Player player) {
-        // super.clearEffects() deactivates ability1/ability2 - always call it,
-        // then strip anything applyUpsides() added.
+        // Runs when the player switches away from this element (or logs off
+        // holding it). super.clearEffects() turns off any active ability1/2 -
+        // always call it first, then remove whatever applyUpsides() added above.
         super.clearEffects(player);
         player.removePotionEffect(PotionEffectType.SPEED);
     }

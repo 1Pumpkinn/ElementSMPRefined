@@ -1,0 +1,170 @@
+package net.rose.elementSMPRefined.services;
+
+import net.rose.elementSMPRefined.config.Constants;
+import net.rose.elementSMPRefined.data.PlayerData;
+import net.rose.elementSMPRefined.API.element.Element;
+import net.rose.elementSMPRefined.API.element.ElementId;
+import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.managers.ElementManager;
+import org.bukkit.Bukkit;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+
+/**
+ * Coordinates element passive effect application and health management.
+ *
+ * This service does NOT store hardcoded effect lists - each element owns
+ * its effects in {@link Element#applyUpsides(Player, int)}.
+ * EffectService simply ensures effects are re-applied when needed (after
+ * milk, respawn, etc.) and manages health attributes.
+ */
+public class EffectService implements Listener {
+    private final JavaPlugin plugin;
+    private final ElementManager elementManager;
+
+    public EffectService(JavaPlugin plugin, ElementManager elementManager) {
+        this.plugin = plugin;
+        this.elementManager = elementManager;
+        startMonitoring();
+    }
+
+    /**
+     * Clear ALL element effects from a player.
+     * Used when logging out, where we don't know for certain only one
+     * element's effects are active and want a full safety-net sweep.
+     */
+    public void clearAllElementEffects(Player player) {
+        PlayerData pd = elementManager.data(player.getUniqueId());
+        ElementType currentElement = pd.getCurrentElement();
+
+        // Clear effects from ALL registered elements (builtin AND addon), including
+        // the current one when switching.
+        for (Element element : elementManager.getAllElements()) {
+            element.clearEffects(player);
+        }
+
+        // Reset health if not Life element
+        updatePlayerHealth(player, currentElement);
+    }
+
+    /**
+     * Clear effects for a single element (by ID, so this also covers addon
+     * elements that have no {@link ElementType}) and update health
+     * accordingly. Prefer this over {@link #clearAllElementEffects} for
+     * element switches (rerolls, manual sets) - only one element's effects
+     * can ever be active on a player at a time, so there's no need to also
+     * loop through and call clearEffects on every OTHER registered element
+     * (builtin and addon) just to switch away from this one. That full
+     * sweep is for the logout safety net, not the hot path every reroll
+     * runs through.
+     */
+    public void clearElementEffects(Player player, ElementId id) {
+        if (id != null) {
+            Element element = elementManager.get(id);
+            if (element != null) {
+                element.clearEffects(player);
+            }
+        }
+        updatePlayerHealth(player, id == null ? null : id.toBuiltinType());
+    }
+
+    /**
+     * Remove a potion effect only if it was applied by the element system.
+     * Element effects use infinite duration values, while player potions have
+     * shorter durations. This preserves legitimate potion effects from
+     * drinking/splashing potions.
+     */
+    public static void removeElementPotionEffect(Player player, PotionEffectType type) {
+        PotionEffect effect = player.getPotionEffect(type);
+        if (effect != null && isElementPotionEffect(effect)) {
+            player.removePotionEffect(type);
+        }
+    }
+
+    private static boolean isElementPotionEffect(PotionEffect effect) {
+        return effect.getDuration() > 1000000
+                || effect.getDuration() == PotionEffect.INFINITE_DURATION;
+    }
+
+    /**
+     * Apply passive effects for player's current element.
+     * Delegates to the element to define its own effects.
+     */
+    public void applyPassiveEffects(Player player) {
+        PlayerData pd = elementManager.data(player.getUniqueId());
+        ElementId id = pd.getCurrentElementId();
+
+        if (id == null) return;
+
+        Element element = elementManager.get(id);
+        if (element != null) {
+            element.applyUpsides(player, pd.getUpgradeLevel(id));
+        }
+    }
+
+    /**
+     * Validate and restore effects if they were lost.
+     * Called after events that remove potion effects (milk, etc.).
+     */
+    public void reapplyEffects(Player player) {
+        if (player.isOnline()) {
+            applyPassiveEffects(player);
+            updatePlayerHealth(player, elementManager.data(player.getUniqueId()).getCurrentElement());
+        }
+    }
+
+    /**
+     * Ensure player's max health matches their current element.
+     * Life element grants bonus health; all others use normal health.
+     */
+    private void updatePlayerHealth(Player player, ElementType elementType) {
+        var attr = player.getAttribute(Attribute.MAX_HEALTH);
+        if (attr == null) return;
+
+        double targetHealth = elementType == ElementType.LIFE ?
+                Constants.Health.LIFE_MAX : Constants.Health.NORMAL_MAX;
+
+        if (attr.getBaseValue() != targetHealth) {
+            attr.setBaseValue(targetHealth);
+            if (!player.isDead() && player.getHealth() > targetHealth) {
+                player.setHealth(targetHealth);
+            }
+        }
+    }
+
+    /**
+     * Start periodic health validation (effects are re-applied on-demand).
+     */
+    private void startMonitoring() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    PlayerData pd = elementManager.data(player.getUniqueId());
+                    if (pd.getCurrentElement() != null) {
+                        updatePlayerHealth(player, pd.getCurrentElement());
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, Constants.Timing.TWO_SECONDS, Constants.Timing.TWO_SECONDS);
+    }
+
+    /**
+     * When milk is consumed, all potion effects are cleared. Reapply element effects.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onMilkConsume(PlayerItemConsumeEvent event) {
+        if (event.getItem().getType() != org.bukkit.Material.MILK_BUCKET) return;
+
+        Player player = event.getPlayer();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> reapplyEffects(player), 1L);
+    }
+}

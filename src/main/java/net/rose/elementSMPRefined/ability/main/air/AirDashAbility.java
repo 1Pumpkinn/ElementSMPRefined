@@ -1,0 +1,75 @@
+package net.rose.elementSMPRefined.ability.main.air;
+
+import net.rose.elementSMPRefined.config.Constants;
+import net.rose.elementSMPRefined.API.element.ElementContext;
+import net.rose.elementSMPRefined.API.element.ElementType;
+import net.rose.elementSMPRefined.API.ability.BaseAbility;
+import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.managers.ConfigManager;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
+
+public class AirDashAbility extends BaseAbility {
+    private final ElementSMPRefined plugin;
+
+    public AirDashAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("air_dash", ElementType.AIR, 1, 5, 1, configManager);
+        this.plugin = (ElementSMPRefined) plugin;
+    }
+
+    @Override
+    public boolean execute(ElementContext context) {
+        Player player = context.getPlayer();
+        Vector direction = player.getLocation().getDirection();
+        direction.setY(Math.max(direction.getY(), 0.5));
+        player.setVelocity(direction.multiply(2.5));
+
+        new BukkitRunnable() {
+            int ticks = 0;
+            @Override
+            public void run() {
+                if (ticks >= 20 || !player.isOnline()) {
+                    cancel();
+                    return;
+                }
+
+				Location loc = player.getLocation();
+				player.getWorld().spawnParticle(Particle.CLOUD, loc, 5, 0.3, 0.3, 0.3, 0.05, null, true);
+
+                if (ticks % 5 == 0) {
+                    for (LivingEntity entity : loc.getNearbyLivingEntities(Constants.Distance.AIR_DASH_RADIUS)) {
+                        if (entity.equals(player)) continue;
+                        if (!AirDashAbility.this.isValidTarget(context, entity)) continue;
+
+                        Vector knockback = entity.getLocation().toVector().subtract(loc.toVector()).normalize();
+                        knockback.setY(0.2);
+						entity.setVelocity(knockback.multiply(1.0));
+						entity.getWorld().spawnParticle(Particle.CLOUD, entity.getLocation(), 10, 0.3, 0.3, 0.3, 0.05, null, true);
+                    }
+                }
+
+                ticks++;
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BAT_TAKEOFF, 1.0f, 1.5f);
+        return true;
+    }
+
+    @Override
+    public String getName() {
+        return ChatColor.WHITE + "Air Dash";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Dash forward with incredible speed, pushing away any enemies in your path.";
+    }
+}

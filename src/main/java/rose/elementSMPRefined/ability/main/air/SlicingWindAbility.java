@@ -5,7 +5,6 @@ import rose.elementSMPRefined.API.element.ElementType;
 import rose.elementSMPRefined.API.ability.BaseAbility;
 import rose.elementSMPRefined.ElementSMPRefined;
 import rose.elementSMPRefined.managers.ConfigManager;
-import rose.elementSMPRefined.managers.ManaManager;
 import rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
@@ -30,14 +29,7 @@ public class SlicingWindAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
-        ManaManager mana = context.getManaManager();
         TrustManager trust = context.getTrustManager();
-        int cost = getManaCost();
-
-        if (!mana.hasMana(player, cost)) {
-            player.sendMessage(ChatColor.RED + "Not enough mana (" + cost + ")");
-            return false;
-        }
 
         World w = player.getWorld();
         Vector direction = player.getLocation().getDirection().normalize();

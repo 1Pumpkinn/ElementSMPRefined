@@ -5,7 +5,6 @@ import rose.elementSMPRefined.API.element.ElementContext;
 import rose.elementSMPRefined.API.element.ElementType;
 import rose.elementSMPRefined.API.ability.BaseAbility;
 import rose.elementSMPRefined.managers.ConfigManager;
-import rose.elementSMPRefined.managers.ManaManager;
 import rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -67,14 +66,7 @@ public class MeteorCrashAbility extends BaseAbility {
             return false;
         }
 
-        ManaManager mana = context.getManaManager();
         TrustManager trust = context.getTrustManager();
-        int cost = getManaCost();
-
-        if (!mana.hasMana(player, cost)) {
-            player.sendMessage(ChatColor.RED + "Not enough mana (" + cost + ")");
-            return false;
-        }
 
         World world = player.getWorld();
         Location startLoc = player.getLocation();

@@ -5,7 +5,6 @@ import rose.elementSMPRefined.API.element.ElementContext;
 import rose.elementSMPRefined.API.element.ElementType;
 import rose.elementSMPRefined.API.ability.BaseAbility;
 import rose.elementSMPRefined.managers.ConfigManager;
-import rose.elementSMPRefined.managers.ManaManager;
 import rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.*;
 import org.bukkit.entity.BlockDisplay;
@@ -96,14 +95,7 @@ public class GraspAbility extends BaseAbility implements Listener {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
-        ManaManager mana = context.getManaManager();
         TrustManager trust = context.getTrustManager();
-        int cost = getManaCost();
-
-        if (!mana.hasMana(player, cost)) {
-            player.sendMessage(ChatColor.RED + "Not enough mana (" + cost + ")");
-            return false;
-        }
 
         if (activeGrasps.containsKey(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "You are already grasping an entity!");

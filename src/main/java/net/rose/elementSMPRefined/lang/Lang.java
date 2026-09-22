@@ -24,13 +24,13 @@ public final class Lang {
 
     public static Component deathBackstabDebugStolen(Object stolen, Object gameMode, Object mana) {
         return Component.textOfChildren(
-                    Component.text("[debug] stolen=", NamedTextColor.DARK_GRAY),
-                    Component.text(String.valueOf(stolen), NamedTextColor.DARK_GRAY),
-                    Component.text(" casterGM=", NamedTextColor.DARK_GRAY),
-                    Component.text(String.valueOf(gameMode), NamedTextColor.DARK_GRAY),
-                    Component.text(" casterManaAfter=", NamedTextColor.DARK_GRAY),
-                    Component.text(String.valueOf(mana), NamedTextColor.DARK_GRAY)
-                );
+                Component.text("[debug] stolen=", NamedTextColor.DARK_GRAY),
+                Component.text(String.valueOf(stolen), NamedTextColor.DARK_GRAY),
+                Component.text(" casterGM=", NamedTextColor.DARK_GRAY),
+                Component.text(String.valueOf(gameMode), NamedTextColor.DARK_GRAY),
+                Component.text(" casterManaAfter=", NamedTextColor.DARK_GRAY),
+                Component.text(String.valueOf(mana), NamedTextColor.DARK_GRAY)
+        );
     }
 
 
@@ -107,18 +107,18 @@ public final class Lang {
 
     public static Component manaMana(Object action, Object name) {
         return Component.textOfChildren(
-                    Component.text("Mana ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(action), NamedTextColor.GREEN),
-                    Component.text(" for ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name), NamedTextColor.GREEN)
-                );
+                Component.text("Mana ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(action), NamedTextColor.GREEN),
+                Component.text(" for ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name), NamedTextColor.GREEN)
+        );
     }
 
     public static Component manaYourManaHasBeen(Object action) {
         return Component.textOfChildren(
-                    Component.text("Your mana has been ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(action), NamedTextColor.GREEN)
-                );
+                Component.text("Your mana has been ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(action), NamedTextColor.GREEN)
+        );
     }
 
 
@@ -131,22 +131,22 @@ public final class Lang {
 
     public static final Component TRUST_TRUSTED =
             Component.textOfChildren(
-            Component.text("Trusted: ", NamedTextColor.AQUA),
-            Component.text("(none)", NamedTextColor.WHITE)
-        );
+                    Component.text("Trusted: ", NamedTextColor.AQUA),
+                    Component.text("(none)", NamedTextColor.WHITE)
+            );
 
     public static Component trustTrusted2(Object displayNames) {
         return Component.textOfChildren(
-                    Component.text("Trusted: ", NamedTextColor.AQUA),
-                    Component.text(String.valueOf(displayNames), NamedTextColor.WHITE)
-                );
+                Component.text("Trusted: ", NamedTextColor.AQUA),
+                Component.text(String.valueOf(displayNames), NamedTextColor.WHITE)
+        );
     }
 
     public static Component trustUnknownPlayers(Object unknownUUIDs) {
         return Component.textOfChildren(
-                    Component.text("Unknown players: ", NamedTextColor.GRAY),
-                    Component.text(String.valueOf(unknownUUIDs), NamedTextColor.GRAY)
-                );
+                Component.text("Unknown players: ", NamedTextColor.GRAY),
+                Component.text(String.valueOf(unknownUUIDs), NamedTextColor.GRAY)
+        );
     }
 
     public static final Component TRUST_USE_TRUST_REMOVE_UUID_CLEAN =
@@ -166,9 +166,9 @@ public final class Lang {
 
     public static Component trustSentTrustRequest(Object name) {
         return Component.textOfChildren(
-                    Component.text("Sent trust request to ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name), NamedTextColor.GREEN)
-                );
+                Component.text("Sent trust request to ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name), NamedTextColor.GREEN)
+        );
     }
 
     public static final Component TRUST_USAGE_TRUST_ACCEPT_PLAYER_UUID =
@@ -182,9 +182,9 @@ public final class Lang {
 
     public static Component trustAcceptedYourTrustRequest(Object name) {
         return Component.textOfChildren(
-                    Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                    Component.text(" accepted your trust request.", NamedTextColor.GREEN)
-                );
+                Component.text(String.valueOf(name), NamedTextColor.GREEN),
+                Component.text(" accepted your trust request.", NamedTextColor.GREEN)
+        );
     }
 
     public static final Component TRUST_USAGE_TRUST_DENY_PLAYER_UUID =
@@ -195,9 +195,9 @@ public final class Lang {
 
     public static Component trustDeniedYourTrustRequest(Object name) {
         return Component.textOfChildren(
-                    Component.text(String.valueOf(name), NamedTextColor.RED),
-                    Component.text(" denied your trust request.", NamedTextColor.RED)
-                );
+                Component.text(String.valueOf(name), NamedTextColor.RED),
+                Component.text(" denied your trust request.", NamedTextColor.RED)
+        );
     }
 
     public static final Component TRUST_USAGE_TRUST_REMOVE_PLAYER =
@@ -245,9 +245,9 @@ public final class Lang {
 
     public static Component botUnknownElementChoose(Object getElementNames) {
         return Component.textOfChildren(
-                    Component.text("Unknown element. Choose: ", NamedTextColor.RED),
-                    Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
-                );
+                Component.text("Unknown element. Choose: ", NamedTextColor.RED),
+                Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
+        );
     }
 
 
@@ -260,18 +260,18 @@ public final class Lang {
 
     public static Component configSet(Object key, Object value) {
         return Component.textOfChildren(
-                    Component.text("Set ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(key), NamedTextColor.GREEN),
-                    Component.text(" to ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(value), NamedTextColor.GREEN)
-                );
+                Component.text("Set ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(key), NamedTextColor.GREEN),
+                Component.text(" to ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(value), NamedTextColor.GREEN)
+        );
     }
 
     public static Component configErrorSettingValue(Object message) {
         return Component.textOfChildren(
-                    Component.text("Error setting value: ", NamedTextColor.RED),
-                    Component.text(String.valueOf(message), NamedTextColor.RED)
-                );
+                Component.text("Error setting value: ", NamedTextColor.RED),
+                Component.text(String.valueOf(message), NamedTextColor.RED)
+        );
     }
 
     public static final Component CONFIG_USAGE_ELEMENT_CONFIG_ELEMENT_ELEMENT =
@@ -279,23 +279,23 @@ public final class Lang {
 
     public static Component configInvalidElementValid(Object getElementNames) {
         return Component.textOfChildren(
-                    Component.text("Invalid element. Valid: ", NamedTextColor.RED),
-                    Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
-                );
+                Component.text("Invalid element. Valid: ", NamedTextColor.RED),
+                Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
+        );
     }
 
     public static Component configErrorSettingElementConfig(Object message) {
         return Component.textOfChildren(
-                    Component.text("Error setting element config: ", NamedTextColor.RED),
-                    Component.text(String.valueOf(message), NamedTextColor.RED)
-                );
+                Component.text("Error setting element config: ", NamedTextColor.RED),
+                Component.text(String.valueOf(message), NamedTextColor.RED)
+        );
     }
 
     public static Component configUnknownAction(Object action) {
         return Component.textOfChildren(
-                    Component.text("Unknown action: ", NamedTextColor.RED),
-                    Component.text(String.valueOf(action), NamedTextColor.RED)
-                );
+                Component.text("Unknown action: ", NamedTextColor.RED),
+                Component.text(String.valueOf(action), NamedTextColor.RED)
+        );
     }
 
     public static final Component CONFIG_CONFIGURATION_RESET_DEFAULT_VALUES =
@@ -306,69 +306,69 @@ public final class Lang {
 
     public static Component configResetAll(Object name) {
         return Component.textOfChildren(
-                    Component.text("Reset all of ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                    Component.text(" to default values!", NamedTextColor.GREEN)
-                );
+                Component.text("Reset all of ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name), NamedTextColor.GREEN),
+                Component.text(" to default values!", NamedTextColor.GREEN)
+        );
     }
 
     public static Component configNoDefaultConfigExists(Object name) {
         return Component.textOfChildren(
-                    Component.text("No default config exists for ", NamedTextColor.RED),
-                    Component.text(String.valueOf(name), NamedTextColor.RED),
-                    Component.text(".", NamedTextColor.RED)
-                );
+                Component.text("No default config exists for ", NamedTextColor.RED),
+                Component.text(String.valueOf(name), NamedTextColor.RED),
+                Component.text(".", NamedTextColor.RED)
+        );
     }
 
     public static Component configReset(Object name, Object key, Object def) {
         return Component.textOfChildren(
-                    Component.text("Reset ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                    Component.text(".", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(key), NamedTextColor.GREEN),
-                    Component.text(" to default (", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(def), NamedTextColor.GREEN),
-                    Component.text(").", NamedTextColor.GREEN)
-                );
+                Component.text("Reset ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name), NamedTextColor.GREEN),
+                Component.text(".", NamedTextColor.GREEN),
+                Component.text(String.valueOf(key), NamedTextColor.GREEN),
+                Component.text(" to default (", NamedTextColor.GREEN),
+                Component.text(String.valueOf(def), NamedTextColor.GREEN),
+                Component.text(").", NamedTextColor.GREEN)
+        );
     }
 
     public static Component configNoDefaultValueExists(Object key, Object name) {
         return Component.textOfChildren(
-                    Component.text("No default value exists for '", NamedTextColor.RED),
-                    Component.text(String.valueOf(key), NamedTextColor.RED),
-                    Component.text("' on ", NamedTextColor.RED),
-                    Component.text(String.valueOf(name), NamedTextColor.RED),
-                    Component.text(".", NamedTextColor.RED)
-                );
+                Component.text("No default value exists for '", NamedTextColor.RED),
+                Component.text(String.valueOf(key), NamedTextColor.RED),
+                Component.text("' on ", NamedTextColor.RED),
+                Component.text(String.valueOf(name), NamedTextColor.RED),
+                Component.text(".", NamedTextColor.RED)
+        );
     }
 
     public static Component configReset2(Object key, Object key2) {
         return Component.textOfChildren(
-                    Component.text("Reset ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(key), NamedTextColor.GREEN),
-                    Component.text(" to default (", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(key2), NamedTextColor.GREEN),
-                    Component.text(").", NamedTextColor.GREEN)
-                );
+                Component.text("Reset ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(key), NamedTextColor.GREEN),
+                Component.text(" to default (", NamedTextColor.GREEN),
+                Component.text(String.valueOf(key2), NamedTextColor.GREEN),
+                Component.text(").", NamedTextColor.GREEN)
+        );
     }
 
     public static Component configNoDefaultValueExists2(Object key) {
         return Component.textOfChildren(
-                    Component.text("No default value exists for '", NamedTextColor.RED),
-                    Component.text(String.valueOf(key), NamedTextColor.RED),
-                    Component.text("'.", NamedTextColor.RED)
-                );
+                Component.text("No default value exists for '", NamedTextColor.RED),
+                Component.text(String.valueOf(key), NamedTextColor.RED),
+                Component.text("'.", NamedTextColor.RED)
+        );
     }
 
     public static Component configSet2(Object name, Object key, Object value) {
         return Component.textOfChildren(
-                    Component.text("Set ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                    Component.text(".", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(key), NamedTextColor.GREEN),
-                    Component.text(" to ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(value), NamedTextColor.GREEN)
-                );
+                Component.text("Set ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name), NamedTextColor.GREEN),
+                Component.text(".", NamedTextColor.GREEN),
+                Component.text(String.valueOf(key), NamedTextColor.GREEN),
+                Component.text(" to ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(value), NamedTextColor.GREEN)
+        );
     }
 
     public static final Component CONFIG_USAGE_ELEMENT_CONFIG_ACTION =
@@ -399,39 +399,39 @@ public final class Lang {
 
     public static Component debugPlayer(Object args) {
         return Component.textOfChildren(
-                    Component.text("Player '", NamedTextColor.RED),
-                    Component.text(String.valueOf(args), NamedTextColor.RED),
-                    Component.text("' not found.", NamedTextColor.RED)
-                );
+                Component.text("Player '", NamedTextColor.RED),
+                Component.text(String.valueOf(args), NamedTextColor.RED),
+                Component.text("' not found.", NamedTextColor.RED)
+        );
     }
 
     public static Component debugElementDebug(Object name) {
         return Component.textOfChildren(
-                    Component.text("=== Element Debug for ", NamedTextColor.GOLD),
-                    Component.text(String.valueOf(name), NamedTextColor.GOLD),
-                    Component.text(" ===", NamedTextColor.GOLD)
-                );
+                Component.text("=== Element Debug for ", NamedTextColor.GOLD),
+                Component.text(String.valueOf(name), NamedTextColor.GOLD),
+                Component.text(" ===", NamedTextColor.GOLD)
+        );
     }
 
     public static Component debugElementmanagerReportsBuiltinType(Object builtinType) {
         return Component.textOfChildren(
-                    Component.text("ElementManager reports (builtin type): ", NamedTextColor.YELLOW),
-                    Component.text(String.valueOf(builtinType), NamedTextColor.YELLOW)
-                );
+                Component.text("ElementManager reports (builtin type): ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(builtinType), NamedTextColor.YELLOW)
+        );
     }
 
     public static Component debugElementmanagerReportsElementId(Object elementID) {
         return Component.textOfChildren(
-                    Component.text("ElementManager reports (element ID): ", NamedTextColor.YELLOW),
-                    Component.text(String.valueOf(elementID), NamedTextColor.YELLOW)
-                );
+                Component.text("ElementManager reports (element ID): ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(elementID), NamedTextColor.YELLOW)
+        );
     }
 
     public static Component debugAfterCacheInvalidation(Object reloadedElement) {
         return Component.textOfChildren(
-                    Component.text("After cache invalidation: ", NamedTextColor.YELLOW),
-                    Component.text(String.valueOf(reloadedElement), NamedTextColor.YELLOW)
-                );
+                Component.text("After cache invalidation: ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(reloadedElement), NamedTextColor.YELLOW)
+        );
     }
 
 
@@ -441,42 +441,42 @@ public final class Lang {
 
     public static Component giveCorePlayer(Object args) {
         return Component.textOfChildren(
-                    Component.text("Player '", NamedTextColor.RED),
-                    Component.text(String.valueOf(args), NamedTextColor.RED),
-                    Component.text("' not found.", NamedTextColor.RED)
-                );
+                Component.text("Player '", NamedTextColor.RED),
+                Component.text(String.valueOf(args), NamedTextColor.RED),
+                Component.text("' not found.", NamedTextColor.RED)
+        );
     }
 
     public static Component giveCoreInvalidElementValid(Object getElementNames) {
         return Component.textOfChildren(
-                    Component.text("Invalid element. Valid: ", NamedTextColor.RED),
-                    Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
-                );
+                Component.text("Invalid element. Valid: ", NamedTextColor.RED),
+                Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
+        );
     }
 
     public static Component giveCoreDoesnTHaveCoreItem(Object name) {
         return Component.textOfChildren(
-                    Component.text(String.valueOf(name), NamedTextColor.RED),
-                    Component.text(" doesn't have a core item.", NamedTextColor.RED)
-                );
+                Component.text(String.valueOf(name), NamedTextColor.RED),
+                Component.text(" doesn't have a core item.", NamedTextColor.RED)
+        );
     }
 
     public static Component giveCoreGave(Object name, Object name2) {
         return Component.textOfChildren(
-                    Component.text("Gave ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                    Component.text(" a ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name2), NamedTextColor.AQUA),
-                    Component.text(" core.", NamedTextColor.GREEN)
-                );
+                Component.text("Gave ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name), NamedTextColor.GREEN),
+                Component.text(" a ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name2), NamedTextColor.AQUA),
+                Component.text(" core.", NamedTextColor.GREEN)
+        );
     }
 
     public static Component giveCoreYouReceived(Object name) {
         return Component.textOfChildren(
-                    Component.text("You received a ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name), NamedTextColor.AQUA),
-                    Component.text(" core from an admin.", NamedTextColor.GREEN)
-                );
+                Component.text("You received a ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name), NamedTextColor.AQUA),
+                Component.text(" core from an admin.", NamedTextColor.GREEN)
+        );
     }
 
 
@@ -486,9 +486,9 @@ public final class Lang {
 
     public static Component particlesPlayingParticlePreset(Object key) {
         return Component.textOfChildren(
-                    Component.text("Playing particle preset: ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(key), NamedTextColor.AQUA)
-                );
+                Component.text("Playing particle preset: ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(key), NamedTextColor.AQUA)
+        );
     }
 
     public static final Component PARTICLES_ELEMENT_PARTICLE_PRESETS =
@@ -496,9 +496,9 @@ public final class Lang {
 
     public static Component particlesAvailable(Object getNames) {
         return Component.textOfChildren(
-                    Component.text("Available: ", NamedTextColor.YELLOW),
-                    Component.text(String.valueOf(getNames), NamedTextColor.YELLOW)
-                );
+                Component.text("Available: ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(getNames), NamedTextColor.YELLOW)
+        );
     }
 
     public static final Component PARTICLES_USAGE_ELEMENT_PARTICLES_PRESET_SIZE =
@@ -517,34 +517,34 @@ public final class Lang {
 
     public static Component setPlayer(Object args) {
         return Component.textOfChildren(
-                    Component.text("Player '", NamedTextColor.RED),
-                    Component.text(String.valueOf(args), NamedTextColor.RED),
-                    Component.text("' not found.", NamedTextColor.RED)
-                );
+                Component.text("Player '", NamedTextColor.RED),
+                Component.text(String.valueOf(args), NamedTextColor.RED),
+                Component.text("' not found.", NamedTextColor.RED)
+        );
     }
 
     public static Component setInvalidElementValid(Object elementManager) {
         return Component.textOfChildren(
-                    Component.text("Invalid element. Valid: ", NamedTextColor.RED),
-                    Component.text(String.valueOf(elementManager), NamedTextColor.RED)
-                );
+                Component.text("Invalid element. Valid: ", NamedTextColor.RED),
+                Component.text(String.valueOf(elementManager), NamedTextColor.RED)
+        );
     }
 
     public static Component setSet(Object name, Object displayName) {
         return Component.textOfChildren(
-                    Component.text("Set ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                    Component.text("'s element to ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(displayName), NamedTextColor.AQUA)
-                );
+                Component.text("Set ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name), NamedTextColor.GREEN),
+                Component.text("'s element to ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(displayName), NamedTextColor.AQUA)
+        );
     }
 
     public static Component setYourElementHasBeenSet(Object displayName) {
         return Component.textOfChildren(
-                    Component.text("Your element has been set to ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(displayName), NamedTextColor.AQUA),
-                    Component.text(" by an admin.", NamedTextColor.GREEN)
-                );
+                Component.text("Your element has been set to ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(displayName), NamedTextColor.AQUA),
+                Component.text(" by an admin.", NamedTextColor.GREEN)
+        );
     }
 
 
@@ -554,18 +554,18 @@ public final class Lang {
 
     public static Component baseElementYouNeedUpgrade(Object II) {
         return Component.textOfChildren(
-                    Component.text("You need Upgrade ", NamedTextColor.RED),
-                    Component.text(String.valueOf(II), NamedTextColor.RED),
-                    Component.text(" to use this ability.", NamedTextColor.RED)
-                );
+                Component.text("You need Upgrade ", NamedTextColor.RED),
+                Component.text(String.valueOf(II), NamedTextColor.RED),
+                Component.text(" to use this ability.", NamedTextColor.RED)
+        );
     }
 
     public static Component baseElementNotEnoughMana(Object cost) {
         return Component.textOfChildren(
-                    Component.text("Not enough mana (", NamedTextColor.RED),
-                    Component.text(String.valueOf(cost), NamedTextColor.RED),
-                    Component.text(")", NamedTextColor.RED)
-                );
+                Component.text("Not enough mana (", NamedTextColor.RED),
+                Component.text(String.valueOf(cost), NamedTextColor.RED),
+                Component.text(")", NamedTextColor.RED)
+        );
     }
 
 
@@ -575,9 +575,9 @@ public final class Lang {
 
     public static final Component UPGRADER_YOU_HAVE_UNLOCKED =
             Component.textOfChildren(
-            Component.text("You have unlocked ", NamedTextColor.GREEN),
-            Component.text("Upgrade I", NamedTextColor.GOLD)
-        );
+                    Component.text("You have unlocked ", NamedTextColor.GREEN),
+                    Component.text("Upgrade I", NamedTextColor.GOLD)
+            );
 
     public static final Component UPGRADER_YOU_NEED_UPGRADE_I_BEFORE =
             Component.text("You need Upgrade I before you can use Upgrade II!", NamedTextColor.RED);
@@ -587,61 +587,61 @@ public final class Lang {
 
     public static final Component UPGRADER_YOU_HAVE_UNLOCKED_2 =
             Component.textOfChildren(
-            Component.text("You have unlocked ", NamedTextColor.GREEN),
-            Component.text("Upgrade II", NamedTextColor.GOLD)
-        );
+                    Component.text("You have unlocked ", NamedTextColor.GREEN),
+                    Component.text("Upgrade II", NamedTextColor.GOLD)
+            );
 
 
     // --- Player join/quit lifecycle reroller reminders ---
     public static Component lifecycleYourElementReroller(Object was) {
         return Component.textOfChildren(
-                    Component.text("Your Element Reroller", NamedTextColor.YELLOW),
-                    Component.text(String.valueOf(was), NamedTextColor.YELLOW),
-                    Component.text(" refunded since your last reroll got interrupted.", NamedTextColor.YELLOW)
-                );
+                Component.text("Your Element Reroller", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(was), NamedTextColor.YELLOW),
+                Component.text(" refunded since your last reroll got interrupted.", NamedTextColor.YELLOW)
+        );
     }
 
     public static Component lifecycleYourAdvancedReroller(Object was) {
         return Component.textOfChildren(
-                    Component.text("Your Advanced Reroller", NamedTextColor.YELLOW),
-                    Component.text(String.valueOf(was), NamedTextColor.YELLOW),
-                    Component.text(" refunded since your last reroll got interrupted.", NamedTextColor.YELLOW)
-                );
+                Component.text("Your Advanced Reroller", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(was), NamedTextColor.YELLOW),
+                Component.text(" refunded since your last reroll got interrupted.", NamedTextColor.YELLOW)
+        );
     }
 
 
     // --- Elemental bot manager ---
     public static Component elementBotSpawned(Object name) {
         return Component.textOfChildren(
-                    Component.text("Spawned a ", NamedTextColor.GREEN),
-                    Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                    Component.text(" elemental bot.", NamedTextColor.GREEN)
-                );
+                Component.text("Spawned a ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(name), NamedTextColor.GREEN),
+                Component.text(" elemental bot.", NamedTextColor.GREEN)
+        );
     }
 
 
     // --- Element assignment/reroll manager ---
     public static Component elementManagerYourElementIsNow(Object id) {
         return Component.textOfChildren(
-                    Component.text("Your element is now ", NamedTextColor.GOLD),
-                    Component.text(String.valueOf(id), NamedTextColor.AQUA)
-                );
+                Component.text("Your element is now ", NamedTextColor.GOLD),
+                Component.text(String.valueOf(id), NamedTextColor.AQUA)
+        );
     }
 
     public static Component elementManagerYour(Object name) {
         return Component.textOfChildren(
-                    Component.text("Your ", NamedTextColor.YELLOW),
-                    Component.text(String.valueOf(name), NamedTextColor.YELLOW),
-                    Component.text(" core has been returned!", NamedTextColor.YELLOW)
-                );
+                Component.text("Your ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(name), NamedTextColor.YELLOW),
+                Component.text(" core has been returned!", NamedTextColor.YELLOW)
+        );
     }
 
     public static Component elementManagerYourInventoryWasFullSo(Object name) {
         return Component.textOfChildren(
-                    Component.text("Your inventory was full, so your ", NamedTextColor.YELLOW),
-                    Component.text(String.valueOf(name), NamedTextColor.YELLOW),
-                    Component.text(" core dropped on the ground!", NamedTextColor.YELLOW)
-                );
+                Component.text("Your inventory was full, so your ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(name), NamedTextColor.YELLOW),
+                Component.text(" core dropped on the ground!", NamedTextColor.YELLOW)
+        );
     }
 
     public static final Component ELEMENT_MANAGER_YOU_ARE_ALREADY_REROLLING =
@@ -722,4 +722,27 @@ public final class Lang {
 
     public static final Component WATER_BUBBLE_FADED =
             Component.text("Your water bubble faded away.", NamedTextColor.AQUA);
+
+
+    // --- Dimension travel disable ---
+    public static final Component DIMENSION_TRAVEL_DISABLED =
+            Component.text("Dimension travel is disabled on this server.", NamedTextColor.RED);
+
+
+    // --- Grace period ---
+    public static Component gracePeriodBossBarTitle(String timeLeft) {
+        return Component.textOfChildren(
+                Component.text("Grace Period: ", NamedTextColor.GREEN),
+                Component.text(timeLeft, NamedTextColor.YELLOW)
+        );
+    }
+
+    public static final Component GRACE_PERIOD_STARTED =
+            Component.text("The grace period has started! PvP is disabled while it's active.", NamedTextColor.GREEN);
+
+    public static final Component GRACE_PERIOD_ENDED =
+            Component.text("The grace period has ended. PvP is now enabled!", NamedTextColor.RED);
+
+    public static final Component GRACE_PERIOD_PVP_DISABLED =
+            Component.text("PvP is disabled during the grace period!", NamedTextColor.RED);
 }

@@ -30,6 +30,10 @@ public class ConfigManager {
     private static final boolean DEFAULT_STATUS_EFFECT_DAMAGE_ENABLED = true;
     private static final boolean DEFAULT_STATUS_EFFECT_NOTIFICATIONS_ENABLED = true;
     private static final boolean DEFAULT_ADVANCED_REROLLER_RECIPE_ENABLED = true;
+    private static final boolean DEFAULT_DIMENSION_TRAVEL_DISABLED = Constants.Dimension.DEFAULT_TRAVEL_DISABLED;
+    private static final boolean DEFAULT_GRACE_PERIOD_ENABLED = Constants.GracePeriod.DEFAULT_ENABLED;
+    private static final int DEFAULT_GRACE_PERIOD_DURATION_SECONDS = Constants.GracePeriod.DEFAULT_DURATION_SECONDS;
+    private static final int DEFAULT_GRACE_PERIOD_HUNGER_PROTECTION_SECONDS = Constants.GracePeriod.DEFAULT_HUNGER_PROTECTION_SECONDS;
 
     private final JavaPlugin plugin;
     private FileConfiguration config;
@@ -246,5 +250,30 @@ public class ConfigManager {
     public void setAdvancedRerollerRecipeEnabled(boolean enabled) {
         config.set("recipes.advanced_reroller_enabled", enabled);
         plugin.saveConfig();
+    }
+
+    // Dimension settings
+    public boolean isDimensionTravelDisabled() {
+        return getBooleanSafe("dimensions.travel_disabled", DEFAULT_DIMENSION_TRAVEL_DISABLED);
+    }
+
+    // Grace period settings
+    public boolean isGracePeriodEnabled() {
+        return getBooleanSafe("grace_period.enabled", DEFAULT_GRACE_PERIOD_ENABLED);
+    }
+
+    /** Total length of the grace period, in seconds. PvP stays disabled for this whole window. */
+    public int getGracePeriodDurationSeconds() {
+        return getIntSafe("grace_period.duration_seconds", DEFAULT_GRACE_PERIOD_DURATION_SECONDS);
+    }
+
+    /**
+     * How long, in seconds, hunger loss is blocked for - a shorter window inside
+     * the overall grace period. Clamped to the total duration so a misconfigured
+     * value can't outlast the grace period itself.
+     */
+    public int getGracePeriodHungerProtectionSeconds() {
+        int hungerSeconds = getIntSafe("grace_period.hunger_protection_seconds", DEFAULT_GRACE_PERIOD_HUNGER_PROTECTION_SECONDS);
+        return Math.min(hungerSeconds, getGracePeriodDurationSeconds());
     }
 }

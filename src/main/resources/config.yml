@@ -15,6 +15,23 @@ mana:
 recipes:
   advanced_reroller_enabled: true
 
+# Dimension Settings
+dimensions:
+  # When true, Nether/End portals (and anything entering one - vehicles,
+  # ender pearls, dropped items) are cancelled. This is an element-based
+  # overworld-only SMP, so vanilla dimension travel stays off.
+  travel_disabled: true
+
+# Grace Period Settings
+grace_period:
+  enabled: true
+  # Total length of the grace period, in seconds. PvP is disabled for the
+  # whole duration and a countdown boss bar is shown the whole time.
+  duration_seconds: 600
+  # How long, in seconds, players can't lose hunger for. This is a shorter
+  # window inside the grace period above, and is capped to it automatically.
+  hunger_protection_seconds: 300
+
 # Status Effect Settings
 status_effects:
   enabled: true

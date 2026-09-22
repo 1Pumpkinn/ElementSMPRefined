@@ -53,5 +53,21 @@ public final class Constants {
 
         private Distance() {}
     }
-}
 
+    public static final class GracePeriod {
+        public static final boolean DEFAULT_ENABLED = true;
+        public static final int DEFAULT_DURATION_SECONDS = 600;
+        public static final int DEFAULT_HUNGER_PROTECTION_SECONDS = 300;
+        // Minimum time between repeated "PvP is disabled" warnings to the same
+        // player, so spamming hits during grace doesn't spam their chat too.
+        public static final long PVP_WARNING_COOLDOWN_MS = 3_000L;
+
+        private GracePeriod() {}
+    }
+
+    public static final class Dimension {
+        public static final boolean DEFAULT_TRAVEL_DISABLED = true;
+
+        private Dimension() {}
+    }
+}

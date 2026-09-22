@@ -28,6 +28,8 @@ import net.rose.elementSMPRefined.listeners.player.InvisibilityNameHider;
 import net.rose.elementSMPRefined.listeners.player.PlayerLifecycle;
 import net.rose.elementSMPRefined.listeners.status.DisarmListener;
 import net.rose.elementSMPRefined.listeners.status.StatusEffectListener;
+import net.rose.elementSMPRefined.util.server.DimensionDisable;
+import net.rose.elementSMPRefined.util.server.GracePeriod;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -46,6 +48,7 @@ public class ListenerInitializer {
     private GUIListener guiListener;
     private AbilityListener abilityListener;
     private MetalShardAbility metalShardAbility;
+    private GracePeriod gracePeriod;
 
     public ListenerInitializer(JavaPlugin plugin) {
         this.plugin = (ElementSMPRefined) plugin;
@@ -73,6 +76,12 @@ public class ListenerInitializer {
 
         this.guiListener = new GUIListener(plugin);
         pluginManager.registerEvents(guiListener, plugin);
+
+        pluginManager.registerEvents(new DimensionDisable(plugin.getConfigManager()), plugin);
+
+        this.gracePeriod = new GracePeriod(plugin, plugin.getConfigManager(), plugin.getTaskScheduler());
+        pluginManager.registerEvents(gracePeriod, plugin);
+        gracePeriod.start();
     }
 
     private void registerItemListeners() {
@@ -149,6 +158,9 @@ public class ListenerInitializer {
         if (frostPassiveListener != null) {
             frostPassiveListener.cleanup();
         }
+        if (gracePeriod != null) {
+            gracePeriod.cleanup();
+        }
     }
 
     // Getters for listeners that need to be accessed elsewhere
@@ -166,5 +178,9 @@ public class ListenerInitializer {
 
     public AbilityListener getAbilityListener() {
         return abilityListener;
+    }
+
+    public GracePeriod getGracePeriod() {
+        return gracePeriod;
     }
 }

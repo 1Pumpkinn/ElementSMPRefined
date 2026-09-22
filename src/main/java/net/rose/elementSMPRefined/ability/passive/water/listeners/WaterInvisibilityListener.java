@@ -2,8 +2,8 @@ package net.rose.elementSMPRefined.ability.passive.water.listeners;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.managers.ElementManager;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

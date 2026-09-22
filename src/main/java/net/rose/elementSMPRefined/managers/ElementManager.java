@@ -1,6 +1,5 @@
 package net.rose.elementSMPRefined.managers;
 
-import net.rose.elementSMPRefined.core.API.ability.Ability;
 import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -74,18 +73,6 @@ public class ElementManager {
     public ElementRegistry getElementRegistry() { return elementRegistry; }
 
     /**
-     * Register an addon element after built-in elements have been initialized.
-     * Provider listeners are registered immediately with the server.
-     */
-    public void registerAddonElement(Element element) {
-        elementRegistry.registerAddon(element);
-        if (element instanceof ListenerProvider provider) {
-            provider.getListeners(plugin).forEach(listener ->
-                    plugin.getServer().getPluginManager().registerEvents(listener, plugin));
-        }
-    }
-
-    /**
      * All basic elements that can be rolled initially (starter rolls, basic
      * reroller), per {@link ElementType} default plus any config.yml override.
      */
@@ -118,7 +105,10 @@ public class ElementManager {
             var config = elementConfig.getConfig(type);
             if (config == null) continue;
 
-            if (config.isBasic()) {
+            Boolean override = config.isBasic();
+            if (override == null) continue;
+
+            if (override) {
                 basic.add(type);
             } else {
                 basic.remove(type);
@@ -372,34 +362,6 @@ public class ElementManager {
                     .callEvent(new AbilityActivateEvent(player, id, number, abilityName));
         }
         return success;
-    }
-
-    /**
-     * Activates an addon-registered ability by ID rather than by slot - for
-     * abilities that aren't tied to a specific element's slot 1/2, e.g. an
-     * item-triggered or event-triggered ability an addon registers via
-     * {@link net.rose.elementSMPRefined.core.API.ElementApi#registerAbility}.
-     * <p>
-     * Requires the player's current element to meet the ability's upgrade-level
-     * requirement and enough mana, exactly like a core ability would.
-     */
-    public boolean activateAbility(Player player, String abilityId) {
-        Ability ability = plugin.getAddonManager().abilities().get(abilityId);
-        if (ability == null) return false;
-
-        PlayerData pd = data(player.getUniqueId());
-        ElementId id = pd.getCurrentElementId();
-        if (id == null || pd.getUpgradeLevel(id) < ability.getRequiredUpgradeLevel()) return false;
-        if (!manaManager.hasMana(player, ability.getManaCost())) return false;
-
-        ElementContext ctx = buildContext(player, pd, id);
-
-        if (!ability.execute(ctx)) return false;
-        manaManager.spend(player, ability.getManaCost());
-
-        plugin.getServer().getPluginManager()
-                .callEvent(new AbilityActivateEvent(player, id, -1, ability.getName()));
-        return true;
     }
 
     /** Shared builder for the {@link ElementContext} every ability call needs. */

@@ -7,7 +7,7 @@ import org.bukkit.event.HandlerList;
 
 /**
  * Fired after a player is assigned an element via
- * {@link net.rose.elementSMPRefined.core.API.ElementApi#assignElement(Player, ElementId)}
+ * {@link net.rose.elementSMPRefined.managers.ElementManager#assignElement(Player, ElementId)}
  * (initial roll, admin grant, altar reward, etc.) - anything that resets the
  * player's upgrade level for their new element, as opposed to
  * {@link ElementSetEvent} which preserves it.

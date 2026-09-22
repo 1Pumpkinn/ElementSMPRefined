@@ -48,33 +48,6 @@ public class ElementRegistry {
         }
     }
 
-    /**
-     * Register an element supplied by an addon after built-in registration is complete.
-     * Addon elements are identified purely by {@link ElementId} - {@link Element#getType()}
-     * is a builtin-only concept and is expected to be {@code null} here.
-     */
-    public void registerAddon(Element element) {
-        if (element == null) {
-            throw new IllegalArgumentException("Addon element is required");
-        }
-
-        ElementId id = element.getId();
-        Element existing = elementsById.putIfAbsent(id, element);
-        if (existing != null) {
-            throw new IllegalArgumentException("Element " + id + " is already registered");
-        }
-
-        // Only builtin-typed elements also occupy a slot in the legacy EnumMap view.
-        ElementType type = element.getType();
-        if (type != null) {
-            Element enumElement = elements.putIfAbsent(type, element);
-            if (enumElement != null) {
-                elementsById.remove(id, element);
-                throw new IllegalArgumentException("Element " + type + " is already registered");
-            }
-        }
-    }
-
     public Element get(ElementType type) {
         return elements.get(type);
     }

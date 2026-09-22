@@ -1,7 +1,6 @@
 package net.rose.elementSMPRefined.core;
 
 import net.rose.elementSMPRefined.data.DataStore;
-import net.rose.elementSMPRefined.core.addons.AddonManager;
 import net.rose.elementSMPRefined.core.initializers.CommandInitializer;
 import net.rose.elementSMPRefined.core.initializers.ListenerInitializer;
 import net.rose.elementSMPRefined.core.initializers.RecipeInitializer;
@@ -30,7 +29,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected ManaManager manaManager;
     protected TrustManager trustManager;
     protected ItemManager itemManager;
-    protected AddonManager addonManager;
     protected ElementBotManager elementBotManager;
 
     // Services
@@ -118,7 +116,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.itemManager = new ItemManager(this, manaManager, configManager);
         this.statusEffectManager = new StatusEffectManager(this, manaManager);
         this.disarmManager = new DisarmManager(this);
-        this.addonManager = new AddonManager((net.rose.elementSMPRefined.ElementSMPRefined) this);
         this.elementBotManager = new ElementBotManager((net.rose.elementSMPRefined.ElementSMPRefined) this);
     }
 
@@ -177,7 +174,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public ManaManager getManaManager() { return manaManager; }
     public TrustManager getTrustManager() { return trustManager; }
     public ItemManager getItemManager() { return itemManager; }
-    public AddonManager getAddonManager() { return addonManager; }
     public ElementBotManager getElementBotManager() { return elementBotManager; }
     public StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
     public DisarmManager getDisarmManager() { return disarmManager; }

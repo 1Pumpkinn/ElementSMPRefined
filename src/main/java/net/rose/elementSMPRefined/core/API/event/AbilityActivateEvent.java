@@ -6,9 +6,8 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * Fired after a player successfully activates an ability - either a core
- * ability (slot 1 or 2 of their current element) or an addon ability
- * triggered by ID via {@link net.rose.elementSMPRefined.core.API.ElementApi#activateAbility(Player, String)}.
+ * Fired after a player successfully activates an ability (slot 1 or 2 of
+ * their current element).
  * <p>
  * This only fires on success. A failed activation (on cooldown, insufficient
  * mana, wrong upgrade level, disarmed, etc.) never reaches this event, and the
@@ -39,11 +38,7 @@ public class AbilityActivateEvent extends Event {
         return elementId;
     }
 
-    /**
-     * 1 or 2 for a core element ability activated normally. -1 when activated
-     * by ability ID through {@link net.rose.elementSMPRefined.core.API.ElementApi#activateAbility(Player, String)},
-     * since that path isn't tied to a slot.
-     */
+    /** 1 or 2, matching the slot of the ability that was activated. */
     public int getSlot() {
         return slot;
     }

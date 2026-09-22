@@ -7,7 +7,7 @@ import org.bukkit.event.HandlerList;
 
 /**
  * Fired after a player's element is directly set via
- * {@link net.rose.elementSMPRefined.core.API.ElementApi#setElement(Player, ElementId)}
+ * {@link net.rose.elementSMPRefined.managers.ElementManager#setElement(Player, ElementId)}
  * (e.g. a GUI reroll) - preserves the player's existing upgrade level, as
  * opposed to {@link ElementAssignEvent} which resets it.
  * <p>

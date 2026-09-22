@@ -2,13 +2,13 @@ package net.rose.elementSMPRefined.listeners.item;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.PlayerData;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
 import net.rose.elementSMPRefined.util.visual.SoundUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -73,17 +73,17 @@ public class ElementItemCraftingListener implements Listener {
         ElementId currentElementId = playerData.getCurrentElementId();
 
         if (currentElementId == null) {
-            cancelCrafting(event, player, "You don't have an element yet.");
+            cancelCrafting(event, player, Lang.NO_ELEMENT_YET);
             return;
         }
 
         if (level == 2 && playerData.getUpgradeLevel(currentElementId) < 1) {
-            cancelCrafting(event, player, "You must craft and possess Upgrader I before crafting Upgrader II.");
+            cancelCrafting(event, player, Lang.UPGRADER_2_REQUIRES_UPGRADER_1);
             return;
         }
 
         if (level <= playerData.getUpgradeLevel(currentElementId)) {
-            cancelCrafting(event, player, "You already have this upgrade.");
+            cancelCrafting(event, player, Lang.UPGRADE_ALREADY_OWNED);
             return;
         }
 
@@ -94,10 +94,8 @@ public class ElementItemCraftingListener implements Listener {
         plugin.getDataStore().save(playerData);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
 
-        String message = level == 1
-                ? "Unlocked Ability 1 for " + currentElementId
-                : "Unlocked Ability 2 and Upside 2 for " + currentElementId;
-        player.sendMessage(ChatColor.GREEN + message);
+        String template = level == 1 ? Lang.UNLOCKED_ABILITY_1 : Lang.UNLOCKED_ABILITY_2;
+        player.sendMessage(Lang.format(template, currentElementId));
 
         if (level == 2) {
             elements.applyUpsides(player);
@@ -108,7 +106,7 @@ public class ElementItemCraftingListener implements Listener {
         PlayerData playerData = elements.data(player.getUniqueId());
 
         if (playerData.hasElementItem(type)) {
-            cancelCrafting(event, player, "You can only craft this item once.");
+            cancelCrafting(event, player, Lang.ITEM_ALREADY_CRAFTED);
             return;
         }
 
@@ -122,8 +120,8 @@ public class ElementItemCraftingListener implements Listener {
         plugin.getDataStore().save(playerData);
 
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
-        player.sendMessage(ChatColor.GREEN + "Crafted element item for " + ChatColor.AQUA + type.name());
-        player.sendMessage(ChatColor.YELLOW + "All upgrades reset to None");
+        player.sendMessage(Lang.format(Lang.CRAFTED_ELEMENT_ITEM, type.name()));
+        player.sendMessage(Lang.UPGRADES_RESET);
     }
 
     private void consumeRecipeIngredients(CraftItemEvent event) {
@@ -179,7 +177,7 @@ public class ElementItemCraftingListener implements Listener {
 
     private void cancelCrafting(CraftItemEvent event, Player player, String message) {
         event.setCancelled(true);
-        player.sendMessage(ChatColor.RED + message);
+        player.sendMessage(message);
     }
 
     /**

@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.listeners.item;
 
+import net.kyori.adventure.text.Component;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.lang.Lang;
@@ -73,17 +74,17 @@ public class ElementItemCraftingListener implements Listener {
         ElementId currentElementId = playerData.getCurrentElementId();
 
         if (currentElementId == null) {
-            cancelCrafting(event, player, Lang.NO_ELEMENT_YET);
+            cancelCrafting(event, player, Lang.CRAFTING_NO_ELEMENT_YET);
             return;
         }
 
         if (level == 2 && playerData.getUpgradeLevel(currentElementId) < 1) {
-            cancelCrafting(event, player, Lang.UPGRADER_2_REQUIRES_UPGRADER_1);
+            cancelCrafting(event, player, Lang.CRAFTING_UPGRADER_2_REQUIRES_UPGRADER_1);
             return;
         }
 
         if (level <= playerData.getUpgradeLevel(currentElementId)) {
-            cancelCrafting(event, player, Lang.UPGRADE_ALREADY_OWNED);
+            cancelCrafting(event, player, Lang.CRAFTING_UPGRADE_ALREADY_OWNED);
             return;
         }
 
@@ -94,8 +95,9 @@ public class ElementItemCraftingListener implements Listener {
         plugin.getDataStore().save(playerData);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
 
-        String template = level == 1 ? Lang.UNLOCKED_ABILITY_1 : Lang.UNLOCKED_ABILITY_2;
-        player.sendMessage(Lang.format(template, currentElementId));
+        player.sendMessage(level == 1
+                ? Lang.craftingUnlockedAbility1(currentElementId)
+                : Lang.craftingUnlockedAbility2(currentElementId));
 
         if (level == 2) {
             elements.applyUpsides(player);
@@ -106,7 +108,7 @@ public class ElementItemCraftingListener implements Listener {
         PlayerData playerData = elements.data(player.getUniqueId());
 
         if (playerData.hasElementItem(type)) {
-            cancelCrafting(event, player, Lang.ITEM_ALREADY_CRAFTED);
+            cancelCrafting(event, player, Lang.CRAFTING_ITEM_ALREADY_CRAFTED);
             return;
         }
 
@@ -120,8 +122,8 @@ public class ElementItemCraftingListener implements Listener {
         plugin.getDataStore().save(playerData);
 
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
-        player.sendMessage(Lang.format(Lang.CRAFTED_ELEMENT_ITEM, type.name()));
-        player.sendMessage(Lang.UPGRADES_RESET);
+        player.sendMessage(Lang.craftingCraftedElementItem(type.name()));
+        player.sendMessage(Lang.CRAFTING_UPGRADES_RESET);
     }
 
     private void consumeRecipeIngredients(CraftItemEvent event) {
@@ -175,7 +177,7 @@ public class ElementItemCraftingListener implements Listener {
         }
     }
 
-    private void cancelCrafting(CraftItemEvent event, Player player, String message) {
+    private void cancelCrafting(CraftItemEvent event, Player player, Component message) {
         event.setCancelled(true);
         player.sendMessage(message);
     }

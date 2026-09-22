@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.util.example;
 
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -33,12 +34,12 @@ public class ExampleAbility extends BaseAbility {
         // these and just run your effect once, then return true.
         if (isActiveFor(player)) {
             setActive(player, false);
-            player.sendMessage(ChatColor.RED + "Example ability deactivated");
+            player.sendMessage(Lang.EXAMPLE_EXAMPLE_ABILITY_DEACTIVATED);
             return true;
         }
 
         setActive(player, true);
-        player.sendMessage(ChatColor.GREEN + "Example ability activated");
+        player.sendMessage(Lang.EXAMPLE_EXAMPLE_ABILITY_ACTIVATED);
 
         // Ability logic goes here: deal damage, apply effects, spawn particles,
         // etc. context also gives you managers (mana, trust, config) and the

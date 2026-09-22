@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -46,18 +47,18 @@ public class WaterPullDownAbility extends BaseAbility {
         Player player = context.getPlayer();
 
         if (!player.isInWater()) {
-            player.sendMessage(ChatColor.RED + "You need to be in water to pull someone under!");
+            player.sendMessage(Lang.WATER_PULL_DOWN_YOU_NEED_BE_IN_WATER);
             return false;
         }
 
         LivingEntity target = findTarget(player);
         if (target == null) {
-            player.sendMessage(ChatColor.RED + "No target found!");
+            player.sendMessage(Lang.WATER_PULL_DOWN_NO_TARGET_FOUND);
             return false;
         }
 
         if (!isValidTarget(context, target)) {
-            player.sendMessage(ChatColor.RED + "You cannot pull down trusted players!");
+            player.sendMessage(Lang.WATER_PULL_DOWN_YOU_CANNOT_PULL_DOWN_TRUSTED);
             return false;
         }
 

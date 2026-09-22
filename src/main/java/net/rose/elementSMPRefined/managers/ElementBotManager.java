@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.managers;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -241,7 +242,7 @@ public final class ElementBotManager implements Listener {
         states.put(bot.getUniqueId(), state);
         applyPassiveTick(bot, element, state); // apply immediately instead of waiting for first refresh
 
-        owner.sendMessage(ChatColor.GREEN + "Spawned a " + element.name() + " elemental bot.");
+        owner.sendMessage(Lang.elementBotSpawned(element.name()));
     }
 
     public void stop(Player owner) {

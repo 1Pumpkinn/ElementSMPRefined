@@ -2,7 +2,7 @@ package net.rose.elementSMPRefined.commands.element;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.util.visual.ParticlePreset;
-import org.bukkit.ChatColor;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.command.CommandSender;
@@ -29,7 +29,7 @@ public class ParticlesCommand implements ElementSubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+            sender.sendMessage(Lang.PARTICLES_THIS_COMMAND_CAN_ONLY_BE);
             return true;
         }
 
@@ -46,7 +46,7 @@ public class ParticlesCommand implements ElementSubCommand {
 
         ParticlePreset.PresetOptions options = parsePresetOptions(preset.get(), args);
         preset.get().play(player, plugin, options);
-        player.sendMessage(ChatColor.GREEN + "Playing particle preset: " + ChatColor.AQUA + preset.get().getKey());
+        player.sendMessage(Lang.particlesPlayingParticlePreset(preset.get().getKey()));
         return true;
     }
 
@@ -230,10 +230,10 @@ public class ParticlesCommand implements ElementSubCommand {
     }
 
     private void sendPresetList(Player player) {
-        player.sendMessage(ChatColor.GOLD + "=== Element Particle Presets ===");
-        player.sendMessage(ChatColor.YELLOW + "Available: " + String.join(", ", ParticlePreset.getNames()));
-        player.sendMessage(ChatColor.GRAY + "Usage: /element particles <preset> [size] [length] [width] [color] [particle]");
-        player.sendMessage(ChatColor.GRAY + "Also supported: size=2.5 length=0 width=36 color=red particle=dust");
-        player.sendMessage(ChatColor.GRAY + "Example: /element particles circle 2.5 0 36 red dust");
+        player.sendMessage(Lang.PARTICLES_ELEMENT_PARTICLE_PRESETS);
+        player.sendMessage(Lang.particlesAvailable(String.join(", ", ParticlePreset.getNames())));
+        player.sendMessage(Lang.PARTICLES_USAGE_ELEMENT_PARTICLES_PRESET_SIZE);
+        player.sendMessage(Lang.PARTICLES_ALSO_SUPPORTED_SIZE_2_5);
+        player.sendMessage(Lang.PARTICLES_EXAMPLE_ELEMENT_PARTICLES_CIRCLE_2);
     }
 }

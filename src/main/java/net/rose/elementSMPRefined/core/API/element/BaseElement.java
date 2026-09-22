@@ -4,7 +4,7 @@ import net.rose.elementSMPRefined.core.API.ability.Ability;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ManaManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
-import org.bukkit.ChatColor;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -45,7 +45,7 @@ public abstract class BaseElement implements Element {
     public final boolean ability2(ElementContext context) {
         Player player = context.getPlayer();
         if (context.getUpgradeLevel() < 1) {
-            player.sendMessage(ChatColor.RED + "You need Upgrade I before you can use Upgrade II abilities.");
+            player.sendMessage(Lang.BASE_ELEMENT_YOU_NEED_UPGRADE_I_BEFORE);
             return false;
         }
         return activate(context, ability2, 2, context.getConfigManager().getAbility2Cost(getId()), this::canCancelAbility2);
@@ -88,8 +88,7 @@ public abstract class BaseElement implements Element {
 
     protected boolean checkUpgradeLevel(Player player, int upgradeLevel, int requiredLevel) {
         if (upgradeLevel < requiredLevel) {
-            player.sendMessage(ChatColor.RED + "You need Upgrade " +
-                    (requiredLevel == 1 ? "I" : "II") + " to use this ability.");
+            player.sendMessage(Lang.baseElementYouNeedUpgrade((requiredLevel == 1 ? "I" : "II")));
             return false;
         }
         return true;
@@ -97,7 +96,7 @@ public abstract class BaseElement implements Element {
 
     protected boolean hasMana(Player player, ManaManager mana, int cost) {
         if (mana.get(player.getUniqueId()).getMana() < cost) {
-            player.sendMessage(ChatColor.RED + "Not enough mana (" + cost + ")");
+            player.sendMessage(Lang.baseElementNotEnoughMana(cost));
             return false;
         }
         return true;

@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -66,14 +67,14 @@ public class MetalChainAbility extends BaseAbility {
         }
 
         if (target == null) {
-            player.sendMessage(ChatColor.RED + "No target found!");
+            player.sendMessage(Lang.METAL_CHAIN_NO_TARGET_FOUND);
             return false;
         }
 
         // Don't target trusted players
         if (target instanceof Player targetPlayer) {
             if (context.getTrustManager().isTrusted(player.getUniqueId(), targetPlayer.getUniqueId())) {
-                player.sendMessage(ChatColor.RED + "You cannot chain trusted players!");
+                player.sendMessage(Lang.METAL_CHAIN_YOU_CANNOT_CHAIN_TRUSTED_PLAYERS);
                 return false;
             }
         }

@@ -5,7 +5,7 @@ import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.items.recipes.Upgrader1Item;
 import net.rose.elementSMPRefined.items.recipes.Upgrader2Item;
-import org.bukkit.ChatColor;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -28,19 +28,19 @@ public class ToggleRecipeCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Only players can use this command!");
+            sender.sendMessage(Lang.TOGGLE_RECIPE_PLAYERS_ONLY);
             return true;
         }
 
         Player player = (Player) sender;
 
         if (!player.hasPermission("element.admin")) {
-            player.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
+            player.sendMessage(Lang.TOGGLE_RECIPE_NO_PERMISSION);
             return true;
         }
 
         if (args.length != 1) {
-            player.sendMessage(ChatColor.RED + "Usage: /togglerecipe <upgrader1|upgrader2|reroller|advancedreroller>");
+            player.sendMessage(Lang.TOGGLE_RECIPE_USAGE);
             return true;
         }
 
@@ -52,22 +52,19 @@ public class ToggleRecipeCommand implements CommandExecutor, TabCompleter {
             case "upgrader1":
                 recipeKey = new NamespacedKey(plugin, Upgrader1Item.KEY);
                 newState = toggleRecipe(recipeKey, () -> Upgrader1Item.registerRecipe(plugin));
-                player.sendMessage(ChatColor.GREEN + "Upgrader I recipe has been " +
-                        (newState ? ChatColor.BOLD + "ENABLED" : ChatColor.RED + "DISABLED"));
+                player.sendMessage(Lang.recipeToggled("Upgrader I", newState));
                 break;
 
             case "upgrader2":
                 recipeKey = new NamespacedKey(plugin, Upgrader2Item.KEY);
                 newState = toggleRecipe(recipeKey, () -> Upgrader2Item.registerRecipe(plugin));
-                player.sendMessage(ChatColor.GREEN + "Upgrader II recipe has been " +
-                        (newState ? ChatColor.BOLD + "ENABLED" : ChatColor.RED + "DISABLED"));
+                player.sendMessage(Lang.recipeToggled("Upgrader II", newState));
                 break;
 
             case "reroller":
                 recipeKey = new NamespacedKey(plugin, RerollerItem.KEY);
                 newState = toggleRecipe(recipeKey, () -> RerollerItem.registerRecipe(plugin));
-                player.sendMessage(ChatColor.GREEN + "Reroller recipe has been " +
-                        (newState ? ChatColor.BOLD + "ENABLED" : ChatColor.RED + "DISABLED"));
+                player.sendMessage(Lang.recipeToggled("Reroller", newState));
                 break;
 
             case "advancedreroller":
@@ -79,17 +76,15 @@ public class ToggleRecipeCommand implements CommandExecutor, TabCompleter {
 
                 if (newState) {
                     AdvancedRerollerItem.registerRecipe(plugin);
-                    player.sendMessage(ChatColor.GREEN + "Advanced Reroller recipe has been " +
-                            ChatColor.BOLD + "ENABLED");
+                    player.sendMessage(Lang.recipeToggled("Advanced Reroller", true));
                 } else {
                     plugin.getServer().removeRecipe(recipeKey);
-                    player.sendMessage(ChatColor.GREEN + "Advanced Reroller recipe has been " +
-                            ChatColor.RED + "DISABLED");
+                    player.sendMessage(Lang.recipeToggled("Advanced Reroller", false));
                 }
                 break;
 
             default:
-                player.sendMessage(ChatColor.RED + "Invalid recipe type! Use: upgrader1, upgrader2, reroller, or advancedreroller");
+                player.sendMessage(Lang.TOGGLE_RECIPE_INVALID_TYPE);
                 return true;
         }
 

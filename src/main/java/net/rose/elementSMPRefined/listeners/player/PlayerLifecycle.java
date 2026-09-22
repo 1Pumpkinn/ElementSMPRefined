@@ -18,6 +18,7 @@ import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
 import net.rose.elementSMPRefined.util.visual.ElementColours;
 import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -190,15 +191,11 @@ public class PlayerLifecycle implements Listener {
 
         if (basicCount > 0) {
             giveItemStack(player, RerollerItem.make(plugin), basicCount);
-            player.sendMessage(org.bukkit.ChatColor.YELLOW +
-                    "Your Element Reroller" + (basicCount > 1 ? "s were" : " was") +
-                    " refunded since your last reroll got interrupted.");
+            player.sendMessage(Lang.lifecycleYourElementReroller((basicCount > 1 ? "s were" : " was")));
         }
         if (advancedCount > 0) {
             giveItemStack(player, AdvancedRerollerItem.make(plugin), advancedCount);
-            player.sendMessage(org.bukkit.ChatColor.YELLOW +
-                    "Your Advanced Reroller" + (advancedCount > 1 ? "s were" : " was") +
-                    " refunded since your last reroll got interrupted.");
+            player.sendMessage(Lang.lifecycleYourAdvancedReroller((advancedCount > 1 ? "s were" : " was")));
         }
 
         plugin.getDataStore().save(pd);

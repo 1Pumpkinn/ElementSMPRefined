@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -40,7 +41,7 @@ public class FrostCircleAbility extends BaseAbility {
 
         // Check if already active
         if (activeCircles.contains(player.getUniqueId())) {
-            player.sendMessage(ChatColor.RED + "Freezing Circle is already active!");
+            player.sendMessage(Lang.FROST_CIRCLE_FREEZING_CIRCLE_IS_ALREADY_ACTIVE);
             return false;
         }
 

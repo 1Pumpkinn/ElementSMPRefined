@@ -2,8 +2,8 @@ package net.rose.elementSMPRefined.commands.element;
 
 import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.managers.ElementManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -22,19 +22,19 @@ public class SetCommand implements ElementSubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.RED + "Usage: /element set <player> <element>");
+            sender.sendMessage(Lang.SET_USAGE_ELEMENT_SET_PLAYER_ELEMENT);
             return true;
         }
 
         Player target = Bukkit.getPlayer(args[1]);
         if (target == null) {
-            sender.sendMessage(ChatColor.RED + "Player '" + args[1] + "' not found.");
+            sender.sendMessage(Lang.setPlayer(args[1]));
             return true;
         }
 
         Optional<ElementId> elementId = CommandSupport.parseElementId(elementManager, args[2]);
         if (elementId.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "Invalid element. Valid: " + String.join(", ", CommandSupport.getAllElementNames(elementManager)));
+            sender.sendMessage(Lang.setInvalidElementValid(String.join(", ", CommandSupport.getAllElementNames(elementManager))));
             return true;
         }
 
@@ -44,10 +44,8 @@ public class SetCommand implements ElementSubCommand {
         var element = elementManager.getElementRegistry().get(id);
         String displayName = element != null ? element.getDisplayName() : id.toString();
 
-        sender.sendMessage(ChatColor.GREEN + "Set " + target.getName() + "'s element to " +
-                ChatColor.AQUA + displayName);
-        target.sendMessage(ChatColor.GREEN + "Your element has been set to " +
-                ChatColor.AQUA + displayName + ChatColor.GREEN + " by an admin.");
+        sender.sendMessage(Lang.setSet(target.getName(), displayName));
+        target.sendMessage(Lang.setYourElementHasBeenSet(displayName));
 
         return true;
     }

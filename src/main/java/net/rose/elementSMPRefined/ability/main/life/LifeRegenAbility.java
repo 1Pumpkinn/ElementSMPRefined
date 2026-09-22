@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -67,7 +68,7 @@ public class LifeRegenAbility extends BaseAbility {
         
         // Add regeneration to the caster as well
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10 * 20, 1, true, true, true));
-        player.sendMessage(ChatColor.GREEN + "Regen aura applied to you and trusted allies!");
+        player.sendMessage(Lang.LIFE_REGEN_REGEN_AURA_APPLIED_YOU_TRUSTED);
         return true;
     }
 

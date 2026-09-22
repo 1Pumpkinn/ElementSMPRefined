@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -56,7 +57,7 @@ public class WaterBubbleAbility extends BaseAbility implements Listener {
         Player player = context.getPlayer();
 
         if (isActiveFor(player)) {
-            player.sendMessage(ChatColor.RED + "Your water bubble is already active!");
+            player.sendMessage(Lang.WATER_BUBBLE_YOUR_WATER_BUBBLE_IS_ALREADY);
             return false;
         }
 
@@ -172,9 +173,7 @@ public class WaterBubbleAbility extends BaseAbility implements Listener {
         player.getWorld().spawnParticle(Particle.BUBBLE_POP, loc, 30, 0.6, 0.6, 0.6, 0.15, null, true);
         player.getWorld().playSound(loc, Sound.ENTITY_PLAYER_HURT_DROWN, 1.0f, brokenByCrits ? 1.4f : 0.8f);
 
-        player.sendMessage(brokenByCrits
-                ? ChatColor.AQUA + "Your water bubble shattered!"
-                : ChatColor.AQUA + "Your water bubble faded away.");
+        player.sendMessage(brokenByCrits ? Lang.WATER_BUBBLE_SHATTERED : Lang.WATER_BUBBLE_FADED);
     }
 
     @Override

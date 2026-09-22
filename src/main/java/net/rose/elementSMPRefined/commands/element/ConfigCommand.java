@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.commands.element;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import org.bukkit.ChatColor;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
@@ -40,12 +40,12 @@ public class ConfigCommand implements ElementSubCommand {
         switch (action) {
             case "reload" -> {
                 configManager.reload();
-                sender.sendMessage(ChatColor.GREEN + "Configuration reloaded successfully!");
+                sender.sendMessage(Lang.CONFIG_CONFIGURATION_RELOADED_SUCCESSFULLY);
             }
             case "reset" -> handleReset(sender, args);
             case "set" -> {
                 if (args.length < 4) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /element config set <key> <value>");
+                    sender.sendMessage(Lang.CONFIG_USAGE_ELEMENT_CONFIG_SET_KEY);
                     return true;
                 }
                 String key = args[2];
@@ -55,20 +55,20 @@ public class ConfigCommand implements ElementSubCommand {
                     configManager.getConfig().set(key, parseValue(value));
                     plugin.saveConfig();
                     configManager.reload();
-                    sender.sendMessage(ChatColor.GREEN + "Set " + key + " to " + value);
+                    sender.sendMessage(Lang.configSet(key, value));
                 } catch (Exception e) {
-                    sender.sendMessage(ChatColor.RED + "Error setting value: " + e.getMessage());
+                    sender.sendMessage(Lang.configErrorSettingValue(e.getMessage()));
                 }
             }
             case "element" -> {
                 if (args.length < 5) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /element config element <element> <key> <value>");
+                    sender.sendMessage(Lang.CONFIG_USAGE_ELEMENT_CONFIG_ELEMENT_ELEMENT);
                     return true;
                 }
 
                 Optional<ElementType> elementType = CommandSupport.parseElementType(args[2]);
                 if (elementType.isEmpty()) {
-                    sender.sendMessage(ChatColor.RED + "Invalid element. Valid: " + String.join(", ", CommandSupport.getElementNames()));
+                    sender.sendMessage(Lang.configInvalidElementValid(String.join(", ", CommandSupport.getElementNames())));
                     return true;
                 }
 
@@ -78,11 +78,11 @@ public class ConfigCommand implements ElementSubCommand {
                 try {
                     setElementConfig(sender, elementType.get(), key, value);
                 } catch (Exception e) {
-                    sender.sendMessage(ChatColor.RED + "Error setting element config: " + e.getMessage());
+                    sender.sendMessage(Lang.configErrorSettingElementConfig(e.getMessage()));
                 }
             }
             default -> {
-                sender.sendMessage(ChatColor.RED + "Unknown action: " + action);
+                sender.sendMessage(Lang.configUnknownAction(action));
                 sendUsage(sender);
             }
         }
@@ -94,20 +94,20 @@ public class ConfigCommand implements ElementSubCommand {
         // /element config reset
         if (args.length == 2) {
             configManager.resetAllToDefault();
-            sender.sendMessage(ChatColor.GREEN + "Configuration reset to default values!");
+            sender.sendMessage(Lang.CONFIG_CONFIGURATION_RESET_DEFAULT_VALUES);
             return;
         }
 
         // /element config reset element ...
         if (args[2].equalsIgnoreCase("element")) {
             if (args.length < 4) {
-                sender.sendMessage(ChatColor.RED + "Usage: /element config reset element <element> [key]");
+                sender.sendMessage(Lang.CONFIG_USAGE_ELEMENT_CONFIG_RESET_ELEMENT);
                 return;
             }
 
             Optional<ElementType> elementType = CommandSupport.parseElementType(args[3]);
             if (elementType.isEmpty()) {
-                sender.sendMessage(ChatColor.RED + "Invalid element. Valid: " + String.join(", ", CommandSupport.getElementNames()));
+                sender.sendMessage(Lang.configInvalidElementValid(String.join(", ", CommandSupport.getElementNames())));
                 return;
             }
             String elementName = elementType.get().name().toLowerCase();
@@ -116,9 +116,9 @@ public class ConfigCommand implements ElementSubCommand {
                 // Reset the whole element section
                 boolean reset = configManager.resetSectionToDefault("elements." + elementName);
                 if (reset) {
-                    sender.sendMessage(ChatColor.GREEN + "Reset all of " + elementType.get().name() + " to default values!");
+                    sender.sendMessage(Lang.configResetAll(elementType.get().name()));
                 } else {
-                    sender.sendMessage(ChatColor.RED + "No default config exists for " + elementType.get().name() + ".");
+                    sender.sendMessage(Lang.configNoDefaultConfigExists(elementType.get().name()));
                 }
                 return;
             }
@@ -129,10 +129,10 @@ public class ConfigCommand implements ElementSubCommand {
             boolean reset = configManager.resetToDefault(path);
             if (reset) {
                 Object def = configManager.getDefaultValue(path);
-                sender.sendMessage(ChatColor.GREEN + "Reset " + elementType.get().name() + "." + key + " to default (" + def + ").");
+                sender.sendMessage(Lang.configReset(elementType.get().name(), key, def));
                 configManager.getElementConfiguration().setConfigValue(elementType.get(), key, def);
             } else {
-                sender.sendMessage(ChatColor.RED + "No default value exists for '" + key + "' on " + elementType.get().name() + ".");
+                sender.sendMessage(Lang.configNoDefaultValueExists(key, elementType.get().name()));
             }
             return;
         }
@@ -141,9 +141,9 @@ public class ConfigCommand implements ElementSubCommand {
         String key = args[2];
         boolean reset = configManager.resetToDefault(key);
         if (reset) {
-            sender.sendMessage(ChatColor.GREEN + "Reset " + key + " to default (" + configManager.getDefaultValue(key) + ").");
+            sender.sendMessage(Lang.configReset2(key, configManager.getDefaultValue(key)));
         } else {
-            sender.sendMessage(ChatColor.RED + "No default value exists for '" + key + "'.");
+            sender.sendMessage(Lang.configNoDefaultValueExists2(key));
         }
     }
 
@@ -223,7 +223,7 @@ public class ConfigCommand implements ElementSubCommand {
 
         configManager.getConfig().set(configPath, typedValue);
         plugin.saveConfig();
-        sender.sendMessage(ChatColor.GREEN + "Set " + type.name() + "." + key + " to " + value);
+        sender.sendMessage(Lang.configSet2(type.name(), key, value));
 
         // Reload config to apply changes
         configManager.reload();
@@ -233,12 +233,12 @@ public class ConfigCommand implements ElementSubCommand {
     }
 
     private void sendUsage(CommandSender sender) {
-        sender.sendMessage(ChatColor.RED + "Usage: /element config <action>");
-        sender.sendMessage(ChatColor.GRAY + "Actions:");
-        sender.sendMessage(ChatColor.GRAY + "  reload");
-        sender.sendMessage(ChatColor.GRAY + "  reset [key]  -  omit key to reset everything");
-        sender.sendMessage(ChatColor.GRAY + "  reset element <element> [key]");
-        sender.sendMessage(ChatColor.GRAY + "  set <key> <value>");
-        sender.sendMessage(ChatColor.GRAY + "  element <element> <key> <value>");
+        sender.sendMessage(Lang.CONFIG_USAGE_ELEMENT_CONFIG_ACTION);
+        sender.sendMessage(Lang.CONFIG_ACTIONS);
+        sender.sendMessage(Lang.CONFIG_RELOAD);
+        sender.sendMessage(Lang.CONFIG_RESET_KEY_OMIT_KEY_RESET);
+        sender.sendMessage(Lang.CONFIG_RESET_ELEMENT_ELEMENT_KEY);
+        sender.sendMessage(Lang.CONFIG_SET_KEY_VALUE);
+        sender.sendMessage(Lang.CONFIG_ELEMENT_ELEMENT_KEY_VALUE);
     }
 }

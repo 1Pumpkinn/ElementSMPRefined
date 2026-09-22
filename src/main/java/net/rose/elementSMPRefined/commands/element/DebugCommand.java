@@ -4,8 +4,8 @@ import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.managers.ElementManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -25,30 +25,27 @@ public class DebugCommand implements ElementSubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /element debug <player>");
+            sender.sendMessage(Lang.DEBUG_USAGE_ELEMENT_DEBUG_PLAYER);
             return true;
         }
 
         Player target = Bukkit.getPlayer(args[1]);
         if (target == null) {
-            sender.sendMessage(ChatColor.RED + "Player '" + args[1] + "' not found.");
+            sender.sendMessage(Lang.debugPlayer(args[1]));
             return true;
         }
 
-        sender.sendMessage(ChatColor.GOLD + "=== Element Debug for " + target.getName() + " ===");
+        sender.sendMessage(Lang.debugElementDebug(target.getName()));
 
         ElementType managerElement = elementManager.getPlayerElement(target);
-        sender.sendMessage(ChatColor.YELLOW + "ElementManager reports (builtin type): " +
-                (managerElement != null ? managerElement.name() : "null"));
+        sender.sendMessage(Lang.debugElementmanagerReportsBuiltinType((managerElement != null ? managerElement.name() : "null")));
 
         ElementId managerElementId = elementManager.getPlayerElementId(target);
-        sender.sendMessage(ChatColor.YELLOW + "ElementManager reports (element ID): " +
-                (managerElementId != null ? managerElementId.toString() : "null"));
+        sender.sendMessage(Lang.debugElementmanagerReportsElementId((managerElementId != null ? managerElementId.toString() : "null")));
 
         dataStore.invalidateCache(target.getUniqueId());
         ElementType reloadedElement = elementManager.getPlayerElement(target);
-        sender.sendMessage(ChatColor.YELLOW + "After cache invalidation: " +
-                (reloadedElement != null ? reloadedElement.name() : "null"));
+        sender.sendMessage(Lang.debugAfterCacheInvalidation((reloadedElement != null ? reloadedElement.name() : "null")));
 
         return true;
     }

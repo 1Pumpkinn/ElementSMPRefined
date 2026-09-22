@@ -5,7 +5,7 @@ import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.items.recipes.Upgrader1Item;
 import net.rose.elementSMPRefined.items.recipes.Upgrader2Item;
-import org.bukkit.ChatColor;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,12 +22,12 @@ public class UtilCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+            sender.sendMessage(Lang.UTIL_THIS_COMMAND_CAN_ONLY_BE);
             return true;
         }
 
         if (!player.hasPermission("element.admin")) {
-            player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+            player.sendMessage(Lang.UTIL_YOU_DON_T_HAVE_PERMISSION);
             return true;
         }
 
@@ -47,11 +47,11 @@ public class UtilCommand implements CommandExecutor {
         // Give items to player
         player.getInventory().addItem(upgrader1Stack, upgrader2Stack, rerollerStack, advancedRerollerStack);
 
-        player.sendMessage(ChatColor.GREEN + "You have been given utility items!");
-        player.sendMessage(ChatColor.YELLOW + "• 64x Upgrader I");
-        player.sendMessage(ChatColor.YELLOW + "• 64x Upgrader II");
-        player.sendMessage(ChatColor.YELLOW + "• 64x Reroller");
-        player.sendMessage(ChatColor.DARK_PURPLE + "• 64x Advanced Reroller");
+        player.sendMessage(Lang.UTIL_YOU_HAVE_BEEN_GIVEN_UTILITY);
+        player.sendMessage(Lang.UTIL_64X_UPGRADER_I);
+        player.sendMessage(Lang.UTIL_64X_UPGRADER_II);
+        player.sendMessage(Lang.UTIL_64X_REROLLER);
+        player.sendMessage(Lang.UTIL_64X_ADVANCED_REROLLER);
 
         return true;
     }

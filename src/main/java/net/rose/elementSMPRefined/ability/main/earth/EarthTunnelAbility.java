@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.ability.passive.earth.EarthElement;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.bukkit.MetadataHelper;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -76,7 +77,7 @@ public class EarthTunnelAbility extends BaseAbility {
         // If ability is already active (check metadata), cancel it WITHOUT consuming mana
         if (metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
             metadataHelper.remove(player, EarthElement.META_TUNNELING);
-            player.sendMessage(ChatColor.YELLOW + "Tunneling cancelled");
+            player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_CANCELLED);
             setActive(player, false);
             // Don't start a new tunnel - just cancel and return
             return true;
@@ -85,7 +86,7 @@ public class EarthTunnelAbility extends BaseAbility {
         // Start the tunneling ability
         metadataHelper.setLong(player, EarthElement.META_TUNNELING, System.currentTimeMillis() + Constants.Duration.EARTH_TUNNEL_MS);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_STONE_BREAK, 1f, 0.8f);
-        player.sendMessage(ChatColor.GOLD + "Tunneling started Press again to cancel.");
+        player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_STARTED_PRESS_AGAIN_CANCEL);
 
         setActive(player, true);
 
@@ -101,7 +102,7 @@ public class EarthTunnelAbility extends BaseAbility {
                 long until = metadataHelper.getLong(player, EarthElement.META_TUNNELING, 0);
                 if (System.currentTimeMillis() > until) {
                     metadataHelper.remove(player, EarthElement.META_TUNNELING);
-                    player.sendMessage(ChatColor.YELLOW + "Tunneling ended");
+                    player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_ENDED);
                     setActive(player, false);
                     cancel();
                     return;

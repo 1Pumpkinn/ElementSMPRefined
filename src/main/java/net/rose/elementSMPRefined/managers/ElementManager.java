@@ -24,6 +24,7 @@ import net.rose.elementSMPRefined.core.registry.ElementRegistry;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.util.visual.ElementColours;
 import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -258,7 +259,7 @@ public class ElementManager {
         pd.setCurrentElement(id);
         store.save(pd);
 
-        player.sendMessage(ChatColor.GOLD + "Your element is now " + ChatColor.AQUA + displayNameOf(id));
+        player.sendMessage(Lang.elementManagerYourElementIsNow(displayNameOf(id)));
         applyUpsides(player);
 
         plugin.getServer().getPluginManager().callEvent(new ElementSetEvent(player, id, old));
@@ -323,13 +324,12 @@ public class ElementManager {
 
         var leftover = player.getInventory().addItem(core);
         if (leftover.isEmpty()) {
-            player.sendMessage(ChatColor.YELLOW + "Your " + oldElement.name() + " core has been returned!");
+            player.sendMessage(Lang.elementManagerYour(oldElement.name()));
         } else {
             for (var drop : leftover.values()) {
                 player.getWorld().dropItemNaturally(player.getLocation(), drop);
             }
-            player.sendMessage(ChatColor.YELLOW + "Your inventory was full, so your " +
-                    oldElement.name() + " core dropped on the ground!");
+            player.sendMessage(Lang.elementManagerYourInventoryWasFullSo(oldElement.name()));
         }
     }
 
@@ -416,7 +416,7 @@ public class ElementManager {
 
     private boolean beginRoll(Player player) {
         if (isCurrentlyRolling(player)) {
-            player.sendMessage(ChatColor.RED + "You are already rerolling!");
+            player.sendMessage(Lang.ELEMENT_MANAGER_YOU_ARE_ALREADY_REROLLING);
             return false;
         }
         currentlyRolling.add(player.getUniqueId());

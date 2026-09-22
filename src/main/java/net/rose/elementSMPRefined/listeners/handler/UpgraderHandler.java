@@ -7,7 +7,7 @@ import net.rose.elementSMPRefined.core.API.event.UpgradeLevelChangeEvent;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
-import org.bukkit.ChatColor;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -72,29 +72,29 @@ public class UpgraderHandler implements Listener {
     private void handleUpgradeI(Player player, ItemStack item, PlayerData playerData,
                                 ElementId currentElementId, int currentUpgradeLevel) {
         if (currentUpgradeLevel >= 1) {
-            player.sendMessage(ChatColor.RED + "You already have Upgrade I");
+            player.sendMessage(Lang.UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I);
             return;
         }
 
         if (applyUpgrade(player, item, playerData, currentElementId, 1)) {
-            player.sendMessage(ChatColor.GREEN + "You have unlocked " + ChatColor.GOLD + "Upgrade I");
+            player.sendMessage(Lang.UPGRADER_YOU_HAVE_UNLOCKED);
         }
     }
 
     private void handleUpgradeII(Player player, ItemStack item, PlayerData playerData,
                                  ElementId currentElementId, int currentUpgradeLevel) {
         if (currentUpgradeLevel < 1) {
-            player.sendMessage(ChatColor.RED + "You need Upgrade I before you can use Upgrade II!");
+            player.sendMessage(Lang.UPGRADER_YOU_NEED_UPGRADE_I_BEFORE);
             return;
         }
 
         if (currentUpgradeLevel >= 2) {
-            player.sendMessage(ChatColor.RED + "You already have Upgrade II");
+            player.sendMessage(Lang.UPGRADER_YOU_ALREADY_HAVE_UPGRADE_II);
             return;
         }
 
         if (applyUpgrade(player, item, playerData, currentElementId, 2)) {
-            player.sendMessage(ChatColor.GREEN + "You have unlocked " + ChatColor.GOLD + "Upgrade II");
+            player.sendMessage(Lang.UPGRADER_YOU_HAVE_UNLOCKED_2);
         }
     }
 

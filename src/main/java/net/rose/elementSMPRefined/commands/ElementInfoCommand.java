@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -36,7 +37,7 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cOnly players can use this command!");
+            sender.sendMessage(Lang.ELEMENT_INFO_PLAYERS_ONLY);
             return true;
         }
 

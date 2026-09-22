@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -82,7 +83,7 @@ public class MeteorCrashAbility extends BaseAbility {
 
         world.playSound(startLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
         world.playSound(startLoc, Sound.ENTITY_BLAZE_SHOOT, 1.2f, 0.8f);
-        player.sendMessage(ChatColor.GOLD + "You launch into a meteor crash!");
+        player.sendMessage(Lang.METEOR_CRASH_YOU_LAUNCH_INTO_METEOR_CRASH);
 
         BukkitRunnable task = new BukkitRunnable() {
             private int ticksAlive = 0;

@@ -5,6 +5,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -56,7 +57,7 @@ public class DeathBackstabAbility extends BaseAbility {
 
         LivingEntity target = findLookedAtTarget(context);
         if (target == null) {
-            player.sendMessage(ChatColor.RED + "No target in range.");
+            player.sendMessage(Lang.DEATH_BACKSTAB_NO_TARGET_IN_RANGE);
             return false;
         }
 
@@ -84,9 +85,7 @@ public class DeathBackstabAbility extends BaseAbility {
         dealTrueDamage(target, player);
         if (target instanceof Player targetPlayer) {
             int stolen = plugin.getStatusEffectManager().applyManaSteal(player, targetPlayer, MANA_STEAL_AMOUNT, MANA_STEAL_GIVES_CASTER);
-            player.sendMessage(ChatColor.DARK_GRAY + "[debug] stolen=" + stolen
-                    + " casterGM=" + player.getGameMode()
-                    + " casterManaAfter=" + plugin.getManaManager().get(player.getUniqueId()).getMana());
+            player.sendMessage(Lang.deathBackstabDebugStolen(stolen, player.getGameMode(), plugin.getManaManager().get(player.getUniqueId()).getMana()));
         }
 
         return true;

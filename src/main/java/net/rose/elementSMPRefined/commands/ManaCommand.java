@@ -2,8 +2,8 @@ package net.rose.elementSMPRefined.commands;
 
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.ManaManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -34,7 +34,7 @@ public class ManaCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(ChatColor.YELLOW + "Usage: /mana <reset|set> [player] [amount]");
+            sender.sendMessage(Lang.MANA_USAGE_MANA_RESET_SET_PLAYER);
             return true;
         }
 
@@ -42,7 +42,7 @@ public class ManaCommand implements CommandExecutor {
         if (operation != null) {
             operation.execute(sender, args);
         } else {
-            sender.sendMessage(ChatColor.YELLOW + "Usage: /mana <reset|set> [player] [amount]");
+            sender.sendMessage(Lang.MANA_USAGE_MANA_RESET_SET_PLAYER);
         }
 
         return true;
@@ -59,7 +59,7 @@ public class ManaCommand implements CommandExecutor {
 
             Optional<Player> target = resolveTarget(sender, args, 1);
             if (target.isEmpty()) {
-                sender.sendMessage(ChatColor.RED + "Player not found");
+                sender.sendMessage(Lang.MANA_PLAYER_NOT_FOUND);
                 return;
             }
 
@@ -75,7 +75,7 @@ public class ManaCommand implements CommandExecutor {
         public void execute(CommandSender sender, String[] args) {
             ManaSetContext context = parseManaSetArgs(sender, args);
             if (context == null) {
-                sender.sendMessage(ChatColor.YELLOW + "Usage: /mana set <player> <amount>");
+                sender.sendMessage(Lang.MANA_USAGE_MANA_SET_PLAYER_AMOUNT);
                 return;
             }
 
@@ -120,9 +120,9 @@ public class ManaCommand implements CommandExecutor {
     }
 
     private void sendSuccessMessages(CommandSender sender, Player target, String action) {
-        sender.sendMessage(ChatColor.GREEN + "Mana " + action + " for " + target.getName());
+        sender.sendMessage(Lang.manaMana(action, target.getName()));
         if (!target.equals(sender)) {
-            target.sendMessage(ChatColor.GREEN + "Your mana has been " + action);
+            target.sendMessage(Lang.manaYourManaHasBeen(action));
         }
     }
 

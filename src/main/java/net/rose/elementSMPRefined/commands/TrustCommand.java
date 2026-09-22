@@ -2,11 +2,11 @@ package net.rose.elementSMPRefined.commands;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -31,11 +31,11 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player p)) {
-            sender.sendMessage("Players only");
+            sender.sendMessage(Lang.TRUST_PLAYERS_ONLY);
             return true;
         }
         if (args.length == 0) {
-            p.sendMessage(ChatColor.YELLOW + "Usage: /trust <list|add|remove> [player]");
+            p.sendMessage(Lang.TRUST_USAGE_TRUST_LIST_ADD_REMOVE);
             return true;
         }
         switch (args[0].toLowerCase()) {
@@ -66,22 +66,22 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
                 }
 
                 if (displayNames.isEmpty() && unknownUUIDs.isEmpty()) {
-                    p.sendMessage(ChatColor.AQUA + "Trusted: " + ChatColor.WHITE + "(none)");
+                    p.sendMessage(Lang.TRUST_TRUSTED);
                 } else {
-                    p.sendMessage(ChatColor.AQUA + "Trusted: " + ChatColor.WHITE + String.join(", ", displayNames));
+                    p.sendMessage(Lang.trustTrusted2(String.join(", ", displayNames)));
                     if (!unknownUUIDs.isEmpty()) {
-                        p.sendMessage(ChatColor.GRAY + "Unknown players: " + String.join(", ", unknownUUIDs));
-                        p.sendMessage(ChatColor.GRAY + "Use '/trust remove <uuid>' to clean up invalid entries");
+                        p.sendMessage(Lang.trustUnknownPlayers(String.join(", ", unknownUUIDs)));
+                        p.sendMessage(Lang.TRUST_USE_TRUST_REMOVE_UUID_CLEAN);
                     }
                 }
             }
             case "add" -> {
-                if (args.length < 2) { p.sendMessage(ChatColor.RED + "Usage: /trust add <player>"); return true; }
+                if (args.length < 2) { p.sendMessage(Lang.TRUST_USAGE_TRUST_ADD_PLAYER); return true; }
                 Player target = Bukkit.getPlayer(args[1]);
-                if (target == null) { p.sendMessage(ChatColor.RED + "Player not found"); return true; }
-                if (target.equals(p)) { p.sendMessage(ChatColor.RED + "You cannot trust yourself"); return true; }
+                if (target == null) { p.sendMessage(Lang.TRUST_PLAYER_NOT_FOUND); return true; }
+                if (target.equals(p)) { p.sendMessage(Lang.TRUST_YOU_CANNOT_TRUST_YOURSELF); return true; }
                 if (trust.isTrusted(p.getUniqueId(), target.getUniqueId()) && trust.isTrusted(target.getUniqueId(), p.getUniqueId())) {
-                    p.sendMessage(ChatColor.YELLOW + "You are already mutually trusted.");
+                    p.sendMessage(Lang.TRUST_YOU_ARE_ALREADY_MUTUALLY_TRUSTED);
                     return true;
                 }
                 trust.addPending(target.getUniqueId(), p.getUniqueId());
@@ -91,55 +91,55 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
                         .append(Component.text(" "))
                         .append(Component.text("[DENY]", NamedTextColor.RED).clickEvent(ClickEvent.runCommand("/trust deny " + p.getUniqueId())));
                 target.sendMessage(msg);
-                p.sendMessage(ChatColor.GREEN + "Sent trust request to " + target.getName());
+                p.sendMessage(Lang.trustSentTrustRequest(target.getName()));
             }
             case "accept" -> {
-                if (args.length < 2) { p.sendMessage(ChatColor.RED + "Usage: /trust accept <player|uuid>"); return true; }
+                if (args.length < 2) { p.sendMessage(Lang.TRUST_USAGE_TRUST_ACCEPT_PLAYER_UUID); return true; }
                 Player from = Bukkit.getPlayer(args[1]);
                 UUID fromId = null;
                 if (from != null) fromId = from.getUniqueId();
                 else {
-                    try { fromId = UUID.fromString(args[1]); } catch (Exception ex) { p.sendMessage(ChatColor.RED + "Player not found"); return true; }
+                    try { fromId = UUID.fromString(args[1]); } catch (Exception ex) { p.sendMessage(Lang.TRUST_PLAYER_NOT_FOUND); return true; }
                 }
-                if (!trust.hasPending(p.getUniqueId(), fromId)) { p.sendMessage(ChatColor.YELLOW + "No pending request from that player."); return true; }
+                if (!trust.hasPending(p.getUniqueId(), fromId)) { p.sendMessage(Lang.TRUST_NO_PENDING_REQUEST_FROM_THAT); return true; }
                 trust.clearPending(p.getUniqueId(), fromId);
                 trust.addMutualTrust(p.getUniqueId(), fromId);
-                p.sendMessage(ChatColor.GREEN + "You are now mutually trusted.");
+                p.sendMessage(Lang.TRUST_YOU_ARE_NOW_MUTUALLY_TRUSTED);
                 Player other = Bukkit.getPlayer(fromId);
-                if (other != null) other.sendMessage(ChatColor.GREEN + p.getName() + " accepted your trust request.");
+                if (other != null) other.sendMessage(Lang.trustAcceptedYourTrustRequest(p.getName()));
             }
             case "deny" -> {
-                if (args.length < 2) { p.sendMessage(ChatColor.RED + "Usage: /trust deny <player|uuid>"); return true; }
+                if (args.length < 2) { p.sendMessage(Lang.TRUST_USAGE_TRUST_DENY_PLAYER_UUID); return true; }
                 Player from = Bukkit.getPlayer(args[1]);
                 UUID fromId = null;
                 if (from != null) fromId = from.getUniqueId();
                 else {
-                    try { fromId = UUID.fromString(args[1]); } catch (Exception ex) { p.sendMessage(ChatColor.RED + "Player not found"); return true; }
+                    try { fromId = UUID.fromString(args[1]); } catch (Exception ex) { p.sendMessage(Lang.TRUST_PLAYER_NOT_FOUND); return true; }
                 }
                 if (trust.hasPending(p.getUniqueId(), fromId)) {
                     trust.clearPending(p.getUniqueId(), fromId);
-                    p.sendMessage(ChatColor.YELLOW + "Denied trust request.");
+                    p.sendMessage(Lang.TRUST_DENIED_TRUST_REQUEST);
                     Player other = Bukkit.getPlayer(fromId);
-                    if (other != null) other.sendMessage(ChatColor.RED + p.getName() + " denied your trust request.");
+                    if (other != null) other.sendMessage(Lang.trustDeniedYourTrustRequest(p.getName()));
                 } else {
-                    p.sendMessage(ChatColor.YELLOW + "No pending request from that player.");
+                    p.sendMessage(Lang.TRUST_NO_PENDING_REQUEST_FROM_THAT);
                 }
             }
             case "remove" -> {
-                if (args.length < 2) { p.sendMessage(ChatColor.RED + "Usage: /trust remove <player>"); return true; }
+                if (args.length < 2) { p.sendMessage(Lang.TRUST_USAGE_TRUST_REMOVE_PLAYER); return true; }
                 Player target = Bukkit.getPlayer(args[1]);
                 UUID uuid;
                 if (target != null) uuid = target.getUniqueId(); else {
                     // Fallback: try parsing UUID
                     try { uuid = UUID.fromString(args[1]); } catch (IllegalArgumentException ex) {
-                        p.sendMessage(ChatColor.RED + "Player must be online or provide UUID");
+                        p.sendMessage(Lang.TRUST_PLAYER_MUST_BE_ONLINE_OR);
                         return true;
                     }
                 }
                 trust.removeMutualTrust(p.getUniqueId(), uuid);
-                p.sendMessage(ChatColor.YELLOW + "Removed mutual trust.");
+                p.sendMessage(Lang.TRUST_REMOVED_MUTUAL_TRUST);
             }
-            default -> p.sendMessage(ChatColor.YELLOW + "Usage: /trust <list|add|remove> [player]");
+            default -> p.sendMessage(Lang.TRUST_USAGE_TRUST_LIST_ADD_REMOVE);
         }
         return true;
     }

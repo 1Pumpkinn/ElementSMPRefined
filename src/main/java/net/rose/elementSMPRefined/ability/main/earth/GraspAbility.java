@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.*;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.LivingEntity;
@@ -98,18 +99,18 @@ public class GraspAbility extends BaseAbility implements Listener {
         TrustManager trust = context.getTrustManager();
 
         if (activeGrasps.containsKey(player.getUniqueId())) {
-            player.sendMessage(ChatColor.RED + "You are already grasping an entity!");
+            player.sendMessage(Lang.GRASP_YOU_ARE_ALREADY_GRASPING_AN);
             return false;
         }
 
         LivingEntity target = getTargetEntity(player, trust);
         if (target == null) {
-            player.sendMessage(ChatColor.RED + "No valid target in range!");
+            player.sendMessage(Lang.GRASP_NO_VALID_TARGET_IN_RANGE);
             return false;
         }
 
         if (grasped.containsKey(target.getUniqueId())) {
-            player.sendMessage(ChatColor.RED + "That target is already grasped!");
+            player.sendMessage(Lang.GRASP_THAT_TARGET_IS_ALREADY_GRASPED);
             return false;
         }
 

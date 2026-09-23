@@ -55,19 +55,30 @@ public final class Constants {
     }
 
     public static final class GracePeriod {
-        public static final boolean DEFAULT_ENABLED = true;
         public static final int DEFAULT_DURATION_SECONDS = 600;
         public static final int DEFAULT_HUNGER_PROTECTION_SECONDS = 300;
-        // Minimum time between repeated "PvP is disabled" warnings to the same
-        // player, so spamming hits during grace doesn't spam their chat too.
-        public static final long PVP_WARNING_COOLDOWN_MS = 3_000L;
+        public static final boolean DEFAULT_AUTO_START = false;
 
         private GracePeriod() {}
     }
 
     public static final class Dimension {
-        public static final boolean DEFAULT_TRAVEL_DISABLED = true;
+        public static final boolean DEFAULT_NETHER_DISABLED = true;
+        public static final boolean DEFAULT_END_DISABLED = true;
+        // Velocity applied to push a player back out of a portal they just got
+        // blocked from using. Without this, the player stays inside the portal
+        // block and the client keeps re-triggering the portal event every tick.
+        public static final double PORTAL_PUSHBACK_STRENGTH = 0.6;
 
         private Dimension() {}
+    }
+
+    public static final class Warnings {
+        // Minimum time between repeated warnings (PvP blocked, dimension
+        // blocked) to the same player, so standing in one spot spamming an
+        // action doesn't spam their chat - or the server - either.
+        public static final long COOLDOWN_MS = 3_000L;
+
+        private Warnings() {}
     }
 }

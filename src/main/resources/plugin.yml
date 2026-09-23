@@ -35,6 +35,16 @@ commands:
     usage: /togglerecipe <upgrader1|upgrader2|reroller|advancedreroller>
     permission: element.admin
 
+  grace:
+    description: Start, stop, or check the server grace period
+    usage: /grace <start|stop|status> [duration_seconds] [hunger_protection_seconds]
+    permission: element.admin
+
+  dimension:
+    description: Enable or disable Nether/End portal travel
+    usage: /dimension <enable|disable|status> <nether|end|all>
+    permission: element.admin
+
 permissions:
   element.admin:
     description: Allows use of element admin commands

@@ -81,7 +81,7 @@ public class ListenerInitializer {
 
         this.gracePeriod = new GracePeriod(plugin, plugin.getConfigManager(), plugin.getTaskScheduler());
         pluginManager.registerEvents(gracePeriod, plugin);
-        gracePeriod.start();
+        gracePeriod.autoStartIfConfigured();
     }
 
     private void registerItemListeners() {

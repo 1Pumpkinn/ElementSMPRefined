@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
@@ -21,15 +22,20 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Server-start grace period: a countdown boss bar is shown to everyone while
- * it's active, during which hunger loss is blocked for a shorter opening
- * window and PvP is blocked for the whole thing. Durations are read from
- * {@link ConfigManager} (grace_period.* in config.yml) rather than hardcoded,
- * so they can be tuned without touching Java.
+ * Grace period: a countdown boss bar shown to everyone while active, during
+ * which hunger loss is blocked for a shorter opening window and PvP is
+ * blocked for the whole thing.
  * <p>
- * {@link #start()} is called once, from {@link net.rose.elementSMPRefined.core.initializers.ListenerInitializer}
- * right after this listener is registered. {@link #cleanup()} is called on
- * plugin disable so a lingering boss bar/task doesn't survive a reload.
+ * Started/stopped with {@link #start(int, int)} / {@link #stop()}, normally
+ * from {@code /grace start|stop} (see {@link net.rose.elementSMPRefined.commands}) -
+ * this class does nothing on its own unless something calls start(). The one
+ * exception is {@code grace_period.auto_start: true} in config.yml, which
+ * {@link net.rose.elementSMPRefined.core.initializers.ListenerInitializer}
+ * uses to call {@link #start(int, int)} once on plugin enable, for servers
+ * that want the old "starts with the server" behaviour instead of a command.
+ * <p>
+ * {@link #cleanup()} is called on plugin disable so a lingering boss
+ * bar/task/listener state doesn't survive a reload.
  */
 public class GracePeriod implements Listener {
     private final ElementSMPRefined plugin;
@@ -51,14 +57,25 @@ public class GracePeriod implements Listener {
         this.scheduler = scheduler;
     }
 
-    /** Begins the grace period, if enabled in config. Safe to call exactly once, on plugin enable. */
-    public void start() {
-        if (!configManager.isGracePeriodEnabled()) {
-            return;
+    /** Reads config.yml's grace_period.auto_start and, if set, starts the grace period with the configured defaults. Called once on plugin enable. */
+    public void autoStartIfConfigured() {
+        if (configManager.isGracePeriodAutoStart()) {
+            start(configManager.getGracePeriodDurationSeconds(), configManager.getGracePeriodHungerProtectionSeconds());
+        }
+    }
+
+    /**
+     * Starts the grace period with the given durations (both in seconds).
+     * Returns false (no-op) if one is already running - call {@link #stop()}
+     * first if you want to restart it with different values.
+     */
+    public boolean start(int durationSeconds, int hungerProtectionSeconds) {
+        if (active) {
+            return false;
         }
 
-        this.totalDurationSeconds = Math.max(1, configManager.getGracePeriodDurationSeconds());
-        this.hungerProtectionSeconds = Math.max(0, configManager.getGracePeriodHungerProtectionSeconds());
+        this.totalDurationSeconds = Math.max(1, durationSeconds);
+        this.hungerProtectionSeconds = Math.max(0, Math.min(hungerProtectionSeconds, this.totalDurationSeconds));
         this.remainingSeconds = totalDurationSeconds;
         this.active = true;
 
@@ -73,6 +90,24 @@ public class GracePeriod implements Listener {
         plugin.getServer().broadcast(Lang.GRACE_PERIOD_STARTED);
 
         this.task = scheduler.runTimer(this::tick, Constants.Timing.TICKS_PER_SECOND, Constants.Timing.TICKS_PER_SECOND);
+        return true;
+    }
+
+    /** Ends the grace period early. Returns false (no-op) if it wasn't running. */
+    public boolean stop() {
+        if (!active) {
+            return false;
+        }
+        end();
+        return true;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public int getRemainingSeconds() {
+        return remainingSeconds;
     }
 
     private void tick() {
@@ -97,22 +132,28 @@ public class GracePeriod implements Listener {
 
         if (bossBar != null) {
             plugin.getServer().getOnlinePlayers().forEach(player -> player.hideBossBar(bossBar));
+            bossBar = null;
         }
+
+        // Nothing left to rate-limit warnings for once PvP protection is over.
+        pvpWarningCooldowns.clear();
 
         plugin.getServer().broadcast(Lang.GRACE_PERIOD_ENDED);
     }
 
-    /** Cancels the countdown and clears the boss bar early, e.g. on plugin disable. Idempotent. */
+    /** Cancels the countdown and clears the boss bar/state early, e.g. on plugin disable. Idempotent. */
     public void cleanup() {
         if (task != null) {
             task.cancel();
             task = null;
         }
 
-        if (active && bossBar != null) {
+        if (bossBar != null) {
             plugin.getServer().getOnlinePlayers().forEach(player -> player.hideBossBar(bossBar));
+            bossBar = null;
         }
 
+        pvpWarningCooldowns.clear();
         active = false;
     }
 
@@ -138,6 +179,15 @@ public class GracePeriod implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (active && bossBar != null) {
             event.getPlayer().showBossBar(bossBar);
+        }
+    }
+
+    /** Drops a quitting player's cooldown entry and boss bar viewer state instead of letting either linger. */
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        pvpWarningCooldowns.remove(event.getPlayer().getUniqueId());
+        if (bossBar != null) {
+            event.getPlayer().hideBossBar(bossBar);
         }
     }
 
@@ -187,7 +237,7 @@ public class GracePeriod implements Listener {
     private void warnPvpDisabled(Player damager) {
         long now = System.currentTimeMillis();
         Long lastWarned = pvpWarningCooldowns.get(damager.getUniqueId());
-        if (lastWarned != null && now - lastWarned < Constants.GracePeriod.PVP_WARNING_COOLDOWN_MS) {
+        if (lastWarned != null && now - lastWarned < Constants.Warnings.COOLDOWN_MS) {
             return;
         }
         pvpWarningCooldowns.put(damager.getUniqueId(), now);

@@ -729,6 +729,32 @@ public final class Lang {
             Component.text("Dimension travel is disabled on this server.", NamedTextColor.RED);
 
 
+    // --- /dimension command ---
+    public static final Component DIMENSION_CMD_USAGE =
+            Component.text("Usage: /dimension <enable|disable|status> <nether|end|all>", NamedTextColor.YELLOW);
+
+    public static final Component DIMENSION_CMD_INVALID_TARGET =
+            Component.text("Invalid dimension! Use: nether, end, or all", NamedTextColor.RED);
+
+    public static Component dimensionCmdToggled(String name, boolean disabled) {
+        return Component.textOfChildren(
+                Component.text(name + " travel is now ", NamedTextColor.GREEN),
+                disabled
+                        ? Component.text("DISABLED", NamedTextColor.RED)
+                        : Component.text("ENABLED", NamedTextColor.GREEN)
+        );
+    }
+
+    public static Component dimensionCmdStatus(boolean netherDisabled, boolean endDisabled) {
+        return Component.textOfChildren(
+                Component.text("Nether: ", NamedTextColor.YELLOW),
+                netherDisabled ? Component.text("DISABLED", NamedTextColor.RED) : Component.text("ENABLED", NamedTextColor.GREEN),
+                Component.text("  End: ", NamedTextColor.YELLOW),
+                endDisabled ? Component.text("DISABLED", NamedTextColor.RED) : Component.text("ENABLED", NamedTextColor.GREEN)
+        );
+    }
+
+
     // --- Grace period ---
     public static Component gracePeriodBossBarTitle(String timeLeft) {
         return Component.textOfChildren(
@@ -745,4 +771,26 @@ public final class Lang {
 
     public static final Component GRACE_PERIOD_PVP_DISABLED =
             Component.text("PvP is disabled during the grace period!", NamedTextColor.RED);
+
+
+    // --- /grace command ---
+    public static final Component GRACE_CMD_USAGE =
+            Component.text("Usage: /grace <start|stop|status> [duration_seconds] [hunger_protection_seconds]", NamedTextColor.YELLOW);
+
+    public static final Component GRACE_CMD_ALREADY_ACTIVE =
+            Component.text("A grace period is already active! Use /grace stop first.", NamedTextColor.RED);
+
+    public static final Component GRACE_CMD_NOT_ACTIVE =
+            Component.text("There is no grace period active.", NamedTextColor.RED);
+
+    public static final Component GRACE_CMD_INVALID_NUMBER =
+            Component.text("Duration and hunger protection must be positive whole numbers of seconds.", NamedTextColor.RED);
+
+    public static Component graceCmdStatus(String timeLeft) {
+        return Component.textOfChildren(
+                Component.text("Grace period active - ", NamedTextColor.GREEN),
+                Component.text(timeLeft, NamedTextColor.YELLOW),
+                Component.text(" remaining.", NamedTextColor.GREEN)
+        );
+    }
 }

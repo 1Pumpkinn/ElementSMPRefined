@@ -17,19 +17,20 @@ recipes:
 
 # Dimension Settings
 dimensions:
-  # When true, Nether/End portals (and anything entering one - vehicles,
-  # ender pearls, dropped items) are cancelled. This is an element-based
-  # overworld-only SMP, so vanilla dimension travel stays off.
-  travel_disabled: true
+  # When true, that dimension's portals (and anything entering one - vehicles,
+  # ender pearls, dropped items) are cancelled. Toggle at runtime with
+  # /dimension enable|disable <nether|end|all>.
+  nether_disabled: true
+  end_disabled: true
 
 # Grace Period Settings
+# The grace period is started/stopped with /grace start|stop, it does not
+# start automatically unless auto_start is true. duration_seconds and
+# hunger_protection_seconds below are just the defaults used when
+# /grace start is run without explicit arguments.
 grace_period:
-  enabled: true
-  # Total length of the grace period, in seconds. PvP is disabled for the
-  # whole duration and a countdown boss bar is shown the whole time.
+  auto_start: false
   duration_seconds: 600
-  # How long, in seconds, players can't lose hunger for. This is a shorter
-  # window inside the grace period above, and is capped to it automatically.
   hunger_protection_seconds: 300
 
 # Status Effect Settings

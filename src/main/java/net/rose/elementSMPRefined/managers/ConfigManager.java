@@ -30,10 +30,11 @@ public class ConfigManager {
     private static final boolean DEFAULT_STATUS_EFFECT_DAMAGE_ENABLED = true;
     private static final boolean DEFAULT_STATUS_EFFECT_NOTIFICATIONS_ENABLED = true;
     private static final boolean DEFAULT_ADVANCED_REROLLER_RECIPE_ENABLED = true;
-    private static final boolean DEFAULT_DIMENSION_TRAVEL_DISABLED = Constants.Dimension.DEFAULT_TRAVEL_DISABLED;
-    private static final boolean DEFAULT_GRACE_PERIOD_ENABLED = Constants.GracePeriod.DEFAULT_ENABLED;
+    private static final boolean DEFAULT_NETHER_DISABLED = Constants.Dimension.DEFAULT_NETHER_DISABLED;
+    private static final boolean DEFAULT_END_DISABLED = Constants.Dimension.DEFAULT_END_DISABLED;
     private static final int DEFAULT_GRACE_PERIOD_DURATION_SECONDS = Constants.GracePeriod.DEFAULT_DURATION_SECONDS;
     private static final int DEFAULT_GRACE_PERIOD_HUNGER_PROTECTION_SECONDS = Constants.GracePeriod.DEFAULT_HUNGER_PROTECTION_SECONDS;
+    private static final boolean DEFAULT_GRACE_PERIOD_AUTO_START = Constants.GracePeriod.DEFAULT_AUTO_START;
 
     private final JavaPlugin plugin;
     private FileConfiguration config;
@@ -252,25 +253,41 @@ public class ConfigManager {
         plugin.saveConfig();
     }
 
-    // Dimension settings
-    public boolean isDimensionTravelDisabled() {
-        return getBooleanSafe("dimensions.travel_disabled", DEFAULT_DIMENSION_TRAVEL_DISABLED);
+    // Dimension settings - each dimension can be individually enabled/disabled,
+    // and it's persisted, so this survives restarts/toggling via command.
+    public boolean isNetherDisabled() {
+        return getBooleanSafe("dimensions.nether_disabled", DEFAULT_NETHER_DISABLED);
     }
 
-    // Grace period settings
-    public boolean isGracePeriodEnabled() {
-        return getBooleanSafe("grace_period.enabled", DEFAULT_GRACE_PERIOD_ENABLED);
+    public boolean isEndDisabled() {
+        return getBooleanSafe("dimensions.end_disabled", DEFAULT_END_DISABLED);
     }
 
-    /** Total length of the grace period, in seconds. PvP stays disabled for this whole window. */
+    public void setNetherDisabled(boolean disabled) {
+        config.set("dimensions.nether_disabled", disabled);
+        plugin.saveConfig();
+    }
+
+    public void setEndDisabled(boolean disabled) {
+        config.set("dimensions.end_disabled", disabled);
+        plugin.saveConfig();
+    }
+
+    // Grace period settings - these are just the defaults/config-driven
+    // fallback; the grace period itself is started/stopped via the /grace
+    // command (see GraceCommand), not automatically, unless auto_start is on.
+    public boolean isGracePeriodAutoStart() {
+        return getBooleanSafe("grace_period.auto_start", DEFAULT_GRACE_PERIOD_AUTO_START);
+    }
+
+    /** Default total length of the grace period, in seconds, used when /grace start is run with no argument. */
     public int getGracePeriodDurationSeconds() {
         return getIntSafe("grace_period.duration_seconds", DEFAULT_GRACE_PERIOD_DURATION_SECONDS);
     }
 
     /**
-     * How long, in seconds, hunger loss is blocked for - a shorter window inside
-     * the overall grace period. Clamped to the total duration so a misconfigured
-     * value can't outlast the grace period itself.
+     * Default hunger-protection window, in seconds, used when /grace start is run with no argument.
+     * Clamped to the total duration so a misconfigured value can't outlast the grace period itself.
      */
     public int getGracePeriodHungerProtectionSeconds() {
         int hungerSeconds = getIntSafe("grace_period.hunger_protection_seconds", DEFAULT_GRACE_PERIOD_HUNGER_PROTECTION_SECONDS);

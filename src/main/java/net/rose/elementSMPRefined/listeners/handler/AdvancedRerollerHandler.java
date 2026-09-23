@@ -204,8 +204,6 @@ public class AdvancedRerollerHandler implements Listener {
             element.clearEffects(player);
         }
 
-        elementManager.returnElementCore(player, oldElement);
-
         if (oldElement == ElementType.LIFE) {
             var attr = player.getAttribute(Attribute.MAX_HEALTH);
             if (attr != null) {

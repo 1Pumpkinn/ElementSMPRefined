@@ -435,51 +435,6 @@ public final class Lang {
     }
 
 
-    // --- /element givecore command ---
-    public static final Component GIVE_CORE_USAGE_ELEMENT_GIVECORE_PLAYER_ELEMENT =
-            Component.text("Usage: /element givecore <player> <element>", NamedTextColor.RED);
-
-    public static Component giveCorePlayer(Object args) {
-        return Component.textOfChildren(
-                Component.text("Player '", NamedTextColor.RED),
-                Component.text(String.valueOf(args), NamedTextColor.RED),
-                Component.text("' not found.", NamedTextColor.RED)
-        );
-    }
-
-    public static Component giveCoreInvalidElementValid(Object getElementNames) {
-        return Component.textOfChildren(
-                Component.text("Invalid element. Valid: ", NamedTextColor.RED),
-                Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
-        );
-    }
-
-    public static Component giveCoreDoesnTHaveCoreItem(Object name) {
-        return Component.textOfChildren(
-                Component.text(String.valueOf(name), NamedTextColor.RED),
-                Component.text(" doesn't have a core item.", NamedTextColor.RED)
-        );
-    }
-
-    public static Component giveCoreGave(Object name, Object name2) {
-        return Component.textOfChildren(
-                Component.text("Gave ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                Component.text(" a ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name2), NamedTextColor.AQUA),
-                Component.text(" core.", NamedTextColor.GREEN)
-        );
-    }
-
-    public static Component giveCoreYouReceived(Object name) {
-        return Component.textOfChildren(
-                Component.text("You received a ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name), NamedTextColor.AQUA),
-                Component.text(" core from an admin.", NamedTextColor.GREEN)
-        );
-    }
-
-
     // --- /element particles command ---
     public static final Component PARTICLES_THIS_COMMAND_CAN_ONLY_BE =
             Component.text("This command can only be used by players.", NamedTextColor.RED);
@@ -625,22 +580,6 @@ public final class Lang {
         return Component.textOfChildren(
                 Component.text("Your element is now ", NamedTextColor.GOLD),
                 Component.text(String.valueOf(id), NamedTextColor.AQUA)
-        );
-    }
-
-    public static Component elementManagerYour(Object name) {
-        return Component.textOfChildren(
-                Component.text("Your ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(name), NamedTextColor.YELLOW),
-                Component.text(" core has been returned!", NamedTextColor.YELLOW)
-        );
-    }
-
-    public static Component elementManagerYourInventoryWasFullSo(Object name) {
-        return Component.textOfChildren(
-                Component.text("Your inventory was full, so your ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(name), NamedTextColor.YELLOW),
-                Component.text(" core dropped on the ground!", NamedTextColor.YELLOW)
         );
     }
 

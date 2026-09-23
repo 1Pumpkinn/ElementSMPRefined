@@ -19,7 +19,6 @@ import net.rose.elementSMPRefined.ability.passive.frost.FrostElement;
 import net.rose.elementSMPRefined.ability.passive.life.LifeElement;
 import net.rose.elementSMPRefined.ability.passive.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.water.WaterElement;
-import net.rose.elementSMPRefined.items.builder.ElementCoreItem;
 import net.rose.elementSMPRefined.core.registry.ElementRegistry;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.util.visual.ElementColours;
@@ -301,36 +300,10 @@ public class ElementManager {
     }
 
     private void handleElementSwitch(Player player, ElementId oldId) {
-        ElementType oldType = oldId.toBuiltinType();
-        if (oldType != null) {
-            returnElementCore(player, oldType);
-        }
         // Only clear the element actually being left - see EffectService.clearElementEffects
         // for why this replaced the old full-registry clearAllElementEffects() call here.
         // Pass the full ElementId (not oldType) so this still works for addon elements.
         effectService.clearElementEffects(player, oldId);
-    }
-
-    /**
-     * Gives the player back a core for the element they're switching away from,
-     * if that element type has a core item. Drops it on the ground instead if
-     * their inventory is full.
-     */
-    public void returnElementCore(Player player, ElementType oldElement) {
-        if (oldElement == null) return;
-
-        var core = ElementCoreItem.createCore(plugin, oldElement);
-        if (core == null) return; // this element type has no physical core
-
-        var leftover = player.getInventory().addItem(core);
-        if (leftover.isEmpty()) {
-            player.sendMessage(Lang.elementManagerYour(oldElement.name()));
-        } else {
-            for (var drop : leftover.values()) {
-                player.getWorld().dropItemNaturally(player.getLocation(), drop);
-            }
-            player.sendMessage(Lang.elementManagerYourInventoryWasFullSo(oldElement.name()));
-        }
     }
 
     public void applyUpsides(Player player) {
@@ -376,17 +349,6 @@ public class ElementManager {
                 .configManager(configManager)
                 .plugin(plugin)
                 .build();
-    }
-
-    public void giveElementItem(Player player, ElementType type) {
-        var item = ElementCoreItem.createCore(plugin, type);
-        if (item != null) {
-            player.getInventory().addItem(item);
-            // Track that the player now owns this element item
-            var pd = data(player.getUniqueId());
-            pd.addElementItem(type);
-            store.save(pd);
-        }
     }
 
     public DataStore getStore() {

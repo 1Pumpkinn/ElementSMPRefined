@@ -6,7 +6,6 @@ import net.rose.elementSMPRefined.commands.element.CommandSupport;
 import net.rose.elementSMPRefined.commands.element.ConfigCommand;
 import net.rose.elementSMPRefined.commands.element.DebugCommand;
 import net.rose.elementSMPRefined.commands.element.ElementSubCommand;
-import net.rose.elementSMPRefined.commands.element.GiveCoreCommand;
 import net.rose.elementSMPRefined.commands.element.ParticlesCommand;
 import net.rose.elementSMPRefined.commands.element.SetCommand;
 import net.kyori.adventure.text.Component;
@@ -42,7 +41,6 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         commands.put("set", new SetCommand(plugin.getElementManager()));
         commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
-        commands.put("givecore", new GiveCoreCommand(plugin));
         commands.put("bot", new BotCommand(plugin));
         return commands;
     }
@@ -117,7 +115,6 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("  reload | reset [key] | reset element <element> [key]", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("  set <key> <value> | element <element> <key> <value>", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("/element givecore <player> <element> - Give a player an element core item", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element bot <spawn|stop> [element] - Spawn or remove an elemental 1v1 bot", NamedTextColor.YELLOW));
     }
 }

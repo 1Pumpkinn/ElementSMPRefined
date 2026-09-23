@@ -31,8 +31,7 @@ public class ItemManager {
      * Register default items using the new registry system
      */
     private void registerDefaultItems() {
-        // Element core items are registered dynamically based on element type
-        // These are handled by ElementManager.giveElementItem()
+        // No default items are registered here; items are added via the registry as needed.
     }
 
     public void register(ElementItem item) {

@@ -1,0 +1,401 @@
+diff --git a/src/main/java/net/rose/elementSMPRefined/commands/ElementCommand.java b/src/main/java/net/rose/elementSMPRefined/commands/ElementCommand.java
+index 392dc8e..b86727b 100644
+--- a/src/main/java/net/rose/elementSMPRefined/commands/ElementCommand.java
++++ b/src/main/java/net/rose/elementSMPRefined/commands/ElementCommand.java
+@@ -6,7 +6,6 @@ import net.rose.elementSMPRefined.commands.element.CommandSupport;
+ import net.rose.elementSMPRefined.commands.element.ConfigCommand;
+ import net.rose.elementSMPRefined.commands.element.DebugCommand;
+ import net.rose.elementSMPRefined.commands.element.ElementSubCommand;
+-import net.rose.elementSMPRefined.commands.element.GiveCoreCommand;
+ import net.rose.elementSMPRefined.commands.element.ParticlesCommand;
+ import net.rose.elementSMPRefined.commands.element.SetCommand;
+ import net.kyori.adventure.text.Component;
+@@ -42,7 +41,6 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
+         commands.put("set", new SetCommand(plugin.getElementManager()));
+         commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager()));
+         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
+-        commands.put("givecore", new GiveCoreCommand(plugin));
+         commands.put("bot", new BotCommand(plugin));
+         return commands;
+     }
+@@ -117,7 +115,6 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
+         sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
+         sender.sendMessage(Component.text("  reload | reset [key] | reset element <element> [key]", NamedTextColor.GRAY));
+         sender.sendMessage(Component.text("  set <key> <value> | element <element> <key> <value>", NamedTextColor.GRAY));
+-        sender.sendMessage(Component.text("/element givecore <player> <element> - Give a player an element core item", NamedTextColor.YELLOW));
+         sender.sendMessage(Component.text("/element bot <spawn|stop> [element] - Spawn or remove an elemental 1v1 bot", NamedTextColor.YELLOW));
+     }
+ }
+diff --git a/src/main/java/net/rose/elementSMPRefined/commands/element/GiveCoreCommand.java b/src/main/java/net/rose/elementSMPRefined/commands/element/GiveCoreCommand.java
+deleted file mode 100644
+index d769bd4..0000000
+--- a/src/main/java/net/rose/elementSMPRefined/commands/element/GiveCoreCommand.java
++++ /dev/null
+@@ -1,67 +0,0 @@
+-package net.rose.elementSMPRefined.commands.element;
+-
+-import net.rose.elementSMPRefined.core.API.element.ElementType;
+-import net.rose.elementSMPRefined.ElementSMPRefined;
+-import net.rose.elementSMPRefined.items.builder.ElementCoreItem;
+-import net.rose.elementSMPRefined.lang.Lang;
+-import org.bukkit.Bukkit;
+-import org.bukkit.command.CommandSender;
+-import org.bukkit.entity.Player;
+-import org.bukkit.inventory.ItemStack;
+-
+-import java.util.Collections;
+-import java.util.List;
+-import java.util.Optional;
+-
+-/** /element givecore <player> <element> */
+-public class GiveCoreCommand implements ElementSubCommand {
+-    private final ElementSMPRefined plugin;
+-
+-    public GiveCoreCommand(ElementSMPRefined plugin) {
+-        this.plugin = plugin;
+-    }
+-
+-    @Override
+-    public boolean execute(CommandSender sender, String[] args) {
+-        if (args.length < 3) {
+-            sender.sendMessage(Lang.GIVE_CORE_USAGE_ELEMENT_GIVECORE_PLAYER_ELEMENT);
+-            return true;
+-        }
+-
+-        Player target = Bukkit.getPlayer(args[1]);
+-        if (target == null) {
+-            sender.sendMessage(Lang.giveCorePlayer(args[1]));
+-            return true;
+-        }
+-
+-        Optional<ElementType> elementType = CommandSupport.parseElementType(args[2]);
+-        if (elementType.isEmpty()) {
+-            sender.sendMessage(Lang.giveCoreInvalidElementValid(String.join(", ", CommandSupport.getElementNames())));
+-            return true;
+-        }
+-
+-        ItemStack core = ElementCoreItem.createCore(plugin, elementType.get());
+-        if (core == null) {
+-            sender.sendMessage(Lang.giveCoreDoesnTHaveCoreItem(elementType.get().name()));
+-            return true;
+-        }
+-
+-        target.getInventory().addItem(core);
+-
+-        sender.sendMessage(Lang.giveCoreGave(target.getName(), elementType.get().name()));
+-        target.sendMessage(Lang.giveCoreYouReceived(elementType.get().name()));
+-
+-        return true;
+-    }
+-
+-    @Override
+-    public List<String> tabComplete(CommandSender sender, String[] args) {
+-        if (args.length == 2) {
+-            return CommandSupport.getOnlinePlayerNames(args[1]);
+-        }
+-        if (args.length == 3) {
+-            return CommandSupport.getElementNames(args[2]);
+-        }
+-        return Collections.emptyList();
+-    }
+-}
+diff --git a/src/main/java/net/rose/elementSMPRefined/items/builder/ElementCoreItem.java b/src/main/java/net/rose/elementSMPRefined/items/builder/ElementCoreItem.java
+deleted file mode 100644
+index 2560929..0000000
+--- a/src/main/java/net/rose/elementSMPRefined/items/builder/ElementCoreItem.java
++++ /dev/null
+@@ -1,118 +0,0 @@
+-package net.rose.elementSMPRefined.items.builder;
+-
+-import net.rose.elementSMPRefined.core.API.element.ElementType;
+-import net.rose.elementSMPRefined.core.API.element.ElementId;
+-import net.rose.elementSMPRefined.items.ItemKeys;
+-import org.bukkit.ChatColor;
+-import org.bukkit.Material;
+-import org.bukkit.inventory.ItemStack;
+-import org.bukkit.plugin.java.JavaPlugin;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
+-
+-public final class ElementCoreItem {
+-    private static final Map<ElementId, ElementCoreProperties> CORE_PROPERTIES = new HashMap<>();
+-
+-    private ElementCoreItem() {}
+-
+-    // Helper: define display properties for each element
+-    private record ElementCoreProperties(Material material, ChatColor color, String displayName, List<String> lore) {
+-        ElementCoreProperties(Material material, ChatColor color, String displayName) {
+-            this(material, color, displayName, null);
+-        }
+-    }
+-
+-    /**
+-     * Registers the item definition for an element core.
+-     * Add future core items in one place during plugin startup.
+-     */
+-    public static void registerCore(ElementType type, Material material, ChatColor color,
+-                                    String displayName, List<String> lore) {
+-        if (type == null || material == null || color == null || displayName == null) {
+-            throw new IllegalArgumentException("Core definition values cannot be null");
+-        }
+-        registerCore(ElementId.builtin(type), material, color, displayName, lore);
+-    }
+-
+-    public static void registerCore(ElementId id, Material material, ChatColor color,
+-                                    String displayName, List<String> lore) {
+-        if (id == null || material == null || color == null || displayName == null) {
+-            throw new IllegalArgumentException("Core definition values cannot be null");
+-        }
+-        CORE_PROPERTIES.put(id, new ElementCoreProperties(material, color, displayName, lore));
+-    }
+-
+-    public static boolean hasCore(ElementType type) {
+-        return type != null && hasCore(ElementId.builtin(type));
+-    }
+-
+-    public static boolean hasCore(ElementId id) {
+-        return id != null && CORE_PROPERTIES.containsKey(id);
+-    }
+-
+-    private static ElementCoreProperties properties(ElementType type) {
+-        return type == null ? null : properties(ElementId.builtin(type));
+-    }
+-
+-    private static ElementCoreProperties properties(ElementId id) {
+-        return id == null ? null : CORE_PROPERTIES.get(id);
+-    }
+-
+-    public static ItemStack createCore(JavaPlugin plugin, ElementType type) {
+-        ElementCoreProperties props = properties(type);
+-        if (props == null) return null;
+-
+-        return buildCore(plugin, props, type.name());
+-    }
+-
+-    public static ItemStack createCore(JavaPlugin plugin, ElementId id) {
+-        ElementCoreProperties props = properties(id);
+-        if (props == null) return null;
+-
+-        return buildCore(plugin, props, id.toString());
+-    }
+-
+-    private static ItemStack buildCore(JavaPlugin plugin, ElementCoreProperties props, String elementTypeValue) {
+-        ItemBuilder builder = ItemBuilder.of(props.material())
+-                // Name already carries a resolved ChatColor, not a raw '&' code -
+-                // rawName() skips the color-code translation ItemBuilder#name() does.
+-                .rawName(props.color() + props.displayName())
+-                .data(ItemKeys.elementType(plugin), elementTypeValue)
+-                .data(ItemKeys.elementItem(plugin), (byte) 1);
+-
+-        if (props.lore() != null) {
+-            builder.rawLore(props.lore());
+-        }
+-
+-        return builder.build();
+-    }
+-
+-    public static String getDisplayName(ElementType type) {
+-        ElementCoreProperties props = properties(type);
+-        if (props != null) {
+-            return props.color() + props.displayName();
+-        } else {
+-            return type.name();
+-        }
+-    }
+-
+-    public static List<String> getLore(ElementType type) {
+-        ElementCoreProperties props = properties(type);
+-        if (props != null && props.lore() != null) {
+-            return props.lore();
+-        } else {
+-            return List.of();
+-        }
+-    }
+-
+-    public static String getDisplayName(ElementId id) {
+-        ElementCoreProperties props = properties(id);
+-        return props == null ? id.toString() : props.color() + props.displayName();
+-    }
+-
+-    public static List<String> getLore(ElementId id) {
+-        ElementCoreProperties props = properties(id);
+-        return props == null || props.lore() == null ? List.of() : props.lore();
+-    }
+-}
+\ No newline at end of file
+diff --git a/src/main/java/net/rose/elementSMPRefined/lang/Lang.java b/src/main/java/net/rose/elementSMPRefined/lang/Lang.java
+index a1ca8ba..969afee 100644
+--- a/src/main/java/net/rose/elementSMPRefined/lang/Lang.java
++++ b/src/main/java/net/rose/elementSMPRefined/lang/Lang.java
+@@ -435,51 +435,6 @@ public final class Lang {
+     }
+ 
+ 
+-    // --- /element givecore command ---
+-    public static final Component GIVE_CORE_USAGE_ELEMENT_GIVECORE_PLAYER_ELEMENT =
+-            Component.text("Usage: /element givecore <player> <element>", NamedTextColor.RED);
+-
+-    public static Component giveCorePlayer(Object args) {
+-        return Component.textOfChildren(
+-                Component.text("Player '", NamedTextColor.RED),
+-                Component.text(String.valueOf(args), NamedTextColor.RED),
+-                Component.text("' not found.", NamedTextColor.RED)
+-        );
+-    }
+-
+-    public static Component giveCoreInvalidElementValid(Object getElementNames) {
+-        return Component.textOfChildren(
+-                Component.text("Invalid element. Valid: ", NamedTextColor.RED),
+-                Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
+-        );
+-    }
+-
+-    public static Component giveCoreDoesnTHaveCoreItem(Object name) {
+-        return Component.textOfChildren(
+-                Component.text(String.valueOf(name), NamedTextColor.RED),
+-                Component.text(" doesn't have a core item.", NamedTextColor.RED)
+-        );
+-    }
+-
+-    public static Component giveCoreGave(Object name, Object name2) {
+-        return Component.textOfChildren(
+-                Component.text("Gave ", NamedTextColor.GREEN),
+-                Component.text(String.valueOf(name), NamedTextColor.GREEN),
+-                Component.text(" a ", NamedTextColor.GREEN),
+-                Component.text(String.valueOf(name2), NamedTextColor.AQUA),
+-                Component.text(" core.", NamedTextColor.GREEN)
+-        );
+-    }
+-
+-    public static Component giveCoreYouReceived(Object name) {
+-        return Component.textOfChildren(
+-                Component.text("You received a ", NamedTextColor.GREEN),
+-                Component.text(String.valueOf(name), NamedTextColor.AQUA),
+-                Component.text(" core from an admin.", NamedTextColor.GREEN)
+-        );
+-    }
+-
+-
+     // --- /element particles command ---
+     public static final Component PARTICLES_THIS_COMMAND_CAN_ONLY_BE =
+             Component.text("This command can only be used by players.", NamedTextColor.RED);
+@@ -628,22 +583,6 @@ public final class Lang {
+         );
+     }
+ 
+-    public static Component elementManagerYour(Object name) {
+-        return Component.textOfChildren(
+-                Component.text("Your ", NamedTextColor.YELLOW),
+-                Component.text(String.valueOf(name), NamedTextColor.YELLOW),
+-                Component.text(" core has been returned!", NamedTextColor.YELLOW)
+-        );
+-    }
+-
+-    public static Component elementManagerYourInventoryWasFullSo(Object name) {
+-        return Component.textOfChildren(
+-                Component.text("Your inventory was full, so your ", NamedTextColor.YELLOW),
+-                Component.text(String.valueOf(name), NamedTextColor.YELLOW),
+-                Component.text(" core dropped on the ground!", NamedTextColor.YELLOW)
+-        );
+-    }
+-
+     public static final Component ELEMENT_MANAGER_YOU_ARE_ALREADY_REROLLING =
+             Component.text("You are already rerolling!", NamedTextColor.RED);
+ 
+diff --git a/src/main/java/net/rose/elementSMPRefined/listeners/handler/AdvancedRerollerHandler.java b/src/main/java/net/rose/elementSMPRefined/listeners/handler/AdvancedRerollerHandler.java
+index f64a940..b6fc076 100644
+--- a/src/main/java/net/rose/elementSMPRefined/listeners/handler/AdvancedRerollerHandler.java
++++ b/src/main/java/net/rose/elementSMPRefined/listeners/handler/AdvancedRerollerHandler.java
+@@ -204,8 +204,6 @@ public class AdvancedRerollerHandler implements Listener {
+             element.clearEffects(player);
+         }
+ 
+-        elementManager.returnElementCore(player, oldElement);
+-
+         if (oldElement == ElementType.LIFE) {
+             var attr = player.getAttribute(Attribute.MAX_HEALTH);
+             if (attr != null) {
+diff --git a/src/main/java/net/rose/elementSMPRefined/managers/ElementManager.java b/src/main/java/net/rose/elementSMPRefined/managers/ElementManager.java
+index ca883b3..cb1e703 100644
+--- a/src/main/java/net/rose/elementSMPRefined/managers/ElementManager.java
++++ b/src/main/java/net/rose/elementSMPRefined/managers/ElementManager.java
+@@ -19,7 +19,6 @@ import net.rose.elementSMPRefined.ability.passive.frost.FrostElement;
+ import net.rose.elementSMPRefined.ability.passive.life.LifeElement;
+ import net.rose.elementSMPRefined.ability.passive.metal.MetalElement;
+ import net.rose.elementSMPRefined.ability.passive.water.WaterElement;
+-import net.rose.elementSMPRefined.items.builder.ElementCoreItem;
+ import net.rose.elementSMPRefined.core.registry.ElementRegistry;
+ import net.rose.elementSMPRefined.services.EffectService;
+ import net.rose.elementSMPRefined.util.visual.ElementColours;
+@@ -301,38 +300,12 @@ public class ElementManager {
+     }
+ 
+     private void handleElementSwitch(Player player, ElementId oldId) {
+-        ElementType oldType = oldId.toBuiltinType();
+-        if (oldType != null) {
+-            returnElementCore(player, oldType);
+-        }
+         // Only clear the element actually being left - see EffectService.clearElementEffects
+         // for why this replaced the old full-registry clearAllElementEffects() call here.
+         // Pass the full ElementId (not oldType) so this still works for addon elements.
+         effectService.clearElementEffects(player, oldId);
+     }
+ 
+-    /**
+-     * Gives the player back a core for the element they're switching away from,
+-     * if that element type has a core item. Drops it on the ground instead if
+-     * their inventory is full.
+-     */
+-    public void returnElementCore(Player player, ElementType oldElement) {
+-        if (oldElement == null) return;
+-
+-        var core = ElementCoreItem.createCore(plugin, oldElement);
+-        if (core == null) return; // this element type has no physical core
+-
+-        var leftover = player.getInventory().addItem(core);
+-        if (leftover.isEmpty()) {
+-            player.sendMessage(Lang.elementManagerYour(oldElement.name()));
+-        } else {
+-            for (var drop : leftover.values()) {
+-                player.getWorld().dropItemNaturally(player.getLocation(), drop);
+-            }
+-            player.sendMessage(Lang.elementManagerYourInventoryWasFullSo(oldElement.name()));
+-        }
+-    }
+-
+     public void applyUpsides(Player player) {
+         effectService.applyPassiveEffects(player);
+     }
+@@ -378,17 +351,6 @@ public class ElementManager {
+                 .build();
+     }
+ 
+-    public void giveElementItem(Player player, ElementType type) {
+-        var item = ElementCoreItem.createCore(plugin, type);
+-        if (item != null) {
+-            player.getInventory().addItem(item);
+-            // Track that the player now owns this element item
+-            var pd = data(player.getUniqueId());
+-            pd.addElementItem(type);
+-            store.save(pd);
+-        }
+-    }
+-
+     public DataStore getStore() {
+         return store;
+     }
+diff --git a/src/main/java/net/rose/elementSMPRefined/managers/ItemManager.java b/src/main/java/net/rose/elementSMPRefined/managers/ItemManager.java
+index 5e5773d..55a547e 100644
+--- a/src/main/java/net/rose/elementSMPRefined/managers/ItemManager.java
++++ b/src/main/java/net/rose/elementSMPRefined/managers/ItemManager.java
+@@ -31,8 +31,7 @@ public class ItemManager {
+      * Register default items using the new registry system
+      */
+     private void registerDefaultItems() {
+-        // Element core items are registered dynamically based on element type
+-        // These are handled by ElementManager.giveElementItem()
++        // No default items are registered here; items are added via the registry as needed.
+     }
+ 
+     public void register(ElementItem item) {

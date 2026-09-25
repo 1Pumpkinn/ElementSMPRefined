@@ -160,4 +160,14 @@ public abstract class BaseElement implements Element {
     public int getAbility2CooldownSeconds() {
         return ability2.getCooldownSeconds();
     }
+
+    @Override
+    public String getAbility1Id() {
+        return ability1.getAbilityId();
+    }
+
+    @Override
+    public String getAbility2Id() {
+        return ability2.getAbilityId();
+    }
 }

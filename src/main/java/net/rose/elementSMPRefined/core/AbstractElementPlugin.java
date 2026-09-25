@@ -4,6 +4,7 @@ import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.core.initializers.CommandInitializer;
 import net.rose.elementSMPRefined.core.initializers.ListenerInitializer;
 import net.rose.elementSMPRefined.core.initializers.RecipeInitializer;
+import net.rose.elementSMPRefined.hud.CooldownActionBarTask;
 import net.rose.elementSMPRefined.managers.*;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.services.ValidationService;
@@ -35,6 +36,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected DisarmManager disarmManager;
     protected EffectService effectService;
     protected ValidationService validationService;
+    protected CooldownActionBarTask cooldownActionBarTask;
 
     // Utilities
     protected TaskScheduler taskScheduler;
@@ -119,6 +121,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     private void initializeServices() {
         this.effectService = new EffectService(this, elementManager);
         this.validationService = new ValidationService(trustManager);
+        this.cooldownActionBarTask = new CooldownActionBarTask(this, elementManager, cooldownManager);
     }
 
     private void initializeInitializers() {
@@ -134,7 +137,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     }
 
     private void startBackgroundTasks() {
-
+        cooldownActionBarTask.start(taskScheduler);
     }
 
 
@@ -148,6 +151,9 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         }
         if (listenerInitializer != null) {
             listenerInitializer.cleanup();
+        }
+        if (cooldownActionBarTask != null) {
+            cooldownActionBarTask.stop();
         }
     }
 
@@ -168,6 +174,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public DisarmManager getDisarmManager() { return disarmManager; }
     public EffectService getEffectService() { return effectService; }
     public ValidationService getValidationService() { return validationService; }
+    public CooldownActionBarTask getCooldownActionBarTask() { return cooldownActionBarTask; }
     public TaskScheduler getTaskScheduler() { return taskScheduler; }
     public MetadataHelper getMetadataHelper() { return metadataHelper; }
 

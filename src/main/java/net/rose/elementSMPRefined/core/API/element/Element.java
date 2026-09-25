@@ -47,6 +47,12 @@ public interface Element {
 
     String getAbility2Description();
 
+    /** Ability ID used for cooldown tracking - see {@link net.rose.elementSMPRefined.managers.CooldownManager}. */
+    String getAbility1Id();
+
+    /** Ability ID used for cooldown tracking - see {@link net.rose.elementSMPRefined.managers.CooldownManager}. */
+    String getAbility2Id();
+
     /** Seconds ability1 takes to come off cooldown after use - also used by /elements to display it. */
     int getAbility1CooldownSeconds();
 

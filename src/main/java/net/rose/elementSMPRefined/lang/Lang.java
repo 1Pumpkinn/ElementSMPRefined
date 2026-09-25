@@ -660,6 +660,44 @@ public final class Lang {
     }
 
 
+    // --- Cooldown action bar HUD ---
+    // Shown by CooldownActionBarTask once a second while at least one of the
+    // player's two abilities is on cooldown; ability names are truncated to a
+    // fixed prefix length so a long ability name can't push the other side of
+    // the bar off-screen or make it flicker as it re-renders each tick.
+    private static final int COOLDOWN_BAR_NAME_MAX_LENGTH = 14;
+
+    public static Component cooldownActionBar(String ability1Name, long ability1RemainingSeconds,
+                                              String ability2Name, long ability2RemainingSeconds) {
+        return Component.textOfChildren(
+                cooldownBarSegment(ability1Name, ability1RemainingSeconds),
+                Component.text("   ", NamedTextColor.DARK_GRAY),
+                cooldownBarSegment(ability2Name, ability2RemainingSeconds)
+        );
+    }
+
+    private static Component cooldownBarSegment(String abilityName, long remainingSeconds) {
+        String label = truncateAbilityName(abilityName);
+        if (remainingSeconds <= 0) {
+            return Component.textOfChildren(
+                    Component.text(label + " ", NamedTextColor.GRAY),
+                    Component.text("Ready", NamedTextColor.GREEN)
+            );
+        }
+        return Component.textOfChildren(
+                Component.text(label + " ", NamedTextColor.GRAY),
+                Component.text(remainingSeconds + "s", NamedTextColor.RED)
+        );
+    }
+
+    private static String truncateAbilityName(String abilityName) {
+        if (abilityName == null) return "";
+        return abilityName.length() <= COOLDOWN_BAR_NAME_MAX_LENGTH
+                ? abilityName
+                : abilityName.substring(0, COOLDOWN_BAR_NAME_MAX_LENGTH - 1) + "\u2026";
+    }
+
+
     public static Component graceCmdStatus(String timeLeft) {
         return Component.textOfChildren(
                 Component.text("Grace period active - ", NamedTextColor.GREEN),

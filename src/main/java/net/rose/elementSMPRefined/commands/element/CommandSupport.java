@@ -84,14 +84,13 @@ public final class CommandSupport {
         return names;
     }
 
-    /** Every settable global config key, in dotted-path form (e.g. "mana.max"). */
-    public static final List<String> GLOBAL_CONFIG_KEYS = List.of("mana.max", "mana.regen_per_second",
-            "mana.ability1_cost", "mana.ability2_cost", "status_effects.enabled",
+    /** Every settable global config key, in dotted-path form (e.g. "status_effects.enabled"). */
+    public static final List<String> GLOBAL_CONFIG_KEYS = List.of("status_effects.enabled",
             "status_effects.damage_per_tick", "status_effects.notification_messages",
             "recipes.advanced_reroller_enabled");
 
     /** Every settable per-element config key, relative to "elements.<type>.". */
-    public static final List<String> ELEMENT_CONFIG_KEYS = List.of("ability1_cost", "ability2_cost", "is_basic",
+    public static final List<String> ELEMENT_CONFIG_KEYS = List.of("is_basic",
             "enabled", "display_name", "color");
 
     public static List<String> getConfigKeys(String prefix) {

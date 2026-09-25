@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.managers;
 import net.rose.elementSMPRefined.core.API.event.ManaSpendEvent;
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.data.PlayerData;
+import net.rose.elementSMPRefined.util.visual.ActionBarImage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -96,7 +97,9 @@ public class ManaManager {
     private void sendManaActionBar(Player player, PlayerData pd, int maxMana, Component maxManaSuffix, boolean creative) {
         String manaDisplay = creative ? INFINITE_MANA_DISPLAY : String.valueOf(pd.getMana());
         player.sendActionBar(
-                MANA_LABEL
+                ActionBarImage.icon()
+                        .append(Component.text(" "))
+                        .append(MANA_LABEL)
                         .append(Component.text(manaDisplay).color(NamedTextColor.WHITE))
                         .append(maxManaSuffix)
         );

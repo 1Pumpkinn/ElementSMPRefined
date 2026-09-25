@@ -47,6 +47,12 @@ public interface Element {
 
     String getAbility2Description();
 
+    /** Seconds ability1 takes to come off cooldown after use. */
+    int getAbility1CooldownSeconds();
+
+    /** Seconds ability2 takes to come off cooldown after use. */
+    int getAbility2CooldownSeconds();
+
     /**
      * Short, player-facing bullet points describing this element's passive perks.
      * Used by /elements. Defaults to none - override if the element has passives

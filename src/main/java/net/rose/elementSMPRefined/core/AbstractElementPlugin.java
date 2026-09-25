@@ -29,7 +29,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected ManaManager manaManager;
     protected TrustManager trustManager;
     protected ItemManager itemManager;
-    protected ElementBotManager elementBotManager;
 
     // Services
     protected StatusEffectManager statusEffectManager;
@@ -116,7 +115,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.itemManager = new ItemManager(this, manaManager, configManager);
         this.statusEffectManager = new StatusEffectManager(this, manaManager);
         this.disarmManager = new DisarmManager(this);
-        this.elementBotManager = new ElementBotManager((net.rose.elementSMPRefined.ElementSMPRefined) this);
     }
 
     private void initializeServices() {
@@ -156,9 +154,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         if (listenerInitializer != null) {
             listenerInitializer.cleanup();
         }
-        if (elementBotManager != null) {
-            elementBotManager.stopAll();
-        }
     }
 
     private void saveAllData() {
@@ -174,7 +169,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public ManaManager getManaManager() { return manaManager; }
     public TrustManager getTrustManager() { return trustManager; }
     public ItemManager getItemManager() { return itemManager; }
-    public ElementBotManager getElementBotManager() { return elementBotManager; }
     public StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
     public DisarmManager getDisarmManager() { return disarmManager; }
     public EffectService getEffectService() { return effectService; }

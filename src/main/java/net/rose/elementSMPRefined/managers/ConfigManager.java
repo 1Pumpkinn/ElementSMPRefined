@@ -1,7 +1,5 @@
 package net.rose.elementSMPRefined.managers;
 
-import net.rose.elementSMPRefined.core.API.element.ElementId;
-import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.config.Constants;
 import net.rose.elementSMPRefined.config.ElementConfiguration;
 import org.bukkit.configuration.ConfigurationSection;
@@ -24,8 +22,6 @@ public class ConfigManager {
 
     // Defaults - named so they're not scattered as unexplained numbers
     // through every getter below.
-    private static final int DEFAULT_ABILITY_1_COST = 30;
-    private static final int DEFAULT_ABILITY_2_COST = 60;
     private static final boolean DEFAULT_STATUS_EFFECTS_ENABLED = true;
     private static final boolean DEFAULT_STATUS_EFFECT_DAMAGE_ENABLED = true;
     private static final boolean DEFAULT_STATUS_EFFECT_NOTIFICATIONS_ENABLED = true;
@@ -169,31 +165,9 @@ public class ConfigManager {
         }
     }
 
-    // Mana settings
-    public int getMaxMana() {
-        return getIntSafe("mana.max", Constants.Mana.DEFAULT_MAX);
-    }
-
-    public int getManaRegenPerSecond() {
-        return getIntSafe("mana.regen_per_second", Constants.Mana.DEFAULT_REGEN);
-    }
-
-    /**
-     * The flat, non-per-element ability cost baseline. This is what anything that isn't
-     * a real player with a per-element config entry should use - currently that's just
-     * the element bots (see ElementBotManager), plus the fallback for any element/addon
-     * that has no per-type config section. Backed by config.yml (mana.ability1_cost /
-     * mana.ability2_cost) so it can be tuned without touching Java at all; change it here
-     * (or in config.yml) and every caller picks it up automatically instead of having to
-     * hunt down a hardcoded copy in each class.
-     */
-    public int getDefaultAbility1Cost() {
-        return getIntSafe("mana.ability1_cost", DEFAULT_ABILITY_1_COST);
-    }
-
-    public int getDefaultAbility2Cost() {
-        return getIntSafe("mana.ability2_cost", DEFAULT_ABILITY_2_COST);
-    }
+    // Mana settings — removed; abilities now use fixed-second cooldowns
+    // hardcoded on each ability instead of a spendable resource. See
+    // CooldownManager.
 
     // Status effect settings
     public boolean areStatusEffectsEnabled() {
@@ -211,37 +185,6 @@ public class ConfigManager {
     // Element configuration
     public ElementConfiguration getElementConfiguration() {
         return elementConfiguration;
-    }
-
-    // Ability costs (data-driven approach)
-    public int getAbility1Cost(ElementType type) {
-        if (elementConfiguration.hasConfig(type)) {
-            return elementConfiguration.getConfig(type).getAbility1Cost();
-        }
-        return getDefaultAbility1Cost();
-    }
-
-    public int getAbility2Cost(ElementType type) {
-        if (elementConfiguration.hasConfig(type)) {
-            return elementConfiguration.getConfig(type).getAbility2Cost();
-        }
-        return getDefaultAbility2Cost();
-    }
-
-    /**
-     * ElementId-aware ability cost lookup, for addon elements as well as builtins.
-     * Builtin IDs (namespace "elements") defer to the per-type config section as
-     * before; addon elements have no per-type config section yet, so they fall
-     * back to the same defaults everyone else gets when unconfigured.
-     */
-    public int getAbility1Cost(ElementId id) {
-        ElementType type = id == null ? null : id.toBuiltinType();
-        return type != null ? getAbility1Cost(type) : getDefaultAbility1Cost();
-    }
-
-    public int getAbility2Cost(ElementId id) {
-        ElementType type = id == null ? null : id.toBuiltinType();
-        return type != null ? getAbility2Cost(type) : getDefaultAbility2Cost();
     }
 
     public boolean isAdvancedRerollerRecipeEnabled() {

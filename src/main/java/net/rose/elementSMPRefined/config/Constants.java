@@ -11,13 +11,6 @@ public final class Constants {
         private Timing() {}
     }
 
-    public static final class Mana {
-        public static final int DEFAULT_MAX = 100;
-        public static final int DEFAULT_REGEN = 1;
-
-        private Mana() {}
-    }
-
     public static final class Health {
         public static final double NORMAL_MAX = 20.0;
         public static final double LIFE_MAX = 30.0;

@@ -47,6 +47,12 @@ public interface Element {
 
     String getAbility2Description();
 
+    /** Seconds ability1 takes to come off cooldown after use. */
+    int getAbility1CooldownSeconds();
+
+    /** Seconds ability2 takes to come off cooldown after use. */
+    int getAbility2CooldownSeconds();
+
     /** Ability1's cooldown in seconds - used by /elements to display it. */
     int getAbility1CooldownSeconds();
 

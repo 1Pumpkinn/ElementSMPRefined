@@ -233,24 +233,6 @@ public final class Lang {
             Component.text("• 64x Advanced Reroller", NamedTextColor.DARK_PURPLE);
 
 
-    // --- /element bot command ---
-    public static final Component BOT_THIS_COMMAND_CAN_ONLY_BE =
-            Component.text("This command can only be used by players.", NamedTextColor.RED);
-
-    public static final Component BOT_USAGE_ELEMENT_BOT_SPAWN_ELEMENT =
-            Component.text("Usage: /element bot spawn <element> or /element bot stop", NamedTextColor.YELLOW);
-
-    public static final Component BOT_YOUR_ELEMENTAL_BOT_WAS_REMOVED =
-            Component.text("Your elemental bot was removed.", NamedTextColor.YELLOW);
-
-    public static Component botUnknownElementChoose(Object getElementNames) {
-        return Component.textOfChildren(
-                Component.text("Unknown element. Choose: ", NamedTextColor.RED),
-                Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
-        );
-    }
-
-
     // --- /element config command ---
     public static final Component CONFIG_CONFIGURATION_RELOADED_SUCCESSFULLY =
             Component.text("Configuration reloaded successfully!", NamedTextColor.GREEN);

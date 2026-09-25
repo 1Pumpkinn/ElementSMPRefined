@@ -2,7 +2,7 @@ package net.rose.elementSMPRefined.core.API.element;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.ManaManager;
+import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -14,7 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ElementContext {
     private final Player player;
     private final int upgradeLevel;
-    private final ManaManager manaManager;
+    private final CooldownManager cooldownManager;
     private final TrustManager trustManager;
     private final ConfigManager configManager;
     private final ElementType elementType;
@@ -26,9 +26,9 @@ public class ElementContext {
         this.upgradeLevel = builder.upgradeLevel;
         this.elementType = builder.elementType;
         this.elementId = builder.elementId != null
-            ? builder.elementId
-            : builder.elementType == null ? null : ElementId.builtin(builder.elementType);
-        this.manaManager = builder.manaManager;
+                ? builder.elementId
+                : builder.elementType == null ? null : ElementId.builtin(builder.elementType);
+        this.cooldownManager = builder.cooldownManager;
         this.trustManager = builder.trustManager;
         this.configManager = builder.configManager;
         this.plugin = builder.plugin;
@@ -39,7 +39,7 @@ public class ElementContext {
     public int getUpgradeLevel() { return upgradeLevel; }
     public ElementType getElementType() { return elementType; }
     public ElementId getElementId() { return elementId; }
-    public ManaManager getManaManager() { return manaManager; }
+    public CooldownManager getCooldownManager() { return cooldownManager; }
     public TrustManager getTrustManager() { return trustManager; }
     public ConfigManager getConfigManager() { return configManager; }
     public ElementSMPRefined getPlugin() { return plugin; }
@@ -54,7 +54,7 @@ public class ElementContext {
         private int upgradeLevel;
         private ElementType elementType;
         private ElementId elementId;
-        private ManaManager manaManager;
+        private CooldownManager cooldownManager;
         private TrustManager trustManager;
         private ConfigManager configManager;
         private ElementSMPRefined plugin;
@@ -79,8 +79,8 @@ public class ElementContext {
             return this;
         }
 
-        public Builder manaManager(ManaManager manager) {
-            this.manaManager = manager;
+        public Builder cooldownManager(CooldownManager manager) {
+            this.cooldownManager = manager;
             return this;
         }
 

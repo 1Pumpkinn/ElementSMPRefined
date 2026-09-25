@@ -8,20 +8,20 @@ import org.bukkit.entity.Player;
 
 /**
  * Template for a new ability. Copy this class, rename it, and fill in
- * {@link #execute}. Extending {@link BaseAbility} gives you mana cost,
- * cooldown, required upgrade level, and active-player tracking for free -
- * you only need to describe the ability and implement what it does.
+ * {@link #execute}. Extending {@link BaseAbility} gives you cooldown tracking,
+ * required upgrade level, and active-player tracking for free - you only need
+ * to describe the ability and implement what it does.
  * <p>
  * You never call execute() yourself - BaseElement.ability1()/ability2() do,
- * after already checking upgrade level and spending mana. If you return
- * false here, that spent mana is automatically refunded (treat false as
- * "the cast didn't actually happen, e.g. no valid target").
+ * after already checking upgrade level and cooldown. The cooldown is only
+ * started if this returns true, so a failed cast (no valid target, etc.)
+ * stays free - just return false and nothing is spent.
  */
 public class ExampleAbility extends BaseAbility {
 
     public ExampleAbility() {
-        // abilityId, manaCost, cooldownSeconds, requiredUpgradeLevel
-        super("example_ability", 50, 0, 1);
+        // abilityId, cooldownSeconds, requiredUpgradeLevel
+        super("example_ability", 8, 1);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class ExampleAbility extends BaseAbility {
         player.sendMessage(Lang.EXAMPLE_EXAMPLE_ABILITY_ACTIVATED);
 
         // Ability logic goes here: deal damage, apply effects, spawn particles,
-        // etc. context also gives you managers (mana, trust, config) and the
+        // etc. context also gives you managers (cooldown, trust, config) and the
         // caster's upgrade level via context.getUpgradeLevel().
 
         return true;

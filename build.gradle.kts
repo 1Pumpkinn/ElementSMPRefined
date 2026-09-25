@@ -35,7 +35,7 @@ tasks {
     runServer {
         enabled = true
         minecraftVersion("1.21.11")
-        jvmArgs("-Xms2G", "-Xmx2G")
+        jvmArgs("-Xms1G", "-Xmx1G")
     }
 
     processResources {

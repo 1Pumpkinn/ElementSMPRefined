@@ -547,16 +547,6 @@ public final class Lang {
     }
 
 
-    // --- Elemental bot manager ---
-    public static Component elementBotSpawned(Object name) {
-        return Component.textOfChildren(
-                Component.text("Spawned a ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                Component.text(" elemental bot.", NamedTextColor.GREEN)
-        );
-    }
-
-
     // --- Element assignment/reroll manager ---
     public static Component elementManagerYourElementIsNow(Object id) {
         return Component.textOfChildren(

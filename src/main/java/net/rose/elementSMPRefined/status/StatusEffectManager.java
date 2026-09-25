@@ -1,6 +1,5 @@
 package net.rose.elementSMPRefined.status;
 
-import net.rose.elementSMPRefined.managers.ManaManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -20,16 +19,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class StatusEffectManager {
     private final JavaPlugin plugin;
-    private final ManaManager manaManager;
     private final Map<UUID, Map<StatusEffectType, StatusEffectInstance>> activeEffects = new ConcurrentHashMap<>();
     private final Map<StatusEffectType, StatusEffectData> effectData = new EnumMap<>(StatusEffectType.class);
 
     /** The per-tick monitor task - stored so {@link #cleanup()} can actually cancel it. */
     private BukkitTask monitorTask;
 
-    public StatusEffectManager(JavaPlugin plugin, ManaManager manaManager) {
+    public StatusEffectManager(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.manaManager = manaManager;
         initializeDefaultEffects();
         startEffectMonitor();
     }
@@ -252,13 +249,6 @@ public class StatusEffectManager {
      *                      from the target and nobody receives it
      * @return the amount actually drained (capped at the target's current mana)
      */
-    public int applyManaSteal(Player caster, Player target, int amount, boolean giveToCaster) {
-        int stolen = manaManager.drain(target, amount);
-        if (giveToCaster && stolen > 0 && caster != null && caster.isOnline()) {
-            manaManager.restore(caster, stolen);
-        }
-        return stolen;
-    }
 
     /**
      * Convenience overload that always credits the stolen mana to
@@ -266,7 +256,7 @@ public class StatusEffectManager {
      * amount, true)}.
      */
     public int applyManaSteal(Player caster, Player target, int amount) {
-        return applyManaSteal(caster, target, amount, true);
+        return applyManaSteal(caster, target, amount);
     }
 
     /**

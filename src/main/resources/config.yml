@@ -5,9 +5,8 @@ mana:
   max: 100
   regen_per_second: 1
   # Flat cost baseline used by anything that isn't a real player with its own
-  # per-element cost below (currently: the element bots, plus fallback for any
+  # per-element cost below
   # element/addon without a config section). Change these two values and every
-  # bot picks it up automatically - no need to touch any Java class.
   ability1_cost: 30
   ability2_cost: 60
 

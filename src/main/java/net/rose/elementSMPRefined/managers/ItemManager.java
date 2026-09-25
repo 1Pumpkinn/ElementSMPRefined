@@ -14,13 +14,11 @@ import java.util.Collection;
 
 public class ItemManager {
     private final JavaPlugin plugin;
-    private final ManaManager mana;
     private final ConfigManager configManager;
     private final ItemRegistry itemRegistry;
 
-    public ItemManager(JavaPlugin plugin, ManaManager mana, ConfigManager configManager) {
+    public ItemManager(JavaPlugin plugin, ConfigManager configManager) {
         this.plugin = plugin;
-        this.mana = mana;
         this.configManager = configManager;
         this.itemRegistry = new ItemRegistry(plugin);
         registerDefaultItems();
@@ -53,7 +51,7 @@ public class ItemManager {
 
     public void handleUse(PlayerInteractEvent e) {
         for (ElementItem item : itemRegistry.getAllItems()) {
-            if (item.handleUse(e, plugin, mana, configManager)) {
+            if (item.handleUse(e, plugin, configManager)) {
                 // If an item handled the event, stop processing
                 return;
             }
@@ -68,7 +66,7 @@ public class ItemManager {
 
     public void handleLaunch(ProjectileLaunchEvent e) {
         for (ElementItem item : itemRegistry.getAllItems()) {
-            item.handleLaunch(e, plugin, mana, configManager);
+            item.handleLaunch(e, plugin, configManager);
         }
     }
 

@@ -26,7 +26,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected DataStore dataStore;
     protected ConfigManager configManager;
     protected ElementManager elementManager;
-    protected ManaManager manaManager;
     protected CooldownManager cooldownManager;
     protected TrustManager trustManager;
     protected ItemManager itemManager;
@@ -68,7 +67,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     @Override
     public final void onDisable() {
         try {
-            stopBackgroundTasks();
             cleanup();
             saveAllData();
             onPluginDisable();
@@ -111,11 +109,10 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     private void initializeManagers() {
         this.trustManager = new TrustManager(this, dataStore);
-        this.manaManager = new ManaManager(this, dataStore, configManager);
         this.cooldownManager = new CooldownManager();
-        this.elementManager = new ElementManager(this, dataStore, manaManager, cooldownManager, trustManager, configManager);
-        this.itemManager = new ItemManager(this, manaManager, configManager);
-        this.statusEffectManager = new StatusEffectManager(this, manaManager);
+        this.elementManager = new ElementManager(this, dataStore, cooldownManager, trustManager, configManager);
+        this.itemManager = new ItemManager(this, configManager);
+        this.statusEffectManager = new StatusEffectManager(this);
         this.disarmManager = new DisarmManager(this);
     }
 
@@ -137,14 +134,10 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     }
 
     private void startBackgroundTasks() {
-        manaManager.start();
+
     }
 
-    private void stopBackgroundTasks() {
-        if (manaManager != null) {
-            manaManager.stop();
-        }
-    }
+
 
     private void cleanup() {
         if (statusEffectManager != null) {
@@ -168,7 +161,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public DataStore getDataStore() { return dataStore; }
     public ConfigManager getConfigManager() { return configManager; }
     public ElementManager getElementManager() { return elementManager; }
-    public ManaManager getManaManager() { return manaManager; }
     public CooldownManager getCooldownManager() { return cooldownManager; }
     public TrustManager getTrustManager() { return trustManager; }
     public ItemManager getItemManager() { return itemManager; }

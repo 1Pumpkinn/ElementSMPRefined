@@ -3,7 +3,6 @@ package net.rose.elementSMPRefined.commands;
 import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -104,7 +103,7 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
                 .decorate(TextDecoration.BOLD));
         player.sendMessage(Component.text("     " + strip(element.getAbility1Description()))
                 .color(NamedTextColor.GRAY));
-        player.sendMessage(Component.text("     Mana: " + configManager.getAbility1Cost(type))
+        player.sendMessage(Component.text("     Cooldown: " + element.getAbility1CooldownSeconds() + "s")
                 .color(NamedTextColor.YELLOW));
 
         player.sendMessage(Component.text("  \u2461 " + strip(element.getAbility2Name()))
@@ -112,7 +111,7 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
                 .decorate(TextDecoration.BOLD));
         player.sendMessage(Component.text("     " + strip(element.getAbility2Description()))
                 .color(NamedTextColor.GRAY));
-        player.sendMessage(Component.text("     Mana: " + configManager.getAbility2Cost(type))
+        player.sendMessage(Component.text("     Cooldown: " + element.getAbility2CooldownSeconds() + "s")
                 .color(NamedTextColor.YELLOW));
 
         player.sendMessage(Component.empty());

@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined;
 
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
+import org.bukkit.entity.SulfurCube;
 
 /**
  * Main plugin class which significantly simplified by extending AbstractElementPlugin.

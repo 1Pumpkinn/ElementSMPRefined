@@ -11,8 +11,8 @@ import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.listeners.GUIListener;
 import net.rose.elementSMPRefined.listeners.ability.AbilityListener;
+import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
-import net.rose.elementSMPRefined.managers.ManaManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
@@ -39,7 +39,6 @@ import java.util.UUID;
 public class PlayerLifecycle implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
-    private final ManaManager manaManager;
     private final EffectService effectService;
     private final DisarmManager disarmManager;
     private final TaskScheduler scheduler;
@@ -51,7 +50,7 @@ public class PlayerLifecycle implements Listener {
     private final Random random = new Random();
 
     public PlayerLifecycle(ElementSMPRefined plugin, ElementManager elementManager,
-                           ManaManager manaManager, EffectService effectService,
+                           CooldownManager cooldownManager, EffectService effectService,
                            DisarmManager disarmManager,
                            FrostPassiveListener frostPassiveListener,
                            AirFallImpactListener airFallImpactListener,
@@ -60,7 +59,6 @@ public class PlayerLifecycle implements Listener {
                            MetalShardAbility metalDashAbility) {
         this.plugin = plugin;
         this.elementManager = elementManager;
-        this.manaManager = manaManager;
         this.effectService = effectService;
         this.disarmManager = disarmManager;
         this.scheduler = plugin.getTaskScheduler();
@@ -75,7 +73,6 @@ public class PlayerLifecycle implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         PlayerData pd = elementManager.data(player.getUniqueId());
-        manaManager.get(player.getUniqueId());
         if (disarmManager != null) {
             scheduler.runAfterPlayerLoad(() -> {
                 if (player.isOnline()) {
@@ -230,7 +227,6 @@ public class PlayerLifecycle implements Listener {
         Player player = event.getPlayer();
         UUID playerUuid = player.getUniqueId();
         elementManager.cancelRolling(player);
-        manaManager.save(playerUuid);
         effectService.clearAllElementEffects(player);
         plugin.getDataStore().save(elementManager.data(playerUuid));
         // Drop the cached PlayerData now that it's safely on disk - without

@@ -21,7 +21,7 @@ public class ExampleAbility extends BaseAbility {
 
     public ExampleAbility() {
         // abilityId, cooldownSeconds, requiredUpgradeLevel
-        super("example_ability", 8, 1);
+        super("example_ability", 8,  1);
     }
 
     @Override

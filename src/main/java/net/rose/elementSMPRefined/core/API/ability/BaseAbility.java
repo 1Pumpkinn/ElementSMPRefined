@@ -14,10 +14,9 @@ import java.util.UUID;
  */
 public abstract class BaseAbility implements Ability {
     private final String abilityId;
-    private final int manaCost;               // used only when elementType/configManager are null (see below)
     private final int cooldownSeconds;
     private final int requiredUpgradeLevel;
-    private final ElementType elementType;     // non-null for the "live" constructor - drives getManaCost()
+    private final ElementType elementType;     // non-null for the "live" constructor
     private final int abilitySlot;             // 1 or 2, paired with elementType
     private final ConfigManager configManager; // non-null for the "live" constructor
     private final Set<UUID> activePlayers = new HashSet<>();
@@ -29,13 +28,11 @@ public abstract class BaseAbility implements Ability {
      * its cost stays in sync with config.yml automatically.
      *
      * @param abilityId The unique identifier for this ability
-     * @param manaCost The mana cost for this ability
      * @param cooldownSeconds The cooldown in seconds
      * @param requiredUpgradeLevel The minimum upgrade level required
      */
-    public BaseAbility(String abilityId, int manaCost, int cooldownSeconds, int requiredUpgradeLevel) {
+    public BaseAbility(String abilityId, int cooldownSeconds, int requiredUpgradeLevel) {
         this.abilityId = abilityId;
-        this.manaCost = manaCost;
         this.cooldownSeconds = cooldownSeconds;
         this.requiredUpgradeLevel = requiredUpgradeLevel;
         this.elementType = null;
@@ -60,7 +57,6 @@ public abstract class BaseAbility implements Ability {
     public BaseAbility(String abilityId, ElementType elementType, int abilitySlot, int cooldownSeconds,
                        int requiredUpgradeLevel, ConfigManager configManager) {
         this.abilityId = abilityId;
-        this.manaCost = 0; // unused - getManaCost() reads live from configManager below
         this.cooldownSeconds = cooldownSeconds;
         this.requiredUpgradeLevel = requiredUpgradeLevel;
         this.elementType = elementType;
@@ -68,13 +64,6 @@ public abstract class BaseAbility implements Ability {
         this.configManager = configManager;
     }
 
-    @Override
-    public int getManaCost() {
-        if (configManager != null && elementType != null) {
-            return abilitySlot == 2 ? configManager.getAbility2Cost(elementType) : configManager.getAbility1Cost(elementType);
-        }
-        return manaCost;
-    }
 
     @Override
     public int getCooldownSeconds() {

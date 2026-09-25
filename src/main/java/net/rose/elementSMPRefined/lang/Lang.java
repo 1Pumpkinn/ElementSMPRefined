@@ -22,17 +22,6 @@ public final class Lang {
     public static final Component DEATH_BACKSTAB_NO_TARGET_IN_RANGE =
             Component.text("No target in range.", NamedTextColor.RED);
 
-    public static Component deathBackstabDebugStolen(Object stolen, Object gameMode, Object mana) {
-        return Component.textOfChildren(
-                Component.text("[debug] stolen=", NamedTextColor.DARK_GRAY),
-                Component.text(String.valueOf(stolen), NamedTextColor.DARK_GRAY),
-                Component.text(" casterGM=", NamedTextColor.DARK_GRAY),
-                Component.text(String.valueOf(gameMode), NamedTextColor.DARK_GRAY),
-                Component.text(" casterManaAfter=", NamedTextColor.DARK_GRAY),
-                Component.text(String.valueOf(mana), NamedTextColor.DARK_GRAY)
-        );
-    }
-
 
     // --- Earth element - Tunnel ability ---
     public static final Component EARTH_TUNNEL_TUNNELING_CANCELLED =
@@ -93,33 +82,6 @@ public final class Lang {
 
     public static final Component WATER_PULL_DOWN_YOU_CANNOT_PULL_DOWN_TRUSTED =
             Component.text("You cannot pull down trusted players!", NamedTextColor.RED);
-
-
-    // --- /mana command ---
-    public static final Component MANA_USAGE_MANA_RESET_SET_PLAYER =
-            Component.text("Usage: /mana <reset|set> [player] [amount]", NamedTextColor.YELLOW);
-
-    public static final Component MANA_PLAYER_NOT_FOUND =
-            Component.text("Player not found", NamedTextColor.RED);
-
-    public static final Component MANA_USAGE_MANA_SET_PLAYER_AMOUNT =
-            Component.text("Usage: /mana set <player> <amount>", NamedTextColor.YELLOW);
-
-    public static Component manaMana(Object action, Object name) {
-        return Component.textOfChildren(
-                Component.text("Mana ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(action), NamedTextColor.GREEN),
-                Component.text(" for ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name), NamedTextColor.GREEN)
-        );
-    }
-
-    public static Component manaYourManaHasBeen(Object action) {
-        return Component.textOfChildren(
-                Component.text("Your mana has been ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(action), NamedTextColor.GREEN)
-        );
-    }
 
 
     // --- /trust command ---
@@ -497,14 +459,6 @@ public final class Lang {
         );
     }
 
-    public static Component baseElementNotEnoughMana(Object cost) {
-        return Component.textOfChildren(
-                Component.text("Not enough mana (", NamedTextColor.RED),
-                Component.text(String.valueOf(cost), NamedTextColor.RED),
-                Component.text(")", NamedTextColor.RED)
-        );
-    }
-
 
     // --- Upgrader item handler ---
     public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I =
@@ -696,6 +650,15 @@ public final class Lang {
 
     public static final Component GRACE_CMD_INVALID_NUMBER =
             Component.text("Duration and hunger protection must be positive whole numbers of seconds.", NamedTextColor.RED);
+
+    public static Component baseElementAbilityOnCooldown(long seconds) {
+        return Component.textOfChildren(
+                Component.text("Ability is on cooldown for ", NamedTextColor.RED),
+                Component.text(String.valueOf(seconds), NamedTextColor.RED),
+                Component.text("s.", NamedTextColor.RED)
+        );
+    }
+
 
     public static Component graceCmdStatus(String timeLeft) {
         return Component.textOfChildren(

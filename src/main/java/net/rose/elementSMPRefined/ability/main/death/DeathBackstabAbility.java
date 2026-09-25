@@ -82,11 +82,11 @@ public class DeathBackstabAbility extends BaseAbility {
         world.playSound(hitLoc, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1f, 0.8f);
         world.playSound(hitLoc, Sound.ENTITY_WITHER_HURT, 0.5f, 1.6f);
 
-        dealTrueDamage(target, player);
-        if (target instanceof Player targetPlayer) {
-            int stolen = plugin.getStatusEffectManager().applyManaSteal(player, targetPlayer, MANA_STEAL_AMOUNT, MANA_STEAL_GIVES_CASTER);
-            player.sendMessage(Lang.deathBackstabDebugStolen(stolen, player.getGameMode(), plugin.getManaManager().get(player.getUniqueId()).getMana()));
-        }
+//        dealTrueDamage(target, player);
+//        if (target instanceof Player targetPlayer) {
+//            int stolen = plugin.getStatusEffectManager().applyManaSteal(player, targetPlayer, MANA_STEAL_AMOUNT, MANA_STEAL_GIVES_CASTER);
+//            player.sendMessage(Lang.deathBackstabDebugStolen(stolen, player.getGameMode(), plugin.getManaManager().get(player.getUniqueId()).getMana()));
+//        }
 
         return true;
     }

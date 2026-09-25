@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementId;
 import java.util.*;
 
 /**
- * A player's element progress, mana, owned items, and trust list.
+ * A player's element progress, owned items, and trust list.
  * <p>
  * This class is a plain data holder with no knowledge of how it gets
  * persisted - see {@link PlayerDataSerializer} for the YAML mapping and
@@ -16,8 +16,6 @@ import java.util.*;
  */
 public final class PlayerData {
 
-    /** Starting mana for a brand-new player. */
-    public static final int DEFAULT_MANA = 100;
 
     /** Upgrade levels are clamped to [0, MAX_UPGRADE_LEVEL]. */
     public static final int MAX_UPGRADE_LEVEL = 2;
@@ -27,7 +25,6 @@ public final class PlayerData {
     private ElementId currentElementId;
     private final EnumSet<ElementType> ownedItems;
     private final Set<ElementId> ownedItemIds;
-    private int mana;
     private int currentElementUpgradeLevel;
     private final Set<UUID> trustedPlayers;
     private int pendingRerollerRefunds;
@@ -37,7 +34,6 @@ public final class PlayerData {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
         this.ownedItems = EnumSet.noneOf(ElementType.class);
         this.ownedItemIds = new HashSet<>();
-        this.mana = DEFAULT_MANA;
         this.currentElementUpgradeLevel = 0;
         this.trustedPlayers = new HashSet<>();
     }
@@ -62,10 +58,6 @@ public final class PlayerData {
         return currentElementUpgradeLevel;
     }
 
-    public int getMana() {
-        return mana;
-    }
-
     public Set<ElementType> getOwnedItems() {
         return EnumSet.copyOf(ownedItems);
     }
@@ -85,11 +77,14 @@ public final class PlayerData {
 
     /** Sets the current element without touching the upgrade level - used by loaders. */
     public void setCurrentElementWithoutReset(ElementType element) {
-        setCurrentElementWithoutReset(element == null ? null : ElementId.builtin(element));
+        setCurrentElementWithoutReset(
+                element == null ? null : ElementId.builtin(element)
+        );
     }
 
     public void setCurrentElement(ElementId id) {
         setCurrentElementWithoutReset(id);
+
         if (id != null) {
             this.currentElementUpgradeLevel = 0;
         }
@@ -105,15 +100,10 @@ public final class PlayerData {
     }
 
     public void setCurrentElementUpgradeLevel(int level) {
-        this.currentElementUpgradeLevel = Math.max(0, Math.min(MAX_UPGRADE_LEVEL, level));
-    }
-
-    public void setMana(int mana) {
-        this.mana = Math.max(0, mana);
-    }
-
-    public void addMana(int delta) {
-        setMana(this.mana + delta);
+        this.currentElementUpgradeLevel = Math.max(
+                0,
+                Math.min(MAX_UPGRADE_LEVEL, level)
+        );
     }
 
     /** Upgrade level only applies to whichever element is currently active; anything else reads as 0. */
@@ -121,6 +111,7 @@ public final class PlayerData {
         if (type != null && type.equals(currentElement)) {
             return currentElementUpgradeLevel;
         }
+
         return 0;
     }
 
@@ -139,6 +130,7 @@ public final class PlayerData {
         if (id != null && id.equals(currentElementId)) {
             return currentElementUpgradeLevel;
         }
+
         return 0;
     }
 
@@ -150,9 +142,11 @@ public final class PlayerData {
 
     public Map<ElementType, Integer> getUpgradesView() {
         Map<ElementType, Integer> map = new EnumMap<>(ElementType.class);
+
         if (currentElement != null) {
             map.put(currentElement, currentElementUpgradeLevel);
         }
+
         return Collections.unmodifiableMap(map);
     }
 
@@ -161,11 +155,15 @@ public final class PlayerData {
     }
 
     public void addElementItem(ElementType type) {
-        if (type != null) addElementItem(ElementId.builtin(type));
+        if (type != null) {
+            addElementItem(ElementId.builtin(type));
+        }
     }
 
     public void removeElementItem(ElementType type) {
-        if (type != null) removeElementItem(ElementId.builtin(type));
+        if (type != null) {
+            removeElementItem(ElementId.builtin(type));
+        }
     }
 
     public boolean hasElementItem(ElementId id) {
@@ -173,17 +171,31 @@ public final class PlayerData {
     }
 
     public void addElementItem(ElementId id) {
-        if (id == null) return;
+        if (id == null) {
+            return;
+        }
+
         ownedItemIds.add(id);
+
         ElementType type = toBuiltinType(id);
-        if (type != null) ownedItems.add(type);
+
+        if (type != null) {
+            ownedItems.add(type);
+        }
     }
 
     public void removeElementItem(ElementId id) {
-        if (id == null) return;
+        if (id == null) {
+            return;
+        }
+
         ownedItemIds.remove(id);
+
         ElementType type = toBuiltinType(id);
-        if (type != null) ownedItems.remove(type);
+
+        if (type != null) {
+            ownedItems.remove(type);
+        }
     }
 
     public boolean isTrusted(UUID uuid) {
@@ -200,6 +212,7 @@ public final class PlayerData {
 
     public void setTrustedPlayers(Set<UUID> trusted) {
         trustedPlayers.clear();
+
         if (trusted != null) {
             trustedPlayers.addAll(trusted);
         }
@@ -253,9 +266,16 @@ public final class PlayerData {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
         PlayerData that = (PlayerData) o;
+
         return uuid.equals(that.uuid);
     }
 
@@ -269,7 +289,6 @@ public final class PlayerData {
         return "PlayerData{" +
                 "uuid=" + uuid +
                 ", element=" + currentElement +
-                ", mana=" + mana +
                 ", upgradeLevel=" + currentElementUpgradeLevel +
                 '}';
     }

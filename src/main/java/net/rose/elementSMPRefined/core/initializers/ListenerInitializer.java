@@ -23,7 +23,6 @@ import net.rose.elementSMPRefined.listeners.item.PlayerDeathListener;
 import net.rose.elementSMPRefined.listeners.item.ElementItemInteractionListener;
 import net.rose.elementSMPRefined.listeners.handler.RerollerHandler;
 import net.rose.elementSMPRefined.listeners.handler.UpgraderHandler;
-import net.rose.elementSMPRefined.listeners.player.GameModeListener;
 import net.rose.elementSMPRefined.listeners.player.InvisibilityNameHider;
 import net.rose.elementSMPRefined.listeners.player.PlayerLifecycle;
 import net.rose.elementSMPRefined.listeners.status.DisarmListener;
@@ -65,7 +64,6 @@ public class ListenerInitializer {
     private void registerCoreListeners() {
         pluginManager.registerEvents(new InvisibilityNameHider(), plugin);
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
-        pluginManager.registerEvents(new GameModeListener(plugin.getManaManager(), plugin.getConfigManager()), plugin);
         pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.CombatListener(plugin.getTrustManager()), plugin);
 
         this.abilityListener = new AbilityListener(plugin, plugin.getElementManager(), plugin.getDisarmManager());
@@ -142,7 +140,7 @@ public class ListenerInitializer {
         this.playerLifecycleListener = new PlayerLifecycle(
                 plugin,
                 plugin.getElementManager(),
-                plugin.getManaManager(),
+                plugin.getCooldownManager(),
                 plugin.getEffectService(),
                 plugin.getDisarmManager(),
                 frostPassiveListener,

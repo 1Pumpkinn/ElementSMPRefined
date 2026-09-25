@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Contract every element (Air, Fire, a future custom element, etc.) must satisfy.
  * In almost all cases you should extend {@link BaseElement} instead of implementing
- * this directly - it already handles mana spending, upgrade-level gating, and the
+ * this directly - it already handles cooldown gating, upgrade-level gating, and the
  * ability name/description pass-through for you.
  */
 public interface Element {
@@ -47,10 +47,10 @@ public interface Element {
 
     String getAbility2Description();
 
-    /** Seconds ability1 takes to come off cooldown after use. */
+    /** Ability1's cooldown in seconds - used by /elements to display it. */
     int getAbility1CooldownSeconds();
 
-    /** Seconds ability2 takes to come off cooldown after use. */
+    /** Ability2's cooldown in seconds - used by /elements to display it. */
     int getAbility2CooldownSeconds();
 
     /**

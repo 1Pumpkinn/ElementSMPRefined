@@ -5,7 +5,6 @@ import net.rose.elementSMPRefined.commands.ElementCommand;
 import net.rose.elementSMPRefined.commands.ElementInfoCommand;
 import net.rose.elementSMPRefined.commands.DimensionCommand;
 import net.rose.elementSMPRefined.commands.GraceCommand;
-import net.rose.elementSMPRefined.commands.ManaCommand;
 import net.rose.elementSMPRefined.commands.ToggleRecipeCommand;
 import net.rose.elementSMPRefined.commands.TrustCommand;
 import net.rose.elementSMPRefined.commands.UtilCommand;
@@ -29,7 +28,6 @@ public class CommandInitializer {
                 .command("elements", new ElementInfoCommand(plugin))
                 .command("trust", new TrustCommand(plugin, plugin.getTrustManager()))
                 .command("element", new ElementCommand(plugin))
-                .command("mana", new ManaCommand(plugin.getManaManager(), plugin.getConfigManager()))
                 .command("util", new UtilCommand(plugin))
                 .command("togglerecipe", new ToggleRecipeCommand(plugin))
                 .command("grace", new GraceCommand(plugin))

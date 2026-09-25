@@ -36,7 +36,6 @@ public final class PlayerDataSerializer {
             }
         }
 
-        data.setMana(section.getInt("mana", PlayerData.DEFAULT_MANA));
         data.setCurrentElementUpgradeLevel(section.getInt("currentUpgradeLevel", 0));
         data.setPendingRerollerRefunds(section.getInt("pendingRerollerRefunds", 0));
         data.setPendingAdvancedRerollerRefunds(section.getInt("pendingAdvancedRerollerRefunds", 0));
@@ -66,7 +65,6 @@ public final class PlayerDataSerializer {
     /** Writes {@code data} into {@code section}, replacing whatever was there before. */
     public static void serialize(PlayerData data, ConfigurationSection section) {
         section.set("element", data.getCurrentElementId() == null ? null : data.getCurrentElementId().toString());
-        section.set("mana", data.getMana());
         section.set("currentUpgradeLevel", data.getCurrentElementUpgradeLevel());
         section.set("pendingRerollerRefunds", data.getPendingRerollerRefunds());
         section.set("pendingAdvancedRerollerRefunds", data.getPendingAdvancedRerollerRefunds());

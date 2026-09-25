@@ -165,10 +165,6 @@ public class ConfigManager {
         }
     }
 
-    // Mana settings — removed; abilities now use fixed-second cooldowns
-    // hardcoded on each ability instead of a spendable resource. See
-    // CooldownManager.
-
     // Status effect settings
     public boolean areStatusEffectsEnabled() {
         return getBooleanSafe("status_effects.enabled", DEFAULT_STATUS_EFFECTS_ENABLED);

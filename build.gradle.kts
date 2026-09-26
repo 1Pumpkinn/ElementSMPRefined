@@ -13,8 +13,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-}
+    compileOnly("io.papermc.paper:paper-api:26.2.build.129-stable")}
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
@@ -34,7 +33,7 @@ tasks {
 
     runServer {
         enabled = true
-        minecraftVersion("1.21.11")
+        minecraftVersion("26.2")
         jvmArgs("-Xms1G", "-Xmx1G")
     }
 

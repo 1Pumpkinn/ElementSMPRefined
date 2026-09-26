@@ -28,7 +28,7 @@ public class MetalChainAbility extends BaseAbility {
     private static final int STUN_DURATION_TICKS = (int) (Constants.Duration.METAL_CHAIN_STUN_MS / 50L);
 
     public MetalChainAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("metal_chain", ElementType.METAL, 2, 10, 2, configManager);
+        super("metal_chain", ElementType.METAL, 2, 60, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

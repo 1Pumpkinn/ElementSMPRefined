@@ -37,7 +37,7 @@ public class DeathSideStepAbility extends BaseAbility {
             new Particle.DustOptions(Color.fromRGB(5, 5, 5), 1.4F);
 
     public DeathSideStepAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("death_side_step", ElementType.DEATH, 1, 8, 1, configManager);
+        super("death_side_step", ElementType.DEATH, 1, 30, 1, configManager);
     }
 
     @Override

@@ -47,7 +47,7 @@ public class WaterBubbleAbility extends BaseAbility implements Listener {
     private final Map<UUID, BubbleState> bubbles = new ConcurrentHashMap<>();
 
     public WaterBubbleAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("water_bubble", ElementType.WATER, 1, 15, 1, configManager);
+        super("water_bubble", ElementType.WATER, 1, 30, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }

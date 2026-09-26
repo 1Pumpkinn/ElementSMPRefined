@@ -47,7 +47,7 @@ public class DeathBackstabAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public DeathBackstabAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("death_backstab", ElementType.DEATH, 2, 20, 2, configManager);
+        super("death_backstab", ElementType.DEATH, 2, 60, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

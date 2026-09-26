@@ -20,7 +20,7 @@ public class LifeHealingBeamAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public LifeHealingBeamAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("life_healing_beam", ElementType.LIFE, 2, 15, 2, configManager);
+        super("life_healing_beam", ElementType.LIFE, 2, 60, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

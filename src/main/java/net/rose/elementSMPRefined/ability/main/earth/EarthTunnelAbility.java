@@ -20,52 +20,12 @@ import java.util.EnumSet;
 import java.util.Set;
 
 public class EarthTunnelAbility extends BaseAbility {
-    private static final Set<Material> TUNNELABLE = EnumSet.of(
-            Material.STONE, Material.DEEPSLATE, Material.DIRT, Material.GRASS_BLOCK,
-            Material.COBBLESTONE, Material.ANDESITE, Material.DIORITE, Material.GRANITE,
-            Material.MUD,
-
-            Material.GRAVEL, Material.SAND, Material.RED_SAND, Material.SANDSTONE,
-            Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK,
-
-            // Nether Blocks
-            Material.BLACKSTONE, Material.CRIMSON_NYLIUM,
-            Material.WARPED_HYPHAE, Material.SOUL_SAND, Material.BASALT, Material.SOUL_SOIL,
-
-            // End Blocks
-            Material.END_STONE,
-
-
-            // Ores
-
-            Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
-            Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE,
-            Material.COPPER_ORE, Material.DEEPSLATE_COPPER_ORE,
-            Material.GOLD_ORE, Material.DEEPSLATE_GOLD_ORE,
-            Material.REDSTONE_ORE, Material.DEEPSLATE_REDSTONE_ORE,
-            Material.LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE,
-            Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
-            Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE,
-            Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE,
-
-
-
-            Material.NETHERITE_BLOCK,
-            Material.DIAMOND_BLOCK,
-            Material.EMERALD_BLOCK,
-            Material.GOLD_BLOCK,
-            Material.REDSTONE_BLOCK,
-            Material.LAPIS_BLOCK,
-            Material.IRON_BLOCK,
-            Material.COPPER_BLOCK,
-            Material.COAL_BLOCK
-    );
 
     private final ElementSMPRefined plugin;
     private final MetadataHelper metadataHelper;
 
     public EarthTunnelAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("earth_tunnel", ElementType.EARTH, 1, 10, 1, configManager);
+        super("earth_tunnel", ElementType.EARTH, 1, 30, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         this.metadataHelper = ((ElementSMPRefined) plugin).getMetadataHelper();
     }
@@ -144,6 +104,48 @@ public class EarthTunnelAbility extends BaseAbility {
             }
         }
     }
+
+
+    private static final Set<Material> TUNNELABLE = EnumSet.of(
+            Material.STONE, Material.DEEPSLATE, Material.DIRT, Material.GRASS_BLOCK,
+            Material.COBBLESTONE, Material.ANDESITE, Material.DIORITE, Material.GRANITE,
+            Material.MUD,
+
+            Material.GRAVEL, Material.SAND, Material.RED_SAND, Material.SANDSTONE,
+            Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK,
+
+            // Nether Blocks
+            Material.BLACKSTONE, Material.CRIMSON_NYLIUM,
+            Material.WARPED_HYPHAE, Material.SOUL_SAND, Material.BASALT, Material.SOUL_SOIL,
+
+            // End Blocks
+            Material.END_STONE,
+
+
+            // Ores
+
+            Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
+            Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE,
+            Material.COPPER_ORE, Material.DEEPSLATE_COPPER_ORE,
+            Material.GOLD_ORE, Material.DEEPSLATE_GOLD_ORE,
+            Material.REDSTONE_ORE, Material.DEEPSLATE_REDSTONE_ORE,
+            Material.LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE,
+            Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
+            Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE,
+            Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE,
+
+
+
+            Material.NETHERITE_BLOCK,
+            Material.DIAMOND_BLOCK,
+            Material.EMERALD_BLOCK,
+            Material.GOLD_BLOCK,
+            Material.REDSTONE_BLOCK,
+            Material.LAPIS_BLOCK,
+            Material.IRON_BLOCK,
+            Material.COPPER_BLOCK,
+            Material.COAL_BLOCK
+    );
 
     @Override
     public String getName() {

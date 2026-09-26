@@ -21,7 +21,7 @@ public class LifeRegenAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public LifeRegenAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("life_regen", ElementType.LIFE, 1, 20, 1, configManager);
+        super("life_regen", ElementType.LIFE, 1, 30, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

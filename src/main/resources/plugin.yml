@@ -2,7 +2,7 @@ name: ElementSMPRefined
 version: '1.0-SNAPSHOT'
 main: net.rose.elementSMPRefined.ElementSMPRefined
 author: PumpkinDev
-api-version: '26.2'
+api-version: '1.21'
 load: STARTUP
 
 commands:

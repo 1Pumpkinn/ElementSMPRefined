@@ -31,7 +31,7 @@ public class FireGeyserAbility extends BaseAbility {
     private static final double RING_RADIUS = 4.0;
 
     public FireGeyserAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("fire_geyser", ElementType.FIRE, 1, 8, 1, configManager);
+        super("fire_geyser", ElementType.FIRE, 1, 30, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

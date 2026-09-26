@@ -22,7 +22,7 @@ public class SlicingWindAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public SlicingWindAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("slicing_wind", ElementType.AIR, 2, 6, 2, configManager);
+        super("slicing_wind", ElementType.AIR, 2, 60, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

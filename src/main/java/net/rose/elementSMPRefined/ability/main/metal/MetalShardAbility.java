@@ -31,7 +31,7 @@ public class MetalShardAbility extends BaseAbility {
 
     public MetalShardAbility(JavaPlugin plugin, ConfigManager configManager) {
         // slot 2 assumed - confirm against wherever this replaces/joins MetalDashAbility
-        super("metal_shard", ElementType.METAL, 1, 8, 1, configManager);
+        super("metal_shard", ElementType.METAL, 1, 30, 1, configManager);
     }
 
     @Override

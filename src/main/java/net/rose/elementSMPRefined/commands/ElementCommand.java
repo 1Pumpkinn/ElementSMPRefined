@@ -38,7 +38,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         Map<String, ElementSubCommand> commands = new LinkedHashMap<>();
         commands.put("particles", new ParticlesCommand(plugin));
         commands.put("set", new SetCommand(plugin.getElementManager()));
-        commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager()));
+        commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager(),
+                plugin.getCooldownManager(), plugin.getDisarmManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
         return commands;
     }

@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
@@ -27,21 +28,29 @@ public class AirDashAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
+
+        // Air has no grip in water to dash off of - let the player nudge
+        // forward a little instead of launching at full power, rather than
+        // rocketing across/out of the water the way a dash on land would.
+        boolean inWater = player.getLocation().getBlock().getType() == Material.WATER;
+        double dashPower = inWater ? 0.8 : 2.5;
+        int durationTicks = inWater ? 6 : 20;
+
         Vector direction = player.getLocation().getDirection();
         direction.setY(Math.max(direction.getY(), 0.5));
-        player.setVelocity(direction.multiply(2.5));
+        player.setVelocity(direction.multiply(dashPower));
 
         new BukkitRunnable() {
             int ticks = 0;
             @Override
             public void run() {
-                if (ticks >= 20 || !player.isOnline()) {
+                if (ticks >= durationTicks || !player.isOnline()) {
                     cancel();
                     return;
                 }
 
-				Location loc = player.getLocation();
-				player.getWorld().spawnParticle(Particle.CLOUD, loc, 5, 0.3, 0.3, 0.3, 0.05, null, true);
+                Location loc = player.getLocation();
+                player.getWorld().spawnParticle(Particle.CLOUD, loc, 5, 0.3, 0.3, 0.3, 0.05, null, true);
 
                 if (ticks % 5 == 0) {
                     for (LivingEntity entity : loc.getNearbyLivingEntities(Constants.Distance.AIR_DASH_RADIUS)) {
@@ -50,8 +59,8 @@ public class AirDashAbility extends BaseAbility {
 
                         Vector knockback = entity.getLocation().toVector().subtract(loc.toVector()).normalize();
                         knockback.setY(0.2);
-						entity.setVelocity(knockback.multiply(1.0));
-						entity.getWorld().spawnParticle(Particle.CLOUD, entity.getLocation(), 10, 0.3, 0.3, 0.3, 0.05, null, true);
+                        entity.setVelocity(knockback.multiply(1.0));
+                        entity.getWorld().spawnParticle(Particle.CLOUD, entity.getLocation(), 10, 0.3, 0.3, 0.3, 0.05, null, true);
                     }
                 }
 

@@ -378,6 +378,70 @@ public final class Lang {
         );
     }
 
+    public static Component debugUpgradeLevel(int level) {
+        return Component.textOfChildren(
+                Component.text("Upgrade level: ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(level), NamedTextColor.YELLOW)
+        );
+    }
+
+    /** One line per ability: name/id, its configured cooldown, and its current live status against {@code CooldownManager}. */
+    public static Component debugAbilityStatus(int slot, String name, String abilityId, boolean ready,
+                                               long remainingSeconds, int cooldownSeconds) {
+        Component status = ready
+                ? Component.text("READY", NamedTextColor.GREEN)
+                : Component.textOfChildren(
+                Component.text("ON COOLDOWN (", NamedTextColor.RED),
+                Component.text(remainingSeconds + "s", NamedTextColor.RED),
+                Component.text(" left)", NamedTextColor.RED)
+        );
+        return Component.textOfChildren(
+                Component.text("Ability " + slot + " '" + name + "' [" + abilityId + ", " + cooldownSeconds + "s cd]: ", NamedTextColor.YELLOW),
+                status
+        );
+    }
+
+    public static final Component DEBUG_NO_ABILITIES_ELEMENT =
+            Component.text("No element assigned - abilities unavailable.", NamedTextColor.RED);
+
+    public static Component debugDisarmed(boolean disarmed) {
+        return Component.textOfChildren(
+                Component.text("Ability disarmed: ", NamedTextColor.YELLOW),
+                disarmed ? Component.text("YES", NamedTextColor.RED) : Component.text("NO", NamedTextColor.GREEN)
+        );
+    }
+
+    public static Component debugTrustedCount(int count) {
+        return Component.textOfChildren(
+                Component.text("Trusted players: ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(count), NamedTextColor.YELLOW)
+        );
+    }
+
+    public static Component debugPendingRefunds(int basic, int advanced) {
+        return Component.textOfChildren(
+                Component.text("Pending reroller refunds: ", NamedTextColor.YELLOW),
+                Component.text("basic=" + basic + ", advanced=" + advanced, NamedTextColor.YELLOW)
+        );
+    }
+
+    public static Component debugRerolling(boolean rolling) {
+        return Component.textOfChildren(
+                Component.text("Currently rerolling: ", NamedTextColor.YELLOW),
+                rolling ? Component.text("YES", NamedTextColor.GREEN) : Component.text("NO", NamedTextColor.GRAY)
+        );
+    }
+
+    public static Component debugGameMode(Object mode) {
+        return Component.textOfChildren(
+                Component.text("Game mode: ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(mode), NamedTextColor.YELLOW)
+        );
+    }
+
+    public static final Component DEBUG_FOOTER =
+            Component.text("=== End Debug ===", NamedTextColor.GOLD);
+
 
     // --- /element particles command ---
     public static final Component PARTICLES_THIS_COMMAND_CAN_ONLY_BE =

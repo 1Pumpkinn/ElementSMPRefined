@@ -53,11 +53,6 @@ public class EarthElement extends BaseElement {
     }
 
     @Override
-    public String getDescription() {
-        return "Masters of stone and earth. Earth users can tunnel through blocks and grasp enemies.";
-    }
-
-    @Override
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Hero of The Village",

@@ -83,11 +83,6 @@ public class ExampleElement extends BaseElement implements ListenerProvider {
     }
 
     @Override
-    public String getDescription() {
-        return "An example element template for creating new elements.";
-    }
-
-    @Override
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Speed I",

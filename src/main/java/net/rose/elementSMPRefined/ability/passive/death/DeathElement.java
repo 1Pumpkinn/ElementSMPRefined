@@ -59,11 +59,6 @@ public class DeathElement extends BaseElement implements ListenerProvider {
     }
 
     @Override
-    public String getDescription() {
-        return ChatColor.GRAY + "Master of decay. Death users slip away in the dark and rot what they strike.";
-    }
-
-    @Override
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Invisible at night",

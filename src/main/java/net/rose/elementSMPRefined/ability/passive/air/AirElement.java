@@ -46,11 +46,6 @@ public class AirElement extends BaseElement {
     }
 
     @Override
-    public String getDescription() {
-        return "Master the swift and agile power of air. Take no fall damage and knock back enemies with the force of your landing.";
-    }
-
-    @Override
     public List<String> getPassiveBenefits() {
         return List.of(
                 "No fall damage",

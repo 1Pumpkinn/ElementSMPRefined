@@ -50,11 +50,6 @@ public class FireElement extends BaseElement {
     }
 
     @Override
-    public String getDescription() {
-        return ChatColor.GRAY + "Masters of flame and destruction. Fire users auto-smelt the ores they mine, and gain fire immunity at Upgrade II.";
-    }
-
-    @Override
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Auto smelt mined ores",

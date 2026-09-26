@@ -55,11 +55,6 @@ public class WaterElement extends BaseElement implements ListenerProvider {
     }
 
     @Override
-    public String getDescription() {
-        return "Control the tides with a bubble shield, drowning pull, and the Breath of the Nautilus.";
-    }
-
-    @Override
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Breath of the Nautilus (infinite water breathing)",

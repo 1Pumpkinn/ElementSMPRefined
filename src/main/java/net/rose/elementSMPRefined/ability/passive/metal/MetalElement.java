@@ -50,11 +50,6 @@ public class MetalElement extends BaseElement {
     }
 
     @Override
-    public String getDescription() {
-        return "Masters of chains and iron. Metal users are swift and can dash through enemies.";
-    }
-
-    @Override
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Haste I",

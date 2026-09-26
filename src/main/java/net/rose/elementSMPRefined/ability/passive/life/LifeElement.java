@@ -121,11 +121,6 @@ public class LifeElement extends BaseElement {
     }
 
     @Override
-    public String getDescription() {
-        return "Masters of healing and growth. Life users have increased health and can heal allies.";
-    }
-
-    @Override
     public List<String> getPassiveBenefits() {
         return List.of(
                 "15 hearts total",

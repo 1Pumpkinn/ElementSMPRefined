@@ -37,8 +37,6 @@ public interface Element {
 
     String getDisplayName();
 
-    String getDescription();
-
     String getAbility1Name();
 
     String getAbility1Description();

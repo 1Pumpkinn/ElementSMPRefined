@@ -42,11 +42,6 @@ public class FrostElement extends BaseElement {
     }
 
     @Override
-    public String getDescription() {
-        return "Masters of ice and cold. Frost users can slow enemies and freeze them in their tracks.";
-    }
-
-    @Override
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Speed II on snow",

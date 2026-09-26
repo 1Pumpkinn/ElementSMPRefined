@@ -716,11 +716,7 @@ public final class Lang {
             Component.text("Duration and hunger protection must be positive whole numbers of seconds.", NamedTextColor.RED);
 
     public static Component baseElementAbilityOnCooldown(long seconds) {
-        return Component.textOfChildren(
-                Component.text("Ability is on cooldown for ", NamedTextColor.RED),
-                Component.text(String.valueOf(seconds), NamedTextColor.RED),
-                Component.text("s.", NamedTextColor.RED)
-        );
+        return Component.textOfChildren();
     }
 
 

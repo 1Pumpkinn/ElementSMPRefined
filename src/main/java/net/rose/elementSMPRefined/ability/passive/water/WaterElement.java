@@ -4,7 +4,7 @@ import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.water.WaterBubbleAbility;
-import net.rose.elementSMPRefined.ability.main.water.WaterPullDownAbility;
+import net.rose.elementSMPRefined.ability.main.water.WaterGeyserAbility;
 import net.rose.elementSMPRefined.ability.passive.water.listeners.WaterInvisibilityListener;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
@@ -20,7 +20,7 @@ import java.util.List;
 public class WaterElement extends BaseElement implements ListenerProvider {
 
     public WaterElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new WaterBubbleAbility(plugin, configManager), new WaterPullDownAbility(plugin, configManager));
+        super(plugin, new WaterGeyserAbility(plugin, configManager), new WaterBubbleAbility(plugin, configManager));
     }
 
     @Override

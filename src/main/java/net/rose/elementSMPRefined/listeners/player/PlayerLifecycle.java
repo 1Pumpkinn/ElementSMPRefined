@@ -27,6 +27,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityResurrectEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -250,6 +251,28 @@ public class PlayerLifecycle implements Listener {
         if (metalShardAbility != null) {
             metalShardAbility.onPlayerQuit(playerUuid);
         }
+    }
+
+    /**
+     * Without this, an ability's active-state flag (bubble shields, healing beams,
+     * grasp holds, the water geyser's fall immunity, etc.) only clears itself once
+     * that ability's own internal timeout elapses - it never checks whether the
+     * player died, only whether they went offline. Death doesn't end an ability
+     * early anywhere in this codebase without this hook, so a shield, beam, or
+     * carry could keep ticking against/around a corpse for the ability's full
+     * duration before self-expiring. Clearing on death this way brings dying in
+     * line with quitting and switching elements, which already snap every
+     * ability's active flag immediately instead of waiting it out.
+     * <p>
+     * Uses the single-element clear (not {@link EffectService#clearAllElementEffects})
+     * since only the player's current element could have anything active, and deaths
+     * are frequent enough (PvP) that the full every-element sweep isn't worth it here.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        PlayerData pd = elementManager.data(player.getUniqueId());
+        effectService.clearElementEffects(player, pd.getCurrentElementId());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

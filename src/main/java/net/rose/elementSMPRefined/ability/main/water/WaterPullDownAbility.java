@@ -27,6 +27,8 @@ import org.bukkit.util.Vector;
  * the entity they're looking at, drags them down/under, deals a burst of drowning
  * damage, and stuns them for 2.5 seconds.
  */
+
+@Deprecated // Changed Ability to different one
 public class WaterPullDownAbility extends BaseAbility {
 
     private static final double RANGE = 6.0;

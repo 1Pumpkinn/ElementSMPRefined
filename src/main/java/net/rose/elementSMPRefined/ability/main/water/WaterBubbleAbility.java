@@ -47,7 +47,7 @@ public class WaterBubbleAbility extends BaseAbility implements Listener {
     private final Map<UUID, BubbleState> bubbles = new ConcurrentHashMap<>();
 
     public WaterBubbleAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("water_bubble", ElementType.WATER, 1, 30, 1, configManager);
+        super("water_bubble", ElementType.WATER, 2, 30, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -224,7 +224,7 @@ public class WaterBubbleAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Shields you from all damage until it's critically hit 3 times or 10 seconds pass. (50 mana)";
+        return ChatColor.GRAY + "Shields you from all damage until it's critically hit 3 times or 10 seconds pass. (60 mana)";
     }
 
     private static class BubbleState {

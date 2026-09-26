@@ -171,7 +171,7 @@ public class GraspAbility extends BaseAbility implements Listener {
         // Carry the target in front of the caster every tick, wherever they walk/turn.
         session.carryTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             Player caster = Bukkit.getPlayer(session.casterId);
-            if (caster == null || !caster.isOnline() || !target.isValid() || target.isDead()
+            if (caster == null || !caster.isOnline() || caster.isDead() || !target.isValid() || target.isDead()
                     || session.tick >= HOLD_TICKS) {
                 endGrasp(caster, target);
                 return;

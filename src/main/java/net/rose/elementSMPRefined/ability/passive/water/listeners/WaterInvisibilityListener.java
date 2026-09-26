@@ -98,7 +98,6 @@ public class WaterInvisibilityListener implements Listener {
         trulyInvisible.add(player.getUniqueId());
         player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 0, false, false));
         hidePlayerFromAll(player);
-        player.sendActionBar(ChatColor.AQUA + "You slip beneath the surface, unseen...");
     }
 
     private void revealPlayer(Player player) {

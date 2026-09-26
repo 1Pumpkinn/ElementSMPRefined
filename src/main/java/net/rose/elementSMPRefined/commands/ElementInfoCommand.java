@@ -104,16 +104,13 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
                 .decorate(TextDecoration.BOLD));
         player.sendMessage(Component.text("     " + strip(element.getAbility1Description()))
                 .color(NamedTextColor.GRAY));
-        player.sendMessage(Component.text("     Cooldown: " + element.getAbility1CooldownSeconds() + "s")
-                .color(NamedTextColor.YELLOW));
 
         player.sendMessage(Component.text("  \u2461 " + strip(element.getAbility2Name()))
                 .color(NamedTextColor.LIGHT_PURPLE)
                 .decorate(TextDecoration.BOLD));
+
         player.sendMessage(Component.text("     " + strip(element.getAbility2Description()))
                 .color(NamedTextColor.GRAY));
-        player.sendMessage(Component.text("     Cooldown: " + element.getAbility2CooldownSeconds() + "s")
-                .color(NamedTextColor.YELLOW));
 
         player.sendMessage(Component.empty());
     }

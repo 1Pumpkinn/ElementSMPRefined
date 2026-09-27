@@ -39,7 +39,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         commands.put("particles", new ParticlesCommand(plugin));
         commands.put("set", new SetCommand(plugin.getElementManager()));
         commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager(),
-                plugin.getCooldownManager(), plugin.getDisarmManager()));
+                plugin.getCooldownManager(), plugin.getDisarmManager(),
+                plugin.getStatusEffectManager(), plugin.getTrustManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
         return commands;
     }
@@ -110,7 +111,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("=== Element Admin Commands ===", NamedTextColor.GOLD));
         sender.sendMessage(Component.text("/element particles <preset> - Preview a particle pattern at your feet", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element set <player> <element> - Set player's element", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("/element debug <player> - Debug player's element data", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("/element debug [player] - Debug a player's element data (defaults to yourself)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("  reload | reset [key] | reset element <element> [key]", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("  set <key> <value> | element <element> <key> <value>", NamedTextColor.GRAY));

@@ -342,7 +342,7 @@ public final class Lang {
 
     // --- /element debug command ---
     public static final Component DEBUG_USAGE_ELEMENT_DEBUG_PLAYER =
-            Component.text("Usage: /element debug <player>", NamedTextColor.RED);
+            Component.text("Usage: /element debug [player]", NamedTextColor.RED);
 
     public static Component debugPlayer(Object args) {
         return Component.textOfChildren(
@@ -354,10 +354,21 @@ public final class Lang {
 
     public static Component debugElementDebug(Object name) {
         return Component.textOfChildren(
-                Component.text("=== Element Debug for ", NamedTextColor.GOLD),
+                Component.text("=== Element Debug: ", NamedTextColor.GOLD),
                 Component.text(String.valueOf(name), NamedTextColor.GOLD),
                 Component.text(" ===", NamedTextColor.GOLD)
         );
+    }
+
+    public static Component debugOnlineStatus(boolean online) {
+        return online
+                ? Component.text("Status: ONLINE", NamedTextColor.GREEN)
+                : Component.text("Status: OFFLINE (only persisted data is available below)", NamedTextColor.YELLOW);
+    }
+
+    /** Section divider, e.g. "--- Persisted Data ---". */
+    public static Component debugSection(String title) {
+        return Component.text("--- " + title + " ---", NamedTextColor.AQUA);
     }
 
     public static Component debugElementmanagerReportsBuiltinType(Object builtinType) {
@@ -378,6 +389,13 @@ public final class Lang {
         return Component.textOfChildren(
                 Component.text("After cache invalidation: ", NamedTextColor.YELLOW),
                 Component.text(String.valueOf(reloadedElement), NamedTextColor.YELLOW)
+        );
+    }
+
+    public static Component debugDisplayName(Object displayName) {
+        return Component.textOfChildren(
+                Component.text("Display name: ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(displayName), NamedTextColor.YELLOW)
         );
     }
 
@@ -414,10 +432,42 @@ public final class Lang {
         );
     }
 
-    public static Component debugTrustedCount(int count) {
+    public static Component debugActiveStatusEffects(String summary) {
         return Component.textOfChildren(
-                Component.text("Trusted players: ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(count), NamedTextColor.YELLOW)
+                Component.text("Active status effects: ", NamedTextColor.YELLOW),
+                Component.text(summary, NamedTextColor.YELLOW)
+        );
+    }
+
+    /**
+     * The player's currently-active passive potion effects - i.e. the ones an
+     * element's {@code applyUpsides} actually granted them right now, distinct
+     * from {@link #debugActiveStatusEffects}, which covers combat status effects
+     * like SLOW/STUN/BURN.
+     */
+    public static Component debugActivePassiveEffects(String summary) {
+        return Component.textOfChildren(
+                Component.text("Active passive effects: ", NamedTextColor.YELLOW),
+                Component.text(summary, NamedTextColor.YELLOW)
+        );
+    }
+
+    public static Component debugTrustedNames(String joined, int liveCount) {
+        return Component.textOfChildren(
+                Component.text("Trusted players (" + liveCount + "): ", NamedTextColor.YELLOW),
+                Component.text(joined, NamedTextColor.YELLOW)
+        );
+    }
+
+    /**
+     * Only shown when {@code TrustManager}'s live in-memory cache and the raw
+     * stored trust list disagree - a real cache-drift bug (something changed
+     * trust without invalidating one side), not a normal debug line.
+     */
+    public static Component debugTrustCacheMismatch(int liveCount, int storedCount) {
+        return Component.text(
+                "WARNING: TrustManager cache (" + liveCount + ") disagrees with stored data (" + storedCount + ")!",
+                NamedTextColor.RED
         );
     }
 
@@ -441,6 +491,9 @@ public final class Lang {
                 Component.text(String.valueOf(mode), NamedTextColor.YELLOW)
         );
     }
+
+    public static final Component DEBUG_LIVE_STATE_UNAVAILABLE =
+            Component.text("Player is offline - ability/status data unavailable.", NamedTextColor.GRAY);
 
     public static final Component DEBUG_FOOTER =
             Component.text("=== End Debug ===", NamedTextColor.GOLD);

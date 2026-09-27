@@ -11,11 +11,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
- * Air Element Passive 2: Slow Falling on Hit
- * 
+ * Air Element
+ *
  * When Air element players with Upgrade 2 hit a player,
- * there's a 5% chance to grant Slow Falling to the victim for 5 seconds.
- * 
  * This helps Air players control the fight vertically and
  * gives enemies a defensive buff if hit.
  */
@@ -32,10 +30,7 @@ public class AirCombatListener implements Listener {
         this.elementManager = elementManager;
     }
 
-    /**
-     * Apply Slow Falling to hit players with a proc chance.
-     * Only triggers for Air element players with Upgrade 2.
-     */
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player victim)) {

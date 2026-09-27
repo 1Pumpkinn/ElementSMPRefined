@@ -44,6 +44,9 @@ public final class Lang {
     public static final Component GRASP_THAT_TARGET_IS_ALREADY_GRASPED =
             Component.text("That target is already grasped!", NamedTextColor.RED);
 
+    // --- Fire element - Hell Chain ability ---
+    public static final Component FIRE_HELL_CHAIN_NO_VALID_HOOK_POINT =
+            Component.text("No valid hook point!", NamedTextColor.RED);
 
     // --- Fire element - Meteor Crash ability ---
     public static final Component METEOR_CRASH_YOU_LAUNCH_INTO_METEOR_CRASH =

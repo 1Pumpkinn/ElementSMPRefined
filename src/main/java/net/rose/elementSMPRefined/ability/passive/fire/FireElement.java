@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined.ability.passive.fire;
 
+import net.rose.elementSMPRefined.ability.main.fire.HellChainAbility;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.fire.FireGeyserAbility;
 import net.rose.elementSMPRefined.ability.main.fire.MeteorCrashAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
@@ -17,7 +17,7 @@ import java.util.List;
 public class FireElement extends BaseElement {
 
     public FireElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new FireGeyserAbility(plugin, configManager), new MeteorCrashAbility(plugin, configManager));
+        super(plugin, new HellChainAbility(plugin, configManager), new MeteorCrashAbility(plugin, configManager));
     }
 
     @Override

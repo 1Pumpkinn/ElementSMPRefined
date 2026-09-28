@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.util.visual.ChainVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -148,7 +149,15 @@ public class HellChainAbility extends BaseAbility {
     /** Direct hit on a living entity - harpoon them in to the caster instead of the other way around. */
     private void dragEntityIn(Player player, LivingEntity target) {
         new BukkitRunnable() {
+            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN);
             int ticks = 0;
+
+            /** Every exit path calls cancel(), so the chain entities can never outlive the ability. */
+            @Override
+            public synchronized void cancel() throws IllegalStateException {
+                chain.remove();
+                super.cancel();
+            }
 
             @Override
             public void run() {
@@ -171,7 +180,7 @@ public class HellChainAbility extends BaseAbility {
                     return;
                 }
 
-                drawChain(player, casterLoc, targetLoc, distance);
+                chain.update(chainStart(player), target.getBoundingBox().getCenter().toLocation(target.getWorld()));
 
                 Vector pull = casterLoc.toVector().subtract(targetLoc.toVector()).normalize().multiply(DRAG_STRENGTH);
                 // Gentle lift so they don't just scrape along the ground - but only when we're
@@ -216,12 +225,20 @@ public class HellChainAbility extends BaseAbility {
         }
 
         new BukkitRunnable() {
+            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN);
             int ticks = 0;
             boolean climbing = false;
             double lastDistance = Double.MAX_VALUE; // approach-phase progress tracking
             int approachStuckTicks = 0;
             double lastClimbY = Double.NaN; // climb-phase progress tracking
             int climbStuckTicks = 0;
+
+            /** Every exit path calls cancel(), so the chain entities can never outlive the ability. */
+            @Override
+            public synchronized void cancel() throws IllegalStateException {
+                chain.remove();
+                super.cancel();
+            }
 
             @Override
             public void run() {
@@ -268,7 +285,14 @@ public class HellChainAbility extends BaseAbility {
                             intoWall.getZ() * CLIMB_STICK_STRENGTH));
                     player.setFallDistance(0f);
 
-                    drawChain(player, currentLoc, aheadHead, WALL_CHECK_DISTANCE);
+                    // Keep the chain anchored where it hit the wall while that anchor is still
+                    // above the caster; once they've climbed past it there's nothing left to
+                    // hang the chain from, so it drops away for the final vault.
+                    if (hookLocation.getY() > currentLoc.getY() + 0.5) {
+                        chain.update(chainStart(player), hookLocation);
+                    } else {
+                        chain.hide();
+                    }
                     playChainStep(player, currentLoc, ticks);
                     ticks++;
                     return;
@@ -312,7 +336,7 @@ public class HellChainAbility extends BaseAbility {
                 }
                 lastDistance = distance;
 
-                drawChain(player, currentLoc, hookLocation, distance);
+                chain.update(chainStart(player), hookLocation);
 
                 Vector pull = hookLocation.toVector().subtract(currentLoc.toVector()).normalize().multiply(PULL_STRENGTH);
                 // Keep a floor on the vertical pull so the caster arcs up and over ledges/blocks
@@ -393,17 +417,24 @@ public class HellChainAbility extends BaseAbility {
         }
     }
 
-    private void drawChain(Player player, Location from, Location to, double distance) {
-        Vector toTarget = to.toVector().subtract(from.toVector()).normalize();
-        double spacing = 0.4;
-        int particleCount = (int) (distance / spacing);
-        for (int i = 0; i <= particleCount; i++) {
-            Location particleLoc = from.clone().add(toTarget.clone().multiply(i * spacing));
-            player.getWorld().spawnParticle(Particle.FLAME, particleLoc, 1, 0.02, 0.02, 0.02, 0.0);
-            if (i % 4 == 0) {
-                player.getWorld().spawnParticle(Particle.SMOKE, particleLoc, 1, 0.02, 0.02, 0.02, 0.0);
-            }
+    /**
+     * Where the chain visually leaves the caster: down and to the right of the eyes, a little
+     * forward - roughly a hand - so in first person it doesn't run straight through the middle
+     * of the screen. Only affects the visual; all the movement math still uses the eye location.
+     */
+    private Location chainStart(Player player) {
+        Location eye = player.getEyeLocation();
+        Vector forward = eye.getDirection();
+        Vector right = forward.clone().crossProduct(new Vector(0, 1, 0));
+        if (right.lengthSquared() < 1.0E-4) {
+            right = new Vector(1, 0, 0); // looking straight up/down - any sideways direction will do
         }
+        right.normalize();
+
+        return eye.clone()
+                .add(right.multiply(0.35))
+                .add(forward.multiply(0.3))
+                .subtract(0, 0.35, 0);
     }
 
     private void playCastSounds(Player player) {

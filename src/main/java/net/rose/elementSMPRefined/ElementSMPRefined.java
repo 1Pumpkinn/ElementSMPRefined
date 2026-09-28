@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined;
 
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
+import net.rose.elementSMPRefined.util.visual.ChainVisual;
 
 /**
  * Main plugin class which significantly simplified by extending AbstractElementPlugin.
@@ -16,6 +17,8 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
 
     @Override
     protected void onPluginDisable() {
+        // Chain segments are real entities - sweep up any still on screen from an in-flight ability.
+        ChainVisual.removeAll();
         getLogger().info("ElementSMPRefined plugin disabled successfully!");
     }
 }

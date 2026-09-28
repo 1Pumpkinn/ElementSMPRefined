@@ -21,18 +21,22 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 /**
- * Water element's movement ability. Erupts a geyser under the caster that launches
- * them up and forward - unlike a straight vertical popup, the eruption follows
- * wherever the player is looking on the horizontal plane, so aiming forward turns
- * it into a diagonal boost instead of just a hop in place.
+ * Water element's movement ability. Erupts two geysers in sequence under the caster:
+ * the first is a pure vertical launch, and the second fires once the player's ascent
+ * stalls near the apex, kicking them horizontally in whatever direction they're
+ * looking at that instant. Splitting the launch this way means the horizontal boost
+ * doesn't fight the vertical one on the way up - it lands right as the player crests,
+ * carrying them into a proper arc instead of a straight hop.
  * <p>
  * Implements {@link Listener} and self-registers (see {@code WaterBubbleAbility} for the
  * same pattern) so the fall damage from the geyser's own launch can be cancelled.
  */
 public class WaterGeyserAbility extends BaseAbility implements Listener {
 
-    private static final double VERTICAL_POWER = 1.80;   // constant upward burst
-    private static final double HORIZONTAL_POWER = 0.65;  // carry in the look direction
+    private static final double VERTICAL_POWER = 1.80;        // first geyser's pure upward burst
+    private static final double HORIZONTAL_BOOST_POWER = 1.75; // second geyser's forward kick at the apex
+    private static final double APEX_VELOCITY_THRESHOLD = 0.05; // vertical speed under which we consider the ascent "stalled"
+    private static final int APEX_CHECK_MAX_TICKS = 20;         // safety cap if the apex never registers (e.g. water/lily pads messing with velocity)
     private static final int TRAIL_TICKS = 14;
     private static final int GEYSER_WATER_BLOCKS = 2;    // feeds the vanilla geyser particle's plume height/impulse
 
@@ -49,21 +53,12 @@ public class WaterGeyserAbility extends BaseAbility implements Listener {
         Player player = context.getPlayer();
         Location origin = player.getLocation();
 
-        // Horizontal component follows the player's yaw only (not pitch) so looking
-        // up/down doesn't rob the launch of its vertical punch or add a weird dive.
-        Vector horizontal = origin.getDirection().setY(0);
-        if (horizontal.lengthSquared() > 0.0001) {
-            horizontal.normalize();
-        } else {
-            horizontal = new Vector(0, 0, 0);
-        }
+        // First geyser: a clean, pure vertical launch. No horizontal component here -
+        // that's the second geyser's job once this launch's rise stalls out near the apex.
+        player.setVelocity(new Vector(0, VERTICAL_POWER, 0));
 
-        Vector launch = horizontal.multiply(HORIZONTAL_POWER);
-        launch.setY(VERTICAL_POWER);
-        player.setVelocity(launch);
-
-        // Reset fall distance so the landing after the boost doesn't chunk them for
-        // the height the geyser itself just gave them.
+        // Reset fall distance so the eventual landing doesn't chunk them for the height
+        // the geysers themselves just gave them.
         player.setFallDistance(0f);
 
         // Grant immunity to the fall damage the launch itself is about to cause;
@@ -73,12 +68,98 @@ public class WaterGeyserAbility extends BaseAbility implements Listener {
 
         eruptGeyser(origin);
         trailPlayer(player);
+        scheduleSecondGeyser(player);
 
         SoundUtils.playTo(player, SoundUtils.Element.WATER);
         player.getWorld().playSound(origin, Sound.ENTITY_DOLPHIN_JUMP, 1.2f, 0.9f);
         player.getWorld().playSound(origin, Sound.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 1.5f, 0.7f);
 
         return true;
+    }
+
+    /**
+     * Watches the first geyser's launch tick by tick and waits for vertical velocity
+     * to stall out near the apex - checking actual velocity instead of a flat delay
+     * means the second geyser fires at the right moment regardless of how gravity,
+     * water, or anything else affects the arc of any given launch. {@code
+     * APEX_CHECK_MAX_TICKS} is just a safety net in case the apex is never cleanly
+     * detected (e.g. the player re-enters a water/bubble column mid-flight).
+     */
+    private void scheduleSecondGeyser(Player player) {
+        new BukkitRunnable() {
+            int ticks = 0;
+
+            @Override
+            public void run() {
+                if (!player.isOnline() || !isActiveFor(player)) {
+                    cancel();
+                    return;
+                }
+
+                boolean atApex = player.getVelocity().getY() <= APEX_VELOCITY_THRESHOLD;
+
+                if (atApex || ticks >= APEX_CHECK_MAX_TICKS) {
+                    fireSecondGeyser(player);
+                    cancel();
+                    return;
+                }
+
+                ticks++;
+            }
+        }.runTaskTimer(plugin, 1L, 1L); // starts a tick late so the initial upward velocity has a chance to register
+    }
+
+    /**
+     * Fires the second geyser's kick right as the player's ascent stalls, pushing them
+     * horizontally in whatever direction they're looking at that instant - this is the
+     * "boost" half of the launch, so it only touches horizontal velocity and leaves
+     * whatever vertical motion the player already has untouched.
+     */
+    private void fireSecondGeyser(Player player) {
+        Location location = player.getLocation();
+
+        Vector horizontal = location.getDirection().setY(0);
+        if (horizontal.lengthSquared() > 0.0001) {
+            horizontal.normalize();
+        } else {
+            horizontal = new Vector(0, 0, 0);
+        }
+
+        Vector boost = horizontal.multiply(HORIZONTAL_BOOST_POWER);
+        boost.setY(player.getVelocity().getY());
+        player.setVelocity(boost);
+
+        burstForward(location, horizontal);
+
+        player.getWorld().playSound(location, Sound.ENTITY_DOLPHIN_JUMP, 1.0f, 1.3f);
+        player.getWorld().playSound(location, Sound.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 1.2f, 1.1f);
+    }
+
+    /**
+     * Visual for the second geyser's kick - a directional spray thrown along the boost
+     * vector instead of the vanilla {@code GEYSER} emitter the first one uses. Reusing
+     * the vertical plume here would read as another upward eruption, which is exactly
+     * backwards for what's supposed to read as a horizontal push; this offsets a burst
+     * of splash/bubble particles slightly ahead of the player along {@code direction}
+     * with a matching directional velocity so it visibly sprays outward instead.
+     */
+    private void burstForward(Location location, Vector direction) {
+        Location sprayOrigin = direction.lengthSquared() > 0.0001
+                ? location.clone().add(direction.clone().multiply(0.6)).add(0, 0.9, 0)
+                : location.clone().add(0, 0.9, 0);
+
+        sprayOrigin.getWorld().spawnParticle(
+                Particle.SPLASH, sprayOrigin, 25,
+                0.3, 0.3, 0.3, 0.15, null, true
+        );
+        sprayOrigin.getWorld().spawnParticle(
+                Particle.BUBBLE_POP, sprayOrigin, 15,
+                0.3, 0.2, 0.3, 0.1, null, true
+        );
+        sprayOrigin.getWorld().spawnParticle(
+                Particle.BUBBLE, sprayOrigin, 20,
+                0.4, 0.2, 0.4, 0.02, null, true
+        );
     }
 
     /**
@@ -172,6 +253,6 @@ public class WaterGeyserAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Erupt a geyser beneath you, launching you up and carrying you forward in the direction you're facing.";
+        return ChatColor.GRAY + "Erupt a geyser beneath you launching you up, then a second geyser at the apex boosts you forward in the direction you're facing.";
     }
 }

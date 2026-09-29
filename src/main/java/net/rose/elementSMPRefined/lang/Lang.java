@@ -221,23 +221,6 @@ public final class Lang {
         );
     }
 
-    public static final Component CONFIG_USAGE_ELEMENT_CONFIG_ELEMENT_ELEMENT =
-            Component.text("Usage: /element config element <element> <key> <value>", NamedTextColor.RED);
-
-    public static Component configInvalidElementValid(Object getElementNames) {
-        return Component.textOfChildren(
-                Component.text("Invalid element. Valid: ", NamedTextColor.RED),
-                Component.text(String.valueOf(getElementNames), NamedTextColor.RED)
-        );
-    }
-
-    public static Component configErrorSettingElementConfig(Object message) {
-        return Component.textOfChildren(
-                Component.text("Error setting element config: ", NamedTextColor.RED),
-                Component.text(String.valueOf(message), NamedTextColor.RED)
-        );
-    }
-
     public static Component configUnknownAction(Object action) {
         return Component.textOfChildren(
                 Component.text("Unknown action: ", NamedTextColor.RED),
@@ -247,47 +230,6 @@ public final class Lang {
 
     public static final Component CONFIG_CONFIGURATION_RESET_DEFAULT_VALUES =
             Component.text("Configuration reset to default values!", NamedTextColor.GREEN);
-
-    public static final Component CONFIG_USAGE_ELEMENT_CONFIG_RESET_ELEMENT =
-            Component.text("Usage: /element config reset element <element> [key]", NamedTextColor.RED);
-
-    public static Component configResetAll(Object name) {
-        return Component.textOfChildren(
-                Component.text("Reset all of ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                Component.text(" to default values!", NamedTextColor.GREEN)
-        );
-    }
-
-    public static Component configNoDefaultConfigExists(Object name) {
-        return Component.textOfChildren(
-                Component.text("No default config exists for ", NamedTextColor.RED),
-                Component.text(String.valueOf(name), NamedTextColor.RED),
-                Component.text(".", NamedTextColor.RED)
-        );
-    }
-
-    public static Component configReset(Object name, Object key, Object def) {
-        return Component.textOfChildren(
-                Component.text("Reset ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                Component.text(".", NamedTextColor.GREEN),
-                Component.text(String.valueOf(key), NamedTextColor.GREEN),
-                Component.text(" to default (", NamedTextColor.GREEN),
-                Component.text(String.valueOf(def), NamedTextColor.GREEN),
-                Component.text(").", NamedTextColor.GREEN)
-        );
-    }
-
-    public static Component configNoDefaultValueExists(Object key, Object name) {
-        return Component.textOfChildren(
-                Component.text("No default value exists for '", NamedTextColor.RED),
-                Component.text(String.valueOf(key), NamedTextColor.RED),
-                Component.text("' on ", NamedTextColor.RED),
-                Component.text(String.valueOf(name), NamedTextColor.RED),
-                Component.text(".", NamedTextColor.RED)
-        );
-    }
 
     public static Component configReset2(Object key, Object key2) {
         return Component.textOfChildren(
@@ -307,17 +249,6 @@ public final class Lang {
         );
     }
 
-    public static Component configSet2(Object name, Object key, Object value) {
-        return Component.textOfChildren(
-                Component.text("Set ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                Component.text(".", NamedTextColor.GREEN),
-                Component.text(String.valueOf(key), NamedTextColor.GREEN),
-                Component.text(" to ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(value), NamedTextColor.GREEN)
-        );
-    }
-
     public static final Component CONFIG_USAGE_ELEMENT_CONFIG_ACTION =
             Component.text("Usage: /element config <action>", NamedTextColor.RED);
 
@@ -330,14 +261,8 @@ public final class Lang {
     public static final Component CONFIG_RESET_KEY_OMIT_KEY_RESET =
             Component.text("  reset [key]  -  omit key to reset everything", NamedTextColor.GRAY);
 
-    public static final Component CONFIG_RESET_ELEMENT_ELEMENT_KEY =
-            Component.text("  reset element <element> [key]", NamedTextColor.GRAY);
-
     public static final Component CONFIG_SET_KEY_VALUE =
             Component.text("  set <key> <value>", NamedTextColor.GRAY);
-
-    public static final Component CONFIG_ELEMENT_ELEMENT_KEY_VALUE =
-            Component.text("  element <element> <key> <value>", NamedTextColor.GRAY);
 
 
     // --- /element debug command ---

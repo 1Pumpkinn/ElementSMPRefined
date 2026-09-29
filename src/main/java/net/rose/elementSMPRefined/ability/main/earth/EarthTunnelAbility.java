@@ -118,8 +118,6 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.BLACKSTONE, Material.CRIMSON_NYLIUM, Material.WARPED_HYPHAE,
             Material.SOUL_SAND, Material.BASALT,  Material.SMOOTH_BASALT, Material.SOUL_SOIL,
 
-
-
             // Ores
 
             Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,

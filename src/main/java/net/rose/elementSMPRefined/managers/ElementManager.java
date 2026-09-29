@@ -38,8 +38,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class ElementManager {
-    // Default classification, used only where config.yml doesn't override a
-    // type's isBasic() flag. Kept as a single set (rather than separate
+    // Basic/advanced classification. Kept as a single set (rather than separate
     // basic/advanced arrays) so every ElementType is classified exactly once -
     // "advanced" is always just "everything not basic", never a second,
     // independently-maintained list that could drift out of sync with it.
@@ -73,7 +72,7 @@ public class ElementManager {
 
     /**
      * All basic elements that can be rolled initially (starter rolls, basic
-     * reroller), per {@link ElementType} default plus any config.yml override.
+     * reroller), (see {@link #DEFAULT_BASIC_ELEMENTS}).
      */
     public ElementType[] getBasicElements() {
         return classifyBasicElements().toArray(new ElementType[0]);
@@ -90,31 +89,9 @@ public class ElementManager {
         return advanced.toArray(new ElementType[0]);
     }
 
-    /**
-     * Applies config.yml's per-element {@code isBasic} override (if any) on
-     * top of {@link #DEFAULT_BASIC_ELEMENTS}. Single source of truth for the
-     * basic/advanced split, queried fresh each call so a {@code /elementconfig
-     * reload} takes effect immediately.
-     */
+    /** Every element not in {@link #DEFAULT_BASIC_ELEMENTS}. */
     private EnumSet<ElementType> classifyBasicElements() {
-        EnumSet<ElementType> basic = EnumSet.copyOf(DEFAULT_BASIC_ELEMENTS);
-        var elementConfig = configManager.getElementConfiguration();
-
-        for (ElementType type : ElementType.values()) {
-            var config = elementConfig.getConfig(type);
-            if (config == null) continue;
-
-            Boolean override = config.isBasic();
-            if (override == null) continue;
-
-            if (override) {
-                basic.add(type);
-            } else {
-                basic.remove(type);
-            }
-        }
-
-        return basic;
+        return EnumSet.copyOf(DEFAULT_BASIC_ELEMENTS);
     }
 
     /**

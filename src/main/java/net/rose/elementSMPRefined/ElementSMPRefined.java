@@ -17,7 +17,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
 
     @Override
     protected void onPluginDisable() {
-        // Chain segments are real entities - sweep up any still on screen from an in-flight ability.
+        // Chain segments are real entities - sweep up any still on screen
         ChainVisual.removeAll();
         getLogger().info("ElementSMPRefined plugin disabled successfully!");
     }

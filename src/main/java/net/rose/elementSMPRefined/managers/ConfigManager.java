@@ -1,8 +1,6 @@
 package net.rose.elementSMPRefined.managers;
 
 import net.rose.elementSMPRefined.config.Constants;
-import net.rose.elementSMPRefined.config.ElementConfiguration;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,9 +20,6 @@ public class ConfigManager {
 
     // Defaults - named so they're not scattered as unexplained numbers
     // through every getter below.
-    private static final boolean DEFAULT_STATUS_EFFECTS_ENABLED = true;
-    private static final boolean DEFAULT_STATUS_EFFECT_DAMAGE_ENABLED = true;
-    private static final boolean DEFAULT_STATUS_EFFECT_NOTIFICATIONS_ENABLED = true;
     private static final boolean DEFAULT_ADVANCED_REROLLER_RECIPE_ENABLED = true;
     private static final boolean DEFAULT_NETHER_DISABLED = Constants.Dimension.DEFAULT_NETHER_DISABLED;
     private static final boolean DEFAULT_END_DISABLED = Constants.Dimension.DEFAULT_END_DISABLED;
@@ -34,7 +29,6 @@ public class ConfigManager {
 
     private final JavaPlugin plugin;
     private FileConfiguration config;
-    private ElementConfiguration elementConfiguration;
 
     // The config.yml bundled inside the plugin jar, kept as the single source of
     // truth for "reset to default" - loaded once and reused rather than a second
@@ -53,7 +47,6 @@ public class ConfigManager {
 
     private void loadFromDisk() {
         this.config = plugin.getConfig();
-        this.elementConfiguration = new ElementConfiguration(config.getConfigurationSection("elements"));
     }
 
     public FileConfiguration getConfig() {
@@ -110,27 +103,6 @@ public class ConfigManager {
         return true;
     }
 
-    /**
-     * Resets an entire config section (e.g. "elements.fire") back to its shipped
-     * defaults, wiping any extra keys that had been added under it too.
-     * Returns false (no-op) if the section has no shipped default.
-     */
-    public boolean resetSectionToDefault(String path) {
-        FileConfiguration defaults = getDefaultConfig();
-        ConfigurationSection defaultSection = defaults.getConfigurationSection(path);
-        if (defaultSection == null) {
-            return false;
-        }
-        config.set(path, null);
-        for (String key : defaultSection.getKeys(true)) {
-            if (defaultSection.isConfigurationSection(key)) continue;
-            config.set(path + "." + key, defaultSection.get(key));
-        }
-        plugin.saveConfig();
-        reload();
-        return true;
-    }
-
     /** Resets the entire live config.yml back to the shipped defaults, in place. */
     public void resetAllToDefault() {
         FileConfiguration defaults = getDefaultConfig();
@@ -163,24 +135,6 @@ public class ConfigManager {
             plugin.getLogger().log(Level.WARNING, "Error reading " + path + " from config, using default value " + fallback, e);
             return fallback;
         }
-    }
-
-    // Status effect settings
-    public boolean areStatusEffectsEnabled() {
-        return getBooleanSafe("status_effects.enabled", DEFAULT_STATUS_EFFECTS_ENABLED);
-    }
-
-    public boolean isStatusEffectDamageEnabled() {
-        return getBooleanSafe("status_effects.damage_per_tick", DEFAULT_STATUS_EFFECT_DAMAGE_ENABLED);
-    }
-
-    public boolean areStatusEffectNotificationsEnabled() {
-        return getBooleanSafe("status_effects.notification_messages", DEFAULT_STATUS_EFFECT_NOTIFICATIONS_ENABLED);
-    }
-
-    // Element configuration
-    public ElementConfiguration getElementConfiguration() {
-        return elementConfiguration;
     }
 
     public boolean isAdvancedRerollerRecipeEnabled() {

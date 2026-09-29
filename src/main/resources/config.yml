@@ -1,9 +1,5 @@
 # Element SMP Configuration
 
-
-  ability1_cost: 30
-  ability2_cost: 60
-
 # Recipe Settings
 recipes:
   advanced_reroller_enabled: true
@@ -23,75 +19,3 @@ grace_period:
   auto_start: false
   duration_seconds: 600
   hunger_protection_seconds: 300
-
-# Status Effect Settings
-status_effects:
-  enabled: true
-  damage_per_tick: true
-  notification_messages: true
-
-# Element Configuration (Data-driven settings)
-elements:
-  air:
-    display_name: "Air"
-    color: "LIGHT_PURPLE"
-    enabled: true
-    is_basic: true
-    ability1_cost: 30
-    ability2_cost: 60
-
-  water:
-    display_name: "Water"
-    color: "AQUA"
-    enabled: true
-    is_basic: true
-    ability1_cost: 30
-    ability2_cost: 60
-
-  fire:
-    display_name: "Fire"
-    color: "RED"
-    enabled: true
-    is_basic: true
-    ability1_cost: 30
-    ability2_cost: 60
-
-  earth:
-    display_name: "Earth"
-    color: "GREEN"
-    enabled: true
-    is_basic: true
-    ability1_cost: 30
-    ability2_cost: 60
-
-  life:
-    display_name: "Life"
-    color: "LIGHT_GREEN"
-    enabled: true
-    is_basic: false
-    ability1_cost: 30
-    ability2_cost: 60
-
-  death:
-    display_name: "Death"
-    color: "DARK_GRAY"
-    enabled: true
-    is_basic: false
-    ability1_cost: 30
-    ability2_cost: 60
-
-  metal:
-    display_name: "Metal"
-    color: "GRAY"
-    enabled: true
-    is_basic: false
-    ability1_cost: 30
-    ability2_cost: 60
-
-  frost:
-    display_name: "Frost"
-    color: "WHITE"
-    enabled: true
-    is_basic: false
-    ability1_cost: 30
-    ability2_cost: 60

@@ -84,21 +84,11 @@ public final class CommandSupport {
         return names;
     }
 
-    /** Every settable global config key, in dotted-path form (e.g. "status_effects.enabled"). */
-    public static final List<String> GLOBAL_CONFIG_KEYS = List.of("status_effects.enabled",
-            "status_effects.damage_per_tick", "status_effects.notification_messages",
-            "recipes.advanced_reroller_enabled");
-
-    /** Every settable per-element config key, relative to "elements.<type>.". */
-    public static final List<String> ELEMENT_CONFIG_KEYS = List.of("is_basic",
-            "enabled", "display_name", "color");
+    /** Every settable config key, in dotted-path form (e.g. "recipes.advanced_reroller_enabled"). */
+    public static final List<String> GLOBAL_CONFIG_KEYS = List.of("recipes.advanced_reroller_enabled");
 
     public static List<String> getConfigKeys(String prefix) {
         return filterStartingWith(GLOBAL_CONFIG_KEYS, prefix);
-    }
-
-    public static List<String> getElementConfigKeys(String prefix) {
-        return filterStartingWith(ELEMENT_CONFIG_KEYS, prefix);
     }
 
     public static List<String> getParticleNameSuggestions() {

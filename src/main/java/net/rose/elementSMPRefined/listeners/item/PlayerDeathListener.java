@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined.listeners.item;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,14 +13,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * Handles element item drops and element reroll on player death.
- * 
- * When a player dies:
- * 1. Upgrade items are dropped matching their upgrade level
- * 2. Passive upsides are reapplied after a short delay
+ * Handles upgrader drops when a player dies.
  */
 public class PlayerDeathListener implements Listener {
-    
+
     private static final long REAPPLY_DELAY_TICKS = 1L;
 
     private final ElementSMPRefined plugin;
@@ -31,61 +27,57 @@ public class PlayerDeathListener implements Listener {
         this.elements = elements;
     }
 
-    /**
-     * Handle element item drops on player death.
-     * Prioritized HIGH to run before other death handlers.
-     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        Player deadPlayer = event.getEntity();
-        PlayerData playerData = elements.data(deadPlayer.getUniqueId());
-
-        // Null safety check
-        if (playerData == null) {
+        Player player = event.getEntity();
+        PlayerData data = elements.data(player.getUniqueId());
+        if (data == null) {
             return;
         }
 
-        if (playerData.getCurrentElement() != null) {
-            handleUpgradeDrops(event, playerData, playerData.getCurrentElement());
-        }
-    }
-
-    /**
-     * Drop upgrade items matching the player's upgrade level.
-     */
-    private void handleUpgradeDrops(PlayerDeathEvent event, PlayerData playerData, ElementType currentElement) {
-        int upgradeLevel = playerData.getUpgradeLevel(currentElement);
-
-        if (upgradeLevel <= 0) {
+        ElementType element = data.getCurrentElement();
+        if (element == null) {
             return;
         }
 
-        // Drop Upgrader I
-        if (upgradeLevel >= 1) {
-            ItemStack upgrader1 = plugin.getItemManager().createUpgrader1();
-            if (upgrader1 != null) {
-                event.getDrops().add(upgrader1);
-            }
+        // With keepInventory the player keeps their items, so they must keep their level too
+        if (event.getKeepInventory()) {
+            return;
         }
 
-        // Drop Upgrader II
-        if (upgradeLevel >= 2) {
-            ItemStack upgrader2 = plugin.getItemManager().createUpgrader2();
-            if (upgrader2 != null) {
-                event.getDrops().add(upgrader2);
-            }
+        int level = data.getUpgradeLevel(element);
+        if (level <= 0) {
+            return;
         }
 
-        // Reset upgrade level and save
-        playerData.setUpgradeLevel(currentElement, 0);
-        plugin.getDataStore().save(playerData);
+        ItemStack drop = createUpgraderFor(level);
+        if (drop == null) {
+            // Item couldn't be created, so don't strip the level for nothing
+            plugin.getLogger().warning("Could not create upgrader for level " + level
+                    + " (player " + player.getName() + ")");
+            return;
+        }
 
-        scheduleUpsideReapply(event.getEntity());
+        event.getDrops().add(drop);
+
+        // Lose exactly one level
+        data.setUpgradeLevel(element, level - 1);
+        plugin.getDataStore().save(data);
+
+        scheduleUpsideReapply(player);
     }
 
     /**
-     * Reapply passive upsides after a short delay.
+     * Returns the upgrader item matching the given (current) upgrade level.
      */
+    private ItemStack createUpgraderFor(int level) {
+        return switch (level) {
+            case 1 -> plugin.getItemManager().createUpgrader1();
+            case 2 -> plugin.getItemManager().createUpgrader2();
+            default -> null;
+        };
+    }
+
     private void scheduleUpsideReapply(Player player) {
         new BukkitRunnable() {
             @Override
@@ -96,5 +88,4 @@ public class PlayerDeathListener implements Listener {
             }
         }.runTaskLater(plugin, REAPPLY_DELAY_TICKS);
     }
-
 }

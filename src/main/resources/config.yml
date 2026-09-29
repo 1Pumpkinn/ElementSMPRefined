@@ -1,12 +1,6 @@
 # Element SMP Configuration
 
-# Mana Settings
-mana:
-  max: 100
-  regen_per_second: 1
-  # Flat cost baseline used by anything that isn't a real player with its own
-  # per-element cost below
-  # element/addon without a config section). Change these two values and every
+
   ability1_cost: 30
   ability2_cost: 60
 
@@ -16,9 +10,7 @@ recipes:
 
 # Dimension Settings
 dimensions:
-  # When true, that dimension's portals (and anything entering one - vehicles,
-  # ender pearls, dropped items) are cancelled. Toggle at runtime with
-  # /dimension enable|disable <nether|end|all>.
+  # When true the dimension will not allow anyone to enter
   nether_disabled: true
   end_disabled: true
 

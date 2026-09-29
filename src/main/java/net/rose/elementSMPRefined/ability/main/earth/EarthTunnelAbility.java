@@ -115,11 +115,9 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK,
 
             // Nether Blocks
-            Material.BLACKSTONE, Material.CRIMSON_NYLIUM,
-            Material.WARPED_HYPHAE, Material.SOUL_SAND, Material.BASALT, Material.SOUL_SOIL,
+            Material.BLACKSTONE, Material.CRIMSON_NYLIUM, Material.WARPED_HYPHAE,
+            Material.SOUL_SAND, Material.BASALT,  Material.SMOOTH_BASALT, Material.SOUL_SOIL,
 
-            // End Blocks
-            Material.END_STONE,
 
 
             // Ores
@@ -132,19 +130,10 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE,
             Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
             Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE,
-            Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE,
 
+            // Raw Ores
+            Material.RAW_COPPER_BLOCK, Material.RAW_IRON_BLOCK, Material.RAW_GOLD_BLOCK
 
-
-            Material.NETHERITE_BLOCK,
-            Material.DIAMOND_BLOCK,
-            Material.EMERALD_BLOCK,
-            Material.GOLD_BLOCK,
-            Material.REDSTONE_BLOCK,
-            Material.LAPIS_BLOCK,
-            Material.IRON_BLOCK,
-            Material.COPPER_BLOCK,
-            Material.COAL_BLOCK
     );
 
     @Override

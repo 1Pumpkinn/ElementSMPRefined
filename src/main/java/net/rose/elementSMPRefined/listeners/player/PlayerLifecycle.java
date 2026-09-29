@@ -17,7 +17,7 @@ import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
 import net.rose.elementSMPRefined.util.visual.ElementColours;
-import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

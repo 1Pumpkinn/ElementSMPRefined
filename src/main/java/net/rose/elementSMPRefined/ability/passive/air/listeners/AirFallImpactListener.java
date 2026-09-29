@@ -4,7 +4,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;

@@ -7,7 +7,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

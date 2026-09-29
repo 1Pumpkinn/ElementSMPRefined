@@ -5,7 +5,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -248,7 +248,7 @@ public class WaterGeyserAbility extends BaseAbility implements Listener {
 
     @Override
     public String getName() {
-        return ChatColor.AQUA + "Water Geyser";
+        return ChatColor.AQUA + "Geyser";
     }
 
     @Override

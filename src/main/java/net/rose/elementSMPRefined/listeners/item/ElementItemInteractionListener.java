@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.listeners.item;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ItemManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
-import net.rose.elementSMPRefined.util.visual.SoundUtils;
+import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.util.visual;
+package net.rose.elementSMPRefined.util.sound;
 
 import org.bukkit.Location;
 import org.bukkit.Sound;

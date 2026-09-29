@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.util.visual;
+package net.rose.elementSMPRefined.hud;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;

@@ -255,7 +255,7 @@ public class PlayerLifecycle implements Listener {
 
     /**
      * Without this, an ability's active-state flag (bubble shields, healing beams,
-     * grasp holds, the water geyser's fall immunity, etc.) only clears itself once
+     * stone-fist holds, the water geyser's fall immunity, etc.) only clears itself once
      * that ability's own internal timeout elapses - it never checks whether the
      * player died, only whether they went offline. Death doesn't end an ability
      * early anywhere in this codebase without this hook, so a shield, beam, or

@@ -4,7 +4,7 @@ import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.earth.EarthTunnelAbility;
-import net.rose.elementSMPRefined.ability.main.earth.GraspAbility;
+import net.rose.elementSMPRefined.ability.main.earth.ShockwaveAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
@@ -20,7 +20,7 @@ public class EarthElement extends BaseElement {
     public static final String META_TUNNELING = "earth_tunneling";
 
     public EarthElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new EarthTunnelAbility(plugin, configManager), new GraspAbility(plugin, configManager));
+        super(plugin, new EarthTunnelAbility(plugin, configManager), new ShockwaveAbility(plugin, configManager));
     }
 
     @Override

@@ -30,7 +30,7 @@ import org.bukkit.util.Vector;
  */
 public class DeathBackstabAbility extends BaseAbility {
     private static final double RANGE = 8.0;
-    /** Cosine of the targeting cone half-angle - matches the "looking at" feel used by GraspAbility. */
+    /** Cosine of the targeting cone half-angle - matches the "looking at" feel used by other targeted abilities. */
     private static final double LOOK_DOT_THRESHOLD = 0.8;
     private static final double BEHIND_DISTANCE = 1.2;
     private static final double MIN_BEHIND_DISTANCE = 0.4;

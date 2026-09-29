@@ -34,16 +34,6 @@ public final class Lang {
             Component.text("Tunneling ended", NamedTextColor.YELLOW);
 
 
-    // --- Earth element - Grasp ability ---
-    public static final Component GRASP_YOU_ARE_ALREADY_GRASPING_AN =
-            Component.text("You are already grasping an entity!", NamedTextColor.RED);
-
-    public static final Component GRASP_NO_VALID_TARGET_IN_RANGE =
-            Component.text("No valid target in range!", NamedTextColor.RED);
-
-    public static final Component GRASP_THAT_TARGET_IS_ALREADY_GRASPED =
-            Component.text("That target is already grasped!", NamedTextColor.RED);
-
     // --- Fire element - Hell Chain ability ---
     public static final Component FIRE_HELL_CHAIN_NO_VALID_HOOK_POINT =
             Component.text("No valid hook point!", NamedTextColor.RED);

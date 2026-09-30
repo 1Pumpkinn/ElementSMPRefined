@@ -6,12 +6,10 @@ import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * Enhanced utility class for ItemStack operations and element item management.
@@ -68,17 +66,6 @@ public final class ItemUtil {
         }
     }
 
-    /**
-     * Get the element type from an item stack (Optional version for new code)
-     */
-    public static Optional<ElementType> getElementTypeOptional(ElementSMPRefined plugin, ItemStack stack) {
-        try {
-            return Optional.ofNullable(getElementType(plugin, stack));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
-    }
-
     /** Read both canonical namespaced IDs and legacy enum names from core items. */
     public static Optional<ElementId> getElementIdOptional(ElementSMPRefined plugin, ItemStack stack) {
         String value = getTag(stack, ItemKeys.elementType(plugin), PersistentDataType.STRING).orElse(null);
@@ -90,39 +77,6 @@ public final class ItemUtil {
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
-    }
-
-    /**
-     * Safely modify item meta with automatic restoration
-     */
-    public static ItemStack modifyMeta(ItemStack stack, Consumer<ItemMeta> modifier) {
-        if (stack == null) return null;
-        ItemMeta meta = stack.getItemMeta();
-        if (meta == null) return stack;
-
-        modifier.accept(meta);
-        stack.setItemMeta(meta);
-        return stack;
-    }
-
-    /**
-     * Set a custom persistent data value on an item
-     */
-    public static ItemStack setCustomData(ElementSMPRefined plugin, ItemStack stack, String key, String value) {
-        return modifyMeta(stack, meta -> {
-            meta.getPersistentDataContainer().set(
-                    new NamespacedKey(plugin, key),
-                    PersistentDataType.STRING,
-                    value
-            );
-        });
-    }
-
-    /**
-     * Get a custom persistent data value from an item
-     */
-    public static Optional<String> getCustomData(ElementSMPRefined plugin, ItemStack stack, String key) {
-        return getTag(stack, new NamespacedKey(plugin, key), PersistentDataType.STRING);
     }
 
     /**
@@ -138,44 +92,6 @@ public final class ItemUtil {
         bCopy.setAmount(1);
 
         return aCopy.isSimilar(bCopy);
-    }
-
-    /**
-     * Get the total amount of matching items in an array
-     */
-    public static int countMatching(ItemStack[] items, ItemStack match) {
-        if (items == null || match == null) return 0;
-
-        int count = 0;
-        for (ItemStack item : items) {
-            if (item != null && isSimilar(item, match)) {
-                count += item.getAmount();
-            }
-        }
-        return count;
-    }
-
-    /**
-     * Remove a specific amount of matching items from an array
-     */
-    public static int removeMatching(ItemStack[] items, ItemStack match, int amount) {
-        if (items == null || match == null || amount <= 0) return 0;
-
-        int remaining = amount;
-        for (int i = 0; i < items.length && remaining > 0; i++) {
-            ItemStack item = items[i];
-            if (item != null && isSimilar(item, match)) {
-                int itemAmount = item.getAmount();
-                if (itemAmount <= remaining) {
-                    items[i] = null;
-                    remaining -= itemAmount;
-                } else {
-                    item.setAmount(itemAmount - remaining);
-                    remaining = 0;
-                }
-            }
-        }
-        return amount - remaining;
     }
 
 }

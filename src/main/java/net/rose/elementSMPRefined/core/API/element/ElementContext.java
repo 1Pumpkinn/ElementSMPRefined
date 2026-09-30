@@ -38,11 +38,9 @@ public class ElementContext {
     public Player getPlayer() { return player; }
     public int getUpgradeLevel() { return upgradeLevel; }
     public ElementType getElementType() { return elementType; }
-    public ElementId getElementId() { return elementId; }
     public CooldownManager getCooldownManager() { return cooldownManager; }
     public TrustManager getTrustManager() { return trustManager; }
     public ConfigManager getConfigManager() { return configManager; }
-    public ElementSMPRefined getPlugin() { return plugin; }
 
     // Builder
     public static Builder builder() {

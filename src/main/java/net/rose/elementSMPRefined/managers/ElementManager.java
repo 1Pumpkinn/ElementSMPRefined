@@ -65,8 +65,6 @@ public class ElementManager {
         this.effectService = new EffectService(plugin, this);
         registerAllElements();
     }
-
-    public ElementSMPRefined getPlugin() { return plugin; }
     public EffectService getEffectService() { return effectService; }
     public ElementRegistry getElementRegistry() { return elementRegistry; }
 
@@ -325,10 +323,6 @@ public class ElementManager {
                 .configManager(configManager)
                 .plugin(plugin)
                 .build();
-    }
-
-    public DataStore getStore() {
-        return store;
     }
 
     private void showElementTitle(Player player, ElementId id, String title) {

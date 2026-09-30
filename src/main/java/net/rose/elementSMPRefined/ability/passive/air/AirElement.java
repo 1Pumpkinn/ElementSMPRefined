@@ -23,10 +23,6 @@ public class AirElement extends BaseElement {
         this.fallImpactListener = listener;
     }
 
-    public AirFallImpactListener getFallImpactListener() {
-        return fallImpactListener;
-    }
-
     @Override
     public ElementType getType() {
         return ElementType.AIR;

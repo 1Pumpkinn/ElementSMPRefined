@@ -206,91 +206,10 @@ public class StatusEffectManager {
     }
 
     /**
-     * Convenience method to apply a full stun
-     */
-    public void applyFullStun(Player player, int duration) {
-        applyEffect(player, StatusEffectType.FULL_STUN, duration);
-    }
-
-    /**
-     * Convenience method to apply a partial stun
-     */
-    public void applyPartialStun(Player player, int duration) {
-        applyEffect(player, StatusEffectType.PARTIAL_STUN, duration);
-    }
-
-    /**
      * Convenience method to apply a regular stun
      */
     public void applyStun(Player player, int duration) {
         applyEffect(player, StatusEffectType.STUN, duration);
-    }
-
-    /**
-     * Convenience method to apply a root effect
-     */
-    public void applyRoot(Player player, int duration) {
-        applyEffect(player, StatusEffectType.ROOT, duration);
-    }
-
-    /**
-     * Instantly drains a flat amount of mana from {@code target}, optionally
-     * handing it to {@code caster}. This is a one-shot transfer, not a
-     * lingering status effect - each ability decides its own drain amount
-     * (e.g. one ability might drain 10 mana, another 30), the same way
-     * ability mana costs work.
-     *
-     * @param caster the player who applied the drain (receives the stolen
-     *                mana only if {@code giveToCaster} is true)
-     * @param target the player being drained
-     * @param amount how much mana to attempt to drain
-     * @param giveToCaster if true, the drained mana is credited to
-     *                      {@code caster}; if false the mana is just removed
-     *                      from the target and nobody receives it
-     * @return the amount actually drained (capped at the target's current mana)
-     */
-
-    /**
-     * Convenience overload that always credits the stolen mana to
-     * {@code caster}. Equivalent to {@code applyManaSteal(caster, target,
-     * amount, true)}.
-     */
-    public int applyManaSteal(Player caster, Player target, int amount) {
-        return applyManaSteal(caster, target, amount);
-    }
-
-    /**
-     * Remove a status effect from a player
-     */
-    public void removeEffect(Player player, StatusEffectType type) {
-        UUID uuid = player.getUniqueId();
-        Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects.get(uuid);
-
-        if (playerEffects != null) {
-            StatusEffectInstance removed = playerEffects.remove(type);
-            if (removed != null) {
-                removePotionEffects(player, type);
-                StatusEffectData data = effectData.get(type);
-                if (data != null) {
-                    player.sendMessage(Component.text(data.displayName() + " removed", NamedTextColor.GREEN));
-                }
-            }
-        }
-    }
-
-    /**
-     * Remove all status effects from a player
-     */
-    public void removeAllEffects(Player player) {
-        UUID uuid = player.getUniqueId();
-        Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects.remove(uuid);
-
-        if (playerEffects != null) {
-            for (StatusEffectType type : playerEffects.keySet()) {
-                removePotionEffects(player, type);
-            }
-            player.sendMessage(Component.text("All status effects removed", NamedTextColor.GREEN));
-        }
     }
 
     /**
@@ -324,20 +243,6 @@ public class StatusEffectManager {
     }
 
     /**
-     * Check if a player is fully stunned (cannot move, look, or interact)
-     */
-    public boolean isFullyStunned(Player player) {
-        return hasEffect(player, StatusEffectType.FULL_STUN);
-    }
-
-    /**
-     * Check if a player is partially stunned (cannot move or look, but can interact)
-     */
-    public boolean isPartiallyStunned(Player player) {
-        return hasEffect(player, StatusEffectType.PARTIAL_STUN);
-    }
-
-    /**
      * Check if a player is stunned (cannot move, but can look and interact)
      */
     public boolean isStunned(Player player) {
@@ -353,27 +258,6 @@ public class StatusEffectManager {
         }
         // Mobs don't use the status effect system for stuns
         return false;
-    }
-
-    /**
-     * Check if a player is rooted (cannot move but can look and interact)
-     */
-    public boolean isRooted(Player player) {
-        return hasEffect(player, StatusEffectType.ROOT);
-    }
-
-    /**
-     * Check if a player has any type of stun (full, partial, or regular)
-     */
-    public boolean hasAnyStun(Player player) {
-        return isFullyStunned(player) || isPartiallyStunned(player) || isStunned(player) || isRooted(player);
-    }
-
-    /**
-     * Check if a player is frozen (cannot move but can act)
-     */
-    public boolean isFrozen(Player player) {
-        return hasEffect(player, StatusEffectType.FREEZE);
     }
 
     /**
@@ -583,10 +467,6 @@ public class StatusEffectManager {
 
         public int getAmplifier() {
             return amplifier;
-        }
-
-        public UUID getSource() {
-            return source;
         }
 
         public void setSource(UUID source) {

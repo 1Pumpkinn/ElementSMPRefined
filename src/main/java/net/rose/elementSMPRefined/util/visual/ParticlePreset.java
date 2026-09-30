@@ -190,8 +190,7 @@ public enum ParticlePreset {
                     origin,
                     origin.clone().add(player.getLocation().getDirection().multiply(length)),
                     particle,
-                    Math.max(0.1, width),
-                    false
+                    Math.max(0.1, width)
             ));
             case ORBIT -> {
                 ParticlePatterns.spawnCircle(new ParticlePatterns.CircleConfig(origin, size, particle, Math.max(12, (int) Math.round(width)), true, 0.2));

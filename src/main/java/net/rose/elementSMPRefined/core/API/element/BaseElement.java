@@ -32,10 +32,6 @@ public abstract class BaseElement implements Element {
         this.ability2 = ability2;
     }
 
-    public ElementSMPRefined getPlugin() {
-        return plugin;
-    }
-
     @Override
     public final boolean ability1(ElementContext context) {
         return activate(context, ability1, 1, this::canCancelAbility1);

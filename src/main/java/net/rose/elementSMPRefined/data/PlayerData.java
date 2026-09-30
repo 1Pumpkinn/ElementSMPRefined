@@ -16,7 +16,6 @@ import java.util.*;
  */
 public final class PlayerData {
 
-
     /** Upgrade levels are clamped to [0, MAX_UPGRADE_LEVEL]. */
     public static final int MAX_UPGRADE_LEVEL = 2;
 
@@ -56,10 +55,6 @@ public final class PlayerData {
 
     public int getCurrentElementUpgradeLevel() {
         return currentElementUpgradeLevel;
-    }
-
-    public Set<ElementType> getOwnedItems() {
-        return EnumSet.copyOf(ownedItems);
     }
 
     public Set<ElementId> getOwnedItemIds() {
@@ -140,16 +135,6 @@ public final class PlayerData {
         }
     }
 
-    public Map<ElementType, Integer> getUpgradesView() {
-        Map<ElementType, Integer> map = new EnumMap<>(ElementType.class);
-
-        if (currentElement != null) {
-            map.put(currentElement, currentElementUpgradeLevel);
-        }
-
-        return Collections.unmodifiableMap(map);
-    }
-
     public boolean hasElementItem(ElementType type) {
         return type != null && hasElementItem(ElementId.builtin(type));
     }
@@ -204,10 +189,6 @@ public final class PlayerData {
 
     public void addTrustedPlayer(UUID uuid) {
         trustedPlayers.add(uuid);
-    }
-
-    public void removeTrustedPlayer(UUID uuid) {
-        trustedPlayers.remove(uuid);
     }
 
     public void setTrustedPlayers(Set<UUID> trusted) {

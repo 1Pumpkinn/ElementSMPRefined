@@ -54,28 +54,6 @@ public class CooldownManager {
         cooldowns.computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap<>()).put(abilityId, readyAt);
     }
 
-    /**
-     * Reduces the remaining cooldown on an ability by a number of seconds,
-     * clearing it entirely if the reduction covers what's left. No-op if the
-     * ability isn't currently on cooldown. Used by effects that shorten a
-     * player's own other ability (e.g. Death's backstab).
-     */
-    public void reduceCooldown(Player player, String abilityId, int seconds) {
-        if (seconds <= 0) return;
-        Map<String, Long> playerCooldowns = cooldowns.get(player.getUniqueId());
-        if (playerCooldowns == null) return;
-
-        playerCooldowns.computeIfPresent(abilityId, (id, readyAt) -> {
-            long reduced = readyAt - (seconds * 1000L);
-            return reduced <= System.currentTimeMillis() ? null : reduced;
-        });
-    }
-
-    /** Clears every cooldown for a player, e.g. on element change or admin reset. */
-    public void clearAll(Player player) {
-        cooldowns.remove(player.getUniqueId());
-    }
-
     /** Clears a single ability's cooldown for a player. */
     public void clear(Player player, String abilityId) {
         Map<String, Long> playerCooldowns = cooldowns.get(player.getUniqueId());

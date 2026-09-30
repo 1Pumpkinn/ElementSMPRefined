@@ -29,16 +29,6 @@ public final class TaskScheduler {
         this.plugin = plugin;
     }
 
-    /** Run a task immediately on the main thread. */
-    public BukkitTask runNow(Runnable task) {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        }.runTask(plugin);
-    }
-
     /** Run a task later on the main thread. */
     public BukkitTask runLater(Runnable task, long delayTicks) {
         return new BukkitRunnable() {
@@ -62,16 +52,6 @@ public final class TaskScheduler {
                 task.run();
             }
         }.runTaskTimer(plugin, delayTicks, periodTicks);
-    }
-
-    /** Run a task asynchronously (off the main thread). */
-    public BukkitTask runAsync(Runnable task) {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        }.runTaskAsynchronously(plugin);
     }
 
     /**

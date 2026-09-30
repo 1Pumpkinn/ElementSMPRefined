@@ -1,7 +1,5 @@
 package net.rose.elementSMPRefined.services;
 
-import net.rose.elementSMPRefined.data.PlayerData;
-import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -21,13 +19,5 @@ public class ValidationService {
         }
 
         return true;
-    }
-
-    public boolean hasUpgradeLevel(PlayerData pd, int required) {
-        return pd.getCurrentElementUpgradeLevel() >= required;
-    }
-
-    public boolean canUseElementItem(Player player, ElementType itemElement, PlayerData pd) {
-        return pd.getCurrentElement() == itemElement;
     }
 }

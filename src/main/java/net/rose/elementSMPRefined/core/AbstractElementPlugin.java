@@ -113,7 +113,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.trustManager = new TrustManager(this, dataStore);
         this.cooldownManager = new CooldownManager();
         this.elementManager = new ElementManager(this, dataStore, cooldownManager, trustManager, configManager);
-        this.itemManager = new ItemManager(this, configManager);
+        this.itemManager = new ItemManager(this);
         this.statusEffectManager = new StatusEffectManager(this);
         this.disarmManager = new DisarmManager(this);
     }
@@ -139,8 +139,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     private void startBackgroundTasks() {
         cooldownActionBarTask.start(taskScheduler);
     }
-
-
 
     private void cleanup() {
         if (statusEffectManager != null) {
@@ -173,12 +171,8 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
     public DisarmManager getDisarmManager() { return disarmManager; }
     public EffectService getEffectService() { return effectService; }
-    public ValidationService getValidationService() { return validationService; }
     public CooldownActionBarTask getCooldownActionBarTask() { return cooldownActionBarTask; }
     public TaskScheduler getTaskScheduler() { return taskScheduler; }
     public MetadataHelper getMetadataHelper() { return metadataHelper; }
-
-    public CommandInitializer getCommandInitializer() { return commandInitializer; }
     public ListenerInitializer getListenerInitializer() { return listenerInitializer; }
-    public RecipeInitializer getRecipeInitializer() { return recipeInitializer; }
 }

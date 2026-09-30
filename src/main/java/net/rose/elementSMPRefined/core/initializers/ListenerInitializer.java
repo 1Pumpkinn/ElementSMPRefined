@@ -17,7 +17,6 @@ import net.rose.elementSMPRefined.ability.passive.metal.listeners.MetalChainStun
 import net.rose.elementSMPRefined.listeners.GUIListener;
 import net.rose.elementSMPRefined.listeners.ability.AbilityListener;
 import net.rose.elementSMPRefined.listeners.handler.AdvancedRerollerHandler;
-import net.rose.elementSMPRefined.listeners.item.ElementCombatListener;
 import net.rose.elementSMPRefined.listeners.item.ElementItemCraftingListener;
 import net.rose.elementSMPRefined.listeners.item.PlayerDeathListener;
 import net.rose.elementSMPRefined.listeners.item.ElementItemInteractionListener;
@@ -88,10 +87,9 @@ public class ListenerInitializer {
     }
 
     private void registerItemListeners() {
-        pluginManager.registerEvents(new ElementItemInteractionListener(plugin, plugin.getItemManager()), plugin);
+        pluginManager.registerEvents(new ElementItemInteractionListener(plugin), plugin);
         pluginManager.registerEvents(new ElementItemCraftingListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new PlayerDeathListener(plugin, plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new ElementCombatListener(plugin.getItemManager()), plugin);
         pluginManager.registerEvents(new RerollerHandler(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new AdvancedRerollerHandler(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new UpgraderHandler(plugin, plugin.getElementManager()), plugin);
@@ -164,23 +162,6 @@ public class ListenerInitializer {
         if (gracePeriod != null) {
             gracePeriod.cleanup();
         }
-    }
-
-    // Getters for listeners that need to be accessed elsewhere
-    public AirFallImpactListener getAirFallImpactListener() {
-        return airFallImpactListener;
-    }
-
-    public FrostPassiveListener getFrostPassiveListener() {
-        return frostPassiveListener;
-    }
-
-    public GUIListener getGuiListener() {
-        return guiListener;
-    }
-
-    public AbilityListener getAbilityListener() {
-        return abilityListener;
     }
 
     public GracePeriod getGracePeriod() {

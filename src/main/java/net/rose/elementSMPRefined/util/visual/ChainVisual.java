@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.visual;
 
+import net.rose.elementSMPRefined.items.builder.ItemBuilder;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -67,9 +68,7 @@ public final class ChainVisual {
 
     public ChainVisual(NamespacedKey model) {
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        ItemStack item = new ItemStack(Material.STICK);
-        item.editMeta(meta -> meta.setItemModel(model));
-        this.modelItem = item;
+        this.modelItem = ItemBuilder.of(Material.STICK).itemModel(model).build();
         ACTIVE.add(this);
     }
 

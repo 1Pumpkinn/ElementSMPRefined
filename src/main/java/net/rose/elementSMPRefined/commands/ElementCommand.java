@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.commands;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.commands.element.CommandSupport;
 import net.rose.elementSMPRefined.commands.element.ConfigCommand;
+import net.rose.elementSMPRefined.commands.element.DataCommand;
 import net.rose.elementSMPRefined.commands.element.DebugCommand;
 import net.rose.elementSMPRefined.commands.element.ElementSubCommand;
 import net.rose.elementSMPRefined.commands.element.ParticlesCommand;
@@ -41,6 +42,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager(),
                 plugin.getCooldownManager(), plugin.getDisarmManager(),
                 plugin.getStatusEffectManager(), plugin.getTrustManager()));
+        commands.put("data", new DataCommand(plugin.getDataStore(), plugin.getElementManager(),
+                plugin.getCooldownManager(), plugin.getDisarmManager(), plugin.getStatusEffectManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
         return commands;
     }
@@ -111,6 +114,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("=== Element Admin Commands ===", NamedTextColor.GOLD));
         sender.sendMessage(Component.text("/element particles <preset> - Preview a particle pattern at your feet", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element set <player> <element> - Set player's element", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("/element data [player] - Show a player's stored data and live state (read-only)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element debug [player] - Debug a player's element data (defaults to yourself)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("  reload | reset [key] | reset element <element> [key]", NamedTextColor.GRAY));

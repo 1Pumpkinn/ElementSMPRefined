@@ -22,7 +22,7 @@ commands:
 
   element:
     description: Element admin commands
-    usage: /element <set|debug> [player] [element]
+    usage: /element <set|data|debug|config|particles> [player] [element]
     permission: element.admin
 
   mana:

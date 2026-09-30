@@ -83,7 +83,6 @@ public class MeteorCrashAbility extends BaseAbility {
 
         world.playSound(startLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
         world.playSound(startLoc, Sound.ENTITY_BLAZE_SHOOT, 1.2f, 0.8f);
-        player.sendMessage(Lang.METEOR_CRASH_YOU_LAUNCH_INTO_METEOR_CRASH);
 
         BukkitRunnable task = new BukkitRunnable() {
             private int ticksAlive = 0;

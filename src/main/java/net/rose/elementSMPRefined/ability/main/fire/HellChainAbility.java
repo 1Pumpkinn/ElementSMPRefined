@@ -120,7 +120,6 @@ public class HellChainAbility extends BaseAbility {
         );
 
         if (result == null) {
-            player.sendMessage(Lang.FIRE_HELL_CHAIN_NO_VALID_HOOK_POINT);
             return false;
         }
 
@@ -129,7 +128,6 @@ public class HellChainAbility extends BaseAbility {
 
         if (hookedEntity instanceof Player hookedPlayer
                 && trust.isTrusted(player.getUniqueId(), hookedPlayer.getUniqueId())) {
-            player.sendMessage(Lang.FIRE_HELL_CHAIN_NO_VALID_HOOK_POINT);
             return false;
         }
 

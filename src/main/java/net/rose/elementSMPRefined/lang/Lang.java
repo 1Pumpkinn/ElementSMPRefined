@@ -34,15 +34,6 @@ public final class Lang {
             Component.text("Tunneling ended", NamedTextColor.YELLOW);
 
 
-    // --- Fire element - Hell Chain ability ---
-    public static final Component FIRE_HELL_CHAIN_NO_VALID_HOOK_POINT =
-            Component.text("No valid hook point!", NamedTextColor.RED);
-
-    // --- Fire element - Meteor Crash ability ---
-    public static final Component METEOR_CRASH_YOU_LAUNCH_INTO_METEOR_CRASH =
-            Component.text("You launch into a meteor crash!", NamedTextColor.GOLD);
-
-
     // --- Frost element - Freezing Circle ability ---
     public static final Component FROST_CIRCLE_FREEZING_CIRCLE_IS_ALREADY_ACTIVE =
             Component.text("Freezing Circle is already active!", NamedTextColor.RED);

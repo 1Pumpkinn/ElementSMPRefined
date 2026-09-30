@@ -4,28 +4,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 
 /**
- * Builds action-bar {@link Component}s that render a custom bitmap image,
- * the same trick Bliss SMP and similar packs use: a resource-pack font maps
- * private-use-area codepoints to a bitmap texture, and any text sent using
- * that font key renders the bitmap instead of normal glyphs.
- * <p>
- * Backing assets (see the shipped resource pack):
- * <ul>
- *   <li>{@code assets/elementsmprefined/font/actionbar.json} - the font
- *       definition: one bitmap provider for the icon, plus a set of
- *       negative/positive "space" glyphs for nudging layout by a fixed pixel
- *       width, which is how Minecraft fakes kerning/positioning since action
- *       bar text is otherwise just centered as a whole string.</li>
- *   <li>{@code assets/elementsmprefined/textures/font/actionbar_icon.png} -
- *       the actual image. Swap this file for custom art; nothing in code or
- *       the font json needs to change as long as the new PNG has the same
- *       dimensions (or you re-tune {@code height}/{@code ascent} in
- *       actionbar.json to match).</li>
- * </ul>
- * <p>
- * Requires the player to have the resource pack applied - if they've
- * declined or not downloaded it, the codepoint renders as the client's
- * missing-glyph box instead of the icon.
+Still working on this is gonna be for Ability Images that will display next to the Ability Name [Image] [Ability_Name] [Cooldown]
  */
 public final class ActionBarImage {
 

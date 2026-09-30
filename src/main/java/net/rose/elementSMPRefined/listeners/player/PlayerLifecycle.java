@@ -10,7 +10,6 @@ import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.listeners.GUIListener;
-import net.rose.elementSMPRefined.listeners.ability.AbilityListener;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.services.EffectService;
@@ -46,7 +45,6 @@ public class PlayerLifecycle implements Listener {
     private final FrostPassiveListener frostPassiveListener;
     private final AirFallImpactListener airFallImpactListener;
     private final GUIListener guiListener;
-    private final AbilityListener abilityListener;
     private final MetalShardAbility metalShardAbility;
     private final Random random = new Random();
 
@@ -56,7 +54,6 @@ public class PlayerLifecycle implements Listener {
                            FrostPassiveListener frostPassiveListener,
                            AirFallImpactListener airFallImpactListener,
                            GUIListener guiListener,
-                           AbilityListener abilityListener,
                            MetalShardAbility metalDashAbility) {
         this.plugin = plugin;
         this.elementManager = elementManager;
@@ -66,7 +63,6 @@ public class PlayerLifecycle implements Listener {
         this.frostPassiveListener = frostPassiveListener;
         this.airFallImpactListener = airFallImpactListener;
         this.guiListener = guiListener;
-        this.abilityListener = abilityListener;
         this.metalShardAbility = metalDashAbility;
     }
 
@@ -244,9 +240,6 @@ public class PlayerLifecycle implements Listener {
         }
         if (guiListener != null) {
             guiListener.onPlayerQuit(playerUuid);
-        }
-        if (abilityListener != null) {
-            abilityListener.onPlayerQuit(playerUuid);
         }
         if (metalShardAbility != null) {
             metalShardAbility.onPlayerQuit(playerUuid);

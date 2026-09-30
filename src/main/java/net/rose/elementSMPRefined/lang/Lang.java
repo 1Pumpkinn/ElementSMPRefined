@@ -56,18 +56,6 @@ public final class Lang {
     public static final Component WATER_BUBBLE_YOUR_WATER_BUBBLE_IS_ALREADY =
             Component.text("Your water bubble is already active!", NamedTextColor.RED);
 
-
-    // --- Water element - Pull Down ability ---
-    public static final Component WATER_PULL_DOWN_YOU_NEED_BE_IN_WATER =
-            Component.text("You need to be in water to pull someone under!", NamedTextColor.RED);
-
-    public static final Component WATER_PULL_DOWN_NO_TARGET_FOUND =
-            Component.text("No target found!", NamedTextColor.RED);
-
-    public static final Component WATER_PULL_DOWN_YOU_CANNOT_PULL_DOWN_TRUSTED =
-            Component.text("You cannot pull down trusted players!", NamedTextColor.RED);
-
-
     // --- /trust command ---
     public static final Component TRUST_PLAYERS_ONLY =
             Component.text("Players only");

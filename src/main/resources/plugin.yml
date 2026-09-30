@@ -10,6 +10,16 @@ commands:
     description: Manage trust relationships
     usage: /trust <list|add|remove|accept|deny> [player]
 
+  ability1:
+    description: Use your element's first ability
+    usage: /ability1
+    aliases: [ a1 ]
+
+  ability2:
+    description: Use your element's second ability
+    usage: /ability2
+    aliases: [ a2 ]
+
   element:
     description: Element admin commands
     usage: /element <set|debug> [player] [element]

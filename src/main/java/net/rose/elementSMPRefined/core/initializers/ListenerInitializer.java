@@ -15,7 +15,6 @@ import net.rose.elementSMPRefined.ability.passive.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.metal.listeners.MetalArrowImmunityListener;
 import net.rose.elementSMPRefined.ability.passive.metal.listeners.MetalChainStunListener;
 import net.rose.elementSMPRefined.listeners.GUIListener;
-import net.rose.elementSMPRefined.listeners.ability.AbilityListener;
 import net.rose.elementSMPRefined.listeners.handler.AdvancedRerollerHandler;
 import net.rose.elementSMPRefined.listeners.item.ElementItemCraftingListener;
 import net.rose.elementSMPRefined.listeners.item.PlayerDeathListener;
@@ -44,7 +43,6 @@ public class ListenerInitializer {
     private AirFallImpactListener airFallImpactListener;
     private FrostPassiveListener frostPassiveListener;
     private GUIListener guiListener;
-    private AbilityListener abilityListener;
     private MetalShardAbility metalShardAbility;
     private GracePeriod gracePeriod;
 
@@ -64,9 +62,6 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new InvisibilityNameHider(), plugin);
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
         pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.CombatListener(plugin.getTrustManager()), plugin);
-
-        this.abilityListener = new AbilityListener(plugin, plugin.getElementManager(), plugin.getDisarmManager());
-        pluginManager.registerEvents(abilityListener, plugin);
 
         pluginManager.registerEvents(new StatusEffectListener(plugin), plugin);
         pluginManager.registerEvents(new DisarmListener(plugin.getDisarmManager()), plugin);
@@ -149,7 +144,6 @@ public class ListenerInitializer {
                 frostPassiveListener,
                 airFallImpactListener,
                 guiListener,
-                abilityListener,
                 metalShardAbility
         );
         pluginManager.registerEvents(playerLifecycleListener, plugin);

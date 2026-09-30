@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.commands.AbilityCommand;
 import net.rose.elementSMPRefined.commands.ElementCommand;
 import net.rose.elementSMPRefined.commands.ElementInfoCommand;
 import net.rose.elementSMPRefined.commands.DimensionCommand;
@@ -24,7 +25,11 @@ public class CommandInitializer {
     public void registerCommands() {
         plugin.getLogger().info("Registering commands...");
 
+        AbilityCommand abilityCommand = new AbilityCommand(plugin.getElementManager(), plugin.getDisarmManager());
+
         CommandRegister.register(plugin)
+                .command("ability1", abilityCommand)
+                .command("ability2", abilityCommand)
                 .command("elements", new ElementInfoCommand(plugin))
                 .command("trust", new TrustCommand(plugin, plugin.getTrustManager()))
                 .command("element", new ElementCommand(plugin))

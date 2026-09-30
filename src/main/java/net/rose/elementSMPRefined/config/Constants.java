@@ -21,9 +21,6 @@ public final class Constants {
     public static final class Animation {
         public static final int ROLL_STEPS = 16;
         public static final long ROLL_DELAY_TICKS = 3L;
-        public static final long DOUBLE_TAP_THRESHOLD_MS = 250L;
-        public static final long TAP_CHECK_DELAY = 6L;
-        public static final long TAP_CLEANUP_DELAY = 2L;
 
         private Animation() {}
     }

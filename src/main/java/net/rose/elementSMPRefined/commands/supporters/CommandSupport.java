@@ -1,14 +1,11 @@
 package net.rose.elementSMPRefined.commands.supporters;
 
-import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -37,7 +34,7 @@ public final class CommandSupport {
     }
 
     public static List<String> getElementNames() {
-        return Arrays.stream(ElementType.values())
+        return ElementType.playable().stream()
                 .map(type -> type.name().toLowerCase(Locale.ROOT))
                 .toList();
     }
@@ -47,40 +44,7 @@ public final class CommandSupport {
     }
 
     public static Optional<ElementType> parseElementType(String input) {
-        try {
-            return Optional.of(ElementType.valueOf(input.toUpperCase(Locale.ROOT)));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Resolves either a bare builtin name ("fire") or a namespaced addon ID
-     * ("elementevents:storm") to an {@link ElementId}. Used by {@code /element set}
-     * so admins can target addon elements, not just the 8 builtins.
-     */
-    public static Optional<ElementId> parseElementId(ElementManager elementManager, String input) {
-        Optional<ElementType> builtin = parseElementType(input);
-        if (builtin.isPresent()) {
-            return Optional.of(ElementId.builtin(builtin.get()));
-        }
-        try {
-            ElementId id = ElementId.parse(input);
-            return elementManager.getElementRegistry().isRegistered(id) ? Optional.of(id) : Optional.empty();
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
-    }
-
-    /** Builtin names plus every registered addon element's "namespace:key" ID. */
-    public static List<String> getAllElementNames(ElementManager elementManager) {
-        List<String> names = new ArrayList<>(getElementNames());
-        for (ElementId id : elementManager.getElementRegistry().getAllIds()) {
-            if (id.toBuiltinType() == null) {
-                names.add(id.toString());
-            }
-        }
-        return names;
+        return ElementType.parse(input).filter(ElementType::isPlayable);
     }
 
     /** Every settable config key, in dotted-path form (e.g. "recipes.advanced_reroller_enabled"). */

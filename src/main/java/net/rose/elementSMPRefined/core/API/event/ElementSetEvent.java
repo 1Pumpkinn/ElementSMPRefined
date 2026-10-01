@@ -1,13 +1,13 @@
 package net.rose.elementSMPRefined.core.API.event;
 
-import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
  * Fired after a player's element is directly set via
- * {@link net.rose.elementSMPRefined.managers.ElementManager#setElement(Player, ElementId)}
+ * {@link net.rose.elementSMPRefined.managers.ElementManager#setElement(Player, ElementType)}
  * (e.g. a GUI reroll) - preserves the player's existing upgrade level, as
  * opposed to {@link ElementAssignEvent} which resets it.
  * <p>
@@ -18,26 +18,26 @@ public class ElementSetEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final Player player;
-    private final ElementId newElementId;
-    private final ElementId previousElementId;
+    private final ElementType newElement;
+    private final ElementType previousElement;
 
-    public ElementSetEvent(Player player, ElementId newElementId, ElementId previousElementId) {
+    public ElementSetEvent(Player player, ElementType newElement, ElementType previousElement) {
         this.player = player;
-        this.newElementId = newElementId;
-        this.previousElementId = previousElementId;
+        this.newElement = newElement;
+        this.previousElement = previousElement;
     }
 
     public Player getPlayer() {
         return player;
     }
 
-    public ElementId getNewElementId() {
-        return newElementId;
+    public ElementType getNewElement() {
+        return newElement;
     }
 
     /** The element the player had before this change, or {@code null} if they had none. */
-    public ElementId getPreviousElementId() {
-        return previousElementId;
+    public ElementType getPreviousElement() {
+        return previousElement;
     }
 
     @Override

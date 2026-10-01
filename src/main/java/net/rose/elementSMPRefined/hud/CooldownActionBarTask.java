@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.Element;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.event.AbilityActivateEvent;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.lang.Lang;
@@ -80,10 +80,10 @@ public class CooldownActionBarTask implements Listener {
 
     private void updateFor(Player player) {
         PlayerData pd = elementManager.data(player.getUniqueId());
-        ElementId id = pd.getCurrentElementId();
-        if (id == null) return;
+        ElementType type = pd.getCurrentElement();
+        if (type == null) return;
 
-        Element element = elementManager.get(id);
+        Element element = elementManager.get(type);
         if (element == null) return;
 
         long remaining1 = cooldownManager.getRemainingSeconds(player, element.getAbility1Id());

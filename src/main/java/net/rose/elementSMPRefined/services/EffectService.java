@@ -3,7 +3,6 @@ package net.rose.elementSMPRefined.services;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.core.API.element.Element;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
@@ -65,14 +64,14 @@ public class EffectService implements Listener {
      * sweep is for the logout safety net, not the hot path every reroll
      * runs through.
      */
-    public void clearElementEffects(Player player, ElementId id) {
-        if (id != null) {
-            Element element = elementManager.get(id);
+    public void clearElementEffects(Player player, ElementType type) {
+        if (type != null) {
+            Element element = elementManager.get(type);
             if (element != null) {
                 element.clearEffects(player);
             }
         }
-        updatePlayerHealth(player, id == null ? null : id.toBuiltinType());
+        updatePlayerHealth(player, type);
     }
 
     /**
@@ -99,13 +98,13 @@ public class EffectService implements Listener {
      */
     public void applyPassiveEffects(Player player) {
         PlayerData pd = elementManager.data(player.getUniqueId());
-        ElementId id = pd.getCurrentElementId();
+        ElementType type = pd.getCurrentElement();
 
-        if (id == null) return;
+        if (type == null) return;
 
-        Element element = elementManager.get(id);
+        Element element = elementManager.get(type);
         if (element != null) {
-            element.applyUpsides(player, pd.getUpgradeLevel(id));
+            element.applyUpsides(player, pd.getUpgradeLevel(type));
         }
     }
 

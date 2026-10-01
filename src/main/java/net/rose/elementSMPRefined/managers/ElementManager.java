@@ -3,7 +3,6 @@ package net.rose.elementSMPRefined.managers;
 import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.core.API.event.AbilityActivateEvent;
 import net.rose.elementSMPRefined.core.API.event.ElementAssignEvent;
 import net.rose.elementSMPRefined.core.API.event.ElementSetEvent;
@@ -79,10 +78,10 @@ public class ElementManager {
     /**
      * All advanced (non-basic) elements that can be rolled with the advanced
      * reroller. Always the exact complement of {@link #getBasicElements()} -
-     * every {@link ElementType} lands in exactly one of the two lists.
+     * every playable {@link ElementType} lands in exactly one of the two lists.
      */
     public ElementType[] getAdvancedElements() {
-        EnumSet<ElementType> advanced = EnumSet.allOf(ElementType.class);
+        EnumSet<ElementType> advanced = ElementType.playable();
         advanced.removeAll(classifyBasicElements());
         return advanced.toArray(new ElementType[0]);
     }
@@ -127,16 +126,8 @@ public class ElementManager {
         return elementRegistry.get(type);
     }
 
-    public Element get(ElementId id) {
-        return elementRegistry.get(id);
-    }
-
     public ElementType getPlayerElement(Player player) {
         return data(player.getUniqueId()).getCurrentElement();
-    }
-
-    public ElementId getPlayerElementId(Player player) {
-        return data(player.getUniqueId()).getCurrentElementId();
     }
 
     public boolean isCurrentlyRolling(Player player) {
@@ -197,60 +188,47 @@ public class ElementManager {
      * switch. That's genuinely shared machinery, not reroller-specific code.
      */
     public void assignBasicElement(Player player, ElementType type) {
-        assignElementInternal(player, ElementId.builtin(type), "Element Assigned!", false);
-    }
-
-    public void assignElement(Player player, ElementType type) {
-        assignElement(player, ElementId.builtin(type));
+        assignElementInternal(player, type, "Element Assigned!", false);
     }
 
     /**
-     * Generic version of {@link #assignElement(Player, ElementType)} that also
-     * accepts addon element IDs. Used e.g. by an altar/event granting a specific
-     * collected element outright (no rolling).
+     * Assigns an element outright (no rolling), resetting the upgrade level. Used e.g.
+     * by an altar/event granting a specific collected element.
      */
-    public void assignElement(Player player, ElementId id) {
-        assignElementInternal(player, id, "Element Chosen!", true);
+    public void assignElement(Player player, ElementType type) {
+        assignElementInternal(player, type, "Element Chosen!", true);
     }
 
     public void setElement(Player player, ElementType type) {
-        setElement(player, ElementId.builtin(type));
-    }
-
-    /**
-     * Generic version of {@link #setElement(Player, ElementType)} that also
-     * accepts addon element IDs.
-     */
-    public void setElement(Player player, ElementId id) {
         PlayerData pd = data(player.getUniqueId());
-        ElementId old = pd.getCurrentElementId();
+        ElementType old = pd.getCurrentElement();
 
-        if (old != null && !old.equals(id)) {
+        if (old != null && old != type) {
             handleElementSwitch(player, old);
         }
 
-        pd.setCurrentElement(id);
+        pd.setCurrentElement(type);
         store.save(pd);
 
-        player.sendMessage(Lang.elementManagerYourElementIsNow(displayNameOf(id)));
+        player.sendMessage(Lang.elementManagerYourElementIsNow(displayNameOf(type)));
         applyUpsides(player);
 
-        plugin.getServer().getPluginManager().callEvent(new ElementSetEvent(player, id, old));
+        plugin.getServer().getPluginManager().callEvent(new ElementSetEvent(player, type, old));
     }
 
-    private void assignElementInternal(Player player, ElementId id, String titleText, boolean resetLevel) {
+    private void assignElementInternal(Player player, ElementType type, String titleText, boolean resetLevel) {
         PlayerData pd = data(player.getUniqueId());
-        ElementId old = pd.getCurrentElementId();
+        ElementType old = pd.getCurrentElement();
 
-        if (old != null && !old.equals(id)) {
+        if (old != null && old != type) {
             handleElementSwitch(player, old);
         }
 
         if (resetLevel) {
-            pd.setCurrentElement(id);
+            pd.setCurrentElement(type);
         } else {
             int currentUpgrade = pd.getCurrentElementUpgradeLevel();
-            pd.setCurrentElementWithoutReset(id);
+            pd.setCurrentElementWithoutReset(type);
             pd.setCurrentElementUpgradeLevel(currentUpgrade);
         }
 
@@ -261,23 +239,22 @@ public class ElementManager {
         // that cost scales with total player count/history, not with this one
         // reroll, and was the cause of the reroll lag spikes.
         store.saveAsync(pd);
-        showElementTitle(player, id, titleText);
+        showElementTitle(player, type, titleText);
         applyUpsides(player);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
 
-        plugin.getServer().getPluginManager().callEvent(new ElementAssignEvent(player, id, old));
+        plugin.getServer().getPluginManager().callEvent(new ElementAssignEvent(player, type, old));
     }
 
-    private String displayNameOf(ElementId id) {
-        Element element = elementRegistry.get(id);
-        return element != null ? element.getDisplayName() : id.key();
+    private String displayNameOf(ElementType type) {
+        Element element = elementRegistry.get(type);
+        return element != null ? element.getDisplayName() : type.name();
     }
 
-    private void handleElementSwitch(Player player, ElementId oldId) {
+    private void handleElementSwitch(Player player, ElementType oldType) {
         // Only clear the element actually being left - see EffectService.clearElementEffects
         // for why this replaced the old full-registry clearAllElementEffects() call here.
-        // Pass the full ElementId (not oldType) so this still works for addon elements.
-        effectService.clearElementEffects(player, oldId);
+        effectService.clearElementEffects(player, oldType);
     }
 
     public void applyUpsides(Player player) {
@@ -294,30 +271,29 @@ public class ElementManager {
 
     private boolean useAbility(Player player, int number) {
         PlayerData pd = data(player.getUniqueId());
-        ElementId id = pd.getCurrentElementId();
-        if (id == null) return false;
+        ElementType type = pd.getCurrentElement();
+        if (type == null) return false;
 
-        Element element = elementRegistry.get(id);
+        Element element = elementRegistry.get(type);
         if (element == null) return false;
 
-        ElementContext ctx = buildContext(player, pd, id);
+        ElementContext ctx = buildContext(player, pd, type);
 
         boolean success = number == 1 ? element.ability1(ctx) : element.ability2(ctx);
         if (success) {
             String abilityName = number == 1 ? element.getAbility1Name() : element.getAbility2Name();
             plugin.getServer().getPluginManager()
-                    .callEvent(new AbilityActivateEvent(player, id, number, abilityName));
+                    .callEvent(new AbilityActivateEvent(player, type, number, abilityName));
         }
         return success;
     }
 
     /** Shared builder for the {@link ElementContext} every ability call needs. */
-    private ElementContext buildContext(Player player, PlayerData pd, ElementId id) {
+    private ElementContext buildContext(Player player, PlayerData pd, ElementType type) {
         return ElementContext.builder()
                 .player(player)
-                .upgradeLevel(pd.getUpgradeLevel(id))
-                .elementType(id.toBuiltinType())
-                .elementId(id)
+                .upgradeLevel(pd.getUpgradeLevel(type))
+                .elementType(type)
                 .cooldownManager(cooldownManager)
                 .trustManager(trustManager)
                 .configManager(configManager)
@@ -325,12 +301,12 @@ public class ElementManager {
                 .build();
     }
 
-    private void showElementTitle(Player player, ElementId id, String title) {
+    private void showElementTitle(Player player, ElementType type, String title) {
         // getDisplayName() carries legacy '&'/ChatColor codes for chat-message use;
         // Adventure's Component.text() doesn't parse those, so strip them for the
         // displayed text but pull the actual color out first via ElementColours so
         // the title shows this element's real color instead of one fixed color.
-        String rawName = displayNameOf(id);
+        String rawName = displayNameOf(type);
         String plainName = ChatColor.stripColor(rawName);
         NamedTextColor nameColor = ElementColours.fromLegacy(rawName);
 

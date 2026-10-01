@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.core.API.event;
 
-import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -18,13 +18,13 @@ public class AbilityActivateEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final Player player;
-    private final ElementId elementId;
+    private final ElementType element;
     private final int slot;
     private final String abilityName;
 
-    public AbilityActivateEvent(Player player, ElementId elementId, int slot, String abilityName) {
+    public AbilityActivateEvent(Player player, ElementType element, int slot, String abilityName) {
         this.player = player;
-        this.elementId = elementId;
+        this.element = element;
         this.slot = slot;
         this.abilityName = abilityName;
     }
@@ -34,8 +34,8 @@ public class AbilityActivateEvent extends Event {
     }
 
     /** The element this ability belongs to. */
-    public ElementId getElementId() {
-        return elementId;
+    public ElementType getElement() {
+        return element;
     }
 
     /** 1 or 2, matching the slot of the ability that was activated. */

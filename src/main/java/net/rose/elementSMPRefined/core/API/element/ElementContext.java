@@ -18,16 +18,12 @@ public class ElementContext {
     private final TrustManager trustManager;
     private final ConfigManager configManager;
     private final ElementType elementType;
-    private final ElementId elementId;
     private final ElementSMPRefined plugin;
 
     private ElementContext(Builder builder) {
         this.player = builder.player;
         this.upgradeLevel = builder.upgradeLevel;
         this.elementType = builder.elementType;
-        this.elementId = builder.elementId != null
-                ? builder.elementId
-                : builder.elementType == null ? null : ElementId.builtin(builder.elementType);
         this.cooldownManager = builder.cooldownManager;
         this.trustManager = builder.trustManager;
         this.configManager = builder.configManager;
@@ -51,7 +47,6 @@ public class ElementContext {
         private Player player;
         private int upgradeLevel;
         private ElementType elementType;
-        private ElementId elementId;
         private CooldownManager cooldownManager;
         private TrustManager trustManager;
         private ConfigManager configManager;
@@ -69,11 +64,6 @@ public class ElementContext {
 
         public Builder elementType(ElementType type) {
             this.elementType = type;
-            return this;
-        }
-
-        public Builder elementId(ElementId id) {
-            this.elementId = id;
             return this;
         }
 

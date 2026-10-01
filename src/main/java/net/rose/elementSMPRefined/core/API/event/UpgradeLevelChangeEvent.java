@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.core.API.event;
 
-import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
@@ -18,14 +18,14 @@ import org.jetbrains.annotations.NotNull;
 public class UpgradeLevelChangeEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final ElementId elementId;
+    private final ElementType element;
     private final int previousLevel;
     private final int newLevel;
     private boolean cancelled;
 
-    public UpgradeLevelChangeEvent(@NotNull Player player, @NotNull ElementId elementId, int previousLevel, int newLevel) {
+    public UpgradeLevelChangeEvent(@NotNull Player player, @NotNull ElementType element, int previousLevel, int newLevel) {
         super(player);
-        this.elementId = elementId;
+        this.element = element;
         this.previousLevel = previousLevel;
         this.newLevel = newLevel;
     }
@@ -33,10 +33,10 @@ public class UpgradeLevelChangeEvent extends PlayerEvent implements Cancellable 
     /**
      * Gets the element whose upgrade level is changing.
      *
-     * @return The element ID.
+     * @return The element type.
      */
-    public @NotNull ElementId getElementId() {
-        return elementId;
+    public @NotNull ElementType getElement() {
+        return element;
     }
 
     /**

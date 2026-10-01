@@ -1,7 +1,6 @@
 package net.rose.elementSMPRefined.data;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
 
 import java.util.*;
 
@@ -21,9 +20,7 @@ public final class PlayerData {
 
     private final UUID uuid;
     private ElementType currentElement;
-    private ElementId currentElementId;
     private final EnumSet<ElementType> ownedItems;
-    private final Set<ElementId> ownedItemIds;
     private int currentElementUpgradeLevel;
     private final Set<UUID> trustedPlayers;
     private int pendingRerollerRefunds;
@@ -32,7 +29,6 @@ public final class PlayerData {
     public PlayerData(UUID uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
         this.ownedItems = EnumSet.noneOf(ElementType.class);
-        this.ownedItemIds = new HashSet<>();
         this.currentElementUpgradeLevel = 0;
         this.trustedPlayers = new HashSet<>();
     }
@@ -45,20 +41,13 @@ public final class PlayerData {
         return currentElement;
     }
 
-    public ElementId getCurrentElementId() {
-        return currentElementId;
-    }
-
-    public ElementType getElementType() {
-        return currentElement;
-    }
-
     public int getCurrentElementUpgradeLevel() {
         return currentElementUpgradeLevel;
     }
 
-    public Set<ElementId> getOwnedItemIds() {
-        return new HashSet<>(ownedItemIds);
+    /** A copy of the element items this player has already crafted/claimed. */
+    public Set<ElementType> getOwnedItems() {
+        return EnumSet.copyOf(ownedItems);
     }
 
     public Set<UUID> getTrustedPlayers() {
@@ -67,31 +56,16 @@ public final class PlayerData {
 
     /** Sets the current element and resets its upgrade level to 0. */
     public void setCurrentElement(ElementType element) {
-        setCurrentElement(element == null ? null : ElementId.builtin(element));
-    }
+        setCurrentElementWithoutReset(element);
 
-    /** Sets the current element without touching the upgrade level - used by loaders. */
-    public void setCurrentElementWithoutReset(ElementType element) {
-        setCurrentElementWithoutReset(
-                element == null ? null : ElementId.builtin(element)
-        );
-    }
-
-    public void setCurrentElement(ElementId id) {
-        setCurrentElementWithoutReset(id);
-
-        if (id != null) {
+        if (element != null) {
             this.currentElementUpgradeLevel = 0;
         }
     }
 
-    public void setCurrentElementWithoutReset(ElementId id) {
-        this.currentElementId = id;
-        this.currentElement = toBuiltinType(id);
-    }
-
-    private ElementType toBuiltinType(ElementId id) {
-        return id == null ? null : id.toBuiltinType();
+    /** Sets the current element without touching the upgrade level - used by loaders. */
+    public void setCurrentElementWithoutReset(ElementType element) {
+        this.currentElement = element;
     }
 
     public void setCurrentElementUpgradeLevel(int level) {
@@ -103,7 +77,7 @@ public final class PlayerData {
 
     /** Upgrade level only applies to whichever element is currently active; anything else reads as 0. */
     public int getUpgradeLevel(ElementType type) {
-        if (type != null && type.equals(currentElement)) {
+        if (type != null && type == currentElement) {
             return currentElementUpgradeLevel;
         }
 
@@ -111,73 +85,22 @@ public final class PlayerData {
     }
 
     public void setUpgradeLevel(ElementType type, int level) {
-        if (type != null && type.equals(currentElement)) {
-            setCurrentElementUpgradeLevel(level);
-        }
-    }
-
-    /**
-     * ElementId-based equivalent of {@link #getUpgradeLevel(ElementType)}, for addon
-     * elements (and builtins) alike. Upgrade level only applies to whichever element
-     * is currently active; anything else reads as 0.
-     */
-    public int getUpgradeLevel(ElementId id) {
-        if (id != null && id.equals(currentElementId)) {
-            return currentElementUpgradeLevel;
-        }
-
-        return 0;
-    }
-
-    public void setUpgradeLevel(ElementId id, int level) {
-        if (id != null && id.equals(currentElementId)) {
+        if (type != null && type == currentElement) {
             setCurrentElementUpgradeLevel(level);
         }
     }
 
     public boolean hasElementItem(ElementType type) {
-        return type != null && hasElementItem(ElementId.builtin(type));
+        return type != null && ownedItems.contains(type);
     }
 
     public void addElementItem(ElementType type) {
-        if (type != null) {
-            addElementItem(ElementId.builtin(type));
-        }
-    }
-
-    public void removeElementItem(ElementType type) {
-        if (type != null) {
-            removeElementItem(ElementId.builtin(type));
-        }
-    }
-
-    public boolean hasElementItem(ElementId id) {
-        return id != null && ownedItemIds.contains(id);
-    }
-
-    public void addElementItem(ElementId id) {
-        if (id == null) {
-            return;
-        }
-
-        ownedItemIds.add(id);
-
-        ElementType type = toBuiltinType(id);
-
         if (type != null) {
             ownedItems.add(type);
         }
     }
 
-    public void removeElementItem(ElementId id) {
-        if (id == null) {
-            return;
-        }
-
-        ownedItemIds.remove(id);
-
-        ElementType type = toBuiltinType(id);
-
+    public void removeElementItem(ElementType type) {
         if (type != null) {
             ownedItems.remove(type);
         }

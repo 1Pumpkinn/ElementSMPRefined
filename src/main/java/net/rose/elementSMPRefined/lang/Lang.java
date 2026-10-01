@@ -266,15 +266,8 @@ public final class Lang {
 
     public static Component debugElementmanagerReportsBuiltinType(Object builtinType) {
         return Component.textOfChildren(
-                Component.text("ElementManager reports (builtin type): ", NamedTextColor.YELLOW),
+                Component.text("ElementManager reports (element): ", NamedTextColor.YELLOW),
                 Component.text(String.valueOf(builtinType), NamedTextColor.YELLOW)
-        );
-    }
-
-    public static Component debugElementmanagerReportsElementId(Object elementID) {
-        return Component.textOfChildren(
-                Component.text("ElementManager reports (element ID): ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(elementID), NamedTextColor.YELLOW)
         );
     }
 
@@ -544,12 +537,12 @@ public final class Lang {
     public static final Component CRAFTING_UPGRADE_ALREADY_OWNED =
             Component.text("You already have this upgrade.", NamedTextColor.RED);
 
-    public static Component craftingUnlockedAbility1(Object elementId) {
-        return Component.text("Unlocked Ability 1 for " + elementId, NamedTextColor.GREEN);
+    public static Component craftingUnlockedAbility1(Object element) {
+        return Component.text("Unlocked Ability 1 for " + element, NamedTextColor.GREEN);
     }
 
-    public static Component craftingUnlockedAbility2(Object elementId) {
-        return Component.text("Unlocked Ability 2 and Upside 2 for " + elementId, NamedTextColor.GREEN);
+    public static Component craftingUnlockedAbility2(Object element) {
+        return Component.text("Unlocked Ability 2 and Upside 2 for " + element, NamedTextColor.GREEN);
     }
 
     public static final Component CRAFTING_ITEM_ALREADY_CRAFTED =

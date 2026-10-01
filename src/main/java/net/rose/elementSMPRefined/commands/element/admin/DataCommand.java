@@ -5,7 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.rose.elementSMPRefined.core.API.element.Element;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.managers.CooldownManager;
@@ -116,15 +116,15 @@ public class DataCommand implements ElementSubCommand {
 
     private void sendElement(CommandSender sender, PlayerData pd) {
         sender.sendMessage(section("Element"));
-        ElementId id = pd.getCurrentElementId();
-        if (id == null) {
+        ElementType type = pd.getCurrentElement();
+        if (type == null) {
             sender.sendMessage(row("Current", "None"));
             return;
         }
 
-        Element element = elementManager.get(id);
-        String display = element != null ? ChatColor.stripColor(element.getDisplayName()) : id.key();
-        sender.sendMessage(row("Current", display + " (" + id + ")"));
+        Element element = elementManager.get(type);
+        String display = element != null ? ChatColor.stripColor(element.getDisplayName()) : type.name();
+        sender.sendMessage(row("Current", display + " (" + type.name().toLowerCase() + ")"));
 
         int level = pd.getCurrentElementUpgradeLevel();
         sender.sendMessage(row("Upgrade level", level + "/" + PlayerData.MAX_UPGRADE_LEVEL));
@@ -146,7 +146,7 @@ public class DataCommand implements ElementSubCommand {
 
     private void sendOwnedItems(CommandSender sender, PlayerData pd) {
         List<String> owned = new ArrayList<>();
-        for (ElementId id : pd.getOwnedItemIds()) owned.add(id.toString());
+        for (ElementType type : pd.getOwnedItems()) owned.add(type.name().toLowerCase());
         Collections.sort(owned);
         sender.sendMessage(row("Owned element items", owned.isEmpty() ? "None" : String.join(", ", owned)));
     }
@@ -168,7 +168,7 @@ public class DataCommand implements ElementSubCommand {
     private void sendLive(CommandSender sender, Player live, PlayerData pd) {
         sender.sendMessage(section("Live"));
 
-        Element element = pd.getCurrentElementId() != null ? elementManager.get(pd.getCurrentElementId()) : null;
+        Element element = elementManager.get(pd.getCurrentElement());
         if (element != null) {
             sender.sendMessage(row("Ability 1 cooldown", cooldown(live, element.getAbility1Id(), element.getAbility1CooldownSeconds())));
             sender.sendMessage(row("Ability 2 cooldown", cooldown(live, element.getAbility2Id(), element.getAbility2CooldownSeconds())));

@@ -75,13 +75,10 @@ public class GUIListener implements Listener {
             return;
         }
 
-        try {
-            ElementType elementType = ElementType.valueOf(elementTypeString);
-            useElementCore(player, item, event.getHand(), elementType);
-        } catch (IllegalArgumentException e) {
-            player.sendMessage(Component.text("Invalid element type!")
-                    .color(NamedTextColor.RED));
-        }
+        ElementType.parse(elementTypeString).ifPresentOrElse(
+                elementType -> useElementCore(player, item, event.getHand(), elementType),
+                () -> player.sendMessage(Component.text("Invalid element type!")
+                        .color(NamedTextColor.RED)));
     }
 
     /**

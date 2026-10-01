@@ -2,7 +2,6 @@ package net.rose.elementSMPRefined.util.bukkit;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -54,29 +53,13 @@ public final class ItemUtil {
     }
 
     /**
-     * Get the element type from an item stack (legacy method for backward compatibility)
+     * Get the element type from an item stack. Reads both plain names ("FIRE")
+     * and the old "elements:fire" tag format.
      */
     public static ElementType getElementType(ElementSMPRefined plugin, ItemStack stack) {
-        try {
-            Optional<ElementId> id = getElementIdOptional(plugin, stack);
-            if (id.isEmpty() || !id.get().namespace().equals("elements")) return null;
-            return ElementType.valueOf(id.get().key().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    /** Read both canonical namespaced IDs and legacy enum names from core items. */
-    public static Optional<ElementId> getElementIdOptional(ElementSMPRefined plugin, ItemStack stack) {
-        String value = getTag(stack, ItemKeys.elementType(plugin), PersistentDataType.STRING).orElse(null);
-        if (value == null) return Optional.empty();
-        try {
-            return Optional.of(value.contains(":")
-                    ? ElementId.parse(value)
-                    : ElementId.builtin(ElementType.valueOf(value)));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
+        return getTag(stack, ItemKeys.elementType(plugin), PersistentDataType.STRING)
+                .flatMap(ElementType::parse)
+                .orElse(null);
     }
 
     /**

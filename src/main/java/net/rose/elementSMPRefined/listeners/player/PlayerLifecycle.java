@@ -265,7 +265,7 @@ public class PlayerLifecycle implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
         PlayerData pd = elementManager.data(player.getUniqueId());
-        effectService.clearElementEffects(player, pd.getCurrentElementId());
+        effectService.clearElementEffects(player, pd.getCurrentElement());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

@@ -3,7 +3,6 @@ package net.rose.elementSMPRefined.commands.element.admin;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.rose.elementSMPRefined.core.API.element.Element;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.data.PlayerData;
@@ -152,14 +151,11 @@ public class DebugCommand implements ElementSubCommand {
         ElementType reportedType = elementManager.data(uuid).getCurrentElement();
         sender.sendMessage(Lang.debugElementmanagerReportsBuiltinType(reportedType != null ? reportedType.name() : "null"));
 
-        ElementId reportedId = elementManager.data(uuid).getCurrentElementId();
-        sender.sendMessage(Lang.debugElementmanagerReportsElementId(reportedId != null ? reportedId.toString() : "null"));
-
         dataStore.invalidateCache(uuid);
         ElementType reloadedType = elementManager.data(uuid).getCurrentElement();
         sender.sendMessage(Lang.debugAfterCacheInvalidation(reloadedType != null ? reloadedType.name() : "null"));
 
-        Element element = reportedId != null ? elementManager.get(reportedId) : null;
+        Element element = elementManager.get(reportedType);
         if (element != null) {
             sender.sendMessage(Lang.debugDisplayName(ChatColor.stripColor(element.getDisplayName())));
         }
@@ -174,8 +170,7 @@ public class DebugCommand implements ElementSubCommand {
 
     /** Everything that needs the target actually online right now. */
     private void sendLiveState(CommandSender sender, Player livePlayer) {
-        ElementId elementId = elementManager.getPlayerElementId(livePlayer);
-        sendAbilityStatus(sender, livePlayer, elementId);
+        sendAbilityStatus(sender, livePlayer, elementManager.getPlayerElement(livePlayer));
 
         sender.sendMessage(Lang.debugDisarmed(disarmManager.isAbilityDisarmed(livePlayer)));
         sender.sendMessage(Lang.debugActiveStatusEffects(formatActiveStatusEffects(livePlayer)));
@@ -190,8 +185,8 @@ public class DebugCommand implements ElementSubCommand {
      * the action bar HUD makes each tick, so what this prints is exactly
      * what the player's action bar should be showing right now.
      */
-    private void sendAbilityStatus(CommandSender sender, Player target, ElementId elementId) {
-        Element element = elementId != null ? elementManager.get(elementId) : null;
+    private void sendAbilityStatus(CommandSender sender, Player target, ElementType elementType) {
+        Element element = elementManager.get(elementType);
 
         if (element == null) {
             sender.sendMessage(Lang.DEBUG_NO_ABILITIES_ELEMENT);

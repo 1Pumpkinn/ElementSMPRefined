@@ -2,7 +2,7 @@ package net.rose.elementSMPRefined.commands.element.admin;
 
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Bukkit;
@@ -34,17 +34,17 @@ public class SetCommand implements ElementSubCommand {
             return true;
         }
 
-        Optional<ElementId> elementId = CommandSupport.parseElementId(elementManager, args[2]);
-        if (elementId.isEmpty()) {
-            sender.sendMessage(Lang.setInvalidElementValid(String.join(", ", CommandSupport.getAllElementNames(elementManager))));
+        Optional<ElementType> parsed = CommandSupport.parseElementType(args[2]);
+        if (parsed.isEmpty()) {
+            sender.sendMessage(Lang.setInvalidElementValid(String.join(", ", CommandSupport.getElementNames())));
             return true;
         }
 
-        ElementId id = elementId.get();
-        elementManager.setElement(target, id);
+        ElementType type = parsed.get();
+        elementManager.setElement(target, type);
 
-        var element = elementManager.getElementRegistry().get(id);
-        String displayName = element != null ? element.getDisplayName() : id.toString();
+        var element = elementManager.getElementRegistry().get(type);
+        String displayName = element != null ? element.getDisplayName() : type.name();
 
         sender.sendMessage(Lang.setSet(target.getName(), displayName));
         target.sendMessage(Lang.setYourElementHasBeenSet(displayName));
@@ -58,7 +58,7 @@ public class SetCommand implements ElementSubCommand {
             return CommandSupport.getOnlinePlayerNames(args[1]);
         }
         if (args.length == 3) {
-            return CommandSupport.filterStartingWith(CommandSupport.getAllElementNames(elementManager), args[2]);
+            return CommandSupport.filterStartingWith(CommandSupport.getElementNames(), args[2]);
         }
         return Collections.emptyList();
     }

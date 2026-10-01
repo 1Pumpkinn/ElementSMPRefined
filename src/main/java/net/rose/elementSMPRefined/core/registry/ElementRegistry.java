@@ -1,7 +1,6 @@
 package net.rose.elementSMPRefined.core.registry;
 
 import net.rose.elementSMPRefined.core.API.element.Element;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -9,7 +8,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,7 +19,6 @@ import java.util.Set;
 public class ElementRegistry {
     private final ElementSMPRefined plugin;
     private final Map<ElementType, Element> elements = new EnumMap<>(ElementType.class);
-    private final Map<ElementId, Element> elementsById = new HashMap<>();
     private boolean frozen = false;
 
     public ElementRegistry(JavaPlugin plugin) {
@@ -36,43 +33,30 @@ public class ElementRegistry {
             throw new IllegalStateException("Registry is frozen and cannot accept new registrations");
         }
 
-        ElementId id = element.getId();
-        if (elementsById.containsKey(id)) {
-            plugin.getLogger().warning("Element " + id + " is already registered. Skipping duplicate.");
+        ElementType type = element.getType();
+        if (elements.containsKey(type)) {
+            plugin.getLogger().warning("Element " + type + " is already registered. Skipping duplicate.");
             return;
         }
 
-        elementsById.put(id, element);
-        elements.put(element.getType(), element);
+        elements.put(type, element);
     }
 
     public Element get(ElementType type) {
-        return elements.get(type);
+        return type == null ? null : elements.get(type);
     }
 
-    public Element get(ElementId id) {
-        return elementsById.get(id);
-    }
-
-    /** All registered elements, builtin and addon alike. */
+    /** All registered elements. */
     public Collection<Element> getAllElements() {
-        return Collections.unmodifiableCollection(elementsById.values());
+        return Collections.unmodifiableCollection(elements.values());
     }
 
     public Set<ElementType> getAllTypes() {
         return Collections.unmodifiableSet(elements.keySet());
     }
 
-    public Set<ElementId> getAllIds() {
-        return Collections.unmodifiableSet(elementsById.keySet());
-    }
-
     public boolean isRegistered(ElementType type) {
         return elements.containsKey(type);
-    }
-
-    public boolean isRegistered(ElementId id) {
-        return elementsById.containsKey(id);
     }
 
     /**
@@ -82,8 +66,8 @@ public class ElementRegistry {
         this.frozen = true;
     }
 
-    /** Total registered element count, builtin and addon alike. */
+    /** Total registered element count. */
     public int size() {
-        return elementsById.size();
+        return elements.size();
     }
 }

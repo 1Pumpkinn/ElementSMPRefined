@@ -2,7 +2,7 @@ package net.rose.elementSMPRefined.listeners.handler;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.PlayerData;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.event.UpgradeLevelChangeEvent;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.managers.ElementManager;
@@ -40,15 +40,19 @@ public class UpgraderHandler implements Listener {
 
         int upgraderLevel = getUpgraderLevel(item);
         PlayerData playerData = elementManager.data(player.getUniqueId());
-        ElementId currentElementId = playerData.getCurrentElementId();
-        int currentUpgradeLevel = playerData.getUpgradeLevel(currentElementId);
+        ElementType currentElement = playerData.getCurrentElement();
+        if (currentElement == null) {
+            player.sendMessage(Lang.CRAFTING_NO_ELEMENT_YET);
+            return;
+        }
+        int currentUpgradeLevel = playerData.getUpgradeLevel(currentElement);
 
         event.setCancelled(true);
 
         if (upgraderLevel == 1) {
-            handleUpgradeI(player, item, playerData, currentElementId, currentUpgradeLevel);
+            handleUpgradeI(player, item, playerData, currentElement, currentUpgradeLevel);
         } else if (upgraderLevel == 2) {
-            handleUpgradeII(player, item, playerData, currentElementId, currentUpgradeLevel);
+            handleUpgradeII(player, item, playerData, currentElement, currentUpgradeLevel);
         }
     }
 
@@ -70,19 +74,19 @@ public class UpgraderHandler implements Listener {
     }
 
     private void handleUpgradeI(Player player, ItemStack item, PlayerData playerData,
-                                ElementId currentElementId, int currentUpgradeLevel) {
+                                ElementType currentElement, int currentUpgradeLevel) {
         if (currentUpgradeLevel >= 1) {
             player.sendMessage(Lang.UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I);
             return;
         }
 
-        if (applyUpgrade(player, item, playerData, currentElementId, 1)) {
+        if (applyUpgrade(player, item, playerData, currentElement, 1)) {
             player.sendMessage(Lang.UPGRADER_YOU_HAVE_UNLOCKED);
         }
     }
 
     private void handleUpgradeII(Player player, ItemStack item, PlayerData playerData,
-                                 ElementId currentElementId, int currentUpgradeLevel) {
+                                 ElementType currentElement, int currentUpgradeLevel) {
         if (currentUpgradeLevel < 1) {
             player.sendMessage(Lang.UPGRADER_YOU_NEED_UPGRADE_I_BEFORE);
             return;
@@ -93,7 +97,7 @@ public class UpgraderHandler implements Listener {
             return;
         }
 
-        if (applyUpgrade(player, item, playerData, currentElementId, 2)) {
+        if (applyUpgrade(player, item, playerData, currentElement, 2)) {
             player.sendMessage(Lang.UPGRADER_YOU_HAVE_UNLOCKED_2);
         }
     }
@@ -105,13 +109,13 @@ public class UpgraderHandler implements Listener {
      * plugin cancelled the event.
      */
     private boolean applyUpgrade(Player player, ItemStack item, PlayerData playerData,
-                                 ElementId currentElementId, int level) {
-        int previousLevel = playerData.getUpgradeLevel(currentElementId);
-        UpgradeLevelChangeEvent changeEvent = new UpgradeLevelChangeEvent(player, currentElementId, previousLevel, level);
+                                 ElementType currentElement, int level) {
+        int previousLevel = playerData.getUpgradeLevel(currentElement);
+        UpgradeLevelChangeEvent changeEvent = new UpgradeLevelChangeEvent(player, currentElement, previousLevel, level);
         plugin.getServer().getPluginManager().callEvent(changeEvent);
         if (changeEvent.isCancelled()) return false;
 
-        playerData.setUpgradeLevel(currentElementId, level);
+        playerData.setUpgradeLevel(currentElement, level);
         plugin.getDataStore().save(playerData);
         elementManager.applyUpsides(player);
 

@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.lang.Lang;
-import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.managers.ElementManager;
@@ -59,31 +58,27 @@ public class ElementItemCraftingListener implements Listener {
         // exception when the item simply has no element-type tag set.
         if (typeString == null) return;
 
-        try {
-            ElementType type = ElementType.valueOf(typeString);
-            if (isBasicElement(type)) {
-                handleBasicElementCrafting(event, player, type);
-            }
-        } catch (IllegalArgumentException ignored) {
-            // Tag held a name that isn't a real ElementType - ignore.
-        }
+        // Tag held a name that isn't a real ElementType -> parse() is empty, ignore.
+        ElementType.parse(typeString)
+                .filter(this::isBasicElement)
+                .ifPresent(type -> handleBasicElementCrafting(event, player, type));
     }
 
     private void handleUpgraderCrafting(CraftItemEvent event, Player player, int level) {
         PlayerData playerData = elements.data(player.getUniqueId());
-        ElementId currentElementId = playerData.getCurrentElementId();
+        ElementType currentElement = playerData.getCurrentElement();
 
-        if (currentElementId == null) {
+        if (currentElement == null) {
             cancelCrafting(event, player, Lang.CRAFTING_NO_ELEMENT_YET);
             return;
         }
 
-        if (level == 2 && playerData.getUpgradeLevel(currentElementId) < 1) {
+        if (level == 2 && playerData.getUpgradeLevel(currentElement) < 1) {
             cancelCrafting(event, player, Lang.CRAFTING_UPGRADER_2_REQUIRES_UPGRADER_1);
             return;
         }
 
-        if (level <= playerData.getUpgradeLevel(currentElementId)) {
+        if (level <= playerData.getUpgradeLevel(currentElement)) {
             cancelCrafting(event, player, Lang.CRAFTING_UPGRADE_ALREADY_OWNED);
             return;
         }
@@ -91,13 +86,13 @@ public class ElementItemCraftingListener implements Listener {
         consumeRecipeIngredients(event);
         event.getInventory().setResult(null);
 
-        playerData.setUpgradeLevel(currentElementId, level);
+        playerData.setUpgradeLevel(currentElement, level);
         plugin.getDataStore().save(playerData);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
 
         player.sendMessage(level == 1
-                ? Lang.craftingUnlockedAbility1(currentElementId)
-                : Lang.craftingUnlockedAbility2(currentElementId));
+                ? Lang.craftingUnlockedAbility1(currentElement)
+                : Lang.craftingUnlockedAbility2(currentElement));
 
         if (level == 2) {
             elements.applyUpsides(player);

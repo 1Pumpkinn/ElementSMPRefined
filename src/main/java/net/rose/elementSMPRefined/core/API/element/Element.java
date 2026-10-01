@@ -14,11 +14,6 @@ public interface Element {
     /** The built-in type this element represents. Never null. */
     ElementType getType();
 
-    /** Stable identifier used by registries and persistence ({@code elements:<type>}). */
-    default ElementId getId() {
-        return ElementId.builtin(getType());
-    }
-
     void applyUpsides(Player player, int upgradeLevel);
 
     boolean ability1(ElementContext context);

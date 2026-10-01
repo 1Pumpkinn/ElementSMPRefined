@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.mythic.frost.listeners;
 
+import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -90,12 +91,9 @@ public class FrostFrozenPunchListener implements Listener {
 
         if (entity instanceof Mob mob) {
             mob.setAware(true);
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (mob.isValid()) mob.setAware(true);
-                }
-            }.runTaskLater(plugin, 100L);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (mob.isValid()) mob.setAware(true);
+            }, 100L);
         }
 
         // Visual freeze effect - continuously apply freeze and prevent movement
@@ -132,14 +130,11 @@ public class FrostFrozenPunchListener implements Listener {
         }.runTaskTimer(plugin, 0L, 1L);
 
         // Metadata cleanup
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (entity.isValid()) {
-                    entity.removeMetadata(META_FROZEN, plugin);
-                }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (entity.isValid()) {
+                entity.removeMetadata(META_FROZEN, plugin);
             }
-        }.runTaskLater(plugin, 100L);
+        }, 100L);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

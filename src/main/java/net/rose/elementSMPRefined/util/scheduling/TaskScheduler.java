@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined.util.scheduling;
 
+import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.core.Constants;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
@@ -31,12 +31,7 @@ public final class TaskScheduler {
 
     /** Run a task later on the main thread. */
     public BukkitTask runLater(Runnable task, long delayTicks) {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        }.runTaskLater(plugin, delayTicks);
+        return Bukkit.getScheduler().runTaskLater(plugin, task, delayTicks);
     }
 
     /** Run a task later on the main thread, with the delay given in seconds. */
@@ -46,12 +41,7 @@ public final class TaskScheduler {
 
     /** Run a repeating task on the main thread. */
     public BukkitTask runTimer(Runnable task, long delayTicks, long periodTicks) {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        }.runTaskTimer(plugin, delayTicks, periodTicks);
+        return Bukkit.getScheduler().runTaskTimer(plugin, task, delayTicks, periodTicks);
     }
 
     /**

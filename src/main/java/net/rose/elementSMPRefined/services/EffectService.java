@@ -16,7 +16,6 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Coordinates element passive effect application and health management.
@@ -144,17 +143,14 @@ public class EffectService implements Listener {
      * Start periodic health validation (effects are re-applied on-demand).
      */
     private void startMonitoring() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    PlayerData pd = elementManager.data(player.getUniqueId());
-                    if (pd.getCurrentElement() != null) {
-                        updatePlayerHealth(player, pd.getCurrentElement());
-                    }
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                PlayerData pd = elementManager.data(player.getUniqueId());
+                if (pd.getCurrentElement() != null) {
+                    updatePlayerHealth(player, pd.getCurrentElement());
                 }
             }
-        }.runTaskTimer(plugin, Constants.Timing.TWO_SECONDS, Constants.Timing.TWO_SECONDS);
+        }, Constants.Timing.TWO_SECONDS, Constants.Timing.TWO_SECONDS);
     }
 
     /**

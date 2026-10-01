@@ -8,6 +8,9 @@ public enum ElementType {
     LIFE,
     DEATH,
     METAL,
-    FROST
+    FROST,
+
+
+    EXAMPLE // Added because Example because using AIR might've had issues
 
 }

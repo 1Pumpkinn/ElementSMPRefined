@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.mythic.life;
 
+import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.mythic.life.LifeHealingBeamAbility;
@@ -14,7 +15,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
@@ -50,27 +50,24 @@ public class LifeElement extends BaseElement {
 
         // Upside 2: crop growth aura (upgrade level 2+)
         if (upgradeLevel >= 2) {
-            BukkitTask task = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (!player.isOnline()) {
-                        cancelPassiveTask(player);
-                        return;
-                    }
+            BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+                if (!player.isOnline()) {
+                    cancelPassiveTask(player);
+                    return;
+                }
 
-                    int radius = 5;
+                int radius = 5;
 
-                    // Force-grow crops within 5x5 around the player
-                    for (int dx = -radius; dx <= radius; dx++) {
-                        for (int dz = -radius; dz <= radius; dz++) {
-                            for (int dy = -1; dy <= 1; dy++) {
-                                Block block = player.getLocation().clone().add(dx, dy, dz).getBlock();
-                                growIfCrop(block);
-                            }
+                // Force-grow crops within 5x5 around the player
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        for (int dy = -1; dy <= 1; dy++) {
+                            Block block = player.getLocation().clone().add(dx, dy, dz).getBlock();
+                            growIfCrop(block);
                         }
                     }
                 }
-            }.runTaskTimer(plugin, 0L, 40L); // Every 2 seconds
+            }, 0L, 40L); // Every 2 seconds
 
             passiveTasks.put(player.getUniqueId(), task);
         }

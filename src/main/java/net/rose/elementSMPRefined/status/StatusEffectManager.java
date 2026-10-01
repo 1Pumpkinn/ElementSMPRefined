@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
@@ -287,56 +286,53 @@ public class StatusEffectManager {
      * previously this ran forever with no handle to stop it on demand.
      */
     private void startEffectMonitor() {
-        monitorTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                Iterator<Map.Entry<UUID, Map<StatusEffectType, StatusEffectInstance>>> playerIterator =
-                        activeEffects.entrySet().iterator();
+        monitorTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            Iterator<Map.Entry<UUID, Map<StatusEffectType, StatusEffectInstance>>> playerIterator =
+                    activeEffects.entrySet().iterator();
 
-                while (playerIterator.hasNext()) {
-                    Map.Entry<UUID, Map<StatusEffectType, StatusEffectInstance>> entry = playerIterator.next();
-                    UUID uuid = entry.getKey();
-                    Map<StatusEffectType, StatusEffectInstance> effects = entry.getValue();
+            while (playerIterator.hasNext()) {
+                Map.Entry<UUID, Map<StatusEffectType, StatusEffectInstance>> entry = playerIterator.next();
+                UUID uuid = entry.getKey();
+                Map<StatusEffectType, StatusEffectInstance> effects = entry.getValue();
 
-                    Player player = Bukkit.getPlayer(uuid);
-                    if (player == null || !player.isOnline()) {
-                        playerIterator.remove();
-                        continue;
-                    }
+                Player player = Bukkit.getPlayer(uuid);
+                if (player == null || !player.isOnline()) {
+                    playerIterator.remove();
+                    continue;
+                }
 
-                    Iterator<Map.Entry<StatusEffectType, StatusEffectInstance>> effectIterator =
-                            effects.entrySet().iterator();
+                Iterator<Map.Entry<StatusEffectType, StatusEffectInstance>> effectIterator =
+                        effects.entrySet().iterator();
 
-                    while (effectIterator.hasNext()) {
-                        Map.Entry<StatusEffectType, StatusEffectInstance> effectEntry = effectIterator.next();
-                        StatusEffectType type = effectEntry.getKey();
-                        StatusEffectInstance instance = effectEntry.getValue();
+                while (effectIterator.hasNext()) {
+                    Map.Entry<StatusEffectType, StatusEffectInstance> effectEntry = effectIterator.next();
+                    StatusEffectType type = effectEntry.getKey();
+                    StatusEffectInstance instance = effectEntry.getValue();
 
-                        StatusEffectData data = effectData.get(type);
-                        if (data != null && data.damagePerSecond() > 0) {
-                            // Process damage over time effects (once per second)
-                            long now = System.currentTimeMillis();
-                            if (instance.isDamageDue(now)) {
-                                player.damage(data.damagePerSecond() * instance.amplifier());
-                                instance = instance.damagedAt(now);
-                                effects.put(type, instance);
-                            }
-                        }
-
-                        // Check if effect has expired
-                        if (instance.isExpired()) {
-                            removePotionEffects(player, type);
-                            effectIterator.remove();
+                    StatusEffectData data = effectData.get(type);
+                    if (data != null && data.damagePerSecond() > 0) {
+                        // Process damage over time effects (once per second)
+                        long now = System.currentTimeMillis();
+                        if (instance.isDamageDue(now)) {
+                            player.damage(data.damagePerSecond() * instance.amplifier());
+                            instance = instance.damagedAt(now);
+                            effects.put(type, instance);
                         }
                     }
 
-                    // Remove player entry if no effects remain
-                    if (effects.isEmpty()) {
-                        playerIterator.remove();
+                    // Check if effect has expired
+                    if (instance.isExpired()) {
+                        removePotionEffects(player, type);
+                        effectIterator.remove();
                     }
                 }
+
+                // Remove player entry if no effects remain
+                if (effects.isEmpty()) {
+                    playerIterator.remove();
+                }
             }
-        }.runTaskTimer(plugin, 1L, 1L); // Run every tick
+        }, 1L, 1L); // Run every tick
     }
 
     /**

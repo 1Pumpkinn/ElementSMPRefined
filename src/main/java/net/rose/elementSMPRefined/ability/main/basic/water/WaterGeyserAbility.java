@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.water;
 
+import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -176,20 +177,17 @@ public class WaterGeyserAbility extends BaseAbility implements Listener {
      * no path left where it could stay set forever even without one.
      */
     private void grantFallImmunity(Player player) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline() || !isActiveFor(player)) {
-                    cancel();
-                    return;
-                }
-
-                if (player.isOnGround()) {
-                    setActive(player, false);
-                    cancel();
-                }
+        Bukkit.getScheduler().runTaskTimer(plugin, task -> {
+            if (!player.isOnline() || !isActiveFor(player)) {
+                task.cancel();
+                return;
             }
-        }.runTaskTimer(plugin, 2L, 1L); // 2-tick grace so we don't see "grounded" from the takeoff tick itself
+
+            if (player.isOnGround()) {
+                setActive(player, false);
+                task.cancel();
+            }
+        }, 2L, 1L); // 2-tick grace so we don't see "grounded" from the takeoff tick itself
     }
 
     /**

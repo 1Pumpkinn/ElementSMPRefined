@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.listeners.item;
 
+import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.PlayerData;
@@ -10,7 +11,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Handles upgrader drops when a player dies.
@@ -79,13 +79,10 @@ public class PlayerDeathListener implements Listener {
     }
 
     private void scheduleUpsideReapply(Player player) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (player.isOnline()) {
-                    elements.applyUpsides(player);
-                }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                elements.applyUpsides(player);
             }
-        }.runTaskLater(plugin, REAPPLY_DELAY_TICKS);
+        }, REAPPLY_DELAY_TICKS);
     }
 }

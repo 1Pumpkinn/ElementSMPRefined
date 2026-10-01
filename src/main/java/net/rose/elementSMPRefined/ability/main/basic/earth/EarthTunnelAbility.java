@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.earth;
 
+import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -13,7 +14,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.EnumSet;
@@ -50,38 +50,35 @@ public class EarthTunnelAbility extends BaseAbility {
 
         setActive(player, true);
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline() || !metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
-                    setActive(player, false);
-                    cancel();
-                    return;
-                }
-
-                long until = metadataHelper.getLong(player, EarthElement.META_TUNNELING, 0);
-                if (System.currentTimeMillis() > until) {
-                    metadataHelper.remove(player, EarthElement.META_TUNNELING);
-                    player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_ENDED);
-                    setActive(player, false);
-                    cancel();
-                    return;
-                }
-
-                Vector direction = player.getLocation().getDirection().normalize();
-
-                // Adjust mine location based on look direction
-                Location mineLocation;
-                if (direction.getY() < -0.5) {
-                    mineLocation = player.getLocation().add(direction.multiply(1.0));
-                } else {
-                    mineLocation = player.getEyeLocation().add(direction.multiply(1.5));
-                }
-                breakTunnel(mineLocation, player);
-
-                player.getWorld().spawnParticle(Particle.BLOCK, mineLocation, 10, 0.5, 0.5, 0.5, 0.1, Material.STONE.createBlockData(), true);
+        Bukkit.getScheduler().runTaskTimer(plugin, task -> {
+            if (!player.isOnline() || !metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
+                setActive(player, false);
+                task.cancel();
+                return;
             }
-        }.runTaskTimer(plugin, 0L, 2L);
+
+            long until = metadataHelper.getLong(player, EarthElement.META_TUNNELING, 0);
+            if (System.currentTimeMillis() > until) {
+                metadataHelper.remove(player, EarthElement.META_TUNNELING);
+                player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_ENDED);
+                setActive(player, false);
+                task.cancel();
+                return;
+            }
+
+            Vector direction = player.getLocation().getDirection().normalize();
+
+            // Adjust mine location based on look direction
+            Location mineLocation;
+            if (direction.getY() < -0.5) {
+                mineLocation = player.getLocation().add(direction.multiply(1.0));
+            } else {
+                mineLocation = player.getEyeLocation().add(direction.multiply(1.5));
+            }
+            breakTunnel(mineLocation, player);
+
+            player.getWorld().spawnParticle(Particle.BLOCK, mineLocation, 10, 0.5, 0.5, 0.5, 0.1, Material.STONE.createBlockData(), true);
+        }, 0L, 2L);
 
         return true;
     }

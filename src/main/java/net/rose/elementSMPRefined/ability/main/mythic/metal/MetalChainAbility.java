@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.mythic.metal;
 
+import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -138,16 +139,13 @@ public class MetalChainAbility extends BaseAbility {
                             finalTarget.setVelocity(new Vector(0, 0, 0));
 
                             // Re-enable AI once the stun expires
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    if (finalTarget.isValid() && finalTarget instanceof Mob m) {
-                                        m.setAware(wasAware);
-                                        m.setAI(true);
-                                        m.removePotionEffect(PotionEffectType.SLOWNESS);
-                                    }
+                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                                if (finalTarget.isValid() && finalTarget instanceof Mob m) {
+                                    m.setAware(wasAware);
+                                    m.setAI(true);
+                                    m.removePotionEffect(PotionEffectType.SLOWNESS);
                                 }
-                            }.runTaskLater(plugin, STUN_DURATION_TICKS);
+                            }, STUN_DURATION_TICKS);
                         }
                     }
 

@@ -12,7 +12,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -46,65 +45,62 @@ public class FrostPassiveListener implements Listener {
     }
 
     private void startPassiveEffectTask() {
-        passiveTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (elementManager.getPlayerElement(player) != ElementType.FROST) {
+        passiveTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (elementManager.getPlayerElement(player) != ElementType.FROST) {
+                    frostSpeedPlayers.remove(player.getUniqueId());
+                    continue;
+                }
+
+                var playerData = elementManager.data(player.getUniqueId());
+                int upgradeLevel = playerData.getUpgradeLevel(ElementType.FROST);
+
+                boolean hasLeatherBoots = isWearingLeatherBoots(player);
+                boolean onIce = upgradeLevel >= 2 && isOnIce(player);
+
+                int desiredLevel = onIce ? 2 : (hasLeatherBoots ? 1 : -1);
+                PotionEffect current = player.getPotionEffect(PotionEffectType.SPEED);
+
+                if (desiredLevel == -1) {
+                    if (frostSpeedPlayers.contains(player.getUniqueId())) {
+                        player.removePotionEffect(PotionEffectType.SPEED);
                         frostSpeedPlayers.remove(player.getUniqueId());
-                        continue;
                     }
+                    continue;
+                }
 
-                    var playerData = elementManager.data(player.getUniqueId());
-                    int upgradeLevel = playerData.getUpgradeLevel(ElementType.FROST);
+                boolean hasFrostSpeed = frostSpeedPlayers.contains(player.getUniqueId());
+                boolean needsRefresh = false;
 
-                    boolean hasLeatherBoots = isWearingLeatherBoots(player);
-                    boolean onIce = upgradeLevel >= 2 && isOnIce(player);
-
-                    int desiredLevel = onIce ? 2 : (hasLeatherBoots ? 1 : -1);
-                    PotionEffect current = player.getPotionEffect(PotionEffectType.SPEED);
-
-                    if (desiredLevel == -1) {
-                        if (frostSpeedPlayers.contains(player.getUniqueId())) {
-                            player.removePotionEffect(PotionEffectType.SPEED);
-                            frostSpeedPlayers.remove(player.getUniqueId());
-                        }
-                        continue;
-                    }
-
-                    boolean hasFrostSpeed = frostSpeedPlayers.contains(player.getUniqueId());
-                    boolean needsRefresh = false;
-
-                    if (!hasFrostSpeed) {
-                        if (current == null) {
-                            needsRefresh = true;
-                        } else {
-                            continue;
-                        }
+                if (!hasFrostSpeed) {
+                    if (current == null) {
+                        needsRefresh = true;
                     } else {
-                        if (current == null) {
-                            needsRefresh = true;
-                        } else if (current.getAmplifier() != desiredLevel) {
-                            needsRefresh = true;
-                        } else if (current.getDuration() < 30) {
-                            needsRefresh = true;
-                        }
+                        continue;
                     }
-
-                    if (needsRefresh) {
-                        if (current != null) {
-                            player.removePotionEffect(PotionEffectType.SPEED);
-                        }
-
-                        player.addPotionEffect(
-                                new PotionEffect(PotionEffectType.SPEED, 40, desiredLevel, true, false, false)
-                        );
-
-                        frostSpeedPlayers.add(player.getUniqueId());
+                } else {
+                    if (current == null) {
+                        needsRefresh = true;
+                    } else if (current.getAmplifier() != desiredLevel) {
+                        needsRefresh = true;
+                    } else if (current.getDuration() < 30) {
+                        needsRefresh = true;
                     }
                 }
+
+                if (needsRefresh) {
+                    if (current != null) {
+                        player.removePotionEffect(PotionEffectType.SPEED);
+                    }
+
+                    player.addPotionEffect(
+                            new PotionEffect(PotionEffectType.SPEED, 40, desiredLevel, true, false, false)
+                    );
+
+                    frostSpeedPlayers.add(player.getUniqueId());
+                }
             }
-        }.runTaskTimer(plugin, 0L, 20L);
+        }, 0L, 20L);
     }
 
     private boolean isWearingLeatherBoots(Player player) {

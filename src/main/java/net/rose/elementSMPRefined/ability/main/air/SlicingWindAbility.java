@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.util.visual.AirCutterVisual;
 import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -17,6 +18,10 @@ import org.bukkit.util.Vector;
  * Slicing Wind - fires a fast-moving blade of compressed air in front of the
  * player that cuts through anything in a narrow line, dealing damage and
  * knocking targets away.
+ * <p>
+ * The blade is drawn with the {@code elementsmp:air_cutter} resource-pack model via
+ * {@link AirCutterVisual} (an ItemDisplay teleported each tick), the same way Hell's Chain
+ * draws its chain with {@code ChainVisual}.
  */
 public class SlicingWindAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
@@ -44,6 +49,15 @@ public class SlicingWindAbility extends BaseAbility {
         new BukkitRunnable() {
             double travelled = 0;
             final java.util.Set<java.util.UUID> hitEntities = new java.util.HashSet<>();
+            final AirCutterVisual blade =
+                    new AirCutterVisual(origin.clone().add(direction.clone().multiply(1.0)), direction);
+
+            /** Every exit path calls cancel(), so the blade entity can never outlive the ability. */
+            @Override
+            public synchronized void cancel() throws IllegalStateException {
+                blade.remove();
+                super.cancel();
+            }
 
             @Override
             public void run() {
@@ -55,14 +69,9 @@ public class SlicingWindAbility extends BaseAbility {
                 travelled += 1.5;
                 Location slice = origin.clone().add(direction.clone().multiply(travelled));
 
-                // Slashing crescent particle effect
-                for (int deg = -60; deg <= 60; deg += 15) {
-                    double rad = Math.toRadians(deg);
-                    Vector offset = rotateAroundVertical(direction, rad).multiply(0.6);
-                    Location particleLoc = slice.clone().add(offset.getX(), 0, offset.getZ());
-                    w.spawnParticle(Particle.SWEEP_ATTACK, particleLoc, 0, 0, 0, 0, 0, null, true);
-                    w.spawnParticle(Particle.CLOUD, particleLoc, 1, 0.05, 0.05, 0.05, 0.0, null, true);
-                }
+                blade.moveTo(slice);
+                // Faint wind trail behind the blade
+                w.spawnParticle(Particle.CLOUD, slice, 2, 0.5, 0.05, 0.5, 0.0, null, true);
 
                 for (LivingEntity e : slice.getNearbyLivingEntities(hitboxWidth)) {
                     if (e.equals(player)) continue;
@@ -80,17 +89,6 @@ public class SlicingWindAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
 
         return true;
-    }
-
-    /**
-     * Rotates a horizontal direction vector around the vertical (Y) axis by the given angle in radians.
-     */
-    private Vector rotateAroundVertical(Vector direction, double radians) {
-        double cos = Math.cos(radians);
-        double sin = Math.sin(radians);
-        double x = direction.getX() * cos - direction.getZ() * sin;
-        double z = direction.getX() * sin + direction.getZ() * cos;
-        return new Vector(x, 0, z);
     }
 
     @Override

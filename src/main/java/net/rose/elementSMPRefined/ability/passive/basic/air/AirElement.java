@@ -1,0 +1,45 @@
+package net.rose.elementSMPRefined.ability.passive.basic.air;
+
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.ability.main.basic.air.AirDashAbility;
+import net.rose.elementSMPRefined.ability.main.basic.air.SlicingWindAbility;
+import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
+import net.rose.elementSMPRefined.managers.ConfigManager;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.List;
+
+public class AirElement extends BaseElement {
+    private AirFallImpactListener fallImpactListener;
+
+    public AirElement(JavaPlugin plugin, ConfigManager configManager) {
+        super(plugin, ElementType.AIR, new AirDashAbility(plugin, configManager), new SlicingWindAbility(plugin, configManager));
+    }
+
+    public void setFallImpactListener(AirFallImpactListener listener) {
+        this.fallImpactListener = listener;
+    }
+
+    @Override
+    public void applyUpsides(Player player, int upgradeLevel) {
+        // Passive 1: No fall damage (handled in AirFallImpactListener)
+        // Passive 2: The further you fall, the further nearby entities get
+        // knocked back on landing (handled in AirFallImpactListener)
+        // No potion effects needed
+    }
+
+    @Override
+    public String getDisplayName() {
+        return ChatColor.WHITE + "Air";
+    }
+
+    @Override
+    public List<String> getPassiveBenefits() {
+        return List.of(
+                "No fall damage",
+                "The further you fall, the further nearby entities are knocked back on landing");
+    }
+}

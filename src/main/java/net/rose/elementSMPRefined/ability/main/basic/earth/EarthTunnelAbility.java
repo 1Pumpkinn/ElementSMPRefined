@@ -5,7 +5,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.ability.passive.earth.EarthElement;
+import net.rose.elementSMPRefined.ability.passive.basic.earth.EarthElement;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.bukkit.MetadataHelper;
 import net.rose.elementSMPRefined.lang.Lang;

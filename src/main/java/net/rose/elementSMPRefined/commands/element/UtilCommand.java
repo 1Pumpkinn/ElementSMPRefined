@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.commands;
+package net.rose.elementSMPRefined.commands.element;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;

@@ -2,6 +2,8 @@ package net.rose.elementSMPRefined.commands.element;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
+import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.data.DataStore;

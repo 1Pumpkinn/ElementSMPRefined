@@ -1,14 +1,14 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.commands.AbilityCommand;
-import net.rose.elementSMPRefined.commands.ElementCommand;
-import net.rose.elementSMPRefined.commands.ElementInfoCommand;
+import net.rose.elementSMPRefined.commands.element.AbilityCommand;
+import net.rose.elementSMPRefined.commands.element.ElementCommand;
+import net.rose.elementSMPRefined.commands.element.ElementInfoCommand;
 import net.rose.elementSMPRefined.commands.DimensionCommand;
 import net.rose.elementSMPRefined.commands.GraceCommand;
 import net.rose.elementSMPRefined.commands.ToggleRecipeCommand;
 import net.rose.elementSMPRefined.commands.TrustCommand;
-import net.rose.elementSMPRefined.commands.UtilCommand;
+import net.rose.elementSMPRefined.commands.element.UtilCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**

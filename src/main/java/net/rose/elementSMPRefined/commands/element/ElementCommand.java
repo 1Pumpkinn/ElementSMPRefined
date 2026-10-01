@@ -1,13 +1,8 @@
-package net.rose.elementSMPRefined.commands;
+package net.rose.elementSMPRefined.commands.element;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.commands.element.CommandSupport;
-import net.rose.elementSMPRefined.commands.element.ConfigCommand;
-import net.rose.elementSMPRefined.commands.element.DataCommand;
-import net.rose.elementSMPRefined.commands.element.DebugCommand;
-import net.rose.elementSMPRefined.commands.element.ElementSubCommand;
-import net.rose.elementSMPRefined.commands.element.ParticlesCommand;
-import net.rose.elementSMPRefined.commands.element.SetCommand;
+import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
+import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;

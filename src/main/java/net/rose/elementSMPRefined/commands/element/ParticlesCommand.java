@@ -1,6 +1,8 @@
 package net.rose.elementSMPRefined.commands.element;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
+import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.rose.elementSMPRefined.util.visual.ParticlePreset;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Color;

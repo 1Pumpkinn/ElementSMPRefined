@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.commands.element;
+package net.rose.elementSMPRefined.commands.supporters;
 
 import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.core.API.element.ElementType;

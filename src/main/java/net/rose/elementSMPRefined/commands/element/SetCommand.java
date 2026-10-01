@@ -1,5 +1,7 @@
 package net.rose.elementSMPRefined.commands.element;
 
+import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
+import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.rose.elementSMPRefined.core.API.element.ElementId;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.lang.Lang;

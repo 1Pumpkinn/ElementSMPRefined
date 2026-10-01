@@ -5,6 +5,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.event.UpgradeLevelChangeEvent;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
@@ -80,6 +81,16 @@ public class ElementItemCraftingListener implements Listener {
 
         if (level <= playerData.getUpgradeLevel(currentElement)) {
             cancelCrafting(event, player, Lang.CRAFTING_UPGRADE_ALREADY_OWNED);
+            return;
+        }
+
+        // Same cancellable event the upgrader item fires, so another plugin can veto
+        // a crafted upgrade too. Fired before anything is consumed or changed.
+        UpgradeLevelChangeEvent changeEvent = new UpgradeLevelChangeEvent(
+                player, currentElement, playerData.getUpgradeLevel(currentElement), level);
+        plugin.getServer().getPluginManager().callEvent(changeEvent);
+        if (changeEvent.isCancelled()) {
+            event.setCancelled(true);
             return;
         }
 

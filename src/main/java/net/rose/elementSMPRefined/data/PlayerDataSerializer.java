@@ -27,7 +27,6 @@ public final class PlayerDataSerializer {
         }
 
         // Unknown/renamed element in storage - leave unset rather than crash the load.
-        // parse() also reads the old "elements:fire" format, so existing data keeps loading.
         ElementType.parse(section.getString("element")).ifPresent(data::setCurrentElementWithoutReset);
 
         data.setCurrentElementUpgradeLevel(section.getInt("currentUpgradeLevel", 0));

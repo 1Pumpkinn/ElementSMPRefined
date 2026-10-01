@@ -8,12 +8,10 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Fired before a player's upgrade level for an element changes (e.g. leveling
- * up an element's abilities). Not currently fired by core - wire this in
- * wherever upgrade levels are applied (upgrade command/GUI) once that code
- * is touched.
+ * Fired before a player's upgrade level for an element changes. Core fires it
+ * when an upgrader item is used and when an upgrader is crafted.
  * <p>
- * Cancel this to block the level change.
+ * Cancel this to block the level change - nothing is consumed or applied.
  */
 public class UpgradeLevelChangeEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();

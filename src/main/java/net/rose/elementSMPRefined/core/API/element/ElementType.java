@@ -24,8 +24,6 @@ public enum ElementType {
      */
     EXAMPLE(false);
 
-    private static final String LEGACY_PREFIX = "elements:";
-
     private final boolean playable;
 
     ElementType() {
@@ -53,20 +51,15 @@ public enum ElementType {
     }
 
     /**
-     * Parses a stored or typed name, case-insensitively. Also accepts the old
-     * {@code elements:<name>} format that earlier versions wrote to players.yml
-     * and item tags, so existing data keeps loading.
+     * Parses a stored or typed name ("fire", "FIRE"), case-insensitively and ignoring
+     * surrounding whitespace. Anything that isn't an element name gives an empty result.
      */
     public static Optional<ElementType> parse(String value) {
         if (value == null) {
             return Optional.empty();
         }
-        String name = value.trim().toLowerCase(Locale.ROOT);
-        if (name.startsWith(LEGACY_PREFIX)) {
-            name = name.substring(LEGACY_PREFIX.length());
-        }
         try {
-            return Optional.of(valueOf(name.toUpperCase(Locale.ROOT)));
+            return Optional.of(valueOf(value.trim().toUpperCase(Locale.ROOT)));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }

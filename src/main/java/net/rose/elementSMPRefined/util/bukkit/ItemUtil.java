@@ -52,10 +52,7 @@ public final class ItemUtil {
         return flag != null && flag == (byte)1;
     }
 
-    /**
-     * Get the element type from an item stack. Reads both plain names ("FIRE")
-     * and the old "elements:fire" tag format.
-     */
+    /** Get the element type stored on an item stack's tag, or null if missing/invalid. */
     public static ElementType getElementType(ElementSMPRefined plugin, ItemStack stack) {
         return getTag(stack, ItemKeys.elementType(plugin), PersistentDataType.STRING)
                 .flatMap(ElementType::parse)

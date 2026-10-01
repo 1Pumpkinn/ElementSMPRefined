@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.earth;
+package net.rose.elementSMPRefined.ability.main.basic.earth;
 
 import net.rose.elementSMPRefined.config.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;

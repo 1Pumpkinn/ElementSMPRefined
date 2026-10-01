@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.frost;
+package net.rose.elementSMPRefined.ability.main.mythic.frost;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.config.Constants;

@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.air;
+package net.rose.elementSMPRefined.ability.main.basic.air;
 
 import net.rose.elementSMPRefined.config.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;

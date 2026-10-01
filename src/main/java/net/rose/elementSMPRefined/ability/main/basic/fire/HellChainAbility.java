@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.fire;
+package net.rose.elementSMPRefined.ability.main.basic.fire;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;

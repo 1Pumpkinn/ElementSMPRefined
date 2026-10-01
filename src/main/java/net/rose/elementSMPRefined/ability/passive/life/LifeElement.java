@@ -2,8 +2,8 @@ package net.rose.elementSMPRefined.ability.passive.life;
 
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.life.LifeHealingBeamAbility;
-import net.rose.elementSMPRefined.ability.main.life.LifeRegenAbility;
+import net.rose.elementSMPRefined.ability.main.mythic.life.LifeHealingBeamAbility;
+import net.rose.elementSMPRefined.ability.main.mythic.life.LifeRegenAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;

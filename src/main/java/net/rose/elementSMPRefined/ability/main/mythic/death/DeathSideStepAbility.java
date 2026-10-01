@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.death;
+package net.rose.elementSMPRefined.ability.main.mythic.death;
 
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;

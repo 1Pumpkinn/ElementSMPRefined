@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.water;
+package net.rose.elementSMPRefined.ability.main.basic.water;
 
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;

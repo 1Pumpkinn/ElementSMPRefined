@@ -1,17 +1,20 @@
 package net.rose.elementSMPRefined.core.API.element;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * Stable identifier for an element. Addons should use a unique namespace,
  * for example {@code myaddon:storm}.
  */
 public record ElementId(String namespace, String key) {
+    private static final Pattern VALID_PART = Pattern.compile("[a-z0-9._-]+");
+
     public ElementId {
         if (namespace == null || namespace.isBlank() || key == null || key.isBlank()) {
             throw new IllegalArgumentException("Element ID namespace and key are required");
         }
-        if (!namespace.matches("[a-z0-9._-]+") || !key.matches("[a-z0-9._-]+")) {
+        if (!VALID_PART.matcher(namespace).matches() || !VALID_PART.matcher(key).matches()) {
             throw new IllegalArgumentException("Element IDs may only contain lowercase letters, numbers, '.', '_' or '-'");
         }
     }

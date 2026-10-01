@@ -9,9 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * {@code /dimension <enable|disable|status> <nether|end|all>}
@@ -78,18 +76,18 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            List<String> actions = Arrays.asList("enable", "disable", "status");
+            List<String> actions = List.of("enable", "disable", "status");
             String input = args[0].toLowerCase();
             return actions.stream()
                     .filter(a -> a.startsWith(input))
-                    .collect(Collectors.toList());
+                    .toList();
         }
         if (args.length == 2) {
-            List<String> targets = Arrays.asList("nether", "end", "all");
+            List<String> targets = List.of("nether", "end", "all");
             String input = args[1].toLowerCase();
             return targets.stream()
                     .filter(t -> t.startsWith(input))
-                    .collect(Collectors.toList());
+                    .toList();
         }
         return new ArrayList<>();
     }

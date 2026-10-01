@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Small stateless helpers shared by /element subcommands - parsing input,
@@ -27,20 +26,20 @@ public final class CommandSupport {
     public static List<String> filterStartingWith(Collection<String> options, String prefix) {
         return options.stream()
                 .filter(s -> s.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static List<String> getOnlinePlayerNames(String prefix) {
         return Bukkit.getOnlinePlayers().stream()
                 .map(Player::getName)
                 .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static List<String> getElementNames() {
         return Arrays.stream(ElementType.values())
                 .map(type -> type.name().toLowerCase(Locale.ROOT))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static List<String> getElementNames(String prefix) {

@@ -15,10 +15,8 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class TrustCommand implements CommandExecutor, TabCompleter {
     private final ElementSMPRefined plugin;
@@ -152,10 +150,10 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
 
         // First argument: show subcommands
         if (args.length == 1) {
-            List<String> subcommands = Arrays.asList("list", "add", "remove", "accept", "deny");
+            List<String> subcommands = List.of("list", "add", "remove", "accept", "deny");
             return subcommands.stream()
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         // Second argument: show player names based on subcommand
@@ -201,7 +199,7 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
 
             return suggestions.stream()
                     .filter(s -> s.toLowerCase().startsWith(args[1].toLowerCase()))
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         return new ArrayList<>();

@@ -83,8 +83,8 @@ public class MetalChainAbility extends BaseAbility {
 
         // Play sounds
         SoundUtils.playTo(player, SoundUtils.Element.METAL);
-        if (finalTarget instanceof Player) {
-            SoundUtils.playTo((Player) finalTarget, SoundUtils.Combat.HIT);
+        if (finalTarget instanceof Player chainedPlayer) {
+            SoundUtils.playTo(chainedPlayer, SoundUtils.Combat.HIT);
         }
 
         // Start chain particle animation and reeling

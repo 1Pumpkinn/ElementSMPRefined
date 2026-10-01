@@ -25,7 +25,7 @@ public final class MetadataHelper {
     public boolean hasFlag(Entity entity, String key) {
         if (!entity.hasMetadata(key)) return false;
         try {
-            return entity.getMetadata(key).get(0).asBoolean();
+            return entity.getMetadata(key).getFirst().asBoolean();
         } catch (Exception e) {
             return false;
         }
@@ -38,7 +38,7 @@ public final class MetadataHelper {
     public long getLong(Entity entity, String key, long defaultValue) {
         if (!entity.hasMetadata(key)) return defaultValue;
         try {
-            return entity.getMetadata(key).get(0).asLong();
+            return entity.getMetadata(key).getFirst().asLong();
         } catch (Exception e) {
             return defaultValue;
         }

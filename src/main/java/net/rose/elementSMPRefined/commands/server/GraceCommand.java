@@ -9,9 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * {@code /grace <start|stop|status> [duration_seconds] [hunger_protection_seconds]}
@@ -121,11 +119,11 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            List<String> subcommands = Arrays.asList("start", "stop", "status");
+            List<String> subcommands = List.of("start", "stop", "status");
             String input = args[0].toLowerCase();
             return subcommands.stream()
                     .filter(s -> s.startsWith(input))
-                    .collect(Collectors.toList());
+                    .toList();
         }
         return new ArrayList<>();
     }

@@ -169,27 +169,21 @@ public class StatusEffectManager {
         Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects
                 .computeIfAbsent(uuid, k -> new ConcurrentHashMap<>());
 
-        StatusEffectInstance existing = playerEffects.get(type);
         UUID sourceUuid = caster != null ? caster.getUniqueId() : null;
 
-        if (existing != null) {
-            if (data.isStackable()) {
-                // Stack the effect
-                existing.addStack(amplifier);
-                existing.extendDuration(actualDuration);
-            } else {
-                // Refresh duration for non-stackable effects
-                existing.refreshDuration(actualDuration);
+        playerEffects.compute(type, (t, existing) -> {
+            if (existing == null) {
+                // New effect
+                return StatusEffectInstance.create(type, actualDuration, amplifier, sourceUuid);
             }
+            // Stack for stackable effects, otherwise just refresh the duration
+            StatusEffectInstance updated = data.isStackable()
+                    ? existing.stacked(amplifier).extended(actualDuration)
+                    : existing.refreshed(actualDuration);
             // Most recent caster takes over credit for future ticks, for any
             // effect that cares about a source.
-            if (sourceUuid != null) {
-                existing.setSource(sourceUuid);
-            }
-        } else {
-            // New effect
-            playerEffects.put(type, new StatusEffectInstance(type, actualDuration, amplifier, sourceUuid));
-        }
+            return sourceUuid != null ? updated.withSource(sourceUuid) : updated;
+        });
 
         // Apply potion effects immediately
         applyPotionEffects(player, type, data);
@@ -230,7 +224,7 @@ public class StatusEffectManager {
 
         if (playerEffects != null) {
             StatusEffectInstance instance = playerEffects.get(type);
-            return instance != null ? instance.getRemainingDuration() : 0;
+            return instance != null ? instance.remainingTicks() : 0;
         }
         return 0;
     }
@@ -319,11 +313,13 @@ public class StatusEffectManager {
                         StatusEffectInstance instance = effectEntry.getValue();
 
                         StatusEffectData data = effectData.get(type);
-                        if (data != null) {
-                            // Process damage over time effects
-                            if (data.damagePerSecond() > 0 && instance.shouldApplyDamage()) {
-                                double damage = data.damagePerSecond() * instance.getAmplifier();
-                                player.damage(damage);
+                        if (data != null && data.damagePerSecond() > 0) {
+                            // Process damage over time effects (once per second)
+                            long now = System.currentTimeMillis();
+                            if (instance.isDamageDue(now)) {
+                                player.damage(data.damagePerSecond() * instance.amplifier());
+                                instance = instance.damagedAt(now);
+                                effects.put(type, instance);
                             }
                         }
 
@@ -426,60 +422,61 @@ public class StatusEffectManager {
     }
 
     /**
-     * Internal class to track active effect instances
+     * Immutable snapshot of an active effect on a player. Updates produce a new
+     * instance that is swapped into the map, so readers never see a half-updated one.
+     *
+     * @param expiryTime     epoch millis at which the effect ends
+     * @param lastDamageTime epoch millis of the last damage-over-time tick
+     * @param source         who applied this effect, or null
      */
-    private static class StatusEffectInstance {
-        private final StatusEffectType type;
-        private long expiryTime;
-        private int amplifier;
-        private long lastDamageTick;
-        /** Who applied this effect, or null. */
-        private UUID source;
+    private record StatusEffectInstance(
+            StatusEffectType type,
+            long expiryTime,
+            int amplifier,
+            long lastDamageTime,
+            UUID source
+    ) {
+        private static final long MS_PER_TICK = 50L;
 
-        public StatusEffectInstance(StatusEffectType type, int durationTicks, int amplifier, UUID source) {
-            this.type = type;
-            this.expiryTime = System.currentTimeMillis() + (durationTicks * 50L); // Convert ticks to ms
-            this.amplifier = amplifier;
-            this.lastDamageTick = System.currentTimeMillis();
-            this.source = source;
+        static StatusEffectInstance create(StatusEffectType type, int durationTicks, int amplifier, UUID source) {
+            long now = System.currentTimeMillis();
+            return new StatusEffectInstance(type, now + durationTicks * MS_PER_TICK, amplifier, now, source);
         }
 
-        public boolean isExpired() {
+        boolean isExpired() {
             return System.currentTimeMillis() >= expiryTime;
         }
 
-        public int getRemainingDuration() {
+        int remainingTicks() {
             long remaining = expiryTime - System.currentTimeMillis();
-            return (int) Math.max(0, remaining / 50); // Convert ms to ticks
+            return (int) Math.max(0, remaining / MS_PER_TICK);
         }
 
-        public void refreshDuration(int durationTicks) {
-            this.expiryTime = System.currentTimeMillis() + (durationTicks * 50L);
+        StatusEffectInstance refreshed(int durationTicks) {
+            return new StatusEffectInstance(type, System.currentTimeMillis() + durationTicks * MS_PER_TICK,
+                    amplifier, lastDamageTime, source);
         }
 
-        public void extendDuration(int additionalTicks) {
-            this.expiryTime += (additionalTicks * 50L);
+        StatusEffectInstance extended(int additionalTicks) {
+            return new StatusEffectInstance(type, expiryTime + additionalTicks * MS_PER_TICK,
+                    amplifier, lastDamageTime, source);
         }
 
-        public void addStack(int additionalAmplifier) {
-            this.amplifier += additionalAmplifier;
+        StatusEffectInstance stacked(int additionalAmplifier) {
+            return new StatusEffectInstance(type, expiryTime, amplifier + additionalAmplifier,
+                    lastDamageTime, source);
         }
 
-        public int getAmplifier() {
-            return amplifier;
+        StatusEffectInstance withSource(UUID newSource) {
+            return new StatusEffectInstance(type, expiryTime, amplifier, lastDamageTime, newSource);
         }
 
-        public void setSource(UUID source) {
-            this.source = source;
+        boolean isDamageDue(long now) {
+            return now - lastDamageTime >= 1000; // 1 second
         }
 
-        public boolean shouldApplyDamage() {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastDamageTick >= 1000) { // 1 second
-                lastDamageTick = currentTime;
-                return true;
-            }
-            return false;
+        StatusEffectInstance damagedAt(long now) {
+            return new StatusEffectInstance(type, expiryTime, amplifier, now, source);
         }
     }
 }

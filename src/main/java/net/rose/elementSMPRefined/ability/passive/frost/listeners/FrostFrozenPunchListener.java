@@ -53,7 +53,7 @@ public class FrostFrozenPunchListener implements Listener {
             return;
         }
 
-        long until = attacker.getMetadata(FrostPunchAbility.META_FROZEN_PUNCH_READY).get(0).asLong();
+        long until = attacker.getMetadata(FrostPunchAbility.META_FROZEN_PUNCH_READY).getFirst().asLong();
         if (System.currentTimeMillis() > until) {
             attacker.removeMetadata(FrostPunchAbility.META_FROZEN_PUNCH_READY, plugin);
 
@@ -112,7 +112,7 @@ public class FrostFrozenPunchListener implements Listener {
                     cancel();
                     return;
                 }
-                long until = entity.getMetadata(META_FROZEN).get(0).asLong();
+                long until = entity.getMetadata(META_FROZEN).getFirst().asLong();
                 if (System.currentTimeMillis() > until) {
                     entity.removeMetadata(META_FROZEN, plugin);
                     cancel();
@@ -147,7 +147,7 @@ public class FrostFrozenPunchListener implements Listener {
         Player player = event.getPlayer();
         if (!player.hasMetadata(META_FROZEN)) return;
 
-        long until = player.getMetadata(META_FROZEN).get(0).asLong();
+        long until = player.getMetadata(META_FROZEN).getFirst().asLong();
         if (System.currentTimeMillis() > until) {
             player.removeMetadata(META_FROZEN, plugin);
             return;
@@ -169,7 +169,7 @@ public class FrostFrozenPunchListener implements Listener {
 
         if (!entity.hasMetadata(META_FROZEN)) return;
 
-        long until = entity.getMetadata(META_FROZEN).get(0).asLong();
+        long until = entity.getMetadata(META_FROZEN).getFirst().asLong();
         if (System.currentTimeMillis() > until) {
             entity.removeMetadata(META_FROZEN, plugin);
             return;

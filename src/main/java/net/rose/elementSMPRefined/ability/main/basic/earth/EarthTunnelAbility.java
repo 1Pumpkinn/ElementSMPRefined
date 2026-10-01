@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.earth;
 
-import net.rose.elementSMPRefined.config.Constants;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;

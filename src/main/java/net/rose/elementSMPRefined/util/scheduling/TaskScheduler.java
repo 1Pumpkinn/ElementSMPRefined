@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.util.scheduling;
 
-import net.rose.elementSMPRefined.config.Constants;
+import net.rose.elementSMPRefined.core.Constants;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;

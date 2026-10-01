@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.frost.listeners;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.config.Constants;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.mythic.frost.FrostPunchAbility;
 import net.rose.elementSMPRefined.managers.ElementManager;

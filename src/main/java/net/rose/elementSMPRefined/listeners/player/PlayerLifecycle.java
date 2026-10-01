@@ -5,7 +5,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.mythic.metal.MetalShardAbility;
 import net.rose.elementSMPRefined.ability.passive.air.listeners.AirFallImpactListener;
 import net.rose.elementSMPRefined.ability.passive.frost.listeners.FrostPassiveListener;
-import net.rose.elementSMPRefined.config.Constants;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;

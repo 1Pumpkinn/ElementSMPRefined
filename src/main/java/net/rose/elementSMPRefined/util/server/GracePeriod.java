@@ -2,7 +2,7 @@ package net.rose.elementSMPRefined.util.server;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.config.Constants;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;

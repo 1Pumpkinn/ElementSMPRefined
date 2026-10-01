@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.util.server;
 
 import net.rose.elementSMPRefined.commands.server.DimensionCommand;
-import net.rose.elementSMPRefined.config.Constants;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.Material;

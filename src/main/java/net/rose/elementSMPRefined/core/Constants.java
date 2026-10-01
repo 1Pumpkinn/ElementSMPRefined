@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.config;
+package net.rose.elementSMPRefined.core;
 
 public final class Constants {
     private Constants() {}

@@ -17,16 +17,11 @@ import java.util.List;
 public class MetalElement extends BaseElement {
 
     public MetalElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new MetalChainAbility(plugin, configManager), new MetalShardAbility(plugin, configManager));
+        super(plugin, ElementType.METAL, new MetalChainAbility(plugin, configManager), new MetalShardAbility(plugin, configManager));
     }
 
     public MetalShardAbility getMetalDashAbility() {
         return (MetalShardAbility) ability2;
-    }
-
-    @Override
-    public ElementType getType() {
-        return ElementType.METAL;
     }
 
     @Override

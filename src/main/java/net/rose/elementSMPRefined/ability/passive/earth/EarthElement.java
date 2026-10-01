@@ -20,12 +20,7 @@ public class EarthElement extends BaseElement {
     public static final String META_TUNNELING = "earth_tunneling";
 
     public EarthElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new EarthTunnelAbility(plugin, configManager), new ShockwaveAbility(plugin, configManager));
-    }
-
-    @Override
-    public ElementType getType() {
-        return ElementType.EARTH;
+        super(plugin, ElementType.EARTH, new EarthTunnelAbility(plugin, configManager), new ShockwaveAbility(plugin, configManager));
     }
 
     @Override

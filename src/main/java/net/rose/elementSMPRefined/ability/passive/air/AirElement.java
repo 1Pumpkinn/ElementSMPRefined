@@ -16,16 +16,11 @@ public class AirElement extends BaseElement {
     private AirFallImpactListener fallImpactListener;
 
     public AirElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new AirDashAbility(plugin, configManager), new SlicingWindAbility(plugin, configManager));
+        super(plugin, ElementType.AIR, new AirDashAbility(plugin, configManager), new SlicingWindAbility(plugin, configManager));
     }
 
     public void setFallImpactListener(AirFallImpactListener listener) {
         this.fallImpactListener = listener;
-    }
-
-    @Override
-    public ElementType getType() {
-        return ElementType.AIR;
     }
 
     @Override

@@ -20,18 +20,14 @@ import java.util.List;
 public class WaterElement extends BaseElement implements ListenerProvider {
 
     public WaterElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new WaterGeyserAbility(plugin, configManager), new WaterBubbleAbility(plugin, configManager));
+        super(plugin, ElementType.WATER, new WaterGeyserAbility(plugin, configManager), new WaterBubbleAbility(plugin, configManager));
     }
 
     @Override
     public List<Listener> getListeners(JavaPlugin plugin) {
-        return List.of(
-                new WaterInvisibilityListener(((net.rose.elementSMPRefined.ElementSMPRefined) plugin), ((net.rose.elementSMPRefined.ElementSMPRefined) plugin).getElementManager())
-        );
+        // 'this.plugin' is already the typed ElementSMPRefined held by BaseElement.
+        return List.of(new WaterInvisibilityListener(this.plugin, this.plugin.getElementManager()));
     }
-
-    @Override
-    public ElementType getType() { return ElementType.WATER; }
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {

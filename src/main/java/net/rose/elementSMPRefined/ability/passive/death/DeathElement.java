@@ -20,7 +20,7 @@ public class DeathElement extends BaseElement implements ListenerProvider {
     private DeathNightInvisibilityListener nightInvisibilityListener;
 
     public DeathElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new DeathSideStepAbility(plugin, configManager), new DeathBackstabAbility(plugin, configManager));
+        super(plugin, ElementType.DEATH, new DeathSideStepAbility(plugin, configManager), new DeathBackstabAbility(plugin, configManager));
     }
 
     @Override
@@ -31,11 +31,6 @@ public class DeathElement extends BaseElement implements ListenerProvider {
                 nightInvisibilityListener,
                 new DeathWitherOnHitListener(elementPlugin.getElementManager(), elementPlugin.getTrustManager())
         );
-    }
-
-    @Override
-    public ElementType getType() {
-        return ElementType.DEATH;
     }
 
     @Override

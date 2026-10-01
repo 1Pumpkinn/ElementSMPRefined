@@ -9,6 +9,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Objects;
+import java.util.function.Predicate;
+
 /**
  * Base implementation every element should extend.
  * <p>
@@ -23,13 +26,20 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public abstract class BaseElement implements Element {
     protected final ElementSMPRefined plugin;
+    private final ElementType type;
     protected final Ability ability1;
     protected final Ability ability2;
 
-    protected BaseElement(JavaPlugin plugin, Ability ability1, Ability ability2) {
+    protected BaseElement(JavaPlugin plugin, ElementType type, Ability ability1, Ability ability2) {
         this.plugin = (ElementSMPRefined) plugin;
+        this.type = Objects.requireNonNull(type, "type");
         this.ability1 = ability1;
         this.ability2 = ability2;
+    }
+
+    @Override
+    public final ElementType getType() {
+        return type;
     }
 
     @Override
@@ -57,7 +67,7 @@ public abstract class BaseElement implements Element {
      * a failed cast never used to spend mana.
      */
     private boolean activate(ElementContext context, Ability ability, int requiredLevel,
-                             java.util.function.Predicate<ElementContext> canCancel) {
+                             Predicate<ElementContext> canCancel) {
         Player player = context.getPlayer();
         if (!checkUpgradeLevel(player, context.getUpgradeLevel(), requiredLevel)) return false;
 

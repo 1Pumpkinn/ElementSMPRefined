@@ -17,12 +17,7 @@ import java.util.List;
 public class FireElement extends BaseElement {
 
     public FireElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new HellChainAbility(plugin, configManager), new MeteorCrashAbility(plugin, configManager));
-    }
-
-    @Override
-    public ElementType getType() {
-        return ElementType.FIRE;
+        super(plugin, ElementType.FIRE, new HellChainAbility(plugin, configManager), new MeteorCrashAbility(plugin, configManager));
     }
 
     @Override

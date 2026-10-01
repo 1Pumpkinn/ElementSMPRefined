@@ -9,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,7 +21,7 @@ import java.util.Set;
 public class ElementRegistry {
     private final ElementSMPRefined plugin;
     private final Map<ElementType, Element> elements = new EnumMap<>(ElementType.class);
-    private final Map<ElementId, Element> elementsById = new java.util.HashMap<>();
+    private final Map<ElementId, Element> elementsById = new HashMap<>();
     private boolean frozen = false;
 
     public ElementRegistry(JavaPlugin plugin) {
@@ -42,10 +43,7 @@ public class ElementRegistry {
         }
 
         elementsById.put(id, element);
-        ElementType type = element.getType();
-        if (type != null) {
-            elements.put(type, element);
-        }
+        elements.put(element.getType(), element);
     }
 
     public Element get(ElementType type) {

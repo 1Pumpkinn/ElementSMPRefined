@@ -37,7 +37,7 @@ public class ExampleElement extends BaseElement implements ListenerProvider {
         // Hand BaseElement the two abilities this element casts. First one is
         // ability1 (Upgrade I), second is ability2 (needs Upgrade II) -
         // use two different Ability classes here, this is just reusing one for the demo.
-        super(plugin, new ExampleAbility(), new ExampleAbility());
+        super(plugin, ElementType.AIR, new ExampleAbility(), new ExampleAbility());
     }
 
     @Override
@@ -47,11 +47,6 @@ public class ExampleElement extends BaseElement implements ListenerProvider {
         return List.of(
                 // new ExamplePassiveListener(plugin, ...)
         );
-    }
-
-    @Override
-    public ElementType getType() {
-        return ElementType.AIR; // replace with a real, unused ElementType
     }
 
     @Override

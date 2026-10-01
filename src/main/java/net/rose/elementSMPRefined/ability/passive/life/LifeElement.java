@@ -28,12 +28,7 @@ public class LifeElement extends BaseElement {
     private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
 
     public LifeElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, new LifeRegenAbility(plugin, configManager), new LifeHealingBeamAbility(plugin, configManager));
-    }
-
-    @Override
-    public ElementType getType() {
-        return ElementType.LIFE;
+        super(plugin, ElementType.LIFE, new LifeRegenAbility(plugin, configManager), new LifeHealingBeamAbility(plugin, configManager));
     }
 
     @Override

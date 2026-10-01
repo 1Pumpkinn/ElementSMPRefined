@@ -1,9 +1,5 @@
 # Element SMP Configuration
 
-# Recipe Settings
-recipes:
-  advanced_reroller_enabled: true
-
 # Dimension Settings
 dimensions:
   # When true the dimension will not allow anyone to enter

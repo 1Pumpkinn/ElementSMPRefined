@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.commands.element;
+package net.rose.elementSMPRefined.commands.element.admin;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

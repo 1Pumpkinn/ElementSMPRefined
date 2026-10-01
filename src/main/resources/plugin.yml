@@ -40,11 +40,6 @@ commands:
     usage: /elements [element_name]
     aliases: [ elementinfo, elinfo ]
 
-  togglerecipe:
-    description: Toggle recipe availability
-    usage: /togglerecipe <upgrader1|upgrader2|reroller|advancedreroller>
-    permission: element.admin
-
   grace:
     description: Start, stop, or check the server grace period
     usage: /grace <start|stop|status> [duration_seconds] [hunger_protection_seconds]

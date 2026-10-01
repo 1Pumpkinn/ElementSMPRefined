@@ -2,7 +2,6 @@ package net.rose.elementSMPRefined.lang;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 
 /**
  * All player-facing message text lives here so wording/colors can be edited
@@ -565,29 +564,6 @@ public final class Lang {
 
     public static final Component CRAFTING_UPGRADES_RESET =
             Component.text("All upgrades reset to None", NamedTextColor.YELLOW);
-
-
-    // --- /togglerecipe command ---
-    public static Component recipeToggled(String recipeName, boolean enabled) {
-        return Component.textOfChildren(
-                Component.text(recipeName + " recipe has been ", NamedTextColor.GREEN),
-                enabled
-                        ? Component.text("ENABLED", NamedTextColor.GREEN).decorate(TextDecoration.BOLD)
-                        : Component.text("DISABLED", NamedTextColor.RED)
-        );
-    }
-
-    public static final Component TOGGLE_RECIPE_PLAYERS_ONLY =
-            Component.text("Only players can use this command!", NamedTextColor.RED);
-
-    public static final Component TOGGLE_RECIPE_NO_PERMISSION =
-            Component.text("You don't have permission to use this command!", NamedTextColor.RED);
-
-    public static final Component TOGGLE_RECIPE_USAGE =
-            Component.text("Usage: /togglerecipe <upgrader1|upgrader2|reroller|advancedreroller>", NamedTextColor.RED);
-
-    public static final Component TOGGLE_RECIPE_INVALID_TYPE =
-            Component.text("Invalid recipe type! Use: upgrader1, upgrader2, reroller, or advancedreroller", NamedTextColor.RED);
 
 
     // --- /elements command ---

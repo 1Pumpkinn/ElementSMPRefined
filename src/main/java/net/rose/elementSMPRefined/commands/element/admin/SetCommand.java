@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.commands.element;
+package net.rose.elementSMPRefined.commands.element.admin;
 
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;

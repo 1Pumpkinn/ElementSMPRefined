@@ -1,6 +1,7 @@
-package net.rose.elementSMPRefined.commands.element;
+package net.rose.elementSMPRefined.commands.element.base;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.commands.element.admin.*;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.kyori.adventure.text.Component;

@@ -1,14 +1,13 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.commands.element.AbilityCommand;
-import net.rose.elementSMPRefined.commands.element.ElementCommand;
-import net.rose.elementSMPRefined.commands.element.ElementInfoCommand;
-import net.rose.elementSMPRefined.commands.DimensionCommand;
-import net.rose.elementSMPRefined.commands.GraceCommand;
-import net.rose.elementSMPRefined.commands.ToggleRecipeCommand;
+import net.rose.elementSMPRefined.commands.element.base.AbilityCommand;
+import net.rose.elementSMPRefined.commands.element.base.ElementCommand;
+import net.rose.elementSMPRefined.commands.element.base.ElementInfoCommand;
+import net.rose.elementSMPRefined.commands.server.DimensionCommand;
+import net.rose.elementSMPRefined.commands.server.GraceCommand;
 import net.rose.elementSMPRefined.commands.TrustCommand;
-import net.rose.elementSMPRefined.commands.element.UtilCommand;
+import net.rose.elementSMPRefined.commands.element.admin.UtilCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -34,7 +33,6 @@ public class CommandInitializer {
                 .command("trust", new TrustCommand(plugin, plugin.getTrustManager()))
                 .command("element", new ElementCommand(plugin))
                 .command("util", new UtilCommand(plugin))
-                .command("togglerecipe", new ToggleRecipeCommand(plugin))
                 .command("grace", new GraceCommand(plugin))
                 .command("dimension", new DimensionCommand(plugin));
     }

@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.server;
 
+import net.rose.elementSMPRefined.commands.server.DimensionCommand;
 import net.rose.elementSMPRefined.config.Constants;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
@@ -21,7 +22,7 @@ import java.util.UUID;
 /**
  * Cancels Nether/End portal travel, with each dimension toggled independently
  * via {@link ConfigManager#isNetherDisabled()} / {@link ConfigManager#isEndDisabled()}
- * (runtime-toggleable with /dimension, see {@link net.rose.elementSMPRefined.commands.DimensionCommand}).
+ * (runtime-toggleable with /dimension, see {@link DimensionCommand}).
  * <p>
  * Two events are handled because Bukkit fires a different one depending on
  * what enters the portal:

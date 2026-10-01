@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
-import net.rose.elementSMPRefined.util.visual.AirCutterVisual;
+import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;

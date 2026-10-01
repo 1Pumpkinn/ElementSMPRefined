@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined;
 
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
-import net.rose.elementSMPRefined.util.visual.AirCutterVisual;
-import net.rose.elementSMPRefined.util.visual.ChainVisual;
+import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
+import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
 
 /**
  * Main plugin class which significantly simplified by extending AbstractElementPlugin.

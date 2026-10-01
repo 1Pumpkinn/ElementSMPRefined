@@ -1,6 +1,5 @@
 {
   "format_version": "26.3",
-  "credit": "Air Cutter crescent",
   "textures": {
     "1": "elementsmp:item/air_cutter",
     "particle": "elementsmp:item/air_cutter"

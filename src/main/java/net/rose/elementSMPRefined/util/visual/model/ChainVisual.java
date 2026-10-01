@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.util.visual;
+package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
 import org.bukkit.Location;

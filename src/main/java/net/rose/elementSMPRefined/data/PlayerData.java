@@ -62,10 +62,8 @@ public final class PlayerData {
     }
 
     public void setCurrentElementUpgradeLevel(int level) {
-        this.currentElementUpgradeLevel = Math.max(
-                0,
-                Math.min(MAX_UPGRADE_LEVEL, level)
-        );
+        this.currentElementUpgradeLevel = Math.clamp(level,
+                0, MAX_UPGRADE_LEVEL);
     }
 
     /** Upgrade level only applies to whichever element is currently active; anything else reads as 0. */

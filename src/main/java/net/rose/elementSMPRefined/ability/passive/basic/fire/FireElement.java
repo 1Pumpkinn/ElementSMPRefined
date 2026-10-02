@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.basic.fire;
 import net.rose.elementSMPRefined.ability.main.basic.fire.HellChainAbility;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.basic.fire.StarfireAbility;
+import net.rose.elementSMPRefined.ability.main.basic.fire.StarFallAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
@@ -17,7 +17,7 @@ import java.util.List;
 public class FireElement extends BaseElement {
 
     public FireElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.FIRE, new HellChainAbility(plugin, configManager), new StarfireAbility(plugin, configManager));
+        super(plugin, ElementType.FIRE, new HellChainAbility(plugin, configManager), new StarFallAbility(plugin, configManager));
     }
 
     @Override

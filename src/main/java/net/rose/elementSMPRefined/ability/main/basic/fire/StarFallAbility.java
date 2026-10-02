@@ -40,7 +40,7 @@ import java.util.logging.Level;
  * client-interpolated teleport (the spin is a single interpolated transformation), so the server does no
  * per-tick movement work.
  */
-public class StarfireAbility extends BaseAbility {
+public class StarFallAbility extends BaseAbility {
     private static final double RANGE = 40.0;
     private static final double GROUND_SEARCH_DISTANCE = 40.0;
 
@@ -76,7 +76,7 @@ public class StarfireAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
 
-    public StarfireAbility(JavaPlugin plugin, ConfigManager configManager) {
+    public StarFallAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("fire_starfire", ElementType.FIRE, 2, 60, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
@@ -339,7 +339,7 @@ public class StarfireAbility extends BaseAbility {
 
     @Override
     public String getName() {
-        return ChatColor.RED + "Starfire";
+        return ChatColor.RED + "Starfall";
     }
 
     @Override

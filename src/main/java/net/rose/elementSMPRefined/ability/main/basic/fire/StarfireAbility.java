@@ -344,7 +344,6 @@ public class StarfireAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Call down a barrage of flaming meteors on the area you're looking at. "
-                + "Each one marks where it will land, then crashes down - damaging and igniting everything nearby.";
+        return ChatColor.GRAY + "Call down a barrage of meteors on the area you're looking at";
     }
 }

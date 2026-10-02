@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.lang;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 /**
  * All player-facing message text lives here so wording/colors can be edited
@@ -16,6 +17,18 @@ import net.kyori.adventure.text.format.NamedTextColor;
 public final class Lang {
 
     private Lang() {}
+
+    /**
+     * Element display names still carry legacy section codes (e.g. {@code ChatColor.AQUA + "Water"}),
+     * and handing those to {@code Component.text} makes Adventure log a LegacyFormattingDetected
+     * warning every time. This turns them into a proper coloured component instead; if the name
+     * has no colour of its own it falls back to {@code fallback}.
+     */
+    private static Component legacy(Object text, NamedTextColor fallback) {
+        return LegacyComponentSerializer.legacySection()
+                .deserialize(String.valueOf(text))
+                .colorIfAbsent(fallback);
+    }
 
     // --- Death element - Backstab ability ---
     public static final Component DEATH_BACKSTAB_NO_TARGET_IN_RANGE =
@@ -440,14 +453,14 @@ public final class Lang {
                 Component.text("Set ", NamedTextColor.GREEN),
                 Component.text(String.valueOf(name), NamedTextColor.GREEN),
                 Component.text("'s element to ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(displayName), NamedTextColor.AQUA)
+                legacy(displayName, NamedTextColor.AQUA)
         );
     }
 
     public static Component setYourElementHasBeenSet(Object displayName) {
         return Component.textOfChildren(
                 Component.text("Your element has been set to ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(displayName), NamedTextColor.AQUA),
+                legacy(displayName, NamedTextColor.AQUA),
                 Component.text(" by an admin.", NamedTextColor.GREEN)
         );
     }
@@ -514,7 +527,7 @@ public final class Lang {
     public static Component elementManagerYourElementIsNow(Object id) {
         return Component.textOfChildren(
                 Component.text("Your element is now ", NamedTextColor.GOLD),
-                Component.text(String.valueOf(id), NamedTextColor.AQUA)
+                legacy(id, NamedTextColor.AQUA)
         );
     }
 

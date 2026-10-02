@@ -15,15 +15,21 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 /**
- * Slicing Wind - fires a fast-moving blade of compressed air in front of the
- * player that cuts through anything in a narrow line, dealing damage and
+ * Slicing Wind - fires a fan of three fast-moving blades of compressed air in front of
+ * the player. Each blade cuts through anything in a narrow line, dealing damage and
  * knocking targets away.
  * <p>
- * The blade is drawn with the {@code elementsmp:air_cutter} resource-pack model via
+ * The blades are drawn with the {@code elementsmp:air_cutter} resource-pack model via
  * {@link AirCutterVisual} (an ItemDisplay teleported each tick), the same way Hell's Chain
  * draws its chain with {@code ChainVisual}.
  */
 public class SlicingWindAbility extends BaseAbility {
+
+    /** Number of blades per cast. They fan out symmetrically around the player's aim. */
+    private static final int CUTTER_COUNT = 3;
+    /** Horizontal angle, in degrees, between neighbouring blades. */
+    private static final double SPREAD_DEGREES = 15.0;
+
     private final ElementSMPRefined plugin;
 
     public SlicingWindAbility(JavaPlugin plugin, ConfigManager configManager) {
@@ -37,10 +43,24 @@ public class SlicingWindAbility extends BaseAbility {
         TrustManager trust = context.getTrustManager();
 
         World w = player.getWorld();
-        Vector direction = player.getLocation().getDirection().normalize();
+        Vector aim = player.getLocation().getDirection().normalize();
         Location origin = player.getEyeLocation();
 
         w.playSound(origin, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.2f, 1.4f);
+
+        for (int i = 0; i < CUTTER_COUNT; i++) {
+            // Offsets are centred on the aim: for 3 blades that's -15deg, 0deg, +15deg.
+            double offset = (i - (CUTTER_COUNT - 1) / 2.0) * SPREAD_DEGREES;
+            Vector direction = aim.clone().rotateAroundY(Math.toRadians(offset)).normalize();
+            launchCutter(player, trust, origin, direction);
+        }
+
+        return true;
+    }
+
+    /** Launches a single blade along {@code direction}; each blade tracks its own hits. */
+    private void launchCutter(Player player, TrustManager trust, Location origin, Vector direction) {
+        World w = origin.getWorld();
 
         double range = 20.0;
         double hitboxWidth = 1.1;
@@ -87,8 +107,6 @@ public class SlicingWindAbility extends BaseAbility {
                 }
             }
         }.runTaskTimer(plugin, 0L, 1L);
-
-        return true;
     }
 
     @Override
@@ -98,6 +116,6 @@ public class SlicingWindAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Fire a razor-sharp blade of wind that slices through enemies in a line, dealing damage and knocking them back.";
+        return "Fire three razor-sharp blades of wind in a fan that slice through enemies in a line, dealing damage and knocking them back.";
     }
 }

@@ -9,7 +9,6 @@ import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
-import net.rose.elementSMPRefined.listeners.GUIListener;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.services.EffectService;
@@ -44,7 +43,6 @@ public class PlayerLifecycle implements Listener {
     private final TaskScheduler scheduler;
     private final FrostPassiveListener frostPassiveListener;
     private final AirFallImpactListener airFallImpactListener;
-    private final GUIListener guiListener;
     private final MetalShardAbility metalShardAbility;
     private final Random random = new Random();
 
@@ -53,7 +51,6 @@ public class PlayerLifecycle implements Listener {
                            DisarmManager disarmManager,
                            FrostPassiveListener frostPassiveListener,
                            AirFallImpactListener airFallImpactListener,
-                           GUIListener guiListener,
                            MetalShardAbility metalDashAbility) {
         this.plugin = plugin;
         this.elementManager = elementManager;
@@ -62,7 +59,6 @@ public class PlayerLifecycle implements Listener {
         this.scheduler = plugin.getTaskScheduler();
         this.frostPassiveListener = frostPassiveListener;
         this.airFallImpactListener = airFallImpactListener;
-        this.guiListener = guiListener;
         this.metalShardAbility = metalDashAbility;
     }
 
@@ -237,9 +233,6 @@ public class PlayerLifecycle implements Listener {
         }
         if (airFallImpactListener != null) {
             airFallImpactListener.cleanupPlayer(playerUuid);
-        }
-        if (guiListener != null) {
-            guiListener.onPlayerQuit(playerUuid);
         }
         if (metalShardAbility != null) {
             metalShardAbility.onPlayerQuit(playerUuid);

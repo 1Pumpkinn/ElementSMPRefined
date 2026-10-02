@@ -32,7 +32,7 @@ import java.util.UUID;
  * short live summary if they're online. Unlike {@code /element debug} this never
  * invalidates or reloads any cache, so it's safe to run at any time.
  * <p>
- * Sections: identity, element + upgrade progress + passives, owned element items,
+ * Sections: identity, element + upgrade progress + passives,
  * trusted players, pending reroller refunds, and (online only) ability cooldowns,
  * disarm state, applied passive potion effects, combat status effects and reroll state.
  * <p>
@@ -102,7 +102,6 @@ public class DataCommand implements ElementSubCommand {
         sender.sendMessage(row("Status", live != null ? "Online" : "Offline"));
 
         sendElement(sender, pd);
-        sendOwnedItems(sender, pd);
         sendTrusted(sender, pd);
         sender.sendMessage(row("Pending refunds",
                 "reroller x" + pd.getPendingRerollerRefunds()
@@ -142,13 +141,6 @@ public class DataCommand implements ElementSubCommand {
                 sender.sendMessage(Component.text("  - " + ChatColor.stripColor(passive), NamedTextColor.WHITE));
             }
         }
-    }
-
-    private void sendOwnedItems(CommandSender sender, PlayerData pd) {
-        List<String> owned = new ArrayList<>();
-        for (ElementType type : pd.getOwnedItems()) owned.add(type.name().toLowerCase());
-        Collections.sort(owned);
-        sender.sendMessage(row("Owned element items", owned.isEmpty() ? "None" : String.join(", ", owned)));
     }
 
     private void sendTrusted(CommandSender sender, PlayerData pd) {

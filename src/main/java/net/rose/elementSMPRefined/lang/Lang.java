@@ -527,7 +527,7 @@ public final class Lang {
             Component.text("Example ability activated", NamedTextColor.GREEN);
 
 
-    // --- Element item crafting: upgraders & basic cores (ElementItemCraftingListener) ---
+    // --- Upgrader crafting (ElementItemCraftingListener) ---
     public static final Component CRAFTING_NO_ELEMENT_YET =
             Component.text("You don't have an element yet.", NamedTextColor.RED);
 
@@ -544,19 +544,6 @@ public final class Lang {
     public static Component craftingUnlockedAbility2(Object element) {
         return Component.text("Unlocked Ability 2 and Upside 2 for " + element, NamedTextColor.GREEN);
     }
-
-    public static final Component CRAFTING_ITEM_ALREADY_CRAFTED =
-            Component.text("You can only craft this item once.", NamedTextColor.RED);
-
-    public static Component craftingCraftedElementItem(Object typeName) {
-        return Component.textOfChildren(
-                Component.text("Crafted element item for ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(typeName), NamedTextColor.AQUA)
-        );
-    }
-
-    public static final Component CRAFTING_UPGRADES_RESET =
-            Component.text("All upgrades reset to None", NamedTextColor.YELLOW);
 
 
     // --- /elements command ---

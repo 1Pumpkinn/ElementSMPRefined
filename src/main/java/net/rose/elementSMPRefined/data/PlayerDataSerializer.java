@@ -3,8 +3,6 @@ package net.rose.elementSMPRefined.data;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -33,11 +31,6 @@ public final class PlayerDataSerializer {
         data.setPendingRerollerRefunds(section.getInt("pendingRerollerRefunds", 0));
         data.setPendingAdvancedRerollerRefunds(section.getInt("pendingAdvancedRerollerRefunds", 0));
 
-        for (String name : section.getStringList("items")) {
-            // Skip invalid/renamed element item entries.
-            ElementType.parse(name).ifPresent(data::addElementItem);
-        }
-
         ConfigurationSection trust = section.getConfigurationSection("trust");
         if (trust != null) {
             for (String key : trust.getKeys(false)) {
@@ -60,11 +53,7 @@ public final class PlayerDataSerializer {
         section.set("pendingRerollerRefunds", data.getPendingRerollerRefunds());
         section.set("pendingAdvancedRerollerRefunds", data.getPendingAdvancedRerollerRefunds());
 
-        List<String> items = new ArrayList<>();
-        for (ElementType type : data.getOwnedItems()) {
-            items.add(type.name());
-        }
-        section.set("items", items);
+        section.set("items", null); // element cores were removed - drop the old owned-items list
 
         section.set("trust", null); // clear stale entries before rewriting
         if (!data.getTrustedPlayers().isEmpty()) {

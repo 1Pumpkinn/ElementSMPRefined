@@ -14,11 +14,9 @@ import net.rose.elementSMPRefined.ability.passive.mythic.frost.listeners.FrostPa
 import net.rose.elementSMPRefined.ability.passive.mythic.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.mythic.metal.listeners.MetalArrowImmunityListener;
 import net.rose.elementSMPRefined.ability.passive.mythic.metal.listeners.MetalChainStunListener;
-import net.rose.elementSMPRefined.listeners.GUIListener;
 import net.rose.elementSMPRefined.listeners.handler.AdvancedRerollerHandler;
 import net.rose.elementSMPRefined.listeners.item.ElementItemCraftingListener;
 import net.rose.elementSMPRefined.listeners.item.PlayerDeathListener;
-import net.rose.elementSMPRefined.listeners.item.ElementItemInteractionListener;
 import net.rose.elementSMPRefined.listeners.handler.RerollerHandler;
 import net.rose.elementSMPRefined.listeners.handler.UpgraderHandler;
 import net.rose.elementSMPRefined.listeners.player.InvisibilityNameHider;
@@ -42,7 +40,6 @@ public class ListenerInitializer {
     private PlayerLifecycle playerLifecycleListener;
     private AirFallImpactListener airFallImpactListener;
     private FrostPassiveListener frostPassiveListener;
-    private GUIListener guiListener;
     private MetalShardAbility metalShardAbility;
     private GracePeriod gracePeriod;
 
@@ -66,9 +63,6 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new StatusEffectListener(plugin), plugin);
         pluginManager.registerEvents(new DisarmListener(plugin.getDisarmManager()), plugin);
 
-        this.guiListener = new GUIListener(plugin);
-        pluginManager.registerEvents(guiListener, plugin);
-
         pluginManager.registerEvents(new DimensionDisable(plugin.getConfigManager()), plugin);
 
         this.gracePeriod = new GracePeriod(plugin, plugin.getConfigManager(), plugin.getTaskScheduler());
@@ -82,7 +76,6 @@ public class ListenerInitializer {
     }
 
     private void registerItemListeners() {
-        pluginManager.registerEvents(new ElementItemInteractionListener(plugin), plugin);
         pluginManager.registerEvents(new ElementItemCraftingListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new PlayerDeathListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new RerollerHandler(plugin, plugin.getElementManager()), plugin);
@@ -143,7 +136,6 @@ public class ListenerInitializer {
                 plugin.getDisarmManager(),
                 frostPassiveListener,
                 airFallImpactListener,
-                guiListener,
                 metalShardAbility
         );
         pluginManager.registerEvents(playerLifecycleListener, plugin);

@@ -20,7 +20,6 @@ public final class PlayerData {
 
     private final UUID uuid;
     private ElementType currentElement;
-    private final EnumSet<ElementType> ownedItems;
     private int currentElementUpgradeLevel;
     private final Set<UUID> trustedPlayers;
     private int pendingRerollerRefunds;
@@ -28,7 +27,6 @@ public final class PlayerData {
 
     public PlayerData(UUID uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
-        this.ownedItems = EnumSet.noneOf(ElementType.class);
         this.currentElementUpgradeLevel = 0;
         this.trustedPlayers = new HashSet<>();
     }
@@ -43,11 +41,6 @@ public final class PlayerData {
 
     public int getCurrentElementUpgradeLevel() {
         return currentElementUpgradeLevel;
-    }
-
-    /** A copy of the element items this player has already crafted/claimed. */
-    public Set<ElementType> getOwnedItems() {
-        return EnumSet.copyOf(ownedItems);
     }
 
     public Set<UUID> getTrustedPlayers() {
@@ -87,22 +80,6 @@ public final class PlayerData {
     public void setUpgradeLevel(ElementType type, int level) {
         if (type != null && type == currentElement) {
             setCurrentElementUpgradeLevel(level);
-        }
-    }
-
-    public boolean hasElementItem(ElementType type) {
-        return type != null && ownedItems.contains(type);
-    }
-
-    public void addElementItem(ElementType type) {
-        if (type != null) {
-            ownedItems.add(type);
-        }
-    }
-
-    public void removeElementItem(ElementType type) {
-        if (type != null) {
-            ownedItems.remove(type);
         }
     }
 

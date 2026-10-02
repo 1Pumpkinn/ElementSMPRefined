@@ -182,21 +182,34 @@ public class ElementManager {
      * Assigns a specific basic element, chosen by {@code RerollerHandler}'s
      * own {@code determineNewElement}. This stays in ElementManager (rather
      * than moving fully into the handler like the advanced reroller does)
-     * because it goes through {@code assignElementInternal} - the same
-     * shared plumbing used by element-selection and altar-granted elements,
-     * which fires {@code ElementAssignEvent} and handles the old-element
-     * switch. That's genuinely shared machinery, not reroller-specific code.
+     * because it handles the old-element switch and fires
+     * {@code ElementAssignEvent} - shared machinery, not reroller-specific code.
+     * The upgrade level is kept.
      */
     public void assignBasicElement(Player player, ElementType type) {
-        assignElementInternal(player, type, "Element Assigned!", false);
-    }
+        PlayerData pd = data(player.getUniqueId());
+        ElementType old = pd.getCurrentElement();
 
-    /**
-     * Assigns an element outright (no rolling), resetting the upgrade level. Used e.g.
-     * by an altar/event granting a specific collected element.
-     */
-    public void assignElement(Player player, ElementType type) {
-        assignElementInternal(player, type, "Element Chosen!", true);
+        if (old != null && old != type) {
+            handleElementSwitch(player, old);
+        }
+
+        int currentUpgrade = pd.getCurrentElementUpgradeLevel();
+        pd.setCurrentElementWithoutReset(type);
+        pd.setCurrentElementUpgradeLevel(currentUpgrade);
+
+        // saveAsync() updates the in-memory cache immediately (so the player's
+        // effects/data are correct right away) and defers the actual YAML
+        // read-modify-write to a background thread. store.save() reloads and
+        // rewrites the ENTIRE players.yml synchronously on the main thread -
+        // that cost scales with total player count/history, not with this one
+        // reroll, and was the cause of the reroll lag spikes.
+        store.saveAsync(pd);
+        showElementTitle(player, type, "Element Assigned!");
+        applyUpsides(player);
+        SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
+
+        plugin.getServer().getPluginManager().callEvent(new ElementAssignEvent(player, type, old));
     }
 
     public void setElement(Player player, ElementType type) {
@@ -214,36 +227,6 @@ public class ElementManager {
         applyUpsides(player);
 
         plugin.getServer().getPluginManager().callEvent(new ElementSetEvent(player, type, old));
-    }
-
-    private void assignElementInternal(Player player, ElementType type, String titleText, boolean resetLevel) {
-        PlayerData pd = data(player.getUniqueId());
-        ElementType old = pd.getCurrentElement();
-
-        if (old != null && old != type) {
-            handleElementSwitch(player, old);
-        }
-
-        if (resetLevel) {
-            pd.setCurrentElement(type);
-        } else {
-            int currentUpgrade = pd.getCurrentElementUpgradeLevel();
-            pd.setCurrentElementWithoutReset(type);
-            pd.setCurrentElementUpgradeLevel(currentUpgrade);
-        }
-
-        // saveAsync() updates the in-memory cache immediately (so the player's
-        // effects/data are correct right away) and defers the actual YAML
-        // read-modify-write to a background thread. store.save() reloads and
-        // rewrites the ENTIRE players.yml synchronously on the main thread -
-        // that cost scales with total player count/history, not with this one
-        // reroll, and was the cause of the reroll lag spikes.
-        store.saveAsync(pd);
-        showElementTitle(player, type, titleText);
-        applyUpsides(player);
-        SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
-
-        plugin.getServer().getPluginManager().callEvent(new ElementAssignEvent(player, type, old));
     }
 
     private String displayNameOf(ElementType type) {

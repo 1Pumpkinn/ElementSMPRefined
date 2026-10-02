@@ -7,14 +7,13 @@ import org.bukkit.event.HandlerList;
 
 /**
  * Fired after a player is assigned an element via
- * {@link net.rose.elementSMPRefined.managers.ElementManager#assignElement(Player, ElementType)}
- * (initial roll, admin grant, altar reward, etc.) - anything that resets the
- * player's upgrade level for their new element, as opposed to
- * {@link ElementSetEvent} which preserves it.
+ * {@link net.rose.elementSMPRefined.managers.ElementManager#assignBasicElement(Player, ElementType)}
+ * (the first-join roll and the basic reroller). The player's upgrade level is
+ * kept, as opposed to {@link ElementSetEvent}, which resets it.
  * <p>
  * Fires after the assignment has already been saved, so this is purely
  * informational and is <b>not</b> cancellable. To block an assignment,
- * intervene before calling {@code assignElement} in the first place.
+ * intervene before calling {@code assignBasicElement} in the first place.
  */
 public class ElementAssignEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();

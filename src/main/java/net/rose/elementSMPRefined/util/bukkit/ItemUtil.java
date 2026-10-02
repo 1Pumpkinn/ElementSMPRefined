@@ -1,8 +1,5 @@
 package net.rose.elementSMPRefined.util.bukkit;
 
-import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.items.ItemKeys;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -21,7 +18,7 @@ public final class ItemUtil {
      * Safely get an item's PersistentDataContainer, if it has meta at all.
      * Replaces the repeated {@code item.hasItemMeta() ? item.getItemMeta()
      * .getPersistentDataContainer() : ...} null-check dance that used to be
-     * copy-pasted across GUIListener, UpgraderHandler, RerollerHandler,
+     * copy-pasted across UpgraderHandler, RerollerHandler,
      * AdvancedRerollerHandler, and ElementItemCraftingListener.
      */
     public static Optional<PersistentDataContainer> pdc(ItemStack stack) {
@@ -42,21 +39,6 @@ public final class ItemUtil {
      */
     public static <T, Z> Optional<Z> getTag(ItemStack stack, NamespacedKey key, PersistentDataType<T, Z> type) {
         return pdc(stack).map(c -> c.get(key, type));
-    }
-
-    /**
-     * Check if an item stack is an element item
-     */
-    public static boolean isElementItem(ElementSMPRefined plugin, ItemStack stack) {
-        Byte flag = getTag(stack, ItemKeys.elementItem(plugin), PersistentDataType.BYTE).orElse(null);
-        return flag != null && flag == (byte)1;
-    }
-
-    /** Get the element type stored on an item stack's tag, or null if missing/invalid. */
-    public static ElementType getElementType(ElementSMPRefined plugin, ItemStack stack) {
-        return getTag(stack, ItemKeys.elementType(plugin), PersistentDataType.STRING)
-                .flatMap(ElementType::parse)
-                .orElse(null);
     }
 
     /**

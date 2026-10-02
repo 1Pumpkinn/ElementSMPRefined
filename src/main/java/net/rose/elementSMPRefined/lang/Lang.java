@@ -467,6 +467,9 @@ public final class Lang {
 
 
     // --- Upgrader item handler ---
+    public static final Component UPGRADER_NO_ELEMENT_YET =
+            Component.text("You don't have an element yet.", NamedTextColor.RED);
+
     public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I =
             Component.text("You already have Upgrade I", NamedTextColor.RED);
 
@@ -525,25 +528,6 @@ public final class Lang {
 
     public static final Component EXAMPLE_EXAMPLE_ABILITY_ACTIVATED =
             Component.text("Example ability activated", NamedTextColor.GREEN);
-
-
-    // --- Upgrader crafting (ElementItemCraftingListener) ---
-    public static final Component CRAFTING_NO_ELEMENT_YET =
-            Component.text("You don't have an element yet.", NamedTextColor.RED);
-
-    public static final Component CRAFTING_UPGRADER_2_REQUIRES_UPGRADER_1 =
-            Component.text("You must craft and possess Upgrader I before crafting Upgrader II.", NamedTextColor.RED);
-
-    public static final Component CRAFTING_UPGRADE_ALREADY_OWNED =
-            Component.text("You already have this upgrade.", NamedTextColor.RED);
-
-    public static Component craftingUnlockedAbility1(Object element) {
-        return Component.text("Unlocked Ability 1 for " + element, NamedTextColor.GREEN);
-    }
-
-    public static Component craftingUnlockedAbility2(Object element) {
-        return Component.text("Unlocked Ability 2 and Upside 2 for " + element, NamedTextColor.GREEN);
-    }
 
 
     // --- /elements command ---

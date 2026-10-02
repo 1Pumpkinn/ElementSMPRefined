@@ -19,7 +19,7 @@ public final class ItemUtil {
      * Replaces the repeated {@code item.hasItemMeta() ? item.getItemMeta()
      * .getPersistentDataContainer() : ...} null-check dance that used to be
      * copy-pasted across UpgraderHandler, RerollerHandler,
-     * AdvancedRerollerHandler, and ElementItemCraftingListener.
+     * and AdvancedRerollerHandler.
      */
     public static Optional<PersistentDataContainer> pdc(ItemStack stack) {
         if (stack == null || !stack.hasItemMeta()) return Optional.empty();

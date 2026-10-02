@@ -15,7 +15,6 @@ import net.rose.elementSMPRefined.ability.passive.mythic.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.mythic.metal.listeners.MetalArrowImmunityListener;
 import net.rose.elementSMPRefined.ability.passive.mythic.metal.listeners.MetalChainStunListener;
 import net.rose.elementSMPRefined.listeners.handler.AdvancedRerollerHandler;
-import net.rose.elementSMPRefined.listeners.item.ElementItemCraftingListener;
 import net.rose.elementSMPRefined.listeners.item.PlayerDeathListener;
 import net.rose.elementSMPRefined.listeners.handler.RerollerHandler;
 import net.rose.elementSMPRefined.listeners.handler.UpgraderHandler;
@@ -76,7 +75,6 @@ public class ListenerInitializer {
     }
 
     private void registerItemListeners() {
-        pluginManager.registerEvents(new ElementItemCraftingListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new PlayerDeathListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new RerollerHandler(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new AdvancedRerollerHandler(plugin, plugin.getElementManager()), plugin);

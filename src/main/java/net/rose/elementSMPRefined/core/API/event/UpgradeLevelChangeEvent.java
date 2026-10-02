@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Fired before a player's upgrade level for an element changes. Core fires it
- * when an upgrader item is used and when an upgrader is crafted.
+ * when an upgrader item is right-clicked.
  * <p>
  * Cancel this to block the level change - nothing is consumed or applied.
  */

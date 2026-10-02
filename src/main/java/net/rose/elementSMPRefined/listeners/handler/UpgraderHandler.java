@@ -14,11 +14,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Handles upgrader item usage for unlocking element abilities
+ * Handles upgrader item usage: crafting only gives the item, and right-clicking it
+ * unlocks the next upgrade level for the player's current element.
  */
 public class UpgraderHandler implements Listener {
     private final ElementSMPRefined plugin;
@@ -39,10 +41,11 @@ public class UpgraderHandler implements Listener {
         if (!isValidUpgrader(item)) return;
 
         int upgraderLevel = getUpgraderLevel(item);
+        EquipmentSlot hand = event.getHand();
         PlayerData playerData = elementManager.data(player.getUniqueId());
         ElementType currentElement = playerData.getCurrentElement();
         if (currentElement == null) {
-            player.sendMessage(Lang.CRAFTING_NO_ELEMENT_YET);
+            player.sendMessage(Lang.UPGRADER_NO_ELEMENT_YET);
             return;
         }
         int currentUpgradeLevel = playerData.getUpgradeLevel(currentElement);
@@ -50,9 +53,9 @@ public class UpgraderHandler implements Listener {
         event.setCancelled(true);
 
         if (upgraderLevel == 1) {
-            handleUpgradeI(player, item, playerData, currentElement, currentUpgradeLevel);
+            handleUpgradeI(player, item, hand, playerData, currentElement, currentUpgradeLevel);
         } else if (upgraderLevel == 2) {
-            handleUpgradeII(player, item, playerData, currentElement, currentUpgradeLevel);
+            handleUpgradeII(player, item, hand, playerData, currentElement, currentUpgradeLevel);
         }
     }
 
@@ -73,19 +76,19 @@ public class UpgraderHandler implements Listener {
         return ItemUtil.getTag(item, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER).orElseThrow();
     }
 
-    private void handleUpgradeI(Player player, ItemStack item, PlayerData playerData,
+    private void handleUpgradeI(Player player, ItemStack item, EquipmentSlot hand, PlayerData playerData,
                                 ElementType currentElement, int currentUpgradeLevel) {
         if (currentUpgradeLevel >= 1) {
             player.sendMessage(Lang.UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I);
             return;
         }
 
-        if (applyUpgrade(player, item, playerData, currentElement, 1)) {
+        if (applyUpgrade(player, item, hand, playerData, currentElement, 1)) {
             player.sendMessage(Lang.UPGRADER_YOU_HAVE_UNLOCKED);
         }
     }
 
-    private void handleUpgradeII(Player player, ItemStack item, PlayerData playerData,
+    private void handleUpgradeII(Player player, ItemStack item, EquipmentSlot hand, PlayerData playerData,
                                  ElementType currentElement, int currentUpgradeLevel) {
         if (currentUpgradeLevel < 1) {
             player.sendMessage(Lang.UPGRADER_YOU_NEED_UPGRADE_I_BEFORE);
@@ -97,7 +100,7 @@ public class UpgraderHandler implements Listener {
             return;
         }
 
-        if (applyUpgrade(player, item, playerData, currentElement, 2)) {
+        if (applyUpgrade(player, item, hand, playerData, currentElement, 2)) {
             player.sendMessage(Lang.UPGRADER_YOU_HAVE_UNLOCKED_2);
         }
     }
@@ -108,7 +111,7 @@ public class UpgraderHandler implements Listener {
      * upgrader. Returns false (item/level untouched, no message) if another
      * plugin cancelled the event.
      */
-    private boolean applyUpgrade(Player player, ItemStack item, PlayerData playerData,
+    private boolean applyUpgrade(Player player, ItemStack item, EquipmentSlot hand, PlayerData playerData,
                                  ElementType currentElement, int level) {
         int previousLevel = playerData.getUpgradeLevel(currentElement);
         UpgradeLevelChangeEvent changeEvent = new UpgradeLevelChangeEvent(player, currentElement, previousLevel, level);
@@ -119,13 +122,15 @@ public class UpgraderHandler implements Listener {
         plugin.getDataStore().save(playerData);
         elementManager.applyUpsides(player);
 
-        consumeItem(player, item);
+        consumeItem(player, item, hand);
         return true;
     }
 
-    private void consumeItem(Player player, ItemStack item) {
+    private void consumeItem(Player player, ItemStack item, EquipmentSlot hand) {
         if (item.getAmount() > 1) {
             item.setAmount(item.getAmount() - 1);
+        } else if (hand == EquipmentSlot.OFF_HAND) {
+            player.getInventory().setItemInOffHand(null);
         } else {
             player.getInventory().setItemInMainHand(null);
         }

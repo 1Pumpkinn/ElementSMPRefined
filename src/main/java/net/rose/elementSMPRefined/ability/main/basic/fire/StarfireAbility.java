@@ -36,8 +36,9 @@ import java.util.logging.Level;
 /**
  * Starfire: calls down a barrage of flaming meteors on the area the caster is looking at.
  * <p>
- * Each meteor is a {@link BlockDisplay} that stays at its landing spot; the fall and spin are a single
- * client-interpolated transformation, so the server does no per-tick movement work.
+ * Each meteor is a {@link BlockDisplay} spawned in the sky and moved to its landing spot with a single
+ * client-interpolated teleport (the spin is a single interpolated transformation), so the server does no
+ * per-tick movement work.
  */
 public class StarfireAbility extends BaseAbility {
     private static final double RANGE = 40.0;
@@ -48,7 +49,7 @@ public class StarfireAbility extends BaseAbility {
     private static final int SPAWN_INTERVAL_TICKS = 4;
     private static final double SPAWN_HEIGHT = 18.0;
     private static final int FALL_TICKS = 16;
-    // The start state must reach the client before the end state, otherwise there is nothing to interpolate from
+    // The sky spawn must reach the client before the landing teleport, otherwise it has nothing to fall from
     private static final int LAUNCH_DELAY_TICKS = 2;
 
     private static final Material METEOR_BLOCK = Material.OCHRE_FROGLIGHT;
@@ -262,24 +263,26 @@ public class StarfireAbility extends BaseAbility {
     }
 
     /** Display rotation pivots on the block's corner; offset by the rotated half-extent to tumble around the centre. */
-    private static Transformation centred(Quaternionf rotation, float size, float heightOffset) {
+    private static Transformation centred(Quaternionf rotation, float size) {
         Vector3f translation = new Vector3f(size / 2f, size / 2f, size / 2f).rotate(rotation).negate();
-        translation.y += heightOffset;
         return new Transformation(translation, rotation, new Vector3f(size, size, size), new Quaternionf());
     }
 
     private static final class Meteor {
         final BlockDisplay display;
         final Location impact;
+        final Location landing;
         final float size;
         final Quaternionf endRotation;
         final int spawnTick;
         boolean launched = false;
         int landTick;
 
-        private Meteor(BlockDisplay display, Location impact, float size, Quaternionf endRotation, int spawnTick) {
+        private Meteor(BlockDisplay display, Location impact, Location landing, float size,
+                       Quaternionf endRotation, int spawnTick) {
             this.display = display;
             this.impact = impact;
+            this.landing = landing;
             this.size = size;
             this.endRotation = endRotation;
             this.spawnTick = spawnTick;
@@ -297,28 +300,35 @@ public class StarfireAbility extends BaseAbility {
                     TOTAL_SPIN * rng.nextFloat(0.4f, 0.8f),
                     TOTAL_SPIN * rng.nextFloat(0.2f, 0.6f));
 
-            Location spawnLoc = impact.clone().add(0, size / 2.0, 0);
-            BlockDisplay display = impact.getWorld().spawn(spawnLoc, BlockDisplay.class, d -> {
+            Location landing = impact.clone().add(0, size / 2.0, 0);
+            Location skyLoc = landing.clone().add(0, SPAWN_HEIGHT, 0);
+            BlockDisplay display = impact.getWorld().spawn(skyLoc, BlockDisplay.class, d -> {
                 d.setBlock(METEOR_BLOCK.createBlockData());
                 d.setBrightness(new Display.Brightness(15, 15));
                 d.setGlowing(true);
                 d.setGlowColorOverride(METEOR_GLOW);
                 d.setViewRange(2.0f);
                 d.setPersistent(false);
-                d.setTransformation(centred(startRot, size, (float) SPAWN_HEIGHT));
+                d.setTeleportDuration(FALL_TICKS);
+                d.setTransformation(centred(startRot, size));
             });
             ACTIVE_DISPLAYS.add(display);
 
-            return new Meteor(display, impact, size, endRot, spawnTick);
+            return new Meteor(display, impact, landing, size, endRot, spawnTick);
         }
 
-        /** Sends the whole fall and spin to the client as one interpolated transformation. */
+        /**
+         * Starts the fall. Position interpolation runs from the entity's own last position, so it still works when the
+         * spawn and this update reach the client in the same batch (e.g. after a lag spike); a transformation-based
+         * fall would snap to its end state instead.
+         */
         void launch(int landTick) {
             launched = true;
             this.landTick = landTick;
             display.setInterpolationDelay(0);
             display.setInterpolationDuration(FALL_TICKS);
-            display.setTransformation(centred(endRotation, size, 0f));
+            display.setTransformation(centred(endRotation, size));
+            display.teleport(landing);
         }
 
         void remove() {

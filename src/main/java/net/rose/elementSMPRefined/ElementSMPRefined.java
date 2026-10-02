@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined;
 
+import net.rose.elementSMPRefined.ability.main.basic.fire.StarfireAbility;
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
 import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
@@ -18,7 +19,8 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
 
     @Override
     protected void onPluginDisable() {
-        // Chain segments and air-cutter blades are real entities - sweep up any still on screen
+        // Chain segments, air-cutter blades and meteors are real entities - sweep up any still on screen
+        StarfireAbility.removeAll();
         ChainVisual.removeAll();
         AirCutterVisual.removeAll();
         getLogger().info("ElementSMPRefined plugin disabled successfully!");

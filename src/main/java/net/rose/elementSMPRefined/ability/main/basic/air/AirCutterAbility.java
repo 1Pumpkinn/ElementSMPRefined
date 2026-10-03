@@ -16,7 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 /**
- * Slicing Wind - fires a fan of three fast-moving blades of compressed air in front of
+ * Air Cutter - fires a fan of three fast-moving blades of compressed air in front of
  * the player. Each blade cuts through anything in a narrow line, dealing damage and
  * knocking targets away.
  * <p>
@@ -24,7 +24,7 @@ import org.bukkit.util.Vector;
  * {@link AirCutterVisual} (an ItemDisplay teleported each tick), the same way Hell's Chain
  * draws its chain with {@code ChainVisual}.
  */
-public class SlicingWindAbility extends BaseAbility {
+public class AirCutterAbility extends BaseAbility {
 
     /** Number of blades per cast. They fan out symmetrically around the player's aim. */
     private static final int CUTTER_COUNT = 3;
@@ -33,8 +33,8 @@ public class SlicingWindAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
 
-    public SlicingWindAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("slicing_wind", ElementType.AIR, 2, 60, 2, configManager);
+    public AirCutterAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("air_cutter", ElementType.AIR, 2, 60, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -65,7 +65,7 @@ public class SlicingWindAbility extends BaseAbility {
 
         double range = 20.0;
         double hitboxWidth = 1.1;
-        double damage = 8.0;
+        double damage = 6.0;
 
         new BukkitRunnable() {
             double travelled = 0;
@@ -112,7 +112,7 @@ public class SlicingWindAbility extends BaseAbility {
 
     @Override
     public String getName() {
-        return ChatColor.WHITE + "Slicing Wind";
+        return ChatColor.WHITE + "Air Cutter";
     }
 
     @Override

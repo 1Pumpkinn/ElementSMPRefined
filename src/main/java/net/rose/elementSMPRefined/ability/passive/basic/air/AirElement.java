@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.basic.air;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.basic.air.AirDashAbility;
-import net.rose.elementSMPRefined.ability.main.basic.air.SlicingWindAbility;
+import net.rose.elementSMPRefined.ability.main.basic.air.AirCutterAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
@@ -16,7 +16,7 @@ public class AirElement extends BaseElement {
     private AirFallImpactListener fallImpactListener;
 
     public AirElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.AIR, new AirDashAbility(plugin, configManager), new SlicingWindAbility(plugin, configManager));
+        super(plugin, ElementType.AIR, new AirDashAbility(plugin, configManager), new AirCutterAbility(plugin, configManager));
     }
 
     public void setFallImpactListener(AirFallImpactListener listener) {

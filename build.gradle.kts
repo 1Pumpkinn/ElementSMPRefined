@@ -28,7 +28,7 @@ tasks {
     }
 
     jar {
-        enabled = false
+        enabled = true
     }
 
     runServer {

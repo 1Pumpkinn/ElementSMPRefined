@@ -12,6 +12,7 @@ import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.util.bukkit.MetadataHelper;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
+import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
@@ -41,6 +42,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     // Utilities
     protected TaskScheduler taskScheduler;
     protected MetadataHelper metadataHelper;
+    protected  TrueDamage trueDamage;
 
     // Initializers
     protected CommandInitializer commandInitializer;
@@ -107,6 +109,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     private void initializeUtilities() {
         this.taskScheduler = new TaskScheduler(this);
         this.metadataHelper = new MetadataHelper(this);
+        this.trueDamage = new TrueDamage(this);
     }
 
     private void initializeManagers() {
@@ -175,4 +178,5 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public TaskScheduler getTaskScheduler() { return taskScheduler; }
     public MetadataHelper getMetadataHelper() { return metadataHelper; }
     public ListenerInitializer getListenerInitializer() { return listenerInitializer; }
+    public TrueDamage getTrueDamage() { return trueDamage; }
 }

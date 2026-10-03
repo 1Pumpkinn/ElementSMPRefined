@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.mythic.metal;
+package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
 import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.core.Constants;

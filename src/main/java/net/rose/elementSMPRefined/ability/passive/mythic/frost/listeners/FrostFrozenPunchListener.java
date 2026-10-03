@@ -4,7 +4,7 @@ import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.mythic.frost.FrostPunchAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostPunchAbility;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import io.papermc.paper.event.entity.EntityMoveEvent;

@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.mythic.life;
+package net.rose.elementSMPRefined.ability.main.upgraded.life;
 
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;

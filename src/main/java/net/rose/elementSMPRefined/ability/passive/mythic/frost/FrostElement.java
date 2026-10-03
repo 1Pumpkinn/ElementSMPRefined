@@ -2,8 +2,8 @@ package net.rose.elementSMPRefined.ability.passive.mythic.frost;
 
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.mythic.frost.FrostCircleAbility;
-import net.rose.elementSMPRefined.ability.main.mythic.frost.FrostPunchAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostCircleAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostPunchAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

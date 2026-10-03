@@ -19,7 +19,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
 
     @Override
     protected void onPluginDisable() {
-        // Chain segments, air-cutter blades and meteors are real entities - sweep up any still on screen
+        // Sweep up any entities on plugin disable / restart
         StarFallAbility.removeAll();
         ChainVisual.removeAll();
         AirCutterVisual.removeAll();

@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.mythic.metal;
+package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;

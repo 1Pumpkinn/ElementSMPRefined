@@ -30,6 +30,10 @@ public class AirCutterAbility extends BaseAbility {
     private static final int CUTTER_COUNT = 3;
     /** Horizontal angle, in degrees, between neighbouring blades. */
     private static final double SPREAD_DEGREES = 15.0;
+    /** Horizontal knockback applied once per cast (was 1.4 and stacked once per blade). */
+    private static final double KNOCKBACK_HORIZONTAL = 0.6;
+    /** Small lift so targets slide instead of scraping along the ground. */
+    private static final double KNOCKBACK_VERTICAL = 0.2;
 
     private final ElementSMPRefined plugin;
 
@@ -49,18 +53,23 @@ public class AirCutterAbility extends BaseAbility {
 
         w.playSound(origin, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.2f, 1.4f);
 
+        // Shared across all blades of this cast so a target is only hit (and knocked back) once,
+        // instead of once per blade with the knockback stacking up to 3x.
+        final java.util.Set<java.util.UUID> hitEntities = new java.util.HashSet<>();
+
         for (int i = 0; i < CUTTER_COUNT; i++) {
             // Offsets are centred on the aim: for 3 blades that's -15deg, 0deg, +15deg.
             double offset = (i - (CUTTER_COUNT - 1) / 2.0) * SPREAD_DEGREES;
             Vector direction = aim.clone().rotateAroundY(Math.toRadians(offset)).normalize();
-            launchCutter(player, trust, origin, direction);
+            launchCutter(player, trust, origin, direction, hitEntities);
         }
 
         return true;
     }
 
-    /** Launches a single blade along {@code direction}; each blade tracks its own hits. */
-    private void launchCutter(Player player, TrustManager trust, Location origin, Vector direction) {
+    /** Launches a single blade along {@code direction}; hits are tracked per cast via {@code hitEntities}. */
+    private void launchCutter(Player player, TrustManager trust, Location origin, Vector direction,
+                              java.util.Set<java.util.UUID> hitEntities) {
         World w = origin.getWorld();
 
         double range = 20.0;
@@ -69,7 +78,6 @@ public class AirCutterAbility extends BaseAbility {
 
         new BukkitRunnable() {
             double travelled = 0;
-            final java.util.Set<java.util.UUID> hitEntities = new java.util.HashSet<>();
             final AirCutterVisual blade =
                     new AirCutterVisual(origin.clone().add(direction.clone().multiply(1.0)), direction);
 
@@ -102,8 +110,13 @@ public class AirCutterAbility extends BaseAbility {
                     hitEntities.add(e.getUniqueId());
                     TrueDamage.of(damage).attacker(player).ignoreIFrames(false).apply(e);
 
-                    Vector knockback = direction.clone().multiply(1.4).setY(0.25);
-                    e.setVelocity(e.getVelocity().add(knockback));
+                    // Horizontal only, and SET rather than added onto existing velocity.
+                    Vector knockback = new Vector(direction.getX(), 0, direction.getZ());
+                    if (knockback.lengthSquared() > 1.0E-4) {
+                        knockback.normalize().multiply(KNOCKBACK_HORIZONTAL);
+                    }
+                    knockback.setY(KNOCKBACK_VERTICAL);
+                    e.setVelocity(knockback);
                     e.getWorld().spawnParticle(Particle.SWEEP_ATTACK, e.getLocation().add(0, 1, 0), 1, 0, 0, 0, 0, null, true);
                 }
             }

@@ -52,7 +52,7 @@ public class StarFallAbility extends BaseAbility {
     // The sky spawn must reach the client before the landing teleport, otherwise it has nothing to fall from
     private static final int LAUNCH_DELAY_TICKS = 2;
 
-    private static final Material METEOR_BLOCK = Material.OCHRE_FROGLIGHT;
+    private static final Material METEOR_BLOCK = Material.MAGMA_BLOCK;
     private static final float METEOR_MIN_SIZE = 1.0f;
     private static final float METEOR_MAX_SIZE = 1.7f;
     private static final Color METEOR_GLOW = Color.fromRGB(255, 255, 255);

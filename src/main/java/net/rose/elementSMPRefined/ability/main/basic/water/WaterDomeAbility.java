@@ -54,11 +54,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>Any entity damage (melee, explosions, projectiles) dealt to the caster or a trusted
  *       player while they're inside the dome is cancelled.</li>
  * </ul>
- * Non-entity damage (fall, fire, drowning, void, ...) is deliberately NOT blocked - the dome
- * is protection from entities, not an invulnerability bubble.
+ * Non-entity damage (fall, fire, drowning, void, ...) is deliberately NOT blocked
  * <p>
- * Implements {@link Listener} and self-registers (see {@code WaterGeyserAbility} for the
- * same pattern) since it needs to intercept damage events directed at protected players.
  */
 public class WaterDomeAbility extends BaseAbility implements Listener {
 
@@ -94,7 +91,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
     private final Map<UUID, DomeState> domes = new ConcurrentHashMap<>();
 
     public WaterDomeAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("water_bubble", ElementType.WATER, 2, 30, 2, configManager);
+        super("water_dome", ElementType.WATER, 2, 30, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -397,7 +394,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Raise a large dome of water blocks that follows you for 10 seconds and blocks players, mobs and projectiles from entering and cancels entity damage to you inside it. (60 mana)";
+        return ChatColor.GRAY + "Raises a large dome of water that follows you for 10 seconds and blocks players, mobs and projectiles";
     }
 
     private static class DomeState {

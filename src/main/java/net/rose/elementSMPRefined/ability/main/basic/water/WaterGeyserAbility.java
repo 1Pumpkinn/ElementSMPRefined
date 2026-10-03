@@ -28,9 +28,6 @@ import org.bukkit.util.Vector;
  * looking at that instant. Splitting the launch this way means the horizontal boost
  * doesn't fight the vertical one on the way up - it lands right as the player crests,
  * carrying them into a proper arc instead of a straight hop.
- * <p>
- * Implements {@link Listener} and self-registers (see {@code WaterBubbleAbility} for the
- * same pattern) so the fall damage from the geyser's own launch can be cancelled.
  */
 public class WaterGeyserAbility extends BaseAbility implements Listener {
 

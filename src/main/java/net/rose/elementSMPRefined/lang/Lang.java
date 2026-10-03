@@ -66,7 +66,7 @@ public final class Lang {
 
     // --- Water element - Bubble ability ---
     public static final Component WATER_BUBBLE_YOUR_WATER_BUBBLE_IS_ALREADY =
-            Component.text("Your water bubble is already active!", NamedTextColor.RED);
+            Component.text("Your dome is already active!", NamedTextColor.RED);
 
     // --- /trust command ---
     public static final Component TRUST_PLAYERS_ONLY =
@@ -548,17 +548,13 @@ public final class Lang {
             Component.text("Only players can use this command!", NamedTextColor.RED);
 
 
-    // --- Water element - Bubble ability ---
-    public static final Component WATER_BUBBLE_SHATTERED =
-            Component.text("Your water bubble shattered!", NamedTextColor.AQUA);
-
     public static final Component WATER_BUBBLE_FADED =
-            Component.text("Your water bubble faded away.", NamedTextColor.AQUA);
+            Component.text("Your dome faded away.", NamedTextColor.AQUA);
 
 
     // --- Dimension travel disable ---
     public static final Component DIMENSION_TRAVEL_DISABLED =
-            Component.text("Dimension travel is disabled on this server.", NamedTextColor.RED);
+            Component.text("Dimension is disabled.", NamedTextColor.RED);
 
 
     // --- /dimension command ---

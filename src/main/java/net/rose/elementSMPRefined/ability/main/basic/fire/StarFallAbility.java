@@ -34,7 +34,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
 /**
- * Starfire: calls down a barrage of flaming meteors on the area the caster is looking at.
+ * Starfall: calls down a barrage of flaming meteors on the area the caster is looking at.
  * <p>
  * Each meteor is a {@link BlockDisplay} spawned in the sky and moved to its landing spot with a single
  * client-interpolated teleport (the spin is a single interpolated transformation), so the server does no
@@ -77,7 +77,7 @@ public class StarFallAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public StarFallAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("fire_starfire", ElementType.FIRE, 2, 60, 2, configManager);
+        super("fire_starfall", ElementType.FIRE, 2, 60, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -198,7 +198,7 @@ public class StarFallAbility extends BaseAbility {
             try {
                 explode(player, trust, impact);
             } catch (RuntimeException e) {
-                plugin.getLogger().log(Level.WARNING, "Starfire impact failed", e);
+                plugin.getLogger().log(Level.WARNING, "Starfall impact failed", e);
             }
         }
 

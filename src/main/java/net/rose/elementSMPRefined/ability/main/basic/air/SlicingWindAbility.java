@@ -65,7 +65,7 @@ public class SlicingWindAbility extends BaseAbility {
 
         double range = 20.0;
         double hitboxWidth = 1.1;
-        double damage = 5.0;
+        double damage = 8.0;
 
         new BukkitRunnable() {
             double travelled = 0;

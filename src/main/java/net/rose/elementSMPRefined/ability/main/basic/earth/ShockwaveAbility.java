@@ -65,7 +65,7 @@ public class ShockwaveAbility extends BaseAbility {
     // --- Launch / damage ---
     private static final double LAUNCH_UP = 1.1;       // ~6-8 blocks of height
     private static final double LAUNCH_OUTWARD = 0.6;
-    private static final double DAMAGE = 6.0;
+    private static final double DAMAGE = 8.0;
     private static final double HIT_RADIUS_XZ = 1.5;
     private static final double HIT_RADIUS_Y = 3.0;
 

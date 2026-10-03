@@ -64,7 +64,7 @@ public class StarFallAbility extends BaseAbility {
     private static final int ZONE_POINTS = 24;
 
     private static final double IMPACT_RADIUS = 2.5;
-    private static final double IMPACT_DAMAGE = 5.0;
+    private static final double IMPACT_DAMAGE = 6.0;
     private static final int IMPACT_FIRE_TICKS = 60;
     private static final double IMPACT_KNOCKBACK = 0.5;
     private static final double IMPACT_KNOCKBACK_UP = 0.35;

@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
@@ -224,7 +225,7 @@ public class StarFallAbility extends BaseAbility {
             if (trust != null && entity instanceof Player other
                     && trust.isTrusted(caster.getUniqueId(), other.getUniqueId())) continue;
 
-            entity.damage(IMPACT_DAMAGE, caster);
+            TrueDamage.of(IMPACT_DAMAGE).attacker(caster).ignoreIFrames(false).apply(entity);
             entity.setFireTicks(Math.max(entity.getFireTicks(), IMPACT_FIRE_TICKS));
 
             Vector knockback = entity.getLocation().toVector().subtract(impact.toVector());

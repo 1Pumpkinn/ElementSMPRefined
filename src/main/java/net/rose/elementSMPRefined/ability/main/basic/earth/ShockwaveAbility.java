@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -283,7 +284,7 @@ public class ShockwaveAbility extends BaseAbility {
 
             // Damage first: it applies its own knockback, which would otherwise
             // overwrite the launch if we set velocity before it.
-            entity.damage(DAMAGE, caster);
+            TrueDamage.of(DAMAGE).attacker(caster).apply(entity);
 
             Vector launch = outward.clone().multiply(LAUNCH_OUTWARD);
             launch.setY(LAUNCH_UP);

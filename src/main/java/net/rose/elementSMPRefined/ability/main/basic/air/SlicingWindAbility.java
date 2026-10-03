@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
+import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -99,7 +100,7 @@ public class SlicingWindAbility extends BaseAbility {
                     if (hitEntities.contains(e.getUniqueId())) continue;
 
                     hitEntities.add(e.getUniqueId());
-                    e.damage(damage, player);
+                    TrueDamage.of(damage).attacker(player).ignoreIFrames(false).apply(e);
 
                     Vector knockback = direction.clone().multiply(1.4).setY(0.25);
                     e.setVelocity(e.getVelocity().add(knockback));

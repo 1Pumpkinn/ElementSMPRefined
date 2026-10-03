@@ -28,7 +28,6 @@ public class AirElement extends BaseElement {
         // Passive 1: No fall damage (handled in AirFallImpactListener)
         // Passive 2: The further you fall, the further nearby entities get
         // knocked back on landing (handled in AirFallImpactListener)
-        // No potion effects needed
     }
 
     @Override

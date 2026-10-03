@@ -6,7 +6,6 @@ import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.mythic.metal.MetalShardAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.AirElement;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
-import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirCombatListener;
 import net.rose.elementSMPRefined.ability.passive.basic.earth.listeners.EarthVeinMinerListener;
 import net.rose.elementSMPRefined.ability.passive.basic.fire.listeners.FireSmeltListener;
 import net.rose.elementSMPRefined.ability.passive.mythic.frost.listeners.FrostFrozenPunchListener;
@@ -118,7 +117,6 @@ public class ListenerInitializer {
             this.metalShardAbility = metalElementImpl.getMetalDashAbility();
         }
 
-        pluginManager.registerEvents(new AirCombatListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new FireSmeltListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new MetalArrowImmunityListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
         pluginManager.registerEvents(new MetalChainStunListener(plugin), plugin);

@@ -26,19 +26,13 @@ public final class Upgrader1Item {
             ItemStack result = make(plugin);
             NamespacedKey key = new NamespacedKey(plugin, KEY);
             
-            // Remove existing recipe if it exists
             plugin.getServer().removeRecipe(key);
             
             ShapedRecipe recipe = new ShapedRecipe(key, result);
-            recipe.shape("GFG", "WDB", "GAG");
+            recipe.shape("GAG", "AEA", "GAG");
             recipe.setIngredient('G', Material.GOLD_BLOCK);
-            recipe.setIngredient('D', Material.DIAMOND_BLOCK);
-
-            recipe.setIngredient('F', Material.FIRE_CHARGE);
-            recipe.setIngredient('W', Material.WATER_BUCKET);
-            recipe.setIngredient('B', Material.GRASS_BLOCK);
-            recipe.setIngredient('A', Material.FEATHER);
-
+            recipe.setIngredient('A', Material.AMETHYST_SHARD);
+            recipe.setIngredient('E', Material.ENDER_EYE);
 
             plugin.getServer().addRecipe(recipe);
         } catch (Exception e) {

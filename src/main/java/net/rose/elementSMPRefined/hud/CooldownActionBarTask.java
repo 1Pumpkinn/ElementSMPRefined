@@ -22,10 +22,11 @@ import org.bukkit.scheduler.BukkitTask;
  * Repeating task that shows each online player's current element's two
  * ability cooldowns in their action bar, refreshed once a second.
  * <p>
- * Always sends for a player with an element selected (showing "Ready" for
- * an ability that's off cooldown), so the HUD is a constant, always-visible
- * readout rather than something that only appears while cooling down. Sends
- * nothing only for a player with no element at all.
+ * Sends for a player whose current element is upgraded (upgrade level of at
+ * least 1), showing "Ready" for an ability that's off cooldown, so the HUD is
+ * a constant, always-visible readout rather than something that only appears
+ * while cooling down. Sends nothing for a player with no element, or whose
+ * element has not been upgraded yet.
  * <p>
  * Also implements {@link Listener} and refreshes immediately on
  * {@link AbilityActivateEvent} - the periodic tick alone means a player who
@@ -82,6 +83,9 @@ public class CooldownActionBarTask implements Listener {
         PlayerData pd = elementManager.data(player.getUniqueId());
         ElementType type = pd.getCurrentElement();
         if (type == null) return;
+
+        // No action bar until the player's element has been upgraded.
+        if (pd.getCurrentElementUpgradeLevel() < 1) return;
 
         Element element = elementManager.get(type);
         if (element == null) return;

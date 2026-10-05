@@ -39,9 +39,6 @@ public final class ItemBuilder {
         this.item = item;
     }
 
-    // ------------------------------------------------------------------
-    // Creation
-    // ------------------------------------------------------------------
 
     /** Starts a fresh item of the given material (amount 1). */
     public static ItemBuilder of(Material material) {
@@ -67,9 +64,7 @@ public final class ItemBuilder {
         return new ItemBuilder(stack.clone());
     }
 
-    // ------------------------------------------------------------------
-    // Display
-    // ------------------------------------------------------------------
+
 
     /** Sets the display name, translating {@code &} color codes. */
     public ItemBuilder name(String name) {
@@ -110,9 +105,6 @@ public final class ItemBuilder {
         return lore(combined);
     }
 
-    // ------------------------------------------------------------------
-    // Properties
-    // ------------------------------------------------------------------
 
     public ItemBuilder amount(int amount) {
         item.setAmount(amount);
@@ -141,9 +133,6 @@ public final class ItemBuilder {
         return edit(meta -> meta.addItemFlags(flags));
     }
 
-    // ------------------------------------------------------------------
-    // Persistent data
-    // ------------------------------------------------------------------
 
     /** Sets a value in the item's PersistentDataContainer. */
     public <T, Z> ItemBuilder data(NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
@@ -168,9 +157,6 @@ public final class ItemBuilder {
         return data(key, (byte) 1);
     }
 
-    // ------------------------------------------------------------------
-    // Escape hatch / output
-    // ------------------------------------------------------------------
 
     /** For meta operations this builder doesn't wrap yet. */
     public ItemBuilder edit(Consumer<ItemMeta> modifier) {

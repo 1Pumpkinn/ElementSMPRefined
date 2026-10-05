@@ -4,6 +4,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import net.rose.elementSMPRefined.managers.ElementManager;
+import net.rose.elementSMPRefined.util.visual.PassiveInvisibility;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -57,7 +58,7 @@ public class WaterInvisibilityListener implements Listener {
 
     private void tick(Player player) {
         UUID uuid = player.getUniqueId();
-        
+
         // Player is no longer in water or offline - clean up
         if (!player.isInWater()) {
             idleChecks.remove(uuid);
@@ -95,6 +96,7 @@ public class WaterInvisibilityListener implements Listener {
 
     private void concealPlayer(Player player) {
         trulyInvisible.add(player.getUniqueId());
+        PassiveInvisibility.mark(player);
         player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 0, false, false));
         hidePlayerFromAll(player);
     }
@@ -102,6 +104,7 @@ public class WaterInvisibilityListener implements Listener {
     private void revealPlayer(Player player) {
         UUID uuid = player.getUniqueId();
         trulyInvisible.remove(uuid);
+        PassiveInvisibility.unmark(player);
 
         PotionEffect current = player.getPotionEffect(PotionEffectType.INVISIBILITY);
         if (current != null && (current.getDuration() > 1000000 || current.getDuration() == PotionEffect.INFINITE_DURATION)) {
@@ -117,6 +120,9 @@ public class WaterInvisibilityListener implements Listener {
                 continue;
             }
             observer.hidePlayer(plugin, subject);
+            // hidePlayer also drops the subject from the observer's tab list;
+            // put them back so they still show in the tablist while invisible.
+            observer.listPlayer(subject);
         }
     }
 
@@ -149,6 +155,7 @@ public class WaterInvisibilityListener implements Listener {
         idleChecks.remove(uuid);
         lastLocation.remove(uuid);
         if (trulyInvisible.remove(uuid)) {
+            PassiveInvisibility.unmark(player);
             PotionEffect current = player.getPotionEffect(PotionEffectType.INVISIBILITY);
             if (current != null && (current.getDuration() > 1000000 || current.getDuration() == PotionEffect.INFINITE_DURATION)) {
                 player.removePotionEffect(PotionEffectType.INVISIBILITY);
@@ -168,6 +175,7 @@ public class WaterInvisibilityListener implements Listener {
                 showPlayerToAll(player);
             }
         }
+        trulyInvisible.forEach(PassiveInvisibility::unmark);
         trulyInvisible.clear();
         idleChecks.clear();
         lastLocation.clear();

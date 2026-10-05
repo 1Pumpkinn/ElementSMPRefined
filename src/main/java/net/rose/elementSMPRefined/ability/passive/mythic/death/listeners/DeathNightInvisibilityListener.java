@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.mythic.death.listeners;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ElementManager;
+import net.rose.elementSMPRefined.util.visual.PassiveInvisibility;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -55,6 +56,7 @@ public class DeathNightInvisibilityListener implements Listener {
         UUID uuid = player.getUniqueId();
 
         if (night && nightInvisible.add(uuid)) {
+            PassiveInvisibility.mark(player);
             player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 0, true, false));
         } else if (!night && nightInvisible.remove(uuid)) {
             removeInvisibility(player);
@@ -67,6 +69,7 @@ public class DeathNightInvisibilityListener implements Listener {
     }
 
     private void removeInvisibility(Player player) {
+        PassiveInvisibility.unmark(player);
         PotionEffect current = player.getPotionEffect(PotionEffectType.INVISIBILITY);
         if (current != null && current.getDuration() == PotionEffect.INFINITE_DURATION) {
             player.removePotionEffect(PotionEffectType.INVISIBILITY);
@@ -76,6 +79,7 @@ public class DeathNightInvisibilityListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         nightInvisible.remove(event.getPlayer().getUniqueId());
+        PassiveInvisibility.unmark(event.getPlayer());
     }
 
     /**

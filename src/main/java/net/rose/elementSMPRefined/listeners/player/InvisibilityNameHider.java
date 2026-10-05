@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.listeners.player;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.rose.elementSMPRefined.util.visual.PassiveInvisibility;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,7 +16,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Hides an invisible player's name in chat and death messages
+ * Hides an invisible player's name in chat and death messages.
+ * <p>
+ * Invisibility that comes from an element passive (e.g. Water's invisibility,
+ * Death's night invisibility) is ignored - see {@link PassiveInvisibility}.
  */
 public class InvisibilityNameHider implements Listener {
 
@@ -23,7 +27,8 @@ public class InvisibilityNameHider implements Listener {
     private static final String HIDDEN_NAME = " ";
 
     private boolean isInvisible(Player player) {
-        return player.hasPotionEffect(PotionEffectType.INVISIBILITY);
+        return player.hasPotionEffect(PotionEffectType.INVISIBILITY)
+                && !PassiveInvisibility.isPassive(player);
     }
 
     /**

@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.upgraded.life;
+package net.rose.elementSMPRefined.ability.main.mythic.life;
 
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;

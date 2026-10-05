@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.passive.mythic.frost.listeners;
+package net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;

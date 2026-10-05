@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.passive.mythic.metal.listeners;
+package net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;

@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.passive.mythic.frost.listeners;
+package net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners;
 
 import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.ElementSMPRefined;

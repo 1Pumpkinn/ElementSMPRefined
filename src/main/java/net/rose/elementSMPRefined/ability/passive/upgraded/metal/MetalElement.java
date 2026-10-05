@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.passive.mythic.metal;
+package net.rose.elementSMPRefined.ability.passive.upgraded.metal;
 
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;

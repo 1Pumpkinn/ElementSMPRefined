@@ -49,6 +49,10 @@ public class MagmaBeamAbility extends BaseAbility {
     private static final double HIT_RADIUS = 1.0;
     private static final int BURN_TICKS = 60;
     private static final int SLOW_AMPLIFIER = 2;
+    /** Roll added to the beam every tick, in radians (~26 degrees). Keep well under PI so interpolation spins the right way. */
+    private static final float SPIN_PER_TICK = 0.45f;
+    /** Radius of the particle spiral wrapped around the firing beam. */
+    private static final double HELIX_RADIUS = 0.6;
 
     private static final Component ALREADY_CHARGING =
             Component.text("Magma Beam is already charging!", NamedTextColor.RED);
@@ -78,6 +82,7 @@ public class MagmaBeamAbility extends BaseAbility {
         new BukkitRunnable() {
             final MagmaBeamVisual visual = new MagmaBeamVisual();
             int tick = 0;
+            float roll = 0f;
 
             /** Every exit path calls cancel(), so the beam entity and slowness can never outlive the ability. */
             @Override
@@ -104,20 +109,21 @@ public class MagmaBeamAbility extends BaseAbility {
                 Location start = eye.clone().add(0, -0.3, 0).add(dir.clone().multiply(1.0));
 
                 if (tick < CHARGE_TICKS) {
-                    charge(player, visual, start, dir, tick);
+                    charge(player, visual, start, dir, tick, roll);
                 } else {
                     if (tick == CHARGE_TICKS) {
                         World w = player.getWorld();
                         w.playSound(start, Sound.ENTITY_BLAZE_SHOOT, 1.6f, 0.6f);
                         w.playSound(start, Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.4f);
                     }
-                    fire(player, trust, visual, eye, start, dir, tick - CHARGE_TICKS);
+                    fire(player, trust, visual, eye, start, dir, tick - CHARGE_TICKS, roll);
                     if (tick >= CHARGE_TICKS + BEAM_TICKS) {
                         cancel();
                         return;
                     }
                 }
                 tick++;
+                roll += SPIN_PER_TICK;
             }
         }.runTaskTimer(plugin, 0L, 1L);
 
@@ -125,12 +131,12 @@ public class MagmaBeamAbility extends BaseAbility {
     }
 
     /** Orb swells in front of the caster while sparks are pulled in towards it. */
-    private void charge(Player player, MagmaBeamVisual visual, Location start, Vector dir, int tick) {
+    private void charge(Player player, MagmaBeamVisual visual, Location start, Vector dir, int tick, float roll) {
         World w = player.getWorld();
         double progress = (double) tick / CHARGE_TICKS;
         Location orb = start.clone().add(dir.clone().multiply(0.4));
 
-        visual.update(orb.clone().subtract(dir.clone().multiply(0.2)), dir, 0.4 + 0.8 * progress, (float) (0.4 + 1.0 * progress));
+        visual.update(orb.clone().subtract(dir.clone().multiply(0.2)), dir, 0.4 + 0.8 * progress, (float) (0.4 + 1.0 * progress), roll);
 
         double radius = 2.6 * (1.0 - progress) + 0.3;
         for (int i = 0; i < 3; i++) {
@@ -146,7 +152,7 @@ public class MagmaBeamAbility extends BaseAbility {
 
     /** One tick of the firing beam: re-aim, draw, and (every few ticks) burn what it crosses. */
     private void fire(Player player, TrustManager trust, MagmaBeamVisual visual,
-                      Location eye, Location start, Vector dir, int beamTick) {
+                      Location eye, Location start, Vector dir, int beamTick, float roll) {
         World w = player.getWorld();
 
         // Stop at the first solid block.
@@ -159,10 +165,27 @@ public class MagmaBeamAbility extends BaseAbility {
         double visualLength = delta.length();
         if (visualLength > 0.5) {
             float pulse = (float) (1.0 + 0.12 * Math.sin(beamTick * 1.3));
-            visual.update(start, delta, visualLength, 1.3f * pulse);
+            visual.update(start, delta, visualLength, 1.3f * pulse, roll);
 
             // Particle sheath so the beam still reads without the resource pack.
             Vector step = delta.clone().normalize();
+
+            // Two flame strands spiralling around the beam, turning with it.
+            Vector side = step.clone().crossProduct(new Vector(0, 1, 0));
+            if (side.lengthSquared() < 1.0E-6) side = new Vector(1, 0, 0);
+            side.normalize();
+            Vector up = step.clone().crossProduct(side).normalize();
+            for (double d = 0; d < visualLength; d += 1.0) {
+                double angle = roll + d * 0.9;
+                for (int strand = 0; strand < 2; strand++) {
+                    double a = angle + strand * Math.PI;
+                    Vector offset = side.clone().multiply(Math.cos(a) * HELIX_RADIUS)
+                            .add(up.clone().multiply(Math.sin(a) * HELIX_RADIUS));
+                    w.spawnParticle(Particle.FLAME, start.clone().add(step.clone().multiply(d)).add(offset),
+                            1, 0, 0, 0, 0.0, null, true);
+                }
+            }
+
             for (double d = 0; d < visualLength; d += 1.5) {
                 Location p = start.clone().add(step.clone().multiply(d));
                 w.spawnParticle(Particle.FLAME, p, 1, 0.12, 0.12, 0.12, 0.0, null, true);

@@ -59,6 +59,15 @@ public final class MagmaBeamVisual {
      *                  so a thickness of 1.0 is a beam about 0.4 blocks wide)
      */
     public void update(Location from, Vector direction, double length, float thickness) {
+        update(from, direction, length, thickness, 0f);
+    }
+
+    /**
+     * Same as {@link #update(Location, Vector, double, float)} but also rolls the beam around its
+     * own long axis by {@code roll} radians. The beam's cross-section is square, so feeding a
+     * steadily increasing value makes it visibly spin.
+     */
+    public void update(Location from, Vector direction, double length, float thickness, float roll) {
         World world = from.getWorld();
         if (world == null || length < 0.05 || direction.lengthSquared() < 1.0E-6) {
             hide();
@@ -69,10 +78,15 @@ public final class MagmaBeamVisual {
         Location mid = from.clone().add(dir.clone().multiply(length / 2.0));
         if (!isLoaded(mid)) return;
 
+        // aim * roll: the roll is applied around the model's own Z axis first, then the whole
+        // thing is swung to face along the beam, so it spins around the beam's axis.
+        Quaternionf rotation = new Quaternionf()
+                .rotationTo(MODEL_AXIS, new Vector3f((float) dir.getX(), (float) dir.getY(), (float) dir.getZ()))
+                .rotateZ(roll);
+
         Transformation transformation = new Transformation(
                 new Vector3f(),
-                new Quaternionf().rotationTo(MODEL_AXIS,
-                        new Vector3f((float) dir.getX(), (float) dir.getY(), (float) dir.getZ())),
+                rotation,
                 new Vector3f(thickness, thickness, (float) length),
                 new Quaternionf());
 

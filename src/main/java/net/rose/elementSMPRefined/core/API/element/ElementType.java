@@ -17,6 +17,7 @@ public enum ElementType {
     DEATH,
     METAL,
     FROST,
+    LAVA,
 
     /**
      * Placeholder used by {@code ExampleElement}. It is never registered, so it is

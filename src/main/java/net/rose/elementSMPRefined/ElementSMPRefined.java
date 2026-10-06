@@ -1,9 +1,11 @@
 package net.rose.elementSMPRefined;
 
 import net.rose.elementSMPRefined.ability.main.basic.fire.StarFallAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.lava.MagmaEruptionAbility;
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
 import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
+import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
 
 /**
  * Main plugin class which significantly simplified by extending AbstractElementPlugin.
@@ -23,6 +25,8 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         StarFallAbility.removeAll();
         ChainVisual.removeAll();
         AirCutterVisual.removeAll();
+        MagmaBeamVisual.removeAll();
+        MagmaEruptionAbility.removeAll();
         getLogger().info("ElementSMPRefined plugin disabled successfully!");
     }
 }

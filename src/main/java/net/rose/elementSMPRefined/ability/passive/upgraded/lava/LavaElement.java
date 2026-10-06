@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.upgraded.lava;
 
 import net.rose.elementSMPRefined.ability.main.upgraded.lava.MagmaBeamAbility;
-import net.rose.elementSMPRefined.ability.main.upgraded.lava.MagmaEruptionAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.lava.EruptionAbility;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
@@ -17,7 +17,7 @@ import java.util.List;
 public class LavaElement extends BaseElement {
 
     public LavaElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.LAVA, new MagmaEruptionAbility(plugin, configManager), new MagmaBeamAbility(plugin, configManager));
+        super(plugin, ElementType.LAVA, new EruptionAbility(plugin, configManager), new MagmaBeamAbility(plugin, configManager));
     }
 
     @Override

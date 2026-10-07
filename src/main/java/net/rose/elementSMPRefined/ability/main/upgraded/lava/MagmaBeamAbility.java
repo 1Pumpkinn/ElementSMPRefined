@@ -3,7 +3,6 @@ package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.ability.passive.upgraded.lava.listeners.LavaTargets;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;

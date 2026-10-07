@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.passive.upgraded.lava.listeners;
+package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
 import net.rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.GameMode;

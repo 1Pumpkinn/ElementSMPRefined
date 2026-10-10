@@ -16,7 +16,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
 
     @Override
     protected void onPluginEnable() {
-        getLogger().info("ElementSMPRefined plugin enabled successfully!");
+        getLogger().info("ElementSMPRefined enabled successfully!");
     }
 
     @Override
@@ -27,6 +27,6 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         AirCutterVisual.removeAll();
         MagmaBeamVisual.removeAll();
         EruptionAbility.removeAll();
-        getLogger().info("ElementSMPRefined plugin disabled successfully!");
+        getLogger().info("ElementSMPRefined disabled successfully!");
     }
 }

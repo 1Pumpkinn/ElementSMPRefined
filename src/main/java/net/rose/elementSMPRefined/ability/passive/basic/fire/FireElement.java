@@ -47,8 +47,8 @@ public class FireElement extends BaseElement {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Auto smelt mined ores",
-                "Immune to fire/lava damage (Upgrade II)"
+                "Auto smelt ores",
+                "Fire Resistance"
         );
     }
 }

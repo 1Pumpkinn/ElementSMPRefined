@@ -39,6 +39,6 @@ public class AirElement extends BaseElement {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "No fall damage",
-                "The further you fall, the further nearby entities are knocked back on landing");
+                "The further you fall the further nearby entities are knocked back when landing");
     }
 }

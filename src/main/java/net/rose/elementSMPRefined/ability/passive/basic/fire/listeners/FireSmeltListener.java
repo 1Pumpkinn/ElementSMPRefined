@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Fire Element Passive: Auto Smelt
+ * Fire Element Passive: Auto Smelt (also inherited by Lava)
  *
- * When mining ores, Fire element players automatically smelt the drops -
+ * When mining ores, Fire and Lava element players automatically smelt the drops -
  * raw ore becomes ingots (and ancient debris becomes netherite scrap)
  * with no furnace or fuel needed. This is the base passive, active from
  * Upgrade I.
@@ -35,7 +35,7 @@ public class FireSmeltListener implements Listener {
         SMELT_RESULTS.put(Material.RAW_IRON, Material.IRON_INGOT);
         SMELT_RESULTS.put(Material.RAW_GOLD, Material.GOLD_INGOT);
         SMELT_RESULTS.put(Material.RAW_COPPER, Material.COPPER_INGOT);
-       // SMELT_RESULTS.put(Material.ANCIENT_DEBRIS, Material.NETHERITE_SCRAP);
+        // SMELT_RESULTS.put(Material.ANCIENT_DEBRIS, Material.NETHERITE_SCRAP);
     }
 
     private final ElementManager elementManager;
@@ -59,8 +59,9 @@ public class FireSmeltListener implements Listener {
             return;
         }
 
-        // Check if player has Fire element
-        if (playerData.getCurrentElement() != ElementType.FIRE) {
+        // Fire, and Lava (upgraded from Fire, inherits this passive)
+        ElementType current = playerData.getCurrentElement();
+        if (current != ElementType.FIRE && current != ElementType.LAVA) {
             return;
         }
 

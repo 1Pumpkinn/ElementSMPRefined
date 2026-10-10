@@ -54,7 +54,7 @@ public class WaterElement extends BaseElement implements ListenerProvider {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Breath of the Nautilus (infinite water breathing)",
+                "Breath of the Nautilus",
                 "True invisibility while still in water"
         );
     }

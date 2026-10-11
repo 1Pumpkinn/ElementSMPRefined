@@ -21,7 +21,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 public class LavaIncreaseDamageListener implements Listener {
 
     private static final double HEALTH_THRESHOLD = 8.0; // 4 hearts
-    private static final double DAMAGE_MULTIPLIER = 1.15; // +15%
+    private static final double DAMAGE_MULTIPLIER = 1.25; // +25%
 
     private final ElementManager elementManager;
     private final TrustManager trustManager;

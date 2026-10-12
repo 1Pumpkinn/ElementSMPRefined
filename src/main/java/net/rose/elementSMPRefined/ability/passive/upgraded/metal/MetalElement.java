@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.upgraded.metal;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalShieldAbility;
-import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalShardAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalAnchorCoreAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
@@ -17,11 +17,11 @@ import java.util.List;
 public class MetalElement extends BaseElement {
 
     public MetalElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.METAL, new MetalShieldAbility(plugin, configManager), new MetalShardAbility(plugin, configManager));
+        super(plugin, ElementType.METAL, new MetalShieldAbility(plugin, configManager), new MetalAnchorCoreAbility(plugin, configManager));
     }
 
-    public MetalShardAbility getMetalDashAbility() {
-        return (MetalShardAbility) ability2;
+    public MetalAnchorCoreAbility getMetalAnchorCoreAbility() {
+        return (MetalAnchorCoreAbility) ability2;
     }
 
     @Override

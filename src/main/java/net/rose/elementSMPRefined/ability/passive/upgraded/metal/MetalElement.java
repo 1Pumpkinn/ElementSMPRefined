@@ -14,6 +14,13 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
 
+/**
+ * Metal - upgraded from Earth.
+ *
+ * Passive 1: Hero of the Village (inherited from Earth)
+ * Passive 2: Vein Miner (inherited from Earth, see EarthVeinMinerListener)
+ * Passive 3: not decided yet
+ */
 public class MetalElement extends BaseElement {
 
     public MetalElement(JavaPlugin plugin, ConfigManager configManager) {
@@ -26,16 +33,18 @@ public class MetalElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Upside 1: haste 1 permanently
-        player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, PotionEffect.INFINITE_DURATION, 0, true, false));
+        // Passive 1: Hero of the Village, same as Earth.
+        player.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE, PotionEffect.INFINITE_DURATION, 0, true, false));
 
-        // Upside 2: Arrow immunity (handled in listener)
-        // No passive effect needed here
+        // Passive 2 (Vein Miner) is handled by EarthVeinMinerListener.
+        // Passive 3: TBD.
     }
 
     @Override
     public void clearEffects(Player player) {
         super.clearEffects(player);
+        EffectService.removeElementPotionEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE);
+        // Metal used to give permanent Haste - clear any left over from before that passive was removed.
         EffectService.removeElementPotionEffect(player, PotionEffectType.HASTE);
     }
 
@@ -47,8 +56,8 @@ public class MetalElement extends BaseElement {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Haste I",
-                "Arrow immunity (Upgrade II)"
+                "Hero of The Village",
+                "Vein Miner"
         );
     }
 }

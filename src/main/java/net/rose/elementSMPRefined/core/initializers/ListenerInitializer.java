@@ -11,7 +11,6 @@ import net.rose.elementSMPRefined.ability.passive.basic.fire.listeners.FireSmelt
 import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostFrozenPunchListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostPassiveListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
-import net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners.MetalArrowImmunityListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners.MetalChainStunListener;
 import net.rose.elementSMPRefined.listeners.handler.AdvancedRerollerHandler;
 import net.rose.elementSMPRefined.listeners.item.PlayerDeathListener;
@@ -118,7 +117,6 @@ public class ListenerInitializer {
         }
 
         pluginManager.registerEvents(new FireSmeltListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new MetalArrowImmunityListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
         pluginManager.registerEvents(new MetalChainStunListener(plugin), plugin);
         pluginManager.registerEvents(new FrostFrozenPunchListener(plugin, plugin.getElementManager()), plugin);
     }

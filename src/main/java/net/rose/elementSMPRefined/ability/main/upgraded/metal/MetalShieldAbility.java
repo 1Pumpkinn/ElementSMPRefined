@@ -15,13 +15,11 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.damage.DamageSource;
-import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -48,8 +46,8 @@ import java.util.UUID;
  * shield pops, or fades on its own after {@value #DURATION_TICKS} ticks. Environmental damage
  * (fall, fire, drowning, explosions...) is deliberately not blocked.
  * <p>
- * Hits that would be cancelled anyway are ignored so they don't waste a charge: self-damage,
- * trusted players, and arrows against a Metal player with Upgrade II (arrow immunity).
+ * Hits that would be cancelled anyway are ignored so they don't waste a charge: self-damage
+ * and trusted players.
  * <p>
  * The listener runs at LOW priority so it cancels the hit before on-hit passives (e.g. Death's
  * wither) get to apply their effects to a shielded player.
@@ -60,8 +58,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     private static final int ABILITY_HITS = 1;
     private static final int DURATION_TICKS = 15 * 20; // 15 seconds if it's never broken
     private static final int COOLDOWN_SECONDS = 45;
-    /** Metal's arrow-immunity passive kicks in at this upgrade level (see MetalArrowImmunityListener). */
-    private static final int ARROW_IMMUNITY_LEVEL = 2;
 
     private enum EndReason { BROKEN, EXPIRED, REMOVED }
 
@@ -149,7 +145,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         }
 
         if (!isMeleeOrProjectile(event.getCause())) return;
-        if (isArrowImmune(victim, event)) return;
 
         absorb(victim, shield, event, source, false);
     }
@@ -158,17 +153,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         return cause == DamageCause.ENTITY_ATTACK
                 || cause == DamageCause.ENTITY_SWEEP_ATTACK
                 || cause == DamageCause.PROJECTILE;
-    }
-
-    /** Metal Upgrade II is already immune to arrows - don't burn a charge on a hit that does nothing. */
-    private boolean isArrowImmune(Player victim, EntityDamageEvent event) {
-        if (!(event instanceof EntityDamageByEntityEvent byEntity) || !(byEntity.getDamager() instanceof Arrow)) {
-            return false;
-        }
-        var data = plugin.getElementManager().data(victim.getUniqueId());
-        return data != null
-                && data.getCurrentElement() == ElementType.METAL
-                && data.getUpgradeLevel(ElementType.METAL) >= ARROW_IMMUNITY_LEVEL;
     }
 
     /** Cancels the hit and pops the shield nearest the attacker. */

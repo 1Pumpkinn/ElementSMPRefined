@@ -15,7 +15,7 @@ import java.util.*;
 
 /**
  * Earth Vein Miner - Breaks connected ore blocks when mining ores
- * Passive ability for Earth element
+ * Passive ability for Earth element (also inherited by Metal, which is upgraded from Earth)
  */
 public class EarthVeinMinerListener implements Listener {
     private final ElementManager elementManager;
@@ -43,7 +43,8 @@ public class EarthVeinMinerListener implements Listener {
         Block block = event.getBlock();
 
         var playerData = elementManager.data(player.getUniqueId());
-        if (playerData.getCurrentElement() != ElementType.EARTH) {
+        ElementType current = playerData.getCurrentElement();
+        if (current != ElementType.EARTH && current != ElementType.METAL) {
             return;
         }
 

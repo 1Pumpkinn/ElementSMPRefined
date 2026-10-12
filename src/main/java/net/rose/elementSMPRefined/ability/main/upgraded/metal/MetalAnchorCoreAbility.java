@@ -29,7 +29,6 @@ import org.bukkit.util.Vector;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Metal element ability 2: plants an Anchor Core ({@link AnchorCoreVisual}) where the caster is
@@ -43,19 +42,55 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class MetalAnchorCoreAbility extends BaseAbility {
 
-    private static final double RANGE = 25.0;               // how far away the core can be placed
+    private static final double RANGE = 25.0;               // how far away the core can be placed on a surface
+    private static final double AIR_RANGE = 12.0;           // how far away it floats when you aim at open sky (so it can't go as high)
     private static final double HOVER = 1.2;                // how far off the surface it floats (about chest height off the floor)
     private static final int DURATION_TICKS = 6 * 20;
     private static final int COOLDOWN_SECONDS = 40;
 
-    private static final double PULL_RADIUS = 7.0;
+    private static final double PULL_RADIUS = 16.0;         // pull range in every direction when the core sits on a surface
+    private static final double AIR_PULL_HORIZONTAL = 9.0;  // when it floats in the air the field is tall and narrow instead:
+    private static final double AIR_PULL_VERTICAL = 24.0;   // less sideways reach, much more up/down reach
     private static final double PULL_SPEED_FAR = 0.30;      // blocks/tick at the edge of the field...
     private static final double PULL_SPEED_NEAR = 0.80;     // ...and right next to the core
     private static final double MAX_SPEED = 0.9;
     private static final double CAPTURE_RADIUS = 1.3;       // "fully in" the core
 
-    private static final double DAMAGE = 1.5;               // per hit while captured (0.75 hearts)
+    private static final double DAMAGE = 1.0;               // per hit while captured (half a heart)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
+
+    // Suction visuals: streams of sparks spiralling in from every direction (evenly spread over a sphere,
+    // so it looks the same from any angle) + a small spinning gyroscope halo around the core.
+    private static final int STREAMS = 10;
+    private static final int STREAM_POINTS = 3;             // particles per stream per tick
+    private static final double STREAM_MIN_RADIUS = 1.8;
+    private static final double STREAM_CURL = 0.30;         // radians of swirl per block of radius
+    private static final double STREAM_SWIRL_WIDTH = 0.20;  // how far a stream bows off its straight line (fraction of its radius)
+    private static final double STREAM_FLOW = 0.03;         // fraction of the stream that flows inward per tick
+    private static final double FIELD_SPIN = 0.03;          // radians/tick the whole field turns about the vertical axis
+    private static final int HALO_POINTS = 5;               // per ring
+    private static final double HALO_RADIUS = 1.5;
+
+    /** Stream directions (spread evenly over a sphere) and a perpendicular pair for each, for the swirl. */
+    private static final Vector[] STREAM_DIR = new Vector[STREAMS];
+    private static final Vector[] STREAM_U = new Vector[STREAMS];
+    private static final Vector[] STREAM_V = new Vector[STREAMS];
+
+    static {
+        double goldenAngle = Math.PI * (3.0 - Math.sqrt(5.0));
+        for (int i = 0; i < STREAMS; i++) {
+            double y = 1.0 - 2.0 * (i + 0.5) / STREAMS;
+            double ring = Math.sqrt(1.0 - y * y);
+            double theta = i * goldenAngle;
+            Vector dir = new Vector(Math.cos(theta) * ring, y, Math.sin(theta) * ring);
+            Vector helper = Math.abs(y) > 0.9 ? new Vector(1, 0, 0) : new Vector(0, 1, 0);
+            Vector u = dir.clone().crossProduct(helper).normalize();
+            Vector v = dir.clone().crossProduct(u).normalize();
+            STREAM_DIR[i] = dir;
+            STREAM_U[i] = u;
+            STREAM_V[i] = v;
+        }
+    }
 
     private final ElementSMPRefined plugin;
     private final Map<UUID, Core> cores = new HashMap<>();
@@ -64,16 +99,25 @@ public class MetalAnchorCoreAbility extends BaseAbility {
         final Location centre;
         final AnchorCoreVisual visual;
         final TrustManager trust;
+        /** Pull reach sideways / up-and-down. Equal on a surface, tall and narrow in the air. */
+        final double radiusH;
+        final double radiusV;
         /** Tick at which each captured player may next be hit. */
         final Map<UUID, Integer> nextHit = new HashMap<>();
         int ticks = 0;
         BukkitRunnable task;
 
-        Core(Location centre, AnchorCoreVisual visual, TrustManager trust) {
+        Core(Location centre, AnchorCoreVisual visual, TrustManager trust, double radiusH, double radiusV) {
             this.centre = centre;
             this.visual = visual;
             this.trust = trust;
+            this.radiusH = radiusH;
+            this.radiusV = radiusV;
         }
+    }
+
+    /** Where the core goes, and whether it's floating in open air (true) or hovering off a surface (false). */
+    private record Placement(Location location, boolean airborne) {
     }
 
     public MetalAnchorCoreAbility(JavaPlugin plugin, ConfigManager configManager) {
@@ -88,8 +132,12 @@ public class MetalAnchorCoreAbility extends BaseAbility {
 
         end(caster.getUniqueId(), false); // one core per caster
 
-        Location centre = findPlacement(caster);
-        Core core = new Core(centre, new AnchorCoreVisual(centre), context.getTrustManager());
+        Placement placement = findPlacement(caster);
+        Location centre = placement.location();
+        boolean air = placement.airborne();
+        Core core = new Core(centre, new AnchorCoreVisual(centre), context.getTrustManager(),
+                air ? AIR_PULL_HORIZONTAL : PULL_RADIUS,
+                air ? AIR_PULL_VERTICAL : PULL_RADIUS);
         cores.put(caster.getUniqueId(), core);
         setActive(caster, true);
 
@@ -114,24 +162,24 @@ public class MetalAnchorCoreAbility extends BaseAbility {
         return true;
     }
 
-    /** Where the caster is looking (up to RANGE), floated off the surface it hit; at max range in the air if nothing is hit. */
-    private Location findPlacement(Player caster) {
+    /** Where the caster is looking (up to RANGE), floated off the surface it hit; AIR_RANGE blocks out in the air if nothing is hit (then the pull field is tall instead of round). */
+    private Placement findPlacement(Player caster) {
         Location eye = caster.getEyeLocation();
         Vector direction = eye.getDirection();
 
         RayTraceResult hit = caster.getWorld().rayTraceBlocks(
                 eye, direction, RANGE, FluidCollisionMode.NEVER, true);
         if (hit == null || hit.getHitPosition() == null) {
-            Location far = eye.clone().add(direction.clone().multiply(RANGE));
+            Location far = eye.clone().add(direction.clone().multiply(AIR_RANGE));
             far.setYaw(0f); // the visual keeps entity rotation at 0
             far.setPitch(0f);
-            return far;
+            return new Placement(far, true);
         }
 
         Vector normal = hit.getHitBlockFace() != null
                 ? hit.getHitBlockFace().getDirection()
                 : new Vector(0, 1, 0);
-        return hit.getHitPosition().clone().add(normal.multiply(HOVER)).toLocation(caster.getWorld());
+        return new Placement(hit.getHitPosition().clone().add(normal.multiply(HOVER)).toLocation(caster.getWorld()), false);
     }
 
     // ---------------------------------------------------------------- per-tick behaviour
@@ -139,17 +187,23 @@ public class MetalAnchorCoreAbility extends BaseAbility {
     private void tick(Core core, Player caster) {
         World world = core.centre.getWorld();
 
-        for (LivingEntity target : world.getNearbyLivingEntities(core.centre, PULL_RADIUS)) {
+        for (LivingEntity target : world.getNearbyLivingEntities(core.centre, core.radiusH, core.radiusV, core.radiusH)) {
             if (!isValidTarget(core, caster, target)) continue;
 
             Vector toCore = core.centre.toVector().subtract(target.getBoundingBox().getCenter());
             double distance = toCore.length();
-            if (distance > PULL_RADIUS) continue;
+
+            // Distance measured in the (possibly stretched) pull field, rescaled so PULL_RADIUS is its edge.
+            double fx = toCore.getX() / core.radiusH;
+            double fy = toCore.getY() / core.radiusV;
+            double fz = toCore.getZ() / core.radiusH;
+            double fieldDistance = Math.sqrt(fx * fx + fy * fy + fz * fz) * PULL_RADIUS;
+            if (fieldDistance > PULL_RADIUS) continue;
 
             if (distance <= CAPTURE_RADIUS) {
                 capture(core, caster, target, toCore);
             } else {
-                pull(target, toCore, distance);
+                pull(target, toCore, fieldDistance);
             }
         }
 
@@ -215,22 +269,51 @@ public class MetalAnchorCoreAbility extends BaseAbility {
         return core.trust != null && core.trust.isTrusted(caster.getUniqueId(), other);
     }
 
-    /** Sparks streaking in from the edge of the field toward the core. */
+    /**
+     * Streams of sparks spiralling in toward the core from all directions, plus a small halo of three
+     * perpendicular rings around it - no "good side" to view it from.
+     */
     private void spawnSuctionParticles(Core core) {
-        ThreadLocalRandom random = ThreadLocalRandom.current();
         World world = core.centre.getWorld();
+        double flow = (core.ticks * STREAM_FLOW) % 1.0;
+        double spin = core.ticks * FIELD_SPIN;
+        // stretch the streams to match the pull field (tall and narrow when the core is in the air)
+        Vector fieldScale = new Vector(core.radiusH / PULL_RADIUS, core.radiusV / PULL_RADIUS, core.radiusH / PULL_RADIUS);
 
-        for (int i = 0; i < 4; i++) {
-            Vector direction = new Vector(random.nextGaussian(), random.nextGaussian(), random.nextGaussian());
-            if (direction.lengthSquared() < 1.0E-4) continue;
-            direction.normalize();
+        for (int s = 0; s < STREAMS; s++) {
+            double phase = (s * 0.37) % 1.0; // stagger the streams so they don't pulse in unison
+            for (int i = 0; i < STREAM_POINTS; i++) {
+                // fraction along the stream, drifting inward over time; squared so points bunch up near the core
+                double f = ((double) i / STREAM_POINTS - flow + phase + 2.0) % 1.0;
+                double radius = STREAM_MIN_RADIUS + f * f * (PULL_RADIUS - STREAM_MIN_RADIUS);
 
-            double radius = PULL_RADIUS * (0.5 + random.nextDouble() * 0.5);
-            Location from = core.centre.clone().add(direction.clone().multiply(radius));
-            Vector inward = direction.multiply(-1);
-            // count = 0 makes the offsets act as the particle's velocity direction
-            world.spawnParticle(Particle.END_ROD, from, 0, inward.getX(), inward.getY(), inward.getZ(), 0.35);
+                double swirl = radius * STREAM_CURL + s * 0.5;
+                double bow = radius * STREAM_SWIRL_WIDTH;
+                Vector offset = STREAM_DIR[s].clone().multiply(radius)
+                        .add(STREAM_U[s].clone().multiply(Math.cos(swirl) * bow))
+                        .add(STREAM_V[s].clone().multiply(Math.sin(swirl) * bow))
+                        .rotateAroundY(spin)
+                        .multiply(fieldScale);
+                world.spawnParticle(Particle.END_ROD, core.centre.clone().add(offset), 1, 0, 0, 0, 0);
+            }
         }
+
+        for (int plane = 0; plane < 3; plane++) {
+            for (int i = 0; i < HALO_POINTS; i++) {
+                double angle = core.ticks * 0.35 + i * (Math.PI * 2 / HALO_POINTS);
+                Vector offset = onPlane(plane, Math.cos(angle) * HALO_RADIUS, 0, Math.sin(angle) * HALO_RADIUS);
+                world.spawnParticle(Particle.ELECTRIC_SPARK, core.centre.clone().add(offset), 1, 0, 0, 0, 0);
+            }
+        }
+    }
+
+    /** Maps disc-local coordinates (a, b = thickness, c) onto the XZ (0), XY (1) or YZ (2) plane. */
+    private static Vector onPlane(int plane, double a, double b, double c) {
+        return switch (plane) {
+            case 0 -> new Vector(a, b, c);
+            case 1 -> new Vector(a, c, b);
+            default -> new Vector(b, a, c);
+        };
     }
 
     // ---------------------------------------------------------------- lifecycle

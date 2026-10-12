@@ -17,7 +17,10 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Tameable;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
@@ -30,14 +33,13 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Metal element ability 2: plants an Anchor Core ({@link AnchorCoreVisual}) where the caster is
- * looking. For {@value #DURATION_TICKS} ticks it drags every nearby player (except the caster and
- * anyone they trust) toward it, pulling harder the closer they get. Anyone who ends up fully
- * inside the core ({@value #CAPTURE_RADIUS} blocks from its centre) is pinned there and takes
- * true damage every {@value #DAMAGE_INTERVAL_TICKS} ticks until the core collapses or they
- * break free.
+ * looking. For {@value #DURATION_TICKS} ticks it drags every nearby living entity - players and
+ * mobs alike, except the caster, anyone they trust, their tamed pets and armor stands - toward
+ * it, pulling harder the closer they get. Anything that ends up fully inside the core
+ * ({@value #CAPTURE_RADIUS} blocks from its centre) is pinned there and takes true damage every
+ * {@value #DAMAGE_INTERVAL_TICKS} ticks until the core collapses or it breaks free.
  * <p>
  * Damage goes through {@link TrueDamage}, so a Metal Shield counts it as a damaging ability.
- * Only players are pulled; mobs are ignored.
  */
 public class MetalAnchorCoreAbility extends BaseAbility {
 
@@ -137,7 +139,7 @@ public class MetalAnchorCoreAbility extends BaseAbility {
     private void tick(Core core, Player caster) {
         World world = core.centre.getWorld();
 
-        for (Player target : world.getNearbyPlayers(core.centre, PULL_RADIUS)) {
+        for (LivingEntity target : world.getNearbyLivingEntities(core.centre, PULL_RADIUS)) {
             if (!isValidTarget(core, caster, target)) continue;
 
             Vector toCore = core.centre.toVector().subtract(target.getBoundingBox().getCenter());
@@ -158,7 +160,7 @@ public class MetalAnchorCoreAbility extends BaseAbility {
     }
 
     /** Drags the target toward the core, harder the closer they are. */
-    private void pull(Player target, Vector toCore, double distance) {
+    private void pull(LivingEntity target, Vector toCore, double distance) {
         double closeness = 1.0 - Math.min(1.0, distance / PULL_RADIUS);
         double speed = PULL_SPEED_FAR + (PULL_SPEED_NEAR - PULL_SPEED_FAR) * closeness;
 
@@ -175,7 +177,7 @@ public class MetalAnchorCoreAbility extends BaseAbility {
     }
 
     /** The target is fully inside the core: hold them at its centre and crush them on a timer. */
-    private void capture(Core core, Player caster, Player target, Vector toCore) {
+    private void capture(Core core, Player caster, LivingEntity target, Vector toCore) {
         UUID id = target.getUniqueId();
 
         if (core.ticks >= core.nextHit.getOrDefault(id, 0)) {
@@ -191,11 +193,26 @@ public class MetalAnchorCoreAbility extends BaseAbility {
         target.setVelocity(toCore.multiply(0.4));
     }
 
-    private boolean isValidTarget(Core core, Player caster, Player target) {
+    private boolean isValidTarget(Core core, Player caster, LivingEntity target) {
         if (target.equals(caster) || !target.isValid() || target.isDead()) return false;
-        GameMode mode = target.getGameMode();
-        if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) return false;
-        return core.trust == null || !core.trust.isTrusted(caster.getUniqueId(), target.getUniqueId());
+        if (target instanceof ArmorStand) return false;
+
+        if (target instanceof Player player) {
+            GameMode mode = player.getGameMode();
+            if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) return false;
+            return !isTrusted(core, caster, player.getUniqueId());
+        }
+
+        // Mobs are fair game, but leave the caster's (and their trusted friends') tamed pets alone.
+        if (target instanceof Tameable pet && pet.getOwnerUniqueId() != null) {
+            UUID owner = pet.getOwnerUniqueId();
+            return !owner.equals(caster.getUniqueId()) && !isTrusted(core, caster, owner);
+        }
+        return true;
+    }
+
+    private boolean isTrusted(Core core, Player caster, UUID other) {
+        return core.trust != null && core.trust.isTrusted(caster.getUniqueId(), other);
     }
 
     /** Sparks streaking in from the edge of the field toward the core. */
@@ -258,6 +275,6 @@ public class MetalAnchorCoreAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Plant an anchor core that pulls players in and crushes them once they're fully inside";
+        return "Plant an anchor core that pulls players and mobs in and crushes them once they're fully inside";
     }
 }

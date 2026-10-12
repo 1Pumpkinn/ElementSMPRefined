@@ -4,6 +4,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -117,11 +118,13 @@ public class MetalShardAbility extends BaseAbility {
             targetPlayer.getInventory().setItemInMainHand(null);
         }
 
-        target.damage(DAMAGE);
+        boolean landed = AbilityDamage.deal(target, () -> target.damage(DAMAGE));
 
         if (wasBlocking) {
             ((Player) target).getInventory().setItemInMainHand(savedHand);
         }
+
+        if (!landed) return; // a Metal Shield absorbed it - no hit sparks/sound on top
 
         target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0, 1, 0), 10, 0.3, 0.5, 0.3, 0.05);
         if (target instanceof Player targetPlayer) {

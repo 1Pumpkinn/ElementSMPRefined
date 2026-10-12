@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
@@ -199,7 +200,7 @@ public class HellChainAbility extends BaseAbility {
                 if (horizontal < DRAG_STOP_DISTANCE || passedCaster) {
                     target.setVelocity(new Vector(0, 0, 0));
                     target.setFireTicks(Math.max(target.getFireTicks(), BURN_FIRE_TICKS));
-                    target.damage(IMPACT_DAMAGE, player);
+                    AbilityDamage.deal(target, () -> target.damage(IMPACT_DAMAGE, player));
                     player.getWorld().spawnParticle(Particle.LAVA, targetLoc, 15, 0.3, 0.3, 0.3, 0.05);
                     player.getWorld().playSound(targetLoc, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
                     cancel();

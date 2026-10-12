@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.AbstractElementPlugin;
 import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
 import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
+import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
 
 /**
  * Main plugin class which significantly simplified by extending AbstractElementPlugin.
@@ -26,6 +27,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         ChainVisual.removeAll();
         AirCutterVisual.removeAll();
         MagmaBeamVisual.removeAll();
+        MetalShieldVisual.removeAll();
         EruptionAbility.removeAll();
         getLogger().info("ElementSMPRefined disabled successfully!");
     }

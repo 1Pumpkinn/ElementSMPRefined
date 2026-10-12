@@ -56,6 +56,28 @@ public final class Lang {
             Component.text("Regen aura applied to you and trusted allies!", NamedTextColor.GREEN);
 
 
+    // --- Metal element - Shield ability ---
+    public static final Component METAL_SHIELD_ALREADY_ACTIVE =
+            Component.text("Your shield is already up!", NamedTextColor.RED);
+
+    public static final Component METAL_SHIELD_BROKE =
+            Component.text("Your Metal Shield broke!", NamedTextColor.GRAY);
+
+    public static final Component METAL_SHIELD_FADED =
+            Component.text("Your Metal Shield faded.", NamedTextColor.GRAY);
+
+    public static Component metalShieldStatus(int meleeProjectileHitsLeft, int abilityHitsLeft) {
+        return Component.textOfChildren(
+                Component.text("Metal Shield  ", NamedTextColor.GRAY),
+                Component.text("Hits ", NamedTextColor.GRAY),
+                Component.text(String.valueOf(meleeProjectileHitsLeft), NamedTextColor.WHITE),
+                Component.text("  |  ", NamedTextColor.DARK_GRAY),
+                Component.text("Ability ", NamedTextColor.GRAY),
+                Component.text(String.valueOf(abilityHitsLeft), NamedTextColor.GOLD)
+        );
+    }
+
+
     // --- Metal element - Chain ability ---
     public static final Component METAL_CHAIN_NO_TARGET_FOUND =
             Component.text("No target found!", NamedTextColor.RED);

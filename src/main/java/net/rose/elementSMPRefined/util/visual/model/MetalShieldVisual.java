@@ -13,23 +13,21 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 /**
- * The Metal Shield drawn with the {@code elementsmp:metal_shield} resource-pack MODEL - a
- * stepped heater shield (steel plate, dark rim, cross brace, gold boss, copper rivets).
+ * The Metal Shield drawn with the {@code elementsmp:metal_shield} resource-pack MODEL: a ring of
+ * shields (one {@link ItemDisplay} each) orbiting the owner at chest height, each one facing
+ * outward. They start evenly spaced and keep their slot when one is popped, so the remaining
+ * shields just carry on orbiting.
  * <p>
- * One {@link ItemDisplay} hovers just off the owner's left side, slightly in front of them -
- * like a shield held on the arm - so it reads clearly without sitting in the middle of their
- * screen. {@link #update(Location, int)} re-places it every tick (with a gentle bob), and the
- * entity's own yaw is set to the owner's so the shield keeps facing the way they do. The model
- * is symmetrical front-to-back, so there's no "wrong way round".
+ * {@link #update(Location, int)} re-places every shield each tick, and {@link #popNearest(Location)}
+ * removes the shield closest to an incoming hit.
  * <p>
- * {@link #pulse()} briefly swells the shield - used as hit feedback when it absorbs a blow.
- * <p>
- * Always call {@link #remove()} when the effect ends (or {@link #removeAll()} on plugin
- * disable as a safety net) - it's a real entity and will otherwise hang around.
+ * Always call {@link #remove()} when the effect ends (or {@link #removeAll()} on plugin disable
+ * as a safety net) - they're real entities and will otherwise hang around.
  */
 public final class MetalShieldVisual {
 
@@ -37,70 +35,93 @@ public final class MetalShieldVisual {
     public static final NamespacedKey METAL_SHIELD =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:metal_shield"));
 
-    /** The model is 12 x 16 units (0.75 x 1 block) - this makes it about 0.8 x 1.1 blocks in the world. */
-    private static final float SCALE = 1.1f;
-    private static final float PULSE_SCALE = 1.25f;
-    private static final int PULSE_TICKS = 3;
+    /** The model is 12 x 16 units (0.75 x 1 block); at this scale a shield is about 0.75 x 1 block in the world. */
+    private static final float SCALE = 1.0f;
 
-    /** Where the shield hovers relative to the owner's feet: ahead, to the left, and up to chest height. */
-    private static final double FORWARD = 1.0;
-    private static final double SIDE = 0.9;
-    private static final double HEIGHT = 0.85;
-    private static final double BOB = 0.03;
+    private static final double RADIUS = 1.4;           // distance from the owner
+    private static final double HEIGHT = 0.85;          // shield centre above the owner's feet
+    private static final double BOB = 0.04;             // gentle vertical drift
+    private static final double SPIN_DEGREES_PER_TICK = 6.0; // one lap every 3 seconds
 
     /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<MetalShieldVisual> ACTIVE = new HashSet<>();
 
-    private final ItemDisplay display;
-    private int pulseTicksLeft;
+    /** One orbiting shield and its fixed slot (degrees) around the ring. */
+    private record Orbiter(ItemDisplay display, double slotDegrees, int index) {}
 
-    public MetalShieldVisual(Location owner) {
+    private final List<Orbiter> orbiters = new ArrayList<>();
+
+    public MetalShieldVisual(Location owner, int count) {
         // The base material is irrelevant - the item_model component replaces its model entirely.
         ItemStack modelItem = ItemBuilder.of(Material.STICK).itemModel(METAL_SHIELD).build();
 
-        this.display = owner.getWorld().spawn(anchor(owner, 0), ItemDisplay.class, d -> {
-            d.setItemStack(modelItem);
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(scaled(SCALE));
-            d.setTeleportDuration(1);
-            d.setInterpolationDuration(2);
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        for (int i = 0; i < count; i++) {
+            double slot = i * (360.0 / count);
+            ItemDisplay display = owner.getWorld().spawn(place(owner, slot, 0, i), ItemDisplay.class, d -> {
+                d.setItemStack(modelItem);
+                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                d.setBillboard(Display.Billboard.FIXED);
+                d.setBrightness(new Display.Brightness(15, 15));
+                d.setTransformation(new Transformation(
+                        new Vector3f(), new Quaternionf(), new Vector3f(SCALE), new Quaternionf()));
+                d.setTeleportDuration(1);
+                d.setPersistent(false);
+                d.setInvulnerable(true);
+            });
+            orbiters.add(new Orbiter(display, slot, i));
+        }
         ACTIVE.add(this);
     }
 
-    /** Moves the shield to hover beside {@code owner}. Call once per tick. */
+    /** Moves every shield along its orbit around {@code owner}. Call once per tick. */
     public void update(Location owner, int tick) {
-        if (!display.isValid() || !isLoaded(owner)) return;
-        display.teleport(anchor(owner, tick));
-
-        if (pulseTicksLeft > 0 && --pulseTicksLeft == 0) {
-            display.setTransformation(scaled(SCALE));
-            display.setInterpolationDelay(0);
+        if (!isLoaded(owner)) return;
+        double spin = tick * SPIN_DEGREES_PER_TICK;
+        for (Orbiter o : orbiters) {
+            if (o.display().isValid()) {
+                o.display().teleport(place(owner, o.slotDegrees() + spin, tick, o.index()));
+            }
         }
     }
 
-    /** Quick swell-and-settle - hit feedback. */
-    public void pulse() {
-        if (!display.isValid()) return;
-        display.setTransformation(scaled(PULSE_SCALE));
-        display.setInterpolationDelay(0);
-        pulseTicksLeft = PULSE_TICKS;
+    /** How many shields are still up. */
+    public int count() {
+        return orbiters.size();
     }
 
-    /** Where the shield currently is (for particles / sounds). */
-    public Location getLocation() {
-        return display.getLocation();
+    /**
+     * Removes the shield closest to {@code from} (the first one if {@code from} is null or in
+     * another world) and returns where it was, for break effects. Null if none are left.
+     */
+    public Location popNearest(Location from) {
+        if (orbiters.isEmpty()) return null;
+
+        Orbiter pick = orbiters.get(0);
+        if (from != null) {
+            double best = Double.MAX_VALUE;
+            for (Orbiter o : orbiters) {
+                Location at = o.display().getLocation();
+                if (!at.getWorld().equals(from.getWorld())) continue;
+                double d = at.distanceSquared(from);
+                if (d < best) {
+                    best = d;
+                    pick = o;
+                }
+            }
+        }
+
+        Location at = pick.display().getLocation();
+        if (pick.display().isValid()) pick.display().remove();
+        orbiters.remove(pick);
+        return at;
     }
 
-    /** Removes the entity and unregisters. Call when the effect is over. */
+    /** Removes every remaining shield and unregisters. Call when the effect is over. */
     public void remove() {
-        if (display.isValid()) {
-            display.remove();
+        for (Orbiter o : orbiters) {
+            if (o.display().isValid()) o.display().remove();
         }
+        orbiters.clear();
         ACTIVE.remove(this);
     }
 
@@ -111,24 +132,20 @@ public final class MetalShieldVisual {
         }
     }
 
-    private static Transformation scaled(float scale) {
-        return new Transformation(new Vector3f(), new Quaternionf(), new Vector3f(scale), new Quaternionf());
-    }
+    /** A point on the ring, facing outward (the display's local +Z - the plate's normal - points away from the owner). */
+    private static Location place(Location owner, double angleDegrees, int tick, int index) {
+        double a = Math.toRadians(angleDegrees);
+        double radialX = Math.cos(a);
+        double radialZ = Math.sin(a);
+        double bob = Math.sin(tick * 0.12 + index * 2.1) * BOB;
 
-    /** Hover point: ahead of and to the left of the owner (relative to where they face), plus a slow bob. */
-    private static Location anchor(Location owner, int tick) {
-        double yaw = Math.toRadians(owner.getYaw());
-        double forwardX = -Math.sin(yaw);
-        double forwardZ = Math.cos(yaw);
-        double leftX = Math.cos(yaw);
-        double leftZ = Math.sin(yaw);
-        double bob = Math.sin(tick * 0.15) * BOB;
-
-        return new Location(owner.getWorld(),
-                owner.getX() + forwardX * FORWARD + leftX * SIDE,
+        Location loc = new Location(owner.getWorld(),
+                owner.getX() + radialX * RADIUS,
                 owner.getY() + HEIGHT + bob,
-                owner.getZ() + forwardZ * FORWARD + leftZ * SIDE,
-                owner.getYaw(), 0f);
+                owner.getZ() + radialZ * RADIUS);
+        loc.setYaw((float) Math.toDegrees(Math.atan2(-radialX, radialZ)));
+        loc.setPitch(0f);
+        return loc;
     }
 
     /** Teleporting into an unloaded chunk would force a synchronous load - just skip that step instead. */

@@ -34,17 +34,19 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Metal element ability 1: raises a Metal Shield ({@link MetalShieldVisual}) that soaks up
- * damage for a short while. It carries two separate pools of charges:
+ * Metal element ability 1: surrounds the caster with {@value #SHIELD_COUNT} orbiting Metal
+ * Shields ({@link MetalShieldVisual}). Each shield absorbs one hit, popping the shield closest
+ * to the attacker:
  * <ul>
- *   <li>{@value #MELEE_PROJECTILE_HITS} melee / projectile hits, shared between the two, and</li>
- *   <li>{@value #ABILITY_HITS} hit from a damaging ability (anything dealt through
- *       {@link net.rose.elementSMPRefined.util.damage.TrueDamage} or flagged with
- *       {@link AbilityDamage}). Non-damage abilities (pulls, dashes...) never use it up.</li>
+ *   <li>melee and projectile hits can use up any shield, and</li>
+ *   <li>at most {@value #ABILITY_HITS} of the shields can be spent on a damaging ability (anything
+ *       dealt through {@link net.rose.elementSMPRefined.util.damage.TrueDamage} or flagged with
+ *       {@link AbilityDamage}); after that, ability damage goes straight through. Non-damage
+ *       abilities (pulls, dashes...) never use a shield.</li>
  * </ul>
- * An absorbed hit is cancelled outright - no damage, no knockback. The shield breaks once both
- * pools are empty, or fades on its own after {@value #DURATION_TICKS} ticks. Environmental
- * damage (fall, fire, drowning, explosions...) is deliberately not blocked.
+ * An absorbed hit is cancelled outright - no damage, no knockback. The effect ends when the last
+ * shield pops, or fades on its own after {@value #DURATION_TICKS} ticks. Environmental damage
+ * (fall, fire, drowning, explosions...) is deliberately not blocked.
  * <p>
  * Hits that would be cancelled anyway are ignored so they don't waste a charge: self-damage,
  * trusted players, and arrows against a Metal player with Upgrade II (arrow immunity).
@@ -54,7 +56,7 @@ import java.util.UUID;
  */
 public class MetalShieldAbility extends BaseAbility implements Listener {
 
-    private static final int MELEE_PROJECTILE_HITS = 3;
+    private static final int SHIELD_COUNT = 3;
     private static final int ABILITY_HITS = 1;
     private static final int DURATION_TICKS = 15 * 20; // 15 seconds if it's never broken
     private static final int COOLDOWN_SECONDS = 45;
@@ -65,16 +67,11 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
 
     private static final class Shield {
         final MetalShieldVisual visual;
-        int meleeProjectileHitsLeft = MELEE_PROJECTILE_HITS;
         int abilityHitsLeft = ABILITY_HITS;
         BukkitRunnable task;
 
         Shield(MetalShieldVisual visual) {
             this.visual = visual;
-        }
-
-        boolean isSpent() {
-            return meleeProjectileHitsLeft <= 0 && abilityHitsLeft <= 0;
         }
     }
 
@@ -93,17 +90,15 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         if (player == null) return false;
 
         if (shields.containsKey(player.getUniqueId())) {
-            player.sendMessage(Lang.METAL_SHIELD_ALREADY_ACTIVE);
             return false;
         }
 
-        Shield shield = new Shield(new MetalShieldVisual(player.getLocation()));
+        Shield shield = new Shield(new MetalShieldVisual(player.getLocation(), SHIELD_COUNT));
         shields.put(player.getUniqueId(), shield);
         setActive(player, true);
 
         SoundUtils.playTo(player, SoundUtils.Element.METAL);
         player.getWorld().playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1.0f, 0.9f);
-        sendStatus(player, shield);
 
         shield.task = new BukkitRunnable() {
             int ticks = 0;
@@ -149,15 +144,14 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
             if (shield.abilityHitsLeft <= 0) return;
             shield.abilityHitsLeft--;
             AbilityDamage.markBlocked(victim);
-            absorb(victim, shield, event, true);
+            absorb(victim, shield, event, source, true);
             return;
         }
 
-        if (!isMeleeOrProjectile(event.getCause()) || shield.meleeProjectileHitsLeft <= 0) return;
+        if (!isMeleeOrProjectile(event.getCause())) return;
         if (isArrowImmune(victim, event)) return;
 
-        shield.meleeProjectileHitsLeft--;
-        absorb(victim, shield, event, false);
+        absorb(victim, shield, event, source, false);
     }
 
     private boolean isMeleeOrProjectile(DamageCause cause) {
@@ -177,21 +171,23 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
                 && data.getUpgradeLevel(ElementType.METAL) >= ARROW_IMMUNITY_LEVEL;
     }
 
-    private void absorb(Player victim, Shield shield, EntityDamageEvent event, boolean abilityHit) {
+    /** Cancels the hit and pops the shield nearest the attacker. */
+    private void absorb(Player victim, Shield shield, EntityDamageEvent event, Entity source, boolean abilityHit) {
         event.setCancelled(true);
 
-        Location at = shield.visual.getLocation();
-        shield.visual.pulse();
+        Location at = shield.visual.popNearest(source != null ? source.getLocation() : null);
+        if (at == null) at = victim.getLocation().add(0, 1.0, 0);
+
+        at.getWorld().spawnParticle(Particle.BLOCK, at, 20, 0.25, 0.35, 0.25, 0.1,
+                Material.IRON_BLOCK.createBlockData(), true);
         at.getWorld().spawnParticle(Particle.CRIT, at, abilityHit ? 24 : 12, 0.3, 0.4, 0.3, 0.2, null, true);
         if (abilityHit) {
             at.getWorld().playSound(at, Sound.BLOCK_ANVIL_LAND, 0.7f, 1.7f);
         }
         at.getWorld().playSound(at, Sound.ITEM_SHIELD_BLOCK, 1.0f, abilityHit ? 0.8f : 1.1f);
 
-        if (shield.isSpent()) {
+        if (shield.visual.count() <= 0) {
             end(victim, EndReason.BROKEN);
-        } else {
-            sendStatus(victim, shield);
         }
     }
 
@@ -202,22 +198,18 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         if (shield == null) return;
 
         if (shield.task != null) shield.task.cancel();
-        Location at = shield.visual.getLocation();
         shield.visual.remove();
+        Location at = player.getLocation().add(0, 1.0, 0);
         super.setActive(player, false);
 
         switch (reason) {
             case BROKEN -> {
                 at.getWorld().playSound(at, Sound.ITEM_SHIELD_BREAK, 1.0f, 0.9f);
-                at.getWorld().spawnParticle(Particle.BLOCK, at, 30, 0.3, 0.4, 0.3, 0.1,
-                        Material.IRON_BLOCK.createBlockData(), true);
-                player.sendActionBar(Lang.METAL_SHIELD_BROKE);
             }
             case EXPIRED -> {
                 at.getWorld().playSound(at, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 0.8f, 0.8f);
-                at.getWorld().spawnParticle(Particle.BLOCK, at, 12, 0.3, 0.4, 0.3, 0.05,
+                at.getWorld().spawnParticle(Particle.BLOCK, at, 20, 0.6, 0.5, 0.6, 0.05,
                         Material.IRON_BLOCK.createBlockData(), true);
-                player.sendActionBar(Lang.METAL_SHIELD_FADED);
             }
             case REMOVED -> { /* quit / death / element change - nothing to show */ }
         }
@@ -242,9 +234,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         end(event.getEntity(), EndReason.REMOVED);
     }
 
-    private void sendStatus(Player player, Shield shield) {
-        player.sendActionBar(Lang.metalShieldStatus(shield.meleeProjectileHitsLeft, shield.abilityHitsLeft));
-    }
 
     @Override
     public String getName() {
@@ -253,7 +242,7 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return "Raise a metal shield that absorbs " + MELEE_PROJECTILE_HITS
-                + " melee/projectile hits and " + ABILITY_HITS + " damaging ability.";
+        return "Surround yourself with " + SHIELD_COUNT + " orbiting metal shields. Each absorbs a hit,"
+                + " and " + ABILITY_HITS + " can absorb a damaging ability.";
     }
 }

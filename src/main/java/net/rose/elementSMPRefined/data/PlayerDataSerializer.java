@@ -30,6 +30,7 @@ public final class PlayerDataSerializer {
         data.setCurrentElementUpgradeLevel(section.getInt("currentUpgradeLevel", 0));
         data.setPendingRerollerRefunds(section.getInt("pendingRerollerRefunds", 0));
         data.setPendingAdvancedRerollerRefunds(section.getInt("pendingAdvancedRerollerRefunds", 0));
+        data.setAutoSmeltEnabled(section.getBoolean("autoSmelt", true));
 
         ConfigurationSection trust = section.getConfigurationSection("trust");
         if (trust != null) {
@@ -52,6 +53,7 @@ public final class PlayerDataSerializer {
         section.set("currentUpgradeLevel", data.getCurrentElementUpgradeLevel());
         section.set("pendingRerollerRefunds", data.getPendingRerollerRefunds());
         section.set("pendingAdvancedRerollerRefunds", data.getPendingAdvancedRerollerRefunds());
+        section.set("autoSmelt", data.isAutoSmeltEnabled());
 
         section.set("items", null); // element cores were removed - drop the old owned-items list
 

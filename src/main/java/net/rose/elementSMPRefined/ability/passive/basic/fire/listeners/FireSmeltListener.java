@@ -26,7 +26,8 @@ import java.util.Map;
  * Upgrade I.
  *
  * Fortune still multiplies the output. Silk Touch bypasses smelting
- * entirely and drops the raw block as normal.
+ * entirely and drops the raw block as normal. Players can switch the
+ * whole passive off/on with /autosmelt.
  */
 public class FireSmeltListener implements Listener {
 
@@ -63,6 +64,11 @@ public class FireSmeltListener implements Listener {
         // Fire, and Lava (upgraded from Fire, inherits this passive)
         ElementType current = playerData.getCurrentElement();
         if (current != ElementType.FIRE && current != ElementType.LAVA) {
+            return;
+        }
+
+        // Player turned auto smelt off with /autosmelt - drops stay vanilla
+        if (!playerData.isAutoSmeltEnabled()) {
             return;
         }
 

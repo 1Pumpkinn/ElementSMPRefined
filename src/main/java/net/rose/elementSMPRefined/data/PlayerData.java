@@ -24,6 +24,7 @@ public final class PlayerData {
     private final Set<UUID> trustedPlayers;
     private int pendingRerollerRefunds;
     private int pendingAdvancedRerollerRefunds;
+    private boolean autoSmeltEnabled = true;
 
     public PlayerData(UUID uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
@@ -141,6 +142,15 @@ public final class PlayerData {
         int count = pendingAdvancedRerollerRefunds;
         pendingAdvancedRerollerRefunds = 0;
         return count;
+    }
+
+    /** Fire/Lava auto smelt toggle (/autosmelt). On by default. */
+    public boolean isAutoSmeltEnabled() {
+        return autoSmeltEnabled;
+    }
+
+    public void setAutoSmeltEnabled(boolean enabled) {
+        this.autoSmeltEnabled = enabled;
     }
 
     @Override

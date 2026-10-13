@@ -526,6 +526,25 @@ public final class Lang {
             Component.text("Example ability activated", NamedTextColor.GREEN);
 
 
+    public static final Component AUTOSMELT_PLAYERS_ONLY =
+            Component.text("Only players can use this command!", NamedTextColor.RED);
+
+    public static final Component AUTOSMELT_WRONG_ELEMENT =
+            Component.text("Auto smelt is only available to Fire and Lava.", NamedTextColor.RED);
+
+    public static final Component AUTOSMELT_USAGE =
+            Component.text("Usage: /autosmelt [on|off]", NamedTextColor.YELLOW);
+
+    public static final Component AUTOSMELT_ENABLED =
+            Component.text("Auto smelt ", NamedTextColor.GRAY)
+                    .append(Component.text("enabled", NamedTextColor.GREEN))
+                    .append(Component.text(".", NamedTextColor.GRAY));
+
+    public static final Component AUTOSMELT_DISABLED =
+            Component.text("Auto smelt ", NamedTextColor.GRAY)
+                    .append(Component.text("disabled", NamedTextColor.RED))
+                    .append(Component.text(".", NamedTextColor.GRAY));
+
     public static final Component ELEMENT_INFO_PLAYERS_ONLY =
             Component.text("Only players can use this command!", NamedTextColor.RED);
 

@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.commands.element.base.AbilityCommand;
+import net.rose.elementSMPRefined.commands.element.base.AutoSmeltCommand;
 import net.rose.elementSMPRefined.commands.element.base.ElementCommand;
 import net.rose.elementSMPRefined.commands.element.base.ElementInfoCommand;
 import net.rose.elementSMPRefined.commands.server.DimensionCommand;
@@ -26,6 +27,7 @@ public class CommandInitializer {
                 .command("ability1", abilityCommand)
                 .command("ability2", abilityCommand)
                 .command("elements", new ElementInfoCommand(plugin))
+                .command("autosmelt", new AutoSmeltCommand(plugin))
                 .command("trust", new TrustCommand(plugin, plugin.getTrustManager()))
                 .command("element", new ElementCommand(plugin))
                 .command("util", new UtilCommand(plugin))

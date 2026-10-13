@@ -13,16 +13,26 @@ import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class EarthTunnelAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
     private final MetadataHelper metadataHelper;
+
+    /**
+     * Pickaxe each active tunneler had in hand when they started tunneling. Drops are rolled
+     * against this copy, so Fortune / Silk Touch keep working after they swap items or put it away.
+     */
+    private final Map<UUID, ItemStack> tunnelTools = new HashMap<>();
 
     public EarthTunnelAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("earth_tunnel", ElementType.EARTH, 1, 30, 1, configManager);
@@ -37,12 +47,22 @@ public class EarthTunnelAbility extends BaseAbility {
         // If ability is already active (check metadata), cancel it WITHOUT consuming mana
         if (metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
             metadataHelper.remove(player, EarthElement.META_TUNNELING);
+            tunnelTools.remove(player.getUniqueId());
             player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_CANCELLED);
             setActive(player, false);
             return true;
         }
 
         metadataHelper.setLong(player, EarthElement.META_TUNNELING, System.currentTimeMillis() + Constants.Duration.EARTH_TUNNEL_MS);
+
+        // If a pickaxe is in hand right now, lock it in for the whole tunnel (Fortune / Silk Touch included).
+        ItemStack started = player.getInventory().getItemInMainHand();
+        if (Tag.ITEMS_PICKAXES.isTagged(started.getType())) {
+            tunnelTools.put(player.getUniqueId(), started.clone());
+        } else {
+            tunnelTools.remove(player.getUniqueId());
+        }
+
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_STONE_BREAK, 1f, 0.8f);
         player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_STARTED_PRESS_AGAIN_CANCEL);
 
@@ -50,6 +70,7 @@ public class EarthTunnelAbility extends BaseAbility {
 
         Bukkit.getScheduler().runTaskTimer(plugin, task -> {
             if (!player.isOnline() || !metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
+                tunnelTools.remove(player.getUniqueId());
                 setActive(player, false);
                 task.cancel();
                 return;
@@ -59,6 +80,7 @@ public class EarthTunnelAbility extends BaseAbility {
             if (System.currentTimeMillis() > until) {
                 metadataHelper.remove(player, EarthElement.META_TUNNELING);
                 player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_ENDED);
+                tunnelTools.remove(player.getUniqueId());
                 setActive(player, false);
                 task.cancel();
                 return;
@@ -84,6 +106,9 @@ public class EarthTunnelAbility extends BaseAbility {
         World world = center.getWorld();
         if (world == null) return;
 
+        // Pickaxe locked in when the tunnel started (null if none was in hand then).
+        ItemStack tool = tunnelTools.get(player.getUniqueId());
+
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
@@ -91,7 +116,12 @@ public class EarthTunnelAbility extends BaseAbility {
                     Block block = blockLoc.getBlock();
 
                     if (TUNNELABLE.contains(block.getType())) {
-                        block.breakNaturally();
+                        if (tool != null) {
+                            // Drops are rolled against the locked-in pickaxe, so Fortune / Silk Touch apply.
+                            block.breakNaturally(tool);
+                        } else {
+                            block.breakNaturally();
+                        }
                         world.playSound(blockLoc, Sound.BLOCK_STONE_BREAK, 0.3f, 1.0f);
                     }
                 }

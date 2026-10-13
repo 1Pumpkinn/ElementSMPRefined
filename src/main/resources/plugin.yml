@@ -36,6 +36,11 @@ commands:
     usage: /elements [element_name]
     aliases: [ elementinfo, elinfo ]
 
+  autosmelt:
+    description: Toggle Fire/Lava auto smelt on or off
+    usage: /autosmelt [on|off]
+    aliases: [ smelt ]
+
   grace:
     description: Start, stop, or check the server grace period
     usage: /grace <start|stop|status> [duration_seconds] [hunger_protection_seconds]

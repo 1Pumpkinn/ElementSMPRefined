@@ -22,6 +22,12 @@ import java.util.Optional;
  * requiresAdmin-style gating in ElementCommand for why that's worth revisiting.
  */
 public class ParticlesCommand implements ElementSubCommand {
+    private static final double MIN_SIZE = 0.1;
+    private static final double MAX_SIZE = 16.0;
+    private static final double MAX_LENGTH = 32.0;
+    private static final double MIN_WIDTH = 0.1;
+    private static final double MAX_WIDTH = 128.0;
+
     private final ElementSMPRefined plugin;
 
     public ParticlesCommand(ElementSMPRefined plugin) {
@@ -145,7 +151,17 @@ public class ParticlesCommand implements ElementSubCommand {
             }
         }
 
+        // Any player can run this command, and these values drive loop counts/ring steps -
+        // an unclamped "width 1e9" would freeze the main thread, so keep them in a sane range.
+        size = clamp(size, MIN_SIZE, MAX_SIZE);
+        length = clamp(length, 0.0, MAX_LENGTH);
+        width = clamp(width, MIN_WIDTH, MAX_WIDTH);
+
         return new ParticlePreset.PresetOptions(size, length, width, particle, color);
+    }
+
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     /** A "key=value" or "key value" style argument's value, and the loop index to resume from. */
@@ -170,7 +186,8 @@ public class ParticlesCommand implements ElementSubCommand {
     private static Double parseDouble(String value) {
         if (value == null || value.isBlank()) return null;
         try {
-            return Double.parseDouble(value);
+            double parsed = Double.parseDouble(value);
+            return Double.isFinite(parsed) ? parsed : null; // reject NaN / Infinity
         } catch (NumberFormatException e) {
             return null;
         }

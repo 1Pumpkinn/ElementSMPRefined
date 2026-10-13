@@ -50,7 +50,6 @@ public class ElementManager {
     private final CooldownManager cooldownManager;
     private final TrustManager trustManager;
     private final ConfigManager configManager;
-    private final EffectService effectService;
     private final ElementRegistry elementRegistry;
     private final Set<UUID> currentlyRolling = new HashSet<>();
 
@@ -62,10 +61,9 @@ public class ElementManager {
         this.trustManager = trustManager;
         this.configManager = configManager;
         this.elementRegistry = new ElementRegistry(plugin);
-        this.effectService = new EffectService(plugin, this);
         registerAllElements();
     }
-    public EffectService getEffectService() { return effectService; }
+    public EffectService getEffectService() { return plugin.getEffectService(); }
     public ElementRegistry getElementRegistry() { return elementRegistry; }
 
     /**
@@ -235,11 +233,11 @@ public class ElementManager {
     private void handleElementSwitch(Player player, ElementType oldType) {
         // Only clear the element actually being left - see EffectService.clearElementEffects
         // for why this replaced the old full-registry clearAllElementEffects() call here.
-        effectService.clearElementEffects(player, oldType);
+        plugin.getEffectService().clearElementEffects(player, oldType);
     }
 
     public void applyUpsides(Player player) {
-        effectService.applyPassiveEffects(player);
+        plugin.getEffectService().applyPassiveEffects(player);
     }
 
     public boolean useAbility1(Player player) {

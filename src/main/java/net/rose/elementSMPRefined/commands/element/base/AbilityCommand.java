@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.status.DisarmManager;
+import net.rose.elementSMPRefined.status.StatusEffectManager;
+import net.rose.elementSMPRefined.status.StatusEffectType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,13 +24,18 @@ import org.bukkit.entity.Player;
 public class AbilityCommand implements CommandExecutor {
     private static final Component ABILITY_DISARMED = Component.text(
             "You are disarmed and cannot use abilities!", NamedTextColor.RED);
+    private static final Component ABILITY_BLOCKED = Component.text(
+            "You are silenced or stunned and cannot use abilities!", NamedTextColor.RED);
 
     private final ElementManager elements;
     private final DisarmManager disarmManager;
+    private final StatusEffectManager statusEffectManager;
 
-    public AbilityCommand(ElementManager elements, DisarmManager disarmManager) {
+    public AbilityCommand(ElementManager elements, DisarmManager disarmManager,
+                          StatusEffectManager statusEffectManager) {
         this.elements = elements;
         this.disarmManager = disarmManager;
+        this.statusEffectManager = statusEffectManager;
     }
 
     @Override
@@ -40,6 +47,13 @@ public class AbilityCommand implements CommandExecutor {
 
         if (disarmManager.isAbilityDisarmed(player)) {
             player.sendActionBar(ABILITY_DISARMED);
+            return true;
+        }
+
+        // Abilities are cast by command, not PlayerInteractEvent, so StatusEffectListener never sees them.
+        if (statusEffectManager.isSilenced(player)
+                || statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)) {
+            player.sendActionBar(ABILITY_BLOCKED);
             return true;
         }
 

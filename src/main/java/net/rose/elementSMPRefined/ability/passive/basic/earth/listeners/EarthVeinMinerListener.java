@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.ability.passive.basic.earth.listeners;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -42,6 +43,11 @@ public class EarthVeinMinerListener implements Listener {
         Player player = event.getPlayer();
         Block block = event.getBlock();
 
+        // Creative drops nothing for the first block but breakNaturally() would drop the rest.
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            return;
+        }
+
         var playerData = elementManager.data(player.getUniqueId());
         ElementType current = playerData.getCurrentElement();
         if (current != ElementType.EARTH && current != ElementType.METAL) {
@@ -49,6 +55,11 @@ public class EarthVeinMinerListener implements Listener {
         }
 
         if (!ORES.contains(block.getType())) {
+            return;
+        }
+
+        // Wrong tool (e.g. bare hands): the first ore yields nothing, so don't also destroy 15 neighbours for free.
+        if (!block.isPreferredTool(player.getInventory().getItemInMainHand())) {
             return;
         }
 

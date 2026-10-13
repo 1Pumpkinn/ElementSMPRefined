@@ -20,7 +20,7 @@ public class CommandInitializer {
     public void registerCommands() {
         plugin.getLogger().info("Registering commands...");
 
-        AbilityCommand abilityCommand = new AbilityCommand(plugin.getElementManager(), plugin.getDisarmManager());
+        AbilityCommand abilityCommand = new AbilityCommand(plugin.getElementManager(), plugin.getDisarmManager(), plugin.getStatusEffectManager());
 
         CommandRegister.register(plugin)
                 .command("ability1", abilityCommand)

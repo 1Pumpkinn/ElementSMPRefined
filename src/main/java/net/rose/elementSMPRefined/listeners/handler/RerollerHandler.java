@@ -171,6 +171,8 @@ public class RerollerHandler implements Listener {
                 // gems and release the lock. Nothing is assigned.
                 if (!elementManager.isCurrentlyRolling(player) || player.isDead()) {
                     visual.remove();
+                    // The item was already consumed - queue it back (delivered on respawn) instead of eating it.
+                    if (!assigned) elementManager.queueRerollerRefund(player);
                     cancel();
                     elementManager.endRolling(player);
                     return;

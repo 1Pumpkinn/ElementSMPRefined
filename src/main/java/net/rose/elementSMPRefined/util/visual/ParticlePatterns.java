@@ -120,7 +120,7 @@ public final class ParticlePatterns {
         if (world == null || !world.equals(config.end().getWorld())) return;
 
         double distance = config.start().distance(config.end());
-        int points = (int) (distance / config.spacing());
+        int points = Math.max(1, (int) (distance / config.spacing()));
 
         Vector direction = config.end().toVector()
                 .subtract(config.start().toVector());

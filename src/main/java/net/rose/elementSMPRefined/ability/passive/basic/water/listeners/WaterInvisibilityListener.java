@@ -51,6 +51,11 @@ public class WaterInvisibilityListener implements Listener {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (elementManager.getPlayerElement(player) == ElementType.WATER) {
                     tick(player);
+                } else if (trulyInvisible.contains(player.getUniqueId())) {
+                    // No longer Water (reroll/admin set) - tick() never runs for them again, so reveal here.
+                    idleChecks.remove(player.getUniqueId());
+                    lastLocation.remove(player.getUniqueId());
+                    revealPlayer(player);
                 }
             }
         }, 20L, MONITOR_PERIOD_TICKS);

@@ -100,6 +100,11 @@ public abstract class BaseAbility implements Ability {
      * Override in subclasses for more complex logic.
      */
     protected boolean isValidTarget(ElementContext context, org.bukkit.entity.LivingEntity target) {
-        return !target.equals(context.getPlayer());
+        Player caster = context.getPlayer();
+        if (target.equals(caster)) return false;
+        if (target instanceof Player other && context.getTrustManager() != null) {
+            return !context.getTrustManager().isTrusted(caster.getUniqueId(), other.getUniqueId());
+        }
+        return true;
     }
 }

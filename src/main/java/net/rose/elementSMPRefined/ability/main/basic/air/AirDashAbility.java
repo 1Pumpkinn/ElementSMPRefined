@@ -54,7 +54,11 @@ public class AirDashAbility extends BaseAbility {
                         if (entity.equals(player)) continue;
                         if (!AirDashAbility.this.isValidTarget(context, entity)) continue;
 
-                        Vector knockback = entity.getLocation().toVector().subtract(loc.toVector()).normalize();
+                        Vector offset = entity.getLocation().toVector().subtract(loc.toVector());
+                        if (offset.lengthSquared() < 1.0E-4) {
+                            offset = new Vector(0, 0, 1); // zero vector normalizes to NaN
+                        }
+                        Vector knockback = offset.normalize();
                         knockback.setY(0.2);
                         entity.setVelocity(knockback.multiply(1.0));
                         entity.getWorld().spawnParticle(Particle.CLOUD, entity.getLocation(), 10, 0.3, 0.3, 0.3, 0.05, null, true);

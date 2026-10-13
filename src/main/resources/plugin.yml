@@ -26,11 +26,6 @@ commands:
     usage: /element <set|data|debug|config|particles> [player] [element]
     permission: element.admin
 
-  mana:
-    description: Manage mana (reset or set)
-    usage: /mana <reset|set> [player] [amount]
-    permission: element.mana
-
   util:
     description: Get utility items (upgraders and reroller)
     usage: /util
@@ -56,6 +51,3 @@ permissions:
     description: Allows use of element admin commands
     default: op
 
-  element.mana:
-    description: Allows use of mana management commands
-    default: op

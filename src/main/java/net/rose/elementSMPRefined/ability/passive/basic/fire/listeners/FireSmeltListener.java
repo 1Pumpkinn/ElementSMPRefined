@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.ability.passive.basic.fire.listeners;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -47,6 +48,11 @@ public class FireSmeltListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         Block block = event.getBlock();
+
+        // Creative breaks drop nothing in vanilla; dropping smelted ingots here duplicated items.
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            return;
+        }
 
         var playerData = elementManager.data(player.getUniqueId());
 

@@ -81,7 +81,6 @@ public class AirFallImpactListener implements Listener {
             if (isFalling == null || !isFalling) {
                 playerFallStartY.put(playerId, from.getY());
                 playerIsFalling.put(playerId, true);
-                plugin.getLogger().info("Player " + player.getName() + " started falling at Y: " + from.getY());
             }
         }
 
@@ -118,9 +117,11 @@ public class AirFallImpactListener implements Listener {
             if (entity == player) continue;
             if (!(entity instanceof org.bukkit.entity.LivingEntity)) continue;
 
-            Vector direction = entity.getLocation().toVector()
-                    .subtract(impactLocation.toVector())
-                    .normalize();
+            Vector offset = entity.getLocation().toVector().subtract(impactLocation.toVector());
+            if (offset.lengthSquared() < 1.0E-4) {
+                offset = new Vector(0, 0, 1); // normalize() of a zero vector is NaN and setVelocity throws
+            }
+            Vector direction = offset.normalize();
 
             Vector knockback = direction.multiply(knockbackStrength);
             knockback.setY(Math.min(knockbackStrength * 0.5, 2.0));

@@ -220,6 +220,7 @@ public class PlayerLifecycle implements Listener {
         Player player = event.getPlayer();
         UUID playerUuid = player.getUniqueId();
         elementManager.cancelRolling(player);
+        plugin.getStatusEffectManager().clearEffects(player);
         effectService.clearAllElementEffects(player);
         plugin.getDataStore().save(elementManager.data(playerUuid));
         // Drop the cached PlayerData now that it's safely on disk - without
@@ -258,6 +259,7 @@ public class PlayerLifecycle implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
         PlayerData pd = elementManager.data(player.getUniqueId());
+        plugin.getStatusEffectManager().clearEffects(player);
         effectService.clearElementEffects(player, pd.getCurrentElement());
     }
 
@@ -267,6 +269,8 @@ public class PlayerLifecycle implements Listener {
         scheduler.runLater(() -> {
             if (player.isOnline()) {
                 effectService.applyPassiveEffects(player);
+                // A reroller consumed by a roll that was aborted by this player's death is owed back.
+                refundPendingRerollers(player, elementManager.data(player.getUniqueId()));
             }
         }, 5L);
     }

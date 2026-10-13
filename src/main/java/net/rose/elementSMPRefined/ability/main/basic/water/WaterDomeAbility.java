@@ -361,7 +361,10 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
         if (active) {
             activeUsers.add(player.getUniqueId());
         } else {
-            activeUsers.remove(player.getUniqueId());
+            // BaseElement.clearEffects (element change, death) deactivates through here. Just dropping
+            // the flag made the tick task bail out without restoring the fake water and left the
+            // dome registered, so onDamage kept protecting the owner/trusted players there forever.
+            popDome(player.getUniqueId(), false);
         }
     }
 

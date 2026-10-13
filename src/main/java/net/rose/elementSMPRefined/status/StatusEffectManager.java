@@ -171,7 +171,7 @@ public class StatusEffectManager {
             return sourceUuid != null ? updated.withSource(sourceUuid) : updated;
         });
 
-        applyPotionEffects(player, type, data);
+        restorePotionEffects(player, playerEffects);
 
         player.sendMessage(Component.text(data.displayName() + " applied for " + (actualDuration / 20.0) + " seconds", NamedTextColor.RED));
     }
@@ -224,30 +224,57 @@ public class StatusEffectManager {
     }
 
     /**
-     * Apply potion effects for a status effect
-     * Note: Stun and Freeze are handled by event listeners, not potion effects
+     * (Re)applies the potion side of every status effect that is currently active on the
+     * player, keeping only the strongest amplifier per potion type. Several status effects
+     * share one potion type (STUN/ROOT/SLOW/FULL_STUN are all Slowness), so applying or
+     * expiring them one at a time used to let a weaker effect overwrite a stronger one, or
+     * let one expiring effect strip the potion another active effect still needs.
+     * Note: Stun and Freeze are also handled by event listeners, not just potion effects
      */
-    private void applyPotionEffects(Player player, StatusEffectType type, StatusEffectData data) {
-        if (data.potionEffects() != null) {
+    private void restorePotionEffects(Player player, Map<StatusEffectType, StatusEffectInstance> active) {
+        Map<PotionEffectType, PotionEffect> strongest = new HashMap<>();
+        for (StatusEffectType activeType : active.keySet()) {
+            StatusEffectData data = effectData.get(activeType);
+            if (data == null || data.potionEffects() == null) continue;
             for (PotionEffect effect : data.potionEffects()) {
-                player.addPotionEffect(effect);
+                strongest.merge(effect.getType(), effect,
+                        (a, b) -> a.getAmplifier() >= b.getAmplifier() ? a : b);
             }
         }
-        // Stun and Freeze are handled by event listeners, no potion effects needed
+        for (PotionEffect effect : strongest.values()) {
+            player.addPotionEffect(effect);
+        }
     }
 
     /**
-     * Remove potion effects for a status effect
-     * Note: Stun and Freeze are handled by event listeners, not potion effects
+     * Remove the potion effects a status effect applied. Only infinite-duration potions are
+     * touched (that's what status effects apply), so a player's real Slowness/Weakness potion
+     * isn't stripped by an unrelated status expiring.
      */
     private void removePotionEffects(Player player, StatusEffectType type) {
         StatusEffectData data = effectData.get(type);
         if (data != null && data.potionEffects() != null) {
             for (PotionEffect effect : data.potionEffects()) {
-                player.removePotionEffect(effect.getType());
+                PotionEffect current = player.getPotionEffect(effect.getType());
+                if (current != null && current.getDuration() == PotionEffect.INFINITE_DURATION) {
+                    player.removePotionEffect(effect.getType());
+                }
             }
         }
-        // Stun and Freeze are handled by event listeners, no cleanup needed here
+    }
+
+    /**
+     * Drops every status effect on the player and strips their potion effects. Must run on
+     * quit and death: the monitor task only forgets an offline player's entries, it can't
+     * remove potions from them, and an infinite Slowness 127 is saved with the player - they'd
+     * log back in unable to move.
+     */
+    public void clearEffects(Player player) {
+        Map<StatusEffectType, StatusEffectInstance> removed = activeEffects.remove(player.getUniqueId());
+        if (removed == null) return;
+        for (StatusEffectType type : removed.keySet()) {
+            removePotionEffects(player, type);
+        }
     }
 
     /**
@@ -293,6 +320,8 @@ public class StatusEffectManager {
                     if (instance.isExpired()) {
                         removePotionEffects(player, type);
                         effectIterator.remove();
+                        // Another active effect may still need the potion we just removed.
+                        restorePotionEffects(player, effects);
                     }
                 }
 

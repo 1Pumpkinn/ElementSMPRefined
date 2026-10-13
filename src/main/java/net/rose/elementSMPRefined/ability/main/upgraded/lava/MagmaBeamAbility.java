@@ -98,7 +98,8 @@ public class MagmaBeamAbility extends BaseAbility {
 
             @Override
             public void run() {
-                if (!player.isOnline() || player.isDead()) {
+                // !isActiveFor: BaseElement.clearEffects (element change) deactivates the ability.
+                if (!player.isOnline() || player.isDead() || !isActiveFor(player)) {
                     cancel();
                     return;
                 }

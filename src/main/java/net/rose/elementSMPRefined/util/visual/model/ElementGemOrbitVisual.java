@@ -82,7 +82,7 @@ public final class ElementGemOrbitVisual {
     public ElementGemOrbitVisual(Player owner, ElementType[] ring, ElementType chosen) {
         this.owner = owner;
 
-        // Two gems per element so the ring looks full; the first gem of the chosen type survives.
+        // One gem per element; the gem of the chosen type survives.
         List<ElementType> types = new ArrayList<>();
         for (int pass = 0; pass < Constants.Animation.ORBIT_GEMS_PER_ELEMENT; pass++) {
             for (ElementType t : ring) types.add(t);

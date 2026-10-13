@@ -30,12 +30,10 @@ public final class Lang {
                 .colorIfAbsent(fallback);
     }
 
-    // --- Death element - Backstab ability ---
     public static final Component DEATH_BACKSTAB_NO_TARGET_IN_RANGE =
             Component.text("No target in range.", NamedTextColor.RED);
 
 
-    // --- Earth element - Tunnel ability ---
     public static final Component EARTH_TUNNEL_TUNNELING_CANCELLED =
             Component.text("Tunneling cancelled", NamedTextColor.YELLOW);
 
@@ -46,17 +44,14 @@ public final class Lang {
             Component.text("Tunneling ended", NamedTextColor.YELLOW);
 
 
-    // --- Frost element - Freezing Circle ability ---
     public static final Component FROST_CIRCLE_FREEZING_CIRCLE_IS_ALREADY_ACTIVE =
             Component.text("Freezing Circle is already active!", NamedTextColor.RED);
 
 
-    // --- Life element - Regen aura ability ---
     public static final Component LIFE_REGEN_REGEN_AURA_APPLIED_YOU_TRUSTED =
             Component.text("Regen aura applied to you and trusted allies!", NamedTextColor.GREEN);
 
 
-    // --- Metal element - Chain ability ---
     public static final Component METAL_CHAIN_NO_TARGET_FOUND =
             Component.text("No target found!", NamedTextColor.RED);
 
@@ -64,11 +59,9 @@ public final class Lang {
             Component.text("You cannot chain trusted players!", NamedTextColor.RED);
 
 
-    // --- Water element - Bubble ability ---
     public static final Component WATER_BUBBLE_YOUR_WATER_BUBBLE_IS_ALREADY =
             Component.text("Your dome is already active!", NamedTextColor.RED);
 
-    // --- /trust command ---
     public static final Component TRUST_PLAYERS_ONLY =
             Component.text("Players only");
 
@@ -156,7 +149,6 @@ public final class Lang {
             Component.text("Removed mutual trust.", NamedTextColor.YELLOW);
 
 
-    // --- /util command ---
     public static final Component UTIL_THIS_COMMAND_CAN_ONLY_BE =
             Component.text("This command can only be used by players.", NamedTextColor.RED);
 
@@ -179,7 +171,6 @@ public final class Lang {
             Component.text("• 64x Advanced Reroller", NamedTextColor.DARK_PURPLE);
 
 
-    // --- /element config command ---
     public static final Component CONFIG_CONFIGURATION_RELOADED_SUCCESSFULLY =
             Component.text("Configuration reloaded successfully!", NamedTextColor.GREEN);
 
@@ -246,7 +237,6 @@ public final class Lang {
             Component.text("  set <key> <value>", NamedTextColor.GRAY);
 
 
-    // --- /element debug command ---
     public static final Component DEBUG_USAGE_ELEMENT_DEBUG_PLAYER =
             Component.text("Usage: /element debug [player]", NamedTextColor.RED);
 
@@ -398,7 +388,6 @@ public final class Lang {
             Component.text("=== End Debug ===", NamedTextColor.GOLD);
 
 
-    // --- /element particles command ---
     public static final Component PARTICLES_THIS_COMMAND_CAN_ONLY_BE =
             Component.text("This command can only be used by players.", NamedTextColor.RED);
 
@@ -429,7 +418,6 @@ public final class Lang {
             Component.text("Example: /element particles circle 2.5 0 36 red dust", NamedTextColor.GRAY);
 
 
-    // --- /element set command ---
     public static final Component SET_USAGE_ELEMENT_SET_PLAYER_ELEMENT =
             Component.text("Usage: /element set <player> <element>", NamedTextColor.RED);
 
@@ -466,7 +454,6 @@ public final class Lang {
     }
 
 
-    // --- BaseElement upgrade/mana gating ---
     public static final Component BASE_ELEMENT_YOU_NEED_UPGRADE_I_BEFORE =
             Component.text("You need Upgrade I before you can use Upgrade II abilities.", NamedTextColor.RED);
 
@@ -479,7 +466,6 @@ public final class Lang {
     }
 
 
-    // --- Upgrader item handler ---
     public static final Component UPGRADER_NO_ELEMENT_YET =
             Component.text("You don't have an element yet.", NamedTextColor.RED);
 
@@ -505,7 +491,6 @@ public final class Lang {
             );
 
 
-    // --- Player join/quit lifecycle reroller reminders ---
     public static Component lifecycleYourElementReroller(Object was) {
         return Component.textOfChildren(
                 Component.text("Your Element Reroller", NamedTextColor.YELLOW),
@@ -523,7 +508,6 @@ public final class Lang {
     }
 
 
-    // --- Element assignment/reroll manager ---
     public static Component elementManagerYourElementIsNow(Object id) {
         return Component.textOfChildren(
                 Component.text("Your element is now ", NamedTextColor.GOLD),
@@ -535,7 +519,6 @@ public final class Lang {
             Component.text("You are already rerolling!", NamedTextColor.RED);
 
 
-    // --- Example ability template ---
     public static final Component EXAMPLE_EXAMPLE_ABILITY_DEACTIVATED =
             Component.text("Example ability deactivated", NamedTextColor.RED);
 
@@ -543,7 +526,6 @@ public final class Lang {
             Component.text("Example ability activated", NamedTextColor.GREEN);
 
 
-    // --- /elements command ---
     public static final Component ELEMENT_INFO_PLAYERS_ONLY =
             Component.text("Only players can use this command!", NamedTextColor.RED);
 
@@ -552,12 +534,10 @@ public final class Lang {
             Component.text("Your dome faded away.", NamedTextColor.AQUA);
 
 
-    // --- Dimension travel disable ---
     public static final Component DIMENSION_TRAVEL_DISABLED =
             Component.text("Dimension is disabled.", NamedTextColor.RED);
 
 
-    // --- /dimension command ---
     public static final Component DIMENSION_CMD_USAGE =
             Component.text("Usage: /dimension <enable|disable|status> <nether|end|all>", NamedTextColor.YELLOW);
 
@@ -583,7 +563,6 @@ public final class Lang {
     }
 
 
-    // --- Grace period ---
     public static Component gracePeriodBossBarTitle(String timeLeft) {
         return Component.textOfChildren(
                 Component.text("Grace Period: ", NamedTextColor.GREEN),
@@ -601,7 +580,6 @@ public final class Lang {
             Component.text("PvP is disabled during the grace period!", NamedTextColor.RED);
 
 
-    // --- /grace command ---
     public static final Component GRACE_CMD_USAGE =
             Component.text("Usage: /grace <start|stop|status> [duration_seconds] [hunger_protection_seconds]", NamedTextColor.YELLOW);
 
@@ -619,7 +597,6 @@ public final class Lang {
     }
 
 
-    // --- Cooldown action bar HUD ---
     // Shown by CooldownActionBarTask once a second while at least one of the
     // player's two abilities is on cooldown; ability names are truncated to a
     // fixed prefix length so a long ability name can't push the other side of

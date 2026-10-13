@@ -37,12 +37,10 @@ public class MetalChainStunListener implements Listener {
     public void onEntityMove(EntityMoveEvent event) {
         LivingEntity entity = event.getEntity();
 
-        // Players are handled by StatusEffectListener
         if (entity instanceof Player) {
             return;
         }
 
-        // Mobs marked as stunned (AI disabled) cannot move
         if (entity instanceof Mob mob && !mob.hasAI()) {
             event.setCancelled(true);
             entity.setVelocity(ZERO_VELOCITY);
@@ -61,17 +59,14 @@ public class MetalChainStunListener implements Listener {
 
         boolean isStunned = false;
 
-        // Check if player is stunned via StatusEffectManager
         if (entity instanceof Player player) {
             isStunned = plugin.getStatusEffectManager().hasEffect(player, StatusEffectType.FULL_STUN) ||
                        plugin.getStatusEffectManager().hasEffect(player, StatusEffectType.STUN);
         }
-        // Check if mob is stunned (AI disabled = stunned marker)
         else if (entity instanceof Mob mob && !mob.hasAI()) {
             isStunned = true;
         }
 
-        // Remove all knockback from stunned entities
         if (isStunned) {
             entity.setVelocity(ZERO_VELOCITY);
         }

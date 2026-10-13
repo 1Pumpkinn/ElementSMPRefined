@@ -46,7 +46,6 @@ public class CooldownManager {
         return (remainingMillis + 999) / 1000; // round up to the nearest second
     }
 
-    /** Starts (or restarts) the cooldown for an ability, `seconds` from now. */
     public void startCooldown(Player player, String abilityId, int seconds) {
         if (player.getGameMode() == GameMode.CREATIVE) return;
         if (seconds <= 0) return;
@@ -54,7 +53,6 @@ public class CooldownManager {
         cooldowns.computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap<>()).put(abilityId, readyAt);
     }
 
-    /** Clears a single ability's cooldown for a player. */
     public void clear(Player player, String abilityId) {
         Map<String, Long> playerCooldowns = cooldowns.get(player.getUniqueId());
         if (playerCooldowns != null) {

@@ -49,16 +49,13 @@ public class AirFallImpactListener implements Listener {
         UUID playerId = player.getUniqueId();
         Double startY = playerFallStartY.get(playerId);
 
-        // Calculate fall distance from stored start Y
         double fallDistance = 0;
         if (startY != null) {
             fallDistance = startY - player.getLocation().getY();
         }
 
-        // Cancel fall damage for Air element players (passive 1)
         event.setCancelled(true);
 
-        // Clean up tracking
         playerFallStartY.remove(playerId);
         playerIsFalling.remove(playerId);
     }
@@ -76,43 +73,34 @@ public class AirFallImpactListener implements Listener {
 
         if (to == null) return;
 
-        // Check if player is currently on ground
         boolean isOnGround = player.isOnGround();
 
-        // Check if player just started falling (going down significantly)
         if (!isOnGround && to.getY() < from.getY() && (from.getY() - to.getY()) > 0.5) {
-            // Player is falling downward
             Boolean isFalling = playerIsFalling.get(playerId);
 
             if (isFalling == null || !isFalling) {
-                // Just started falling
                 playerFallStartY.put(playerId, from.getY());
                 playerIsFalling.put(playerId, true);
                 plugin.getLogger().info("Player " + player.getName() + " started falling at Y: " + from.getY());
             }
         }
 
-        // Check if player landed (was falling, now on ground)
         Boolean isFalling = playerIsFalling.get(playerId);
         if (isFalling != null && isFalling && isOnGround) {
-            // Player landed - apply knockback here
             Double startY = playerFallStartY.get(playerId);
             double fallDistance = 0;
             if (startY != null) {
                 fallDistance = startY - to.getY();
             }
 
-            // Apply knockback based on fall distance
             if (fallDistance >= 4.0) {
                 applyFallImpactKnockback(player, fallDistance);
             }
 
-            // Clean up tracking
             playerFallStartY.remove(playerId);
             playerIsFalling.remove(playerId);
         }
 
-        // Reset if player is going up significantly (jumping/levitating/flying)
         if (to.getY() > from.getY() && (to.getY() - from.getY()) > 1.0) {
             playerFallStartY.remove(playerId);
             playerIsFalling.remove(playerId);
@@ -125,29 +113,24 @@ public class AirFallImpactListener implements Listener {
         double knockbackRadius = calculateKnockbackRadius(fallDistance);
 
 
-        // Find nearby entities
         int entitiesKnocked = 0;
         for (Entity entity : player.getNearbyEntities(knockbackRadius, knockbackRadius, knockbackRadius)) {
             if (entity == player) continue;
             if (!(entity instanceof org.bukkit.entity.LivingEntity)) continue;
 
-            // Calculate knockback direction (away from player)
             Vector direction = entity.getLocation().toVector()
                     .subtract(impactLocation.toVector())
                     .normalize();
 
-            // Apply knockback with upward component (capped)
             Vector knockback = direction.multiply(knockbackStrength);
-            knockback.setY(Math.min(knockbackStrength * 0.5, 2.0)); // Cap upward component
+            knockback.setY(Math.min(knockbackStrength * 0.5, 2.0));
 
             entity.setVelocity(knockback);
             entitiesKnocked++;
         }
 
-        // Play sound effect - air themed sound
         SoundUtils.playTo(player, SoundUtils.Element.AIR);
 
-        // Visual feedback - animated particle effect
         createAnimatedImpactEffect(impactLocation, knockbackRadius);
     }
 
@@ -168,11 +151,9 @@ public class AirFallImpactListener implements Listener {
     }
 
     private void createAnimatedImpactEffect(Location location, double radius) {
-        // Create animated particle effect for visual feedback
         World world = location.getWorld();
         if (world == null) return;
 
-        // Animate particles over time using Bukkit scheduler
         org.bukkit.scheduler.BukkitTask task = new org.bukkit.scheduler.BukkitRunnable() {
             int tick = 0;
             private static final int DURATION = 10; // Animation duration in ticks
@@ -185,21 +166,19 @@ public class AirFallImpactListener implements Listener {
                 }
 
                 double progress = (double) tick / DURATION;
-                double currentRadius = radius * (1.0 - progress * 0.7); // Particles expand outward then fade
+                double currentRadius = radius * (1.0 - progress * 0.7);
 
-                // Cloud particles that expand outward
                 int cloudCount = (int) (20 * (1.0 - progress));
                 for (int i = 0; i < cloudCount; i++) {
                     double angle = (2 * Math.PI * i) / cloudCount + (progress * Math.PI);
                     double x = Math.cos(angle) * currentRadius;
                     double z = Math.sin(angle) * currentRadius;
-                    double y = 0.3 + (progress * 0.5); // Particles rise up
+                    double y = 0.3 + (progress * 0.5);
 
                     Location particleLoc = location.clone().add(x, y, z);
                     world.spawnParticle(Particle.CLOUD, particleLoc, 1, 0, 0.1, 0, 0.02);
                 }
 
-                // Smoke particles that drift outward
                 int smokeCount = (int) (15 * (1.0 - progress));
                 for (int i = 0; i < smokeCount; i++) {
                     double angle = (2 * Math.PI * i) / smokeCount + (progress * Math.PI * 0.5);

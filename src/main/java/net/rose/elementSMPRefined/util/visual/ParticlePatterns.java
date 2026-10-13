@@ -5,10 +5,6 @@ import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-/**
- * Enhanced particle patterns with animations, 3D shapes, and advanced effects.
- * Provides comprehensive particle system with animations and complex patterns.
- */
 public final class ParticlePatterns {
 
     public record CircleConfig(
@@ -97,9 +93,6 @@ public final class ParticlePatterns {
         }
     }
 
-    /**
-     * Spawn a circle of particles
-     */
     public static void spawnCircle(CircleConfig config) {
         World world = config.center().getWorld();
         if (world == null) return;
@@ -122,9 +115,6 @@ public final class ParticlePatterns {
         }
     }
 
-    /**
-     * Spawn a line of particles between two points
-     */
     public static void spawnLine(LineConfig config) {
         World world = config.start().getWorld();
         if (world == null || !world.equals(config.end().getWorld())) return;
@@ -145,9 +135,6 @@ public final class ParticlePatterns {
         }
     }
 
-    /**
-     * Spawn a vertical spiral of particles
-     */
     public static void spawnSpiral(SpiralConfig config) {
         World world = config.center().getWorld();
         if (world == null) return;
@@ -171,9 +158,6 @@ public final class ParticlePatterns {
         }
     }
 
-    /**
-     * Spawn a sphere of particles
-     */
     public static void spawnSphere(SphereConfig config) {
         World world = config.center().getWorld();
         if (world == null) return;
@@ -190,7 +174,6 @@ public final class ParticlePatterns {
             double x = Math.cos(theta) * radiusAtY;
             double z = Math.sin(theta) * radiusAtY;
 
-            // Scale by radius
             x *= config.radius();
             y *= config.radius();
             z *= config.radius();
@@ -208,9 +191,6 @@ public final class ParticlePatterns {
         }
     }
 
-    /**
-     * Spawn a DNA helix pattern
-     */
     public static void spawnHelix(HelixConfig config) {
         World world = config.center().getWorld();
         if (world == null) return;
@@ -223,7 +203,6 @@ public final class ParticlePatterns {
             double angle = i * angleStep;
             if (!config.clockwise()) angle = -angle;
 
-            // First strand
             double x1 = Math.cos(angle) * config.radius();
             double z1 = Math.sin(angle) * config.radius();
             double y1 = (i * heightStep) + config.center().getY();
@@ -231,7 +210,6 @@ public final class ParticlePatterns {
             Location loc1 = config.center().clone().add(x1, y1 - config.center().getY(), z1);
             world.spawnParticle(config.particle(), loc1, 1, 0.1, 0.1, 0.1, 0, null, true);
 
-            // Second strand (opposite side)
             double x2 = Math.cos(angle + Math.PI) * config.radius();
             double z2 = Math.sin(angle + Math.PI) * config.radius();
             double y2 = y1;
@@ -241,9 +219,6 @@ public final class ParticlePatterns {
         }
     }
 
-    /**
-     * Animated expanding ring with animation support
-     */
     public static void animateExpandingRing(ExpandingRingConfig config, net.rose.elementSMPRefined.ElementSMPRefined plugin) {
         new org.bukkit.scheduler.BukkitRunnable() {
             private int step = 0;
@@ -273,9 +248,6 @@ public final class ParticlePatterns {
         }.runTaskTimer(plugin, 0, config.delayBetweenSteps());
     }
 
-    /**
-     * Create a burst explosion effect
-     */
     public static void createBurst(Location center, Particle particle, int particles, double radius) {
         World world = center.getWorld();
         if (world == null) return;
@@ -295,9 +267,6 @@ public final class ParticlePatterns {
         }
     }
 
-    /**
-     * Create a vortex/tornado effect
-     */
     public static void createVortex(Location center, Particle particle, double radius, double height,
                                     int pointsPerLevel, int levels) {
         World world = center.getWorld();
@@ -321,9 +290,6 @@ public final class ParticlePatterns {
         }
     }
 
-    /**
-     * Create a wave effect
-     */
     public static void createWave(Location center, Particle particle, double radius, int points) {
         World world = center.getWorld();
         if (world == null) return;
@@ -334,7 +300,6 @@ public final class ParticlePatterns {
             double x = Math.cos(angle) * radius;
             double z = Math.sin(angle) * radius;
 
-            // Add wave height variation
             double y = Math.sin(angle * 3) * 0.5;
 
             Location particleLoc = center.clone().add(x, y, z);

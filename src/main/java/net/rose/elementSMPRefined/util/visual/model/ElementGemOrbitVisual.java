@@ -117,7 +117,6 @@ public final class ElementGemOrbitVisual {
         return phase == Phase.DONE;
     }
 
-    /** Advance the animation by one tick. */
     public void tick() {
         if (phase == Phase.DONE) return;
         if (!owner.isOnline()) {

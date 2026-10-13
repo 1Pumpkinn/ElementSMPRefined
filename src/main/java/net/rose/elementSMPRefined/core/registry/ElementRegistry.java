@@ -46,7 +46,6 @@ public class ElementRegistry {
         return type == null ? null : elements.get(type);
     }
 
-    /** All registered elements. */
     public Collection<Element> getAllElements() {
         return Collections.unmodifiableCollection(elements.values());
     }
@@ -59,14 +58,10 @@ public class ElementRegistry {
         return elements.containsKey(type);
     }
 
-    /**
-     * Freeze the registry to prevent further registrations.
-     */
     public void freeze() {
         this.frozen = true;
     }
 
-    /** Total registered element count. */
     public int size() {
         return elements.size();
     }

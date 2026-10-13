@@ -92,9 +92,6 @@ public class ElementManager {
         return EnumSet.copyOf(DEFAULT_BASIC_ELEMENTS);
     }
 
-    /**
-     * Get all registered elements
-     */
     public Collection<Element> getAllElements() {
         return elementRegistry.getAllElements();
     }
@@ -116,7 +113,6 @@ public class ElementManager {
         elementRegistry.register(new FrostElement(plugin, configManager));
         elementRegistry.register(new LavaElement(plugin, configManager));
 
-        // Freeze the registry to prevent further modifications
         elementRegistry.freeze();
     }
 

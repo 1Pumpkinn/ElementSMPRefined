@@ -1,11 +1,7 @@
 package net.rose.elementSMPRefined.status;
 
-/**
- * Enum representing all possible status effect types
- */
 public enum StatusEffectType {
 
-    // Other status effects
     SLOW,
     SILENCE,
     WEAKNESS,
@@ -16,7 +12,7 @@ public enum StatusEffectType {
 
     FULL_STUN,           // Cannot move, look around, or interact
     PARTIAL_STUN,        // Cannot move or look around, but can interact
-    STUN,                // Cannot move, but can look and interact// Same as STUN (cannot move but can look and interact)
+    STUN,                // Cannot move, but can look and interact
 
     // Disarm types - handled by DisarmManager, not StatusEffectManager,
     ABILITY_DISARM,      // Cannot use element abilities

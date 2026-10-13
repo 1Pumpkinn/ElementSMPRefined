@@ -30,9 +30,6 @@ public class StatusEffectManager {
         startEffectMonitor();
     }
 
-    /**
-     * Initialize default status effects with their data
-     */
     private void initializeDefaultEffects() {
         // Full Stun - cannot move, look around, or interact
         registerEffectData(StatusEffectType.FULL_STUN, StatusEffectData.builder()
@@ -70,7 +67,6 @@ public class StatusEffectManager {
                 .maxDuration(400) // 8 seconds max
                 .build());
 
-        // Slow effect - reduces movement speed
         registerEffectData(StatusEffectType.SLOW, StatusEffectData.builder()
                 .displayName("Slow")
                 .description("Reduced movement speed")
@@ -79,7 +75,6 @@ public class StatusEffectManager {
                 .maxDuration(600) // 10 seconds max
                 .build());
 
-        // Silence effect - prevents ability usage
         registerEffectData(StatusEffectType.SILENCE, StatusEffectData.builder()
                 .displayName("Silence")
                 .description("Unable to use abilities")
@@ -87,7 +82,6 @@ public class StatusEffectManager {
                 .maxDuration(400) // 8 seconds max
                 .build());
 
-        // Weakness effect - reduces damage dealt
         registerEffectData(StatusEffectType.WEAKNESS, StatusEffectData.builder()
                 .displayName("Weakness")
                 .description("Reduced damage output")
@@ -104,7 +98,6 @@ public class StatusEffectManager {
                 .maxDuration(200) // 4 seconds max
                 .build());
 
-        // Bleed effect - damage over time
         registerEffectData(StatusEffectType.BLEED, StatusEffectData.builder()
                 .displayName("Bleed")
                 .description("Taking damage over time")
@@ -113,7 +106,6 @@ public class StatusEffectManager {
                 .damagePerSecond(1.0)
                 .build());
 
-        // Burn effect - fire damage over time
         registerEffectData(StatusEffectType.BURN, StatusEffectData.builder()
                 .displayName("Burn")
                 .description("Taking fire damage over time")
@@ -124,9 +116,6 @@ public class StatusEffectManager {
 
     }
 
-    /**
-     * Register custom status effect data
-     */
     public void registerEffectData(StatusEffectType type, StatusEffectData data) {
         effectData.put(type, data);
     }
@@ -162,7 +151,6 @@ public class StatusEffectManager {
             return;
         }
 
-        // Cap duration at max
         int actualDuration = Math.min(duration, data.maxDuration());
 
         Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects
@@ -172,7 +160,6 @@ public class StatusEffectManager {
 
         playerEffects.compute(type, (t, existing) -> {
             if (existing == null) {
-                // New effect
                 return StatusEffectInstance.create(type, actualDuration, amplifier, sourceUuid);
             }
             // Stack for stackable effects, otherwise just refresh the duration
@@ -184,10 +171,8 @@ public class StatusEffectManager {
             return sourceUuid != null ? updated.withSource(sourceUuid) : updated;
         });
 
-        // Apply potion effects immediately
         applyPotionEffects(player, type, data);
 
-        // Notify player
         player.sendMessage(Component.text(data.displayName() + " applied for " + (actualDuration / 20.0) + " seconds", NamedTextColor.RED));
     }
 
@@ -198,25 +183,16 @@ public class StatusEffectManager {
         applyEffect(null, player, type, duration, 1);
     }
 
-    /**
-     * Convenience method to apply a regular stun
-     */
     public void applyStun(Player player, int duration) {
         applyEffect(player, StatusEffectType.STUN, duration);
     }
 
-    /**
-     * Check if a player has a specific status effect
-     */
     public boolean hasEffect(Player player, StatusEffectType type) {
         UUID uuid = player.getUniqueId();
         Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects.get(uuid);
         return playerEffects != null && playerEffects.containsKey(type);
     }
 
-    /**
-     * Get the remaining duration of a status effect in ticks
-     */
     public int getRemainingDuration(Player player, StatusEffectType type) {
         UUID uuid = player.getUniqueId();
         Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects.get(uuid);
@@ -228,9 +204,6 @@ public class StatusEffectManager {
         return 0;
     }
 
-    /**
-     * Check if a player is silenced (cannot use abilities)
-     */
     public boolean isSilenced(Player player) {
         return hasEffect(player, StatusEffectType.SILENCE);
     }
@@ -242,9 +215,6 @@ public class StatusEffectManager {
         return hasEffect(player, StatusEffectType.STUN);
     }
 
-    /**
-     * Check if a living entity is stunned (for mob support)
-     */
     public boolean isStunned(org.bukkit.entity.LivingEntity entity) {
         if (entity instanceof Player player) {
             return isStunned(player);
@@ -320,19 +290,17 @@ public class StatusEffectManager {
                         }
                     }
 
-                    // Check if effect has expired
                     if (instance.isExpired()) {
                         removePotionEffects(player, type);
                         effectIterator.remove();
                     }
                 }
 
-                // Remove player entry if no effects remain
                 if (effects.isEmpty()) {
                     playerIterator.remove();
                 }
             }
-        }, 1L, 1L); // Run every tick
+        }, 1L, 1L);
     }
 
     /**
@@ -348,9 +316,6 @@ public class StatusEffectManager {
         activeEffects.clear();
     }
 
-    /**
-     * Data class for status effect metadata
-     */
     public record StatusEffectData(
             String displayName,
             String description,

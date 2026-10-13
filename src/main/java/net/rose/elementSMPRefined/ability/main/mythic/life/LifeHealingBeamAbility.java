@@ -55,7 +55,6 @@ public class LifeHealingBeamAbility extends BaseAbility {
                     }
                 }
                 
-                // Draw healing beam using heart particles every tick for smooth effect (moves with player)
                 // Start beam 2 blocks away from player to avoid vision obstruction
                 Vector dir = player.getLocation().getDirection().normalize();
                 Location eye = player.getEyeLocation();
@@ -66,7 +65,7 @@ public class LifeHealingBeamAbility extends BaseAbility {
                 
                 ticks++;
             }
-        }.runTaskTimer(plugin, 0L, 1L); // Run every tick for smooth particles
+        }.runTaskTimer(plugin, 0L, 1L);
         
         return true;
     }

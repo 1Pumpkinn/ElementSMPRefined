@@ -29,7 +29,6 @@ import java.util.Map;
  */
 public class FireSmeltListener implements Listener {
 
-    // Raw block drop -> smelted equivalent
     private static final Map<Material, Material> SMELT_RESULTS = new EnumMap<>(Material.class);
     static {
         SMELT_RESULTS.put(Material.RAW_IRON, Material.IRON_INGOT);
@@ -44,9 +43,6 @@ public class FireSmeltListener implements Listener {
         this.elementManager = elementManager;
     }
 
-    /**
-     * Auto-smelt ore drops for Fire element players.
-     */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -54,7 +50,6 @@ public class FireSmeltListener implements Listener {
 
         var playerData = elementManager.data(player.getUniqueId());
 
-        // Null safety check
         if (playerData == null) {
             return;
         }
@@ -83,7 +78,6 @@ public class FireSmeltListener implements Listener {
             return;
         }
 
-        // Replace vanilla drops with the smelted versions
         event.setDropItems(false);
         for (ItemStack drop : drops) {
             Material smelted = SMELT_RESULTS.get(drop.getType());

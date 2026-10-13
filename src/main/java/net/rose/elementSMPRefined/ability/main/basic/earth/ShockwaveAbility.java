@@ -49,34 +49,29 @@ import java.util.UUID;
  */
 public class ShockwaveAbility extends BaseAbility {
 
-    // --- Jump / slam ---
     private static final double JUMP_VELOCITY = 1.1;   // ~6-7 blocks of hop
     private static final double SLAM_SPEED = 1.5;      // downward velocity while slamming
     private static final int MIN_RISE_TICKS = 4;       // don't check for the apex before this
     private static final int MAX_RISE_TICKS = 25;      // force the slam if they never peak (ceiling, etc.)
     private static final int SLAM_TIMEOUT_TICKS = 100; // force the impact if they never land (void, water)
 
-    // --- Wave shape ---
     private static final double MAX_RANGE = 10.0;
     private static final double START_RADIUS = 1.5;
     private static final double STEP_PER_TICK = 0.8;   // how far the ring advances each tick
     private static final double ARC_SPACING = 0.5;     // small enough that the ring has no gaps (columns are de-duplicated)
 
-    // --- Launch / damage ---
     private static final double LAUNCH_UP = 1.1;       // ~6-8 blocks of height
     private static final double LAUNCH_OUTWARD = 0.6;
     private static final double DAMAGE = 6.0;
     private static final double HIT_RADIUS_XZ = 1.5;
     private static final double HIT_RADIUS_Y = 3.0;
 
-    // --- Block ripple animation ---
     private static final int RISE_TICKS = 2;
     private static final int HOLD_TICKS = 1;
     private static final int FALL_TICKS = 3;
     private static final double RISE_HEIGHT = 1.0;     // how far each block heaves up, in blocks
     private static final float CUBE_SCALE = 0.98f;     // slightly under 1 so the copy doesn't z-fight the real block
 
-    // --- Ground search around the impact Y ---
     private static final int SCAN_UP = 2;
     private static final int SCAN_DOWN = 4;
 

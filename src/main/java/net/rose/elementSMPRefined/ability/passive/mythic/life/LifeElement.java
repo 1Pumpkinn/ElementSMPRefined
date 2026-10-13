@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LifeElement extends BaseElement {
 
-    // Only ONE passive task map, keyed by player
     private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
 
     public LifeElement(JavaPlugin plugin, ConfigManager configManager) {
@@ -36,7 +35,6 @@ public class LifeElement extends BaseElement {
         // Cancel previous task to prevent stacking
         cancelPassiveTask(player);
 
-        // Passive: Regeneration I
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, 0, true, false));
 
         // Upside 1: 15 hearts (30 HP)
@@ -58,7 +56,6 @@ public class LifeElement extends BaseElement {
 
                 int radius = 5;
 
-                // Force-grow crops within 5x5 around the player
                 for (int dx = -radius; dx <= radius; dx++) {
                     for (int dz = -radius; dz <= radius; dz++) {
                         for (int dy = -1; dy <= 1; dy++) {

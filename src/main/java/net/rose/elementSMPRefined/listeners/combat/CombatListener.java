@@ -48,17 +48,11 @@ public class CombatListener implements Listener {
         }
     }
 
-    /**
-     * Extract the player damager from the event.
-     * Handles both direct damage and projectile attacks.
-     */
     private Player extractDamager(EntityDamageByEntityEvent event) {
-        // Direct player-to-player damage
         if (event.getDamager() instanceof Player player) {
             return player;
         }
 
-        // Projectile damage (arrows, fireballs, etc.)
         if (event.getDamager() instanceof Projectile projectile
                 && projectile.getShooter() instanceof Player shooter) {
             return shooter;

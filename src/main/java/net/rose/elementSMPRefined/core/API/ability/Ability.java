@@ -3,9 +3,6 @@ package net.rose.elementSMPRefined.core.API.ability;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import org.bukkit.entity.Player;
 
-/**
- * Interface for all element abilities
- */
 public interface Ability {
     /**
      * Execute the ability
@@ -14,22 +11,10 @@ public interface Ability {
      */
     boolean execute(ElementContext context);
 
-    /**
-     * Get the cooldown for this ability in seconds
-     * @return The cooldown in seconds
-     */
     int getCooldownSeconds();
 
-    /**
-     * Get the minimum upgrade level required for this ability
-     * @return The minimum upgrade level
-     */
     int getRequiredUpgradeLevel();
 
-    /**
-     * Get the ability ID used for cooldown tracking
-     * @return The ability ID
-     */
     String getAbilityId();
 
     /**
@@ -39,22 +24,9 @@ public interface Ability {
      */
     boolean isActiveFor(Player player);
 
-    /**
-     * Set the active state for this ability
-     * @param player The player
-     * @param active Whether the ability is active
-     */
     void setActive(Player player, boolean active);
 
-    /**
-     * Get the display name of this ability
-     * @return The name
-     */
     String getName();
 
-    /**
-     * Get the description of this ability
-     * @return The description
-     */
     String getDescription();
 }

@@ -84,7 +84,6 @@ public final class MetalShieldVisual {
         }
     }
 
-    /** How many shields are still up. */
     public int count() {
         return orbiters.size();
     }

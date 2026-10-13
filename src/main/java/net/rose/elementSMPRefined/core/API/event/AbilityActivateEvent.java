@@ -33,7 +33,6 @@ public class AbilityActivateEvent extends Event {
         return player;
     }
 
-    /** The element this ability belongs to. */
     public ElementType getElement() {
         return element;
     }
@@ -43,7 +42,6 @@ public class AbilityActivateEvent extends Event {
         return slot;
     }
 
-    /** Display name of the ability that was activated. */
     public String getAbilityName() {
         return abilityName;
     }

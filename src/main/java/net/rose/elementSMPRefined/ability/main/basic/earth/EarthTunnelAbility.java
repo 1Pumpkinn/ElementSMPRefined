@@ -39,11 +39,9 @@ public class EarthTunnelAbility extends BaseAbility {
             metadataHelper.remove(player, EarthElement.META_TUNNELING);
             player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_CANCELLED);
             setActive(player, false);
-            // Don't start a new tunnel - just cancel and return
             return true;
         }
 
-        // Start the tunneling ability
         metadataHelper.setLong(player, EarthElement.META_TUNNELING, System.currentTimeMillis() + Constants.Duration.EARTH_TUNNEL_MS);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_STONE_BREAK, 1f, 0.8f);
         player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_STARTED_PRESS_AGAIN_CANCEL);
@@ -68,7 +66,6 @@ public class EarthTunnelAbility extends BaseAbility {
 
             Vector direction = player.getLocation().getDirection().normalize();
 
-            // Adjust mine location based on look direction
             Location mineLocation;
             if (direction.getY() < -0.5) {
                 mineLocation = player.getLocation().add(direction.multiply(1.0));

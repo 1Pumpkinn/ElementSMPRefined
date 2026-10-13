@@ -65,9 +65,6 @@ public class DisarmManager {
         }
     }
 
-    /**
-     * Disarms the player's abilities for the given duration (ticks).
-     */
     public void applyAbilityDisarm(Player player, int durationTicks) {
         long expiry = System.currentTimeMillis() + (durationTicks * 50L);
         abilityDisarmExpiry.merge(player.getUniqueId(), expiry, Math::max);

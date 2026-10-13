@@ -29,7 +29,6 @@ public final class RerollerItem {
             ItemStack result = make(plugin);
             NamespacedKey key = new NamespacedKey(plugin, KEY);
             
-            // Remove existing recipe if it exists
             plugin.getServer().removeRecipe(key);
             
             ShapedRecipe recipe = new ShapedRecipe(key, result);

@@ -7,10 +7,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Optional;
 
-/**
- * Enhanced utility class for ItemStack operations and element item management.
- * Provides safe, null-checked operations with Optional returns and builder patterns.
- */
 public final class ItemUtil {
     private ItemUtil() {}
 
@@ -34,16 +30,10 @@ public final class ItemUtil {
         return pdc(stack).map(c -> c.has(key, type)).orElse(false);
     }
 
-    /**
-     * Read a PersistentDataContainer value from an item, if present.
-     */
     public static <T, Z> Optional<Z> getTag(ItemStack stack, NamespacedKey key, PersistentDataType<T, Z> type) {
         return pdc(stack).map(c -> c.get(key, type));
     }
 
-    /**
-     * Check if two item stacks are similar (same type, data, ignoring amount)
-     */
     public static boolean isSimilar(ItemStack a, ItemStack b) {
         if (a == null || b == null) return false;
         if (a == b) return true;

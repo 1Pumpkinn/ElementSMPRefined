@@ -7,10 +7,6 @@ import net.rose.elementSMPRefined.items.recipes.Upgrader1Item;
 import net.rose.elementSMPRefined.items.recipes.Upgrader2Item;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * Handles registration of all plugin recipes.
- * Centralizes recipe registration logic away from the main class.
- */
 public class RecipeInitializer {
     private final ElementSMPRefined plugin;
 

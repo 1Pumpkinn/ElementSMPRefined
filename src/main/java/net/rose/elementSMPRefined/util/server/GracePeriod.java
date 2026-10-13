@@ -173,8 +173,6 @@ public class GracePeriod implements Listener {
         return "%02d:%02d".formatted(seconds / 60, seconds % 60);
     }
 
-    // --- Listeners ---
-
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (active && bossBar != null) {

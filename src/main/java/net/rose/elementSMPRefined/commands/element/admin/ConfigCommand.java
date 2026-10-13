@@ -68,14 +68,12 @@ public class ConfigCommand implements ElementSubCommand {
     }
 
     private void handleReset(CommandSender sender, String[] args) {
-        // /element config reset
         if (args.length == 2) {
             configManager.resetAllToDefault();
             sender.sendMessage(Lang.CONFIG_CONFIGURATION_RESET_DEFAULT_VALUES);
             return;
         }
 
-        // /element config reset <key>
         String key = args[2];
         boolean reset = configManager.resetToDefault(key);
         if (reset) {

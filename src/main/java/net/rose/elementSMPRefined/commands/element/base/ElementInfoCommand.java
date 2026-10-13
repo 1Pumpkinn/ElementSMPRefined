@@ -70,14 +70,12 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        // Header
         player.sendMessage(Component.empty());
         player.sendMessage(Component.text("\u2726 " + type.name() + " ELEMENT \u2726")
                 .color(NamedTextColor.GOLD)
                 .decorate(TextDecoration.BOLD));
         player.sendMessage(Component.empty());
 
-        // Passive Benefits
         if (!element.getPassiveBenefits().isEmpty()) {
             player.sendMessage(Component.text("\u2B50 Passive Benefits:")
                     .color(NamedTextColor.GOLD)
@@ -89,7 +87,6 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(Component.empty());
         }
 
-        // Abilities
         player.sendMessage(Component.text("\u26A1 Abilities:")
                 .color(NamedTextColor.GOLD)
                 .decorate(TextDecoration.BOLD));

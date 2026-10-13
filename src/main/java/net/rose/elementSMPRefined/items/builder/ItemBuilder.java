@@ -40,12 +40,10 @@ public final class ItemBuilder {
     }
 
 
-    /** Starts a fresh item of the given material (amount 1). */
     public static ItemBuilder of(Material material) {
         return of(material, 1);
     }
 
-    /** Starts a fresh item of the given material and amount. */
     public static ItemBuilder of(Material material, int amount) {
         if (material == null || material.isAir()) {
             throw new IllegalArgumentException("ItemBuilder cannot build an item from " + material);
@@ -71,7 +69,6 @@ public final class ItemBuilder {
         return name(LEGACY.deserialize(name));
     }
 
-    /** Sets the display name. */
     public ItemBuilder name(Component name) {
         Component styled = noItalic(name);
         return edit(meta -> meta.displayName(styled));
@@ -84,12 +81,10 @@ public final class ItemBuilder {
         return lore(out);
     }
 
-    /** Replaces the lore. */
     public ItemBuilder lore(Component... lines) {
         return lore(List.of(lines));
     }
 
-    /** Replaces the lore. */
     public ItemBuilder lore(List<Component> lines) {
         List<Component> styled = new ArrayList<>(lines.size());
         for (Component line : lines) styled.add(noItalic(line));
@@ -134,7 +129,6 @@ public final class ItemBuilder {
     }
 
 
-    /** Sets a value in the item's PersistentDataContainer. */
     public <T, Z> ItemBuilder data(NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
         return edit(meta -> meta.getPersistentDataContainer().set(key, type, value));
     }

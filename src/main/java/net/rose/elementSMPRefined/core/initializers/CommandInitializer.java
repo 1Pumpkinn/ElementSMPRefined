@@ -10,10 +10,6 @@ import net.rose.elementSMPRefined.commands.TrustCommand;
 import net.rose.elementSMPRefined.commands.element.admin.UtilCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * Handles registration of all plugin commands.
- * Centralizes command registration logic away from the main class.
- */
 public class CommandInitializer {
     private final ElementSMPRefined plugin;
 

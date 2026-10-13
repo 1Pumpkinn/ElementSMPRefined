@@ -17,9 +17,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Handles Frost element passive speed effects
- */
 public class FrostPassiveListener implements Listener {
 
     private final ElementSMPRefined plugin;
@@ -108,7 +105,6 @@ public class FrostPassiveListener implements Listener {
         return boots != null && boots.getType() == Material.LEATHER_BOOTS;
     }
 
-    //Checks if Frost User is on Ice
     private boolean isOnIce(Player player) {
         Material blockBelow = player.getLocation().add(0, -1, 0).getBlock().getType();
         return switch (blockBelow) {

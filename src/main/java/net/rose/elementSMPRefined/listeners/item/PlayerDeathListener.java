@@ -12,9 +12,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
-/**
- * Handles upgrader drops when a player dies.
- */
 public class PlayerDeathListener implements Listener {
 
     private static final long REAPPLY_DELAY_TICKS = 1L;
@@ -60,16 +57,12 @@ public class PlayerDeathListener implements Listener {
 
         event.getDrops().add(drop);
 
-        // Lose exactly one level
         data.setUpgradeLevel(element, level - 1);
         plugin.getDataStore().save(data);
 
         scheduleUpsideReapply(player);
     }
 
-    /**
-     * Returns the upgrader item matching the given (current) upgrade level.
-     */
     private ItemStack createUpgraderFor(int level) {
         return switch (level) {
             case 1 -> plugin.getItemManager().createUpgrader1();

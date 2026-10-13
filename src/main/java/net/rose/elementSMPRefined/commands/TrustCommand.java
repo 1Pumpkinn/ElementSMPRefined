@@ -46,9 +46,7 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
 
                 for (String name : names) {
                     try {
-                        // Try to parse as UUID
                         UUID uuid = UUID.fromString(name);
-                        // Convert UUID to player name
                         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
                         String playerName = offlinePlayer.getName();
                         if (playerName != null) {
@@ -83,7 +81,6 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 trust.addPending(target.getUniqueId(), p.getUniqueId());
-                // Send clickable message to target
                 Component msg = Component.text(p.getName() + " wants to trust with you. ", NamedTextColor.GOLD)
                         .append(Component.text("[ACCEPT]", NamedTextColor.GREEN).clickEvent(ClickEvent.runCommand("/trust accept " + p.getUniqueId())))
                         .append(Component.text(" "))
@@ -148,7 +145,6 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
             return new ArrayList<>();
         }
 
-        // First argument: show subcommands
         if (args.length == 1) {
             List<String> subcommands = List.of("list", "add", "remove", "accept", "deny");
             return subcommands.stream()
@@ -156,7 +152,6 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
                     .toList();
         }
 
-        // Second argument: show player names based on subcommand
         if (args.length == 2) {
             String subcommand = args[0].toLowerCase();
             List<String> suggestions = new ArrayList<>();

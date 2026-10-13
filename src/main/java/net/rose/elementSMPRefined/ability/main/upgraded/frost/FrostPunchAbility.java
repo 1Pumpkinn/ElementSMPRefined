@@ -27,11 +27,9 @@ public class FrostPunchAbility extends BaseAbility {
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
 
-        // Set metadata indicating the next punch will freeze
         long until = System.currentTimeMillis() + Constants.Duration.FROST_PUNCH_READY_MS;
         player.setMetadata(META_FROZEN_PUNCH_READY, new FixedMetadataValue(plugin, until));
 
-        // Visual and audio feedback
         player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0f, 1.5f);
 
         Location loc = player.getLocation().add(0, 1, 0);

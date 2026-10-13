@@ -29,17 +29,14 @@ public final class TaskScheduler {
         this.plugin = plugin;
     }
 
-    /** Run a task later on the main thread. */
     public BukkitTask runLater(Runnable task, long delayTicks) {
         return Bukkit.getScheduler().runTaskLater(plugin, task, delayTicks);
     }
 
-    /** Run a task later on the main thread, with the delay given in seconds. */
     public BukkitTask runLaterSeconds(Runnable task, int seconds) {
         return runLater(task, seconds * Constants.Timing.TICKS_PER_SECOND);
     }
 
-    /** Run a repeating task on the main thread. */
     public BukkitTask runTimer(Runnable task, long delayTicks, long periodTicks) {
         return Bukkit.getScheduler().runTaskTimer(plugin, task, delayTicks, periodTicks);
     }

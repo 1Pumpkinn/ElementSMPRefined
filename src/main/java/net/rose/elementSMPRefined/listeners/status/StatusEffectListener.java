@@ -23,7 +23,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
  */
 public class StatusEffectListener implements Listener {
     
-    // Message constants using Component for modern Bukkit/Paper support
     private static final Component FULLY_STUNNED_MOVE_LOOK = Component.text("You are fully stunned and cannot move or look!");
     private static final Component PARTIALLY_STUNNED_MOVE_LOOK = Component.text("You are partially stunned and cannot move or look!");
     private static final Component FULLY_STUNNED_MOVE = Component.text("You are fully stunned and cannot move!");
@@ -52,19 +51,16 @@ public class StatusEffectListener implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         
-        // Get all effects in one pass for efficiency
         boolean isFullyStunned = statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN);
         boolean isPartiallyStunned = statusEffectManager.hasEffect(player, StatusEffectType.PARTIAL_STUN);
         boolean isStunned = statusEffectManager.hasEffect(player, StatusEffectType.STUN);
         boolean isRooted = statusEffectManager.hasEffect(player, StatusEffectType.ROOT);
         boolean isFrozen = statusEffectManager.hasEffect(player, StatusEffectType.FREEZE);
 
-        // Early exit if player has no movement-restricting effects
         if (!isFullyStunned && !isPartiallyStunned && !isStunned && !isRooted && !isFrozen) {
             return;
         }
 
-        // Check head movement for full/partial stun (prevents turning away)
         if (isFullyStunned || isPartiallyStunned) {
             if (event.getFrom().getYaw() != event.getTo().getYaw() ||
                 event.getFrom().getPitch() != event.getTo().getPitch()) {
@@ -75,7 +71,6 @@ public class StatusEffectListener implements Listener {
             }
         }
 
-        // All stun types prevent physical movement
         if (event.getFrom().getX() != event.getTo().getX() ||
             event.getFrom().getY() != event.getTo().getY() ||
             event.getFrom().getZ() != event.getTo().getZ()) {

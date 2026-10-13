@@ -30,7 +30,6 @@ public class LifeRegenAbility extends BaseAbility {
         Player player = context.getPlayer();
         double radius = Constants.Distance.LIFE_REGEN_RADIUS;
         
-        // Show radius with red dust particles (like redstone) that follow the player
         new BukkitRunnable() {
             int tick = 0;
             @Override
@@ -40,7 +39,6 @@ public class LifeRegenAbility extends BaseAbility {
                     return;
                 }
                 
-                // Create a circle of particles at ground level that follows the player
                 Location currentCenter = player.getLocation();
                 for (int i = 0; i < 360; i += 15) {
                     double rad = Math.toRadians(i);
@@ -66,7 +64,6 @@ public class LifeRegenAbility extends BaseAbility {
             }
         }
         
-        // Add regeneration to the caster as well
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10 * 20, 1, true, true, true));
         player.sendMessage(Lang.LIFE_REGEN_REGEN_AURA_APPLIED_YOU_TRUSTED);
         return true;

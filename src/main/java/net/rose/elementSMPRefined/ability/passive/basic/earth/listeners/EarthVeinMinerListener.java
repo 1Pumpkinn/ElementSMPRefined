@@ -48,12 +48,10 @@ public class EarthVeinMinerListener implements Listener {
             return;
         }
 
-        // Check if it's an ore
         if (!ORES.contains(block.getType())) {
             return;
         }
 
-        // Break connected ore blocks
         breakConnectedOres(block, player);
     }
 
@@ -88,7 +86,6 @@ public class EarthVeinMinerListener implements Listener {
             current.breakNaturally(tool);
             blocksBroken++;
 
-            // Check all adjacent blocks and add to queue
             for (int x = -1; x <= 1; x++) {
                 for (int y = -1; y <= 1; y++) {
                     for (int z = -1; z <= 1; z++) {

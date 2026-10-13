@@ -28,29 +28,14 @@ public class UpgradeLevelChangeEvent extends PlayerEvent implements Cancellable 
         this.newLevel = newLevel;
     }
 
-    /**
-     * Gets the element whose upgrade level is changing.
-     *
-     * @return The element type.
-     */
     public @NotNull ElementType getElement() {
         return element;
     }
 
-    /**
-     * Gets the player's upgrade level before this change.
-     *
-     * @return The previous level.
-     */
     public int getPreviousLevel() {
         return previousLevel;
     }
 
-    /**
-     * Gets the upgrade level the player is about to have.
-     *
-     * @return The new level.
-     */
     public int getNewLevel() {
         return newLevel;
     }

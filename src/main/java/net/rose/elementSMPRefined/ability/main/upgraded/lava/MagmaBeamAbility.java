@@ -155,7 +155,6 @@ public class MagmaBeamAbility extends BaseAbility {
                       Location eye, Location start, Vector dir, int beamTick, float roll) {
         World w = player.getWorld();
 
-        // Stop at the first solid block.
         RayTraceResult blockHit = w.rayTraceBlocks(eye, dir, RANGE, FluidCollisionMode.NEVER, true);
         double length = blockHit == null ? RANGE : blockHit.getHitPosition().distance(eye.toVector());
         Vector end = eye.toVector().add(dir.clone().multiply(length));

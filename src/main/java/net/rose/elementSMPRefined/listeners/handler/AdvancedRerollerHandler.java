@@ -24,9 +24,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.time.Duration;
 import java.util.Random;
 
-/**
- * Handles advanced element reroller item usage for non-basic elements
- */
 public class AdvancedRerollerHandler implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;

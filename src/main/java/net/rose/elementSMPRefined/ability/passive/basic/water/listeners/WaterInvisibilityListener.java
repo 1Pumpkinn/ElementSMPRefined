@@ -59,7 +59,6 @@ public class WaterInvisibilityListener implements Listener {
     private void tick(Player player) {
         UUID uuid = player.getUniqueId();
 
-        // Player is no longer in water or offline - clean up
         if (!player.isInWater()) {
             idleChecks.remove(uuid);
             if (trulyInvisible.contains(uuid)) {
@@ -71,14 +70,12 @@ public class WaterInvisibilityListener implements Listener {
         org.bukkit.Location current = player.getLocation();
         org.bukkit.Location previous = lastLocation.put(uuid, current.clone());
 
-        // Check if player hasn't moved
         boolean stationary = previous != null
                 && previous.getWorld().equals(current.getWorld())
                 && previous.distanceSquared(current) < MOVE_THRESHOLD_SQUARED;
 
         if (stationary) {
             int checks = idleChecks.merge(uuid, 1, Integer::sum);
-            // Player idle long enough - apply invisibility
             if (checks >= IDLE_CHECKS_REQUIRED && !trulyInvisible.contains(uuid)) {
                 concealPlayer(player);
             } else if (trulyInvisible.contains(uuid)) {
@@ -86,7 +83,6 @@ public class WaterInvisibilityListener implements Listener {
                 hidePlayerFromAll(player);
             }
         } else {
-            // Player moved - remove from invisibility
             idleChecks.remove(uuid);
             if (trulyInvisible.contains(uuid)) {
                 revealPlayer(player);

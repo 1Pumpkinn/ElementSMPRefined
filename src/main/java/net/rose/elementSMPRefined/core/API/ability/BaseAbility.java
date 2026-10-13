@@ -9,9 +9,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Base implementation of the Ability interface that handles common functionality
- */
 public abstract class BaseAbility implements Ability {
     private final String abilityId;
     private final int cooldownSeconds;

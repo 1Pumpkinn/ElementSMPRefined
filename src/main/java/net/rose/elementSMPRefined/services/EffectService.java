@@ -49,7 +49,6 @@ public class EffectService implements Listener {
             element.clearEffects(player);
         }
 
-        // Reset health if not Life element
         updatePlayerHealth(player, currentElement);
     }
 
@@ -92,10 +91,6 @@ public class EffectService implements Listener {
                 || effect.getDuration() == PotionEffect.INFINITE_DURATION;
     }
 
-    /**
-     * Apply passive effects for player's current element.
-     * Delegates to the element to define its own effects.
-     */
     public void applyPassiveEffects(Player player) {
         PlayerData pd = elementManager.data(player.getUniqueId());
         ElementType type = pd.getCurrentElement();
@@ -138,9 +133,6 @@ public class EffectService implements Listener {
         }
     }
 
-    /**
-     * Start periodic health validation (effects are re-applied on-demand).
-     */
     private void startMonitoring() {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -152,9 +144,6 @@ public class EffectService implements Listener {
         }, Constants.Timing.TWO_SECONDS, Constants.Timing.TWO_SECONDS);
     }
 
-    /**
-     * When milk is consumed, all potion effects are cleared. Reapply element effects.
-     */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMilkConsume(PlayerItemConsumeEvent event) {
         if (event.getItem().getType() != org.bukkit.Material.MILK_BUCKET) return;

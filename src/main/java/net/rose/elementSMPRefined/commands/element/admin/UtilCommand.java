@@ -31,7 +31,6 @@ public class UtilCommand implements CommandExecutor {
             return true;
         }
 
-        // Create stacks of utility items
         ItemStack upgrader1Stack = Upgrader1Item.make(plugin);
         upgrader1Stack.setAmount(64);
 
@@ -44,7 +43,6 @@ public class UtilCommand implements CommandExecutor {
         ItemStack advancedRerollerStack = AdvancedRerollerItem.make(plugin);
         advancedRerollerStack.setAmount(64);
 
-        // Give items to player
         player.getInventory().addItem(upgrader1Stack, upgrader2Stack, rerollerStack, advancedRerollerStack);
 
         player.sendMessage(Lang.UTIL_YOU_HAVE_BEEN_GIVEN_UTILITY);

@@ -41,14 +41,12 @@ public class FrostFrozenPunchListener implements Listener {
         if (!(event.getEntity() instanceof LivingEntity victim)) return;
 
 
-        // Check if attacker has Frost element
         ElementType type = elementManager.getPlayerElement(attacker);
         if (type != ElementType.FROST) {
 
             return;
         }
 
-        // Check if frozen punch metadata exists
         if (!attacker.hasMetadata(FrostPunchAbility.META_FROZEN_PUNCH_READY)) {
 
             return;
@@ -61,20 +59,16 @@ public class FrostFrozenPunchListener implements Listener {
             return;
         }
 
-        // Don't freeze trusted players
         if (victim instanceof Player targetPlayer &&
                 plugin.getTrustManager().isTrusted(attacker.getUniqueId(), targetPlayer.getUniqueId())) {
 
             return;
         }
 
-        // Remove the ready state (consume ability)
         attacker.removeMetadata(FrostPunchAbility.META_FROZEN_PUNCH_READY, plugin);
 
-        // Apply freeze effect
         applyFreezeEffect(victim);
 
-        // Feedback
         Location hitLoc = victim.getEyeLocation();
         victim.getWorld().spawnParticle(Particle.SNOWFLAKE, hitLoc, 50, 0.3, 0.5, 0.3, 0.1, null, true);
         victim.getWorld().spawnParticle(Particle.CLOUD, hitLoc, 25, 0.3, 0.5, 0.3, 0.05, null, true);
@@ -96,7 +90,6 @@ public class FrostFrozenPunchListener implements Listener {
             }, 100L);
         }
 
-        // Visual freeze effect - continuously apply freeze and prevent movement
         new BukkitRunnable() {
             int ticks = 0;
             @Override
@@ -117,7 +110,6 @@ public class FrostFrozenPunchListener implements Listener {
                     return;
                 }
 
-                // Keep entity frozen and motionless
                 entity.setFreezeTicks(entity.getMaxFreezeTicks());
                 entity.setVelocity(new Vector(0, 0, 0));
 
@@ -129,7 +121,6 @@ public class FrostFrozenPunchListener implements Listener {
             }
         }.runTaskTimer(plugin, 0L, 1L);
 
-        // Metadata cleanup
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (entity.isValid()) {
                 entity.removeMetadata(META_FROZEN, plugin);

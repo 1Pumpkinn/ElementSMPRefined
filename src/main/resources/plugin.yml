@@ -2,6 +2,7 @@ name: ElementSMPRefined
 version: '1.0-SNAPSHOT'
 main: net.rose.elementSMPRefined.ElementSMPRefined
 author: PumpkinDev
+contributors: [SantaEevee Magnet108]
 api-version: '26.2'
 load: STARTUP
 

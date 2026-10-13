@@ -30,7 +30,6 @@ public class ElementContext {
         this.plugin = builder.plugin;
     }
 
-    // Getters
     public Player getPlayer() { return player; }
     public int getUpgradeLevel() { return upgradeLevel; }
     public ElementType getElementType() { return elementType; }
@@ -38,7 +37,6 @@ public class ElementContext {
     public TrustManager getTrustManager() { return trustManager; }
     public ConfigManager getConfigManager() { return configManager; }
 
-    // Builder
     public static Builder builder() {
         return new Builder();
     }

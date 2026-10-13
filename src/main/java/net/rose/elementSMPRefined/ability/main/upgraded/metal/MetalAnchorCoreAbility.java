@@ -182,7 +182,6 @@ public class MetalAnchorCoreAbility extends BaseAbility {
         return new Placement(hit.getHitPosition().clone().add(normal.multiply(HOVER)).toLocation(caster.getWorld()), false);
     }
 
-    // ---------------------------------------------------------------- per-tick behaviour
 
     private void tick(Core core, Player caster) {
         World world = core.centre.getWorld();
@@ -316,7 +315,6 @@ public class MetalAnchorCoreAbility extends BaseAbility {
         };
     }
 
-    // ---------------------------------------------------------------- lifecycle
 
     private void end(UUID casterId, boolean collapsed) {
         Core core = cores.remove(casterId);

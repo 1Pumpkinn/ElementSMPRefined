@@ -82,12 +82,11 @@ public final class ElementGemOrbitVisual {
     public ElementGemOrbitVisual(Player owner, ElementType[] ring, ElementType chosen) {
         this.owner = owner;
 
-        // One gem per element; the gem of the chosen type survives.
         List<ElementType> types = new ArrayList<>();
         for (int pass = 0; pass < Constants.Animation.ORBIT_GEMS_PER_ELEMENT; pass++) {
             for (ElementType t : ring) types.add(t);
         }
-        // Shuffle so the survivor isn't always at the same slot, but keep the chosen type present.
+
         Collections.shuffle(types, random);
         if (!types.contains(chosen)) types.set(0, chosen);
 
@@ -195,8 +194,6 @@ public final class ElementGemOrbitVisual {
             visual.remove();
         }
     }
-
-    // ------------------------------------------------------------------------------------------
 
     private void enter(Phase next) {
         phase = next;

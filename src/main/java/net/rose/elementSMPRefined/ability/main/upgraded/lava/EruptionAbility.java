@@ -205,7 +205,6 @@ public class EruptionAbility extends BaseAbility {
         }
     }
 
-    // ---- particle visuals ----------------------------------------------------------------
 
     private static final int CRACKS = 7;
 
@@ -346,7 +345,6 @@ public class EruptionAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    // ---- rock slabs ----------------------------------------------------------------------
 
     private static final BlockData SMOOTH_BASALT = Material.SMOOTH_BASALT.createBlockData();
 

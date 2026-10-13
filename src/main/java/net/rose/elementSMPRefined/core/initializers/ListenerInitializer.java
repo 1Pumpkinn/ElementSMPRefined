@@ -33,7 +33,6 @@ public class ListenerInitializer {
     private final ElementSMPRefined plugin;
     private final PluginManager pluginManager;
 
-    // Store references to listeners that need cleanup or cross-references
     private PlayerLifecycle playerLifecycleListener;
     private AirFallImpactListener airFallImpactListener;
     private FrostPassiveListener frostPassiveListener;
@@ -80,10 +79,8 @@ public class ListenerInitializer {
     }
 
     private void registerElementListeners() {
-        // Register core element listeners
         registerCoreElementListeners();
 
-        // Register ListenerProvider listeners (auto-discovered from elements)
         plugin.getElementManager().getAllElements().forEach(element -> {
             if (element instanceof ListenerProvider provider) {
                 provider.getListeners(plugin).forEach(listener -> {

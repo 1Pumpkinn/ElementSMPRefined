@@ -65,10 +65,6 @@ public class DisarmManager {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Ability disarm
-    // ------------------------------------------------------------------
-
     /**
      * Disarms the player's abilities for the given duration (ticks).
      */
@@ -92,9 +88,6 @@ public class DisarmManager {
         abilityDisarmExpiry.remove(player.getUniqueId());
     }
 
-    // ------------------------------------------------------------------
-    // Weapon disarm - picks a random weapon category the player owns
-    // ------------------------------------------------------------------
 
     /**
      * Disarms a random weapon (sword/axe/spear/mace) the player currently owns.
@@ -155,9 +148,6 @@ public class DisarmManager {
         return null;
     }
 
-    // ------------------------------------------------------------------
-    // Main hand disarm - locks whatever material is currently held
-    // ------------------------------------------------------------------
 
     /**
      * Disarms whatever material is currently in the player's main hand.
@@ -180,9 +170,6 @@ public class DisarmManager {
         return isLocked(mainHandDisarm, player, material);
     }
 
-    // ------------------------------------------------------------------
-    // Shared helpers
-    // ------------------------------------------------------------------
 
     private void lockMaterial(Map<UUID, MaterialLock> map, Player player, Material material, int durationTicks) {
         long expiry = System.currentTimeMillis() + (durationTicks * 50L);

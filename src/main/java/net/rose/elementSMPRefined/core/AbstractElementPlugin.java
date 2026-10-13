@@ -24,7 +24,6 @@ import java.util.logging.Level;
  */
 public abstract class AbstractElementPlugin extends JavaPlugin {
 
-    // Core managers
     protected DataStore dataStore;
     protected ConfigManager configManager;
     protected ElementManager elementManager;
@@ -32,19 +31,16 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected TrustManager trustManager;
     protected ItemManager itemManager;
 
-    // Services
     protected StatusEffectManager statusEffectManager;
     protected DisarmManager disarmManager;
     protected EffectService effectService;
     protected ValidationService validationService;
     protected CooldownActionBarTask cooldownActionBarTask;
 
-    // Utilities
     protected TaskScheduler taskScheduler;
     protected MetadataHelper metadataHelper;
     protected  TrueDamage trueDamage;
 
-    // Initializers
     protected CommandInitializer commandInitializer;
     protected ListenerInitializer listenerInitializer;
     protected RecipeInitializer recipeInitializer;
@@ -84,21 +80,18 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
      * Template method for subclasses to perform required setup before listeners are registered.
      */
     protected void beforeRegisterComponents() {
-        // Override in subclasses if needed
     }
 
     /**
      * Template method for subclasses to perform additional enable logic
      */
     protected void onPluginEnable() {
-        // Override in subclasses if needed
     }
 
     /**
      * Template method for subclasses to perform additional disable logic
      */
     protected void onPluginDisable() {
-        // Override in subclasses if needed
     }
 
     private void initializeCore() {
@@ -164,7 +157,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         }
     }
 
-    // Getters for managers and services
     public DataStore getDataStore() { return dataStore; }
     public ConfigManager getConfigManager() { return configManager; }
     public ElementManager getElementManager() { return elementManager; }

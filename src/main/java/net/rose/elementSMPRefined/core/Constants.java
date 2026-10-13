@@ -22,7 +22,7 @@ public final class Constants {
         public static final int ROLL_STEPS = 16;
         public static final long ROLL_DELAY_TICKS = 3L;
 
-        // Gem orbit shown during a reroll (see ElementGemOrbitVisual)
+        // Gem orbit shown during a reroll
         public static final int ORBIT_GEMS_PER_ELEMENT = 1;
         public static final int ORBIT_SPIN_TICKS = 50;
         public static final int ORBIT_ELIMINATE_INTERVAL_TICKS = 8;
@@ -62,18 +62,12 @@ public final class Constants {
     public static final class Dimension {
         public static final boolean DEFAULT_NETHER_DISABLED = true;
         public static final boolean DEFAULT_END_DISABLED = true;
-        // Velocity applied to push a player back out of a portal they just got
-        // blocked from using. Without this, the player stays inside the portal
-        // block and the client keeps re-triggering the portal event every tick.
         public static final double PORTAL_PUSHBACK_STRENGTH = 0.6;
 
         private Dimension() {}
     }
 
     public static final class Warnings {
-        // Minimum time between repeated warnings (PvP blocked, dimension
-        // blocked) to the same player, so standing in one spot spamming an
-        // action doesn't spam their chat - or the server - either.
         public static final long COOLDOWN_MS = 3_000L;
 
         private Warnings() {}

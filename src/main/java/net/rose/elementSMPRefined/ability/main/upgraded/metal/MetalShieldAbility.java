@@ -117,8 +117,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         return true;
     }
 
-    // ---------------------------------------------------------------- damage handling
-
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player victim)) return;
@@ -175,7 +173,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         }
     }
 
-    // ---------------------------------------------------------------- lifecycle
 
     private void end(Player player, EndReason reason) {
         Shield shield = shields.remove(player.getUniqueId());

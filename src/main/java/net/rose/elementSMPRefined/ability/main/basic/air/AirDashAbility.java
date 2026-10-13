@@ -29,9 +29,6 @@ public class AirDashAbility extends BaseAbility {
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
 
-        // Air has no grip in water to dash off of - let the player nudge
-        // forward a little instead of launching at full power, rather than
-        // rocketing across/out of the water the way a dash on land would.
         boolean inWater = player.getLocation().getBlock().getType() == Material.WATER;
         double dashPower = inWater ? 0.8 : 2.5;
         int durationTicks = inWater ? 6 : 20;

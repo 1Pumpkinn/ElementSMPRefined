@@ -10,6 +10,7 @@ import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -29,6 +30,7 @@ import org.bukkit.util.Vector;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Metal element ability 2: plants an Magnetar Core ({@link MagnetarVisual}) where the caster is
@@ -59,17 +61,35 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double DAMAGE = 1.0;               // per hit while captured (half a heart)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
 
-    // Suction visuals: streams of sparks spiralling in from every direction (evenly spread over a sphere,
-    // so it looks the same from any angle) + a small spinning gyroscope halo around the core.
-    private static final int STREAMS = 10;
-    private static final int STREAM_POINTS = 3;             // particles per stream per tick
+    // Magnetar visuals: a glowing core wrapped in dipole magnetic field loops (they bunch together at the two
+    // poles and balloon out around the equator), twin jets shooting out of the poles along the magnetic
+    // axis, and a few faint streams of sparks curling in from the pull field so the suction still reads.
+    // The whole field is tilted off vertical and its axis slowly sweeps around, like a pulsar's beam.
+    private static final double[] LOOP_RADIUS = {2.0, 3.1, 4.4}; // how far each loop bulges out at the equator (blocks)
+    private static final int LOOPS_PER_SHELL = 6;               // field lines spread evenly around the axis
+    private static final int LOOP_POINTS = 4;                   // particles per field line per tick
+    private static final double LOOP_FLOW = 0.02;               // fraction of a loop the sparks travel per tick (pole to pole)
+    private static final double LOOP_SPIN = 0.05;               // radians/tick the loops turn about the magnetic axis
+    private static final double FIELD_INNER = 0.8;              // loops start just outside the core model
+    private static final double AXIS_TILT = Math.toRadians(25); // magnetic axis tilt off vertical
+    private static final double AXIS_PRECESSION = 0.04;         // radians/tick the tilted axis sweeps around
+    private static final int JET_POINTS = 4;                    // per jet per tick
+    private static final double JET_LENGTH = 7.0;
+    private static final double JET_FLOW = 0.08;                // fraction of the jet travelled outward per tick
+    private static final int SHIMMER_POINTS = 4;                // sparks crawling over the core's surface per tick
+    private static final double SHIMMER_RADIUS = 0.7;
+
+    private static final int STREAMS = 6;
+    private static final int STREAM_POINTS = 2;             // particles per stream per tick
     private static final double STREAM_MIN_RADIUS = 1.8;
     private static final double STREAM_CURL = 0.30;         // radians of swirl per block of radius
     private static final double STREAM_SWIRL_WIDTH = 0.20;  // how far a stream bows off its straight line (fraction of its radius)
     private static final double STREAM_FLOW = 0.03;         // fraction of the stream that flows inward per tick
-    private static final double FIELD_SPIN = 0.03;          // radians/tick the whole field turns about the vertical axis
-    private static final int HALO_POINTS = 5;               // per ring
-    private static final double HALO_RADIUS = 1.5;
+    private static final double FIELD_SPIN = 0.03;          // radians/tick the whole stream field turns about the vertical axis
+
+    /** Field line colours: deep blue out at the equator, hot white-cyan where the lines pinch together at the poles. */
+    private static final int[] EQUATOR_RGB = {35, 85, 255};
+    private static final int[] POLE_RGB = {215, 248, 255};
 
     /** Stream directions (spread evenly over a sphere) and a perpendicular pair for each, for the swirl. */
     private static final Vector[] STREAM_DIR = new Vector[STREAMS];
@@ -269,15 +289,93 @@ public class MetalMagnetarAbility extends BaseAbility {
     }
 
     /**
-     * Streams of sparks spiralling in toward the core from all directions, plus a small halo of three
-     * perpendicular rings around it - no "good side" to view it from.
+     * Draws the core as a magnetar: dipole field loops, polar jets, a shimmering surface and (faintly)
+     * the inward streams that show where the pull is coming from.
      */
     private void spawnSuctionParticles(Core core) {
         World world = core.centre.getWorld();
+        double precession = core.ticks * AXIS_PRECESSION;
+        double loopSpin = core.ticks * LOOP_SPIN;
+
+        spawnFieldLoops(core, world, loopSpin, precession);
+        spawnJets(core, world, precession);
+        spawnShimmer(core, world);
+        spawnInflow(core, world);
+    }
+
+    /**
+     * Dipole field lines: r = L * sin^2(theta) measured from the magnetic axis, so every line leaves one
+     * pole, swings out to a radius of L at the equator and dives back into the opposite pole. Sparks flow
+     * along each line, hot near the poles and cool at the equator.
+     */
+    private void spawnFieldLoops(Core core, World world, double loopSpin, double precession) {
+        double flow = (core.ticks * LOOP_FLOW) % 1.0;
+
+        for (int shell = 0; shell < LOOP_RADIUS.length; shell++) {
+            double reach = LOOP_RADIUS[shell];
+            double thetaMin = Math.asin(Math.sqrt(FIELD_INNER / reach)); // where the line meets the core
+
+            for (int line = 0; line < LOOPS_PER_SHELL; line++) {
+                // stagger shells around the axis so the loops don't sit on top of each other
+                double phi = (line + shell * 0.5) * (Math.PI * 2 / LOOPS_PER_SHELL);
+
+                for (int i = 0; i < LOOP_POINTS; i++) {
+                    double t = ((double) i / LOOP_POINTS + flow + shell * 0.31 + line * 0.17) % 1.0;
+                    double theta = thetaMin + t * (Math.PI - 2 * thetaMin);
+                    double sin = Math.sin(theta);
+
+                    Vector local = new Vector(
+                            reach * sin * sin * sin * Math.cos(phi),
+                            reach * sin * sin * Math.cos(theta),
+                            reach * sin * sin * sin * Math.sin(phi));
+                    Vector offset = orient(local, loopSpin, precession);
+
+                    Particle.DustOptions dust = new Particle.DustOptions(
+                            fieldColor(Math.abs(Math.cos(theta))), 0.7f);
+                    world.spawnParticle(Particle.DUST, core.centre.clone().add(offset), 1, 0, 0, 0, 0, dust);
+                }
+            }
+        }
+    }
+
+    /** Thin beams of light blasting out of both magnetic poles, widening very slightly with distance. */
+    private void spawnJets(Core core, World world, double precession) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        Vector axis = orient(new Vector(0, 1, 0), 0, precession);
+        double flow = (core.ticks * JET_FLOW) % 1.0;
+
+        for (int sign = -1; sign <= 1; sign += 2) {
+            for (int i = 0; i < JET_POINTS; i++) {
+                double f = ((double) i / JET_POINTS + flow) % 1.0;
+                double distance = FIELD_INNER + f * (JET_LENGTH - FIELD_INNER);
+                double spread = 0.02 + distance * 0.025;
+
+                Vector offset = axis.clone().multiply(sign * distance).add(new Vector(
+                        random.nextDouble(-spread, spread),
+                        random.nextDouble(-spread, spread),
+                        random.nextDouble(-spread, spread)));
+                world.spawnParticle(Particle.END_ROD, core.centre.clone().add(offset), 1, 0, 0, 0, 0);
+            }
+        }
+    }
+
+    /** Crackling sparks over the surface of the star itself. */
+    private void spawnShimmer(Core core, World world) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < SHIMMER_POINTS; i++) {
+            Vector dir = new Vector(random.nextGaussian(), random.nextGaussian(), random.nextGaussian());
+            if (dir.lengthSquared() < 1.0E-6) continue;
+            dir.normalize().multiply(SHIMMER_RADIUS);
+            world.spawnParticle(Particle.ELECTRIC_SPARK, core.centre.clone().add(dir), 1, 0, 0, 0, 0);
+        }
+    }
+
+    /** Faint streams spiralling in from every direction, stretched to match the pull field. */
+    private void spawnInflow(Core core, World world) {
         double flow = (core.ticks * STREAM_FLOW) % 1.0;
         double spin = core.ticks * FIELD_SPIN;
-        // stretch the streams to match the pull field (tall and narrow when the core is in the air)
         Vector fieldScale = new Vector(core.radiusH / PULL_RADIUS, core.radiusV / PULL_RADIUS, core.radiusH / PULL_RADIUS);
+        Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB(110, 170, 255), 0.5f);
 
         for (int s = 0; s < STREAMS; s++) {
             double phase = (s * 0.37) % 1.0; // stagger the streams so they don't pulse in unison
@@ -293,26 +391,23 @@ public class MetalMagnetarAbility extends BaseAbility {
                         .add(STREAM_V[s].clone().multiply(Math.sin(swirl) * bow))
                         .rotateAroundY(spin)
                         .multiply(fieldScale);
-                world.spawnParticle(Particle.END_ROD, core.centre.clone().add(offset), 1, 0, 0, 0, 0);
-            }
-        }
-
-        for (int plane = 0; plane < 3; plane++) {
-            for (int i = 0; i < HALO_POINTS; i++) {
-                double angle = core.ticks * 0.35 + i * (Math.PI * 2 / HALO_POINTS);
-                Vector offset = onPlane(plane, Math.cos(angle) * HALO_RADIUS, 0, Math.sin(angle) * HALO_RADIUS);
-                world.spawnParticle(Particle.ELECTRIC_SPARK, core.centre.clone().add(offset), 1, 0, 0, 0, 0);
+                world.spawnParticle(Particle.DUST, core.centre.clone().add(offset), 1, 0, 0, 0, 0, dust);
             }
         }
     }
 
-    /** Maps disc-local coordinates (a, b = thickness, c) onto the XZ (0), XY (1) or YZ (2) plane. */
-    private static Vector onPlane(int plane, double a, double b, double c) {
-        return switch (plane) {
-            case 0 -> new Vector(a, b, c);
-            case 1 -> new Vector(a, c, b);
-            default -> new Vector(b, a, c);
-        };
+    /** Spins a magnetic-axis-local vector about the axis (local Y), tips the axis over, then sweeps it around. */
+    private static Vector orient(Vector local, double spinAboutAxis, double precession) {
+        return local.rotateAroundY(spinAboutAxis).rotateAroundZ(AXIS_TILT).rotateAroundY(precession);
+    }
+
+    /** {@code polar} is 1 right at a pole and 0 on the equator. */
+    private static Color fieldColor(double polar) {
+        double k = polar * polar; // keep most of the loop blue, only the pinched ends go white-hot
+        return Color.fromRGB(
+                (int) (EQUATOR_RGB[0] + (POLE_RGB[0] - EQUATOR_RGB[0]) * k),
+                (int) (EQUATOR_RGB[1] + (POLE_RGB[1] - EQUATOR_RGB[1]) * k),
+                (int) (EQUATOR_RGB[2] + (POLE_RGB[2] - EQUATOR_RGB[2]) * k));
     }
 
 

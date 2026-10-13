@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
     import net.rose.elementSMPRefined.util.visual.ElementColours;
+import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -120,11 +121,12 @@ public class RerollerHandler implements Listener {
     }
 
     /**
-     * Runs the "Rolling..." title animation and, once it finishes, assigns
-     * the element already chosen by {@code determineNewElement}. Cycles
-     * through the basic elements in a fixed round-robin (rather than picking
-     * randomly each tick) so the title never shows the same name twice in a
-     * row mid-animation.
+     * Runs the reroll animation: a ring of element gems orbits the player, gets knocked out one
+     * by one, and the survivor - the element already chosen by {@code determineNewElement} -
+     * glides to a stop in front of them. The element is assigned the moment that gem lands, and
+     * the gem hovers for a moment before it bursts. The "Rolling..." title keeps cycling through
+     * the basic elements (round-robin, so it never repeats a name back to back) while the ring
+     * is still spinning.
      */
     private void performBasicRoll(Player player, ElementType targetElement) {
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
@@ -143,56 +145,64 @@ public class RerollerHandler implements Listener {
                 })
                 .toArray(NamedTextColor[]::new);
 
-        final int steps = Constants.Animation.ROLL_STEPS;
-        final long interval = Constants.Animation.ROLL_DELAY_TICKS;
+        final long titleEveryTicks = Constants.Animation.ROLL_DELAY_TICKS;
+        final ElementGemOrbitVisual visual = new ElementGemOrbitVisual(player, basicElements, targetElement);
 
         new BukkitRunnable() {
             int tick = 0;
+            int titleStep = 0;
+            boolean assigned = false;
 
             @Override
             public void run() {
-                // Mirror AdvancedRerollerHandler: if the player logs off (or
-                // the roll gets externally cancelled) partway through the
-                // animation, stop here and never assign the new element.
-                // Cancelling the task BEFORE touching the player also means
-                // a stray exception on an offline player can't leave this
-                // timer running forever.
+                // If the player logs off partway through, stop here. Cancelling the task BEFORE
+                // touching the player means a stray exception on an offline player can't leave
+                // this timer running forever. The item was already consumed, so if the element
+                // hasn't been handed out yet, queue the item to be given back on next join.
                 if (!player.isOnline()) {
-                    // Player disconnected mid-roll - the item was already
-                    // consumed when they used it, so queue it to be handed
-                    // back next time they join.
-                    elementManager.queueRerollerRefund(player);
+                    visual.remove();
+                    if (!assigned) elementManager.queueRerollerRefund(player);
                     cancel();
                     elementManager.endRolling(player);
                     return;
                 }
 
-                if (!elementManager.isCurrentlyRolling(player)) {
+                // Externally cancelled roll (or the player died mid-animation): clean up the
+                // gems and release the lock. Nothing is assigned.
+                if (!elementManager.isCurrentlyRolling(player) || player.isDead()) {
+                    visual.remove();
                     cancel();
                     elementManager.endRolling(player);
                     return;
                 }
 
-                if (tick >= steps) {
+                visual.tick();
+
+                // The survivor has landed in front of the player: hand out the element now, so
+                // the "Element Assigned!" title lines up with the gem appearing.
+                if (!assigned && visual.hasRevealed()) {
+                    assigned = true;
+                    elementManager.assignBasicElement(player, targetElement);
+                    player.sendMessage(Component.text("Your element has been rerolled!").color(NamedTextColor.GREEN));
+                }
+
+                // Whole animation finished (survivor has burst) - release the lock.
+                if (visual.isDone()) {
                     cancel();
-                    try {
-                        elementManager.assignBasicElement(player, targetElement);
-                        player.sendMessage(Component.text("Your element has been rerolled!").color(NamedTextColor.GREEN));
-                    } finally {
-                        elementManager.endRolling(player);
-                    }
+                    elementManager.endRolling(player);
                     return;
                 }
 
-                String name = names[tick % names.length];
-                NamedTextColor color = colors[tick % colors.length];
-                player.showTitle(Title.title(
-                        Component.text("Rolling...").color(NamedTextColor.GOLD),
-                        Component.text(name).color(color),
-                        Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ZERO)
-                ));
+                if (!assigned && tick % titleEveryTicks == 0) {
+                    int i = titleStep++;
+                    player.showTitle(Title.title(
+                            Component.text("Rolling...").color(NamedTextColor.GOLD),
+                            Component.text(names[i % names.length]).color(colors[i % colors.length]),
+                            Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ZERO)
+                    ));
+                }
                 tick++;
             }
-        }.runTaskTimer(plugin, 0L, interval);
+        }.runTaskTimer(plugin, 0L, 1L);
     }
 }

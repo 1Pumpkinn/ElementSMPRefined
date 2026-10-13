@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalShieldAbility;
-import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalAnchorCoreAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
@@ -28,11 +28,11 @@ import java.util.List;
 public class MetalElement extends BaseElement implements ListenerProvider {
 
     public MetalElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.METAL, new MetalShieldAbility(plugin, configManager), new MetalAnchorCoreAbility(plugin, configManager));
+        super(plugin, ElementType.METAL, new MetalShieldAbility(plugin, configManager), new MetalMagnetarAbility(plugin, configManager));
     }
 
-    public MetalAnchorCoreAbility getMetalAnchorCoreAbility() {
-        return (MetalAnchorCoreAbility) ability2;
+    public MetalMagnetarAbility getMagnetarAbility() {
+        return (MetalMagnetarAbility) ability2;
     }
 
     @Override

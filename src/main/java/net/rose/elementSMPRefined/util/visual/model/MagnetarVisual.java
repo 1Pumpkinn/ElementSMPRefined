@@ -17,9 +17,9 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * The Metal Anchor Core drawn with two resource-pack MODELS: a spiky steel core with a glowing
- * cyan eye ({@code elementsmp:anchor_core}) wrapped in a tilted octagonal ring
- * ({@code elementsmp:anchor_core_ring}). The core tumbles, the ring spins the other way, and the
+ * The Metal Magnetar Core drawn with two resource-pack MODELS: a spiky steel core with a glowing
+ * cyan eye ({@code elementsmp:magnetar_core}) wrapped in a tilted octagonal ring
+ * ({@code elementsmp:magnetar_core_ring}). The core tumbles, the ring spins the other way, and the
  * whole thing bobs gently in place.
  * <p>
  * Orientation lives entirely in each display's transformation (entity yaw/pitch stay 0), so
@@ -28,14 +28,14 @@ import java.util.Set;
  * Always call {@link #remove()} when the effect ends (or {@link #removeAll()} on plugin disable
  * as a safety net) - they're real entities and will otherwise hang around.
  */
-public final class AnchorCoreVisual {
+public final class MagnetarVisual {
 
-    /** {@code assets/elementsmp/items/anchor_core.json} in the resource pack. */
-    public static final NamespacedKey ANCHOR_CORE =
-            Objects.requireNonNull(NamespacedKey.fromString("elementsmp:anchor_core"));
-    /** {@code assets/elementsmp/items/anchor_core_ring.json} in the resource pack. */
-    public static final NamespacedKey ANCHOR_CORE_RING =
-            Objects.requireNonNull(NamespacedKey.fromString("elementsmp:anchor_core_ring"));
+    /** {@code assets/elementsmp/items/magnetar_core.json} in the resource pack. */
+    public static final NamespacedKey MAGNETAR_CORE =
+            Objects.requireNonNull(NamespacedKey.fromString("elementsmp:magnetar_core"));
+    /** {@code assets/elementsmp/items/magnetar_core_ring.json} in the resource pack. */
+    public static final NamespacedKey MAGNETAR_CORE_RING =
+            Objects.requireNonNull(NamespacedKey.fromString("elementsmp:magnetar_core_ring"));
 
     /** The models are 16 units (1 block) across before scaling; the ring reaches ~0.7 blocks from the centre at this scale. */
     private static final float SCALE = 1.4f;
@@ -47,16 +47,16 @@ public final class AnchorCoreVisual {
     private static final float RING_TILT = 22f;
 
     /** Every live visual, so plugin disable can sweep up anything still on screen. */
-    private static final Set<AnchorCoreVisual> ACTIVE = new HashSet<>();
+    private static final Set<MagnetarVisual> ACTIVE = new HashSet<>();
 
     private final Location centre;
     private final ItemDisplay core;
     private final ItemDisplay ring;
 
-    public AnchorCoreVisual(Location centre) {
+    public MagnetarVisual(Location centre) {
         this.centre = centre.clone();
-        this.core = spawn(centre, ANCHOR_CORE);
-        this.ring = spawn(centre, ANCHOR_CORE_RING);
+        this.core = spawn(centre, MAGNETAR_CORE);
+        this.ring = spawn(centre, MAGNETAR_CORE_RING);
         ACTIVE.add(this);
     }
 
@@ -88,7 +88,7 @@ public final class AnchorCoreVisual {
 
     /** Safety net for plugin disable - removes every core still on screen. */
     public static void removeAll() {
-        for (AnchorCoreVisual visual : new ArrayList<>(ACTIVE)) {
+        for (MagnetarVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();
         }
     }

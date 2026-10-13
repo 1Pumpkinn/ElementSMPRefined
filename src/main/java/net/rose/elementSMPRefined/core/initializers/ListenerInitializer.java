@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.core.initializers;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
-import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalAnchorCoreAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.AirElement;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
 import net.rose.elementSMPRefined.ability.passive.basic.earth.listeners.EarthVeinMinerListener;
@@ -36,7 +36,7 @@ public class ListenerInitializer {
     private PlayerLifecycle playerLifecycleListener;
     private AirFallImpactListener airFallImpactListener;
     private FrostPassiveListener frostPassiveListener;
-    private MetalAnchorCoreAbility metalAnchorCoreAbility;
+    private MetalMagnetarAbility metalMagnetarAbility;
     private GracePeriod gracePeriod;
 
     public ListenerInitializer(JavaPlugin plugin) {
@@ -110,7 +110,7 @@ public class ListenerInitializer {
 
         var metalElement = plugin.getElementManager().get(ElementType.METAL);
         if (metalElement instanceof MetalElement metalElementImpl) {
-            this.metalAnchorCoreAbility = metalElementImpl.getMetalAnchorCoreAbility();
+            this.metalMagnetarAbility = metalElementImpl.getMagnetarAbility();
         }
 
         pluginManager.registerEvents(new FireSmeltListener(plugin.getElementManager()), plugin);
@@ -127,7 +127,7 @@ public class ListenerInitializer {
                 plugin.getDisarmManager(),
                 frostPassiveListener,
                 airFallImpactListener,
-                metalAnchorCoreAbility
+                metalMagnetarAbility
         );
         pluginManager.registerEvents(playerLifecycleListener, plugin);
     }

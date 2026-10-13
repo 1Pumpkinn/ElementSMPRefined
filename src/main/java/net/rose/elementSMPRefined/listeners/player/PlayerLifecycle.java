@@ -2,7 +2,7 @@ package net.rose.elementSMPRefined.listeners.player;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalAnchorCoreAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostPassiveListener;
 import net.rose.elementSMPRefined.core.Constants;
@@ -43,7 +43,7 @@ public class PlayerLifecycle implements Listener {
     private final TaskScheduler scheduler;
     private final FrostPassiveListener frostPassiveListener;
     private final AirFallImpactListener airFallImpactListener;
-    private final MetalAnchorCoreAbility metalAnchorCoreAbility;
+    private final MetalMagnetarAbility metalMagnetarAbility;
     private final Random random = new Random();
 
     public PlayerLifecycle(ElementSMPRefined plugin, ElementManager elementManager,
@@ -51,7 +51,7 @@ public class PlayerLifecycle implements Listener {
                            DisarmManager disarmManager,
                            FrostPassiveListener frostPassiveListener,
                            AirFallImpactListener airFallImpactListener,
-                           MetalAnchorCoreAbility metalAnchorCoreAbility) {
+                           MetalMagnetarAbility metalMagnetarAbility) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.effectService = effectService;
@@ -59,7 +59,7 @@ public class PlayerLifecycle implements Listener {
         this.scheduler = plugin.getTaskScheduler();
         this.frostPassiveListener = frostPassiveListener;
         this.airFallImpactListener = airFallImpactListener;
-        this.metalAnchorCoreAbility = metalAnchorCoreAbility;
+        this.metalMagnetarAbility = metalMagnetarAbility;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -235,8 +235,8 @@ public class PlayerLifecycle implements Listener {
         if (airFallImpactListener != null) {
             airFallImpactListener.cleanupPlayer(playerUuid);
         }
-        if (metalAnchorCoreAbility != null) {
-            metalAnchorCoreAbility.onPlayerQuit(playerUuid);
+        if (metalMagnetarAbility != null) {
+            metalMagnetarAbility.onPlayerQuit(playerUuid);
         }
     }
 

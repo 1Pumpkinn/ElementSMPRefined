@@ -186,15 +186,15 @@ public class HellChainAbility extends BaseAbility {
                 }
 
                 Location casterEye = player.getEyeLocation();
-                Location anchor = player.getLocation();
+                Location magnetar = player.getLocation();
                 Location targetLoc = target.getLocation();
 
-                Vector offset = anchor.toVector().subtract(targetLoc.toVector()); // target -> caster
+                Vector offset = magnetar.toVector().subtract(targetLoc.toVector()); // target -> caster
                 double horizontal = Math.hypot(offset.getX(), offset.getZ());
 
                 // "Passed" = the target is now on the opposite side of the caster from where it started
                 // (laggy position updates can skip right over the stop radius).
-                Vector fromCaster = targetLoc.toVector().subtract(anchor.toVector()).setY(0);
+                Vector fromCaster = targetLoc.toVector().subtract(magnetar.toVector()).setY(0);
                 boolean passedCaster = startOffset.lengthSquared() > 1.0E-4 && fromCaster.dot(startOffset) <= 0;
 
                 if (horizontal < DRAG_STOP_DISTANCE || passedCaster) {

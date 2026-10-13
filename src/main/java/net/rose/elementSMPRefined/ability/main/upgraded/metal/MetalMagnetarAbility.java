@@ -8,7 +8,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
-import net.rose.elementSMPRefined.util.visual.model.AnchorCoreVisual;
+import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Metal element ability 2: plants an Anchor Core ({@link AnchorCoreVisual}) where the caster is
+ * Metal element ability 2: plants an Magnetar Core ({@link MagnetarVisual}) where the caster is
  * looking. For {@value #DURATION_TICKS} ticks it drags every nearby living entity - players and
  * mobs alike, except the caster, anyone they trust, their tamed pets and armor stands - toward
  * it, pulling harder the closer they get. Anything that ends up fully inside the core
@@ -40,12 +40,12 @@ import java.util.UUID;
  * <p>
  * Damage goes through {@link TrueDamage}, so a Metal Shield counts it as a damaging ability.
  */
-public class MetalAnchorCoreAbility extends BaseAbility {
+public class MetalMagnetarAbility extends BaseAbility {
 
     private static final double RANGE = 25.0;               // how far away the core can be placed on a surface
     private static final double AIR_RANGE = 12.0;           // how far away it floats when you aim at open sky (so it can't go as high)
     private static final double HOVER = 1.2;                // how far off the surface it floats (about chest height off the floor)
-    private static final int DURATION_TICKS = 6 * 20;
+    private static final int DURATION_TICKS = 5 * 20;
     private static final int COOLDOWN_SECONDS = 40;
 
     private static final double PULL_RADIUS = 16.0;         // pull range in every direction when the core sits on a surface
@@ -97,7 +97,7 @@ public class MetalAnchorCoreAbility extends BaseAbility {
 
     private static final class Core {
         final Location centre;
-        final AnchorCoreVisual visual;
+        final MagnetarVisual visual;
         final TrustManager trust;
         /** Pull reach sideways / up-and-down. Equal on a surface, tall and narrow in the air. */
         final double radiusH;
@@ -107,7 +107,7 @@ public class MetalAnchorCoreAbility extends BaseAbility {
         int ticks = 0;
         BukkitRunnable task;
 
-        Core(Location centre, AnchorCoreVisual visual, TrustManager trust, double radiusH, double radiusV) {
+        Core(Location centre, MagnetarVisual visual, TrustManager trust, double radiusH, double radiusV) {
             this.centre = centre;
             this.visual = visual;
             this.trust = trust;
@@ -120,8 +120,8 @@ public class MetalAnchorCoreAbility extends BaseAbility {
     private record Placement(Location location, boolean airborne) {
     }
 
-    public MetalAnchorCoreAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("metal_anchor_core", ElementType.METAL, 2, COOLDOWN_SECONDS, 2, configManager);
+    public MetalMagnetarAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("metal_magnetar_core", ElementType.METAL, 2, COOLDOWN_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -135,7 +135,7 @@ public class MetalAnchorCoreAbility extends BaseAbility {
         Placement placement = findPlacement(caster);
         Location centre = placement.location();
         boolean air = placement.airborne();
-        Core core = new Core(centre, new AnchorCoreVisual(centre), context.getTrustManager(),
+        Core core = new Core(centre, new MagnetarVisual(centre), context.getTrustManager(),
                 air ? AIR_PULL_HORIZONTAL : PULL_RADIUS,
                 air ? AIR_PULL_VERTICAL : PULL_RADIUS);
         cores.put(caster.getUniqueId(), core);
@@ -351,11 +351,11 @@ public class MetalAnchorCoreAbility extends BaseAbility {
 
     @Override
     public String getName() {
-        return ChatColor.GRAY + "Anchor Core";
+        return ChatColor.GRAY + "Magnetar";
     }
 
     @Override
     public String getDescription() {
-        return "Plant an anchor core that pulls players and mobs in and crushes them once they're fully inside";
+        return "Plant an Mangetar core that pulls players and mobs in and crushes them once inside";
     }
 }

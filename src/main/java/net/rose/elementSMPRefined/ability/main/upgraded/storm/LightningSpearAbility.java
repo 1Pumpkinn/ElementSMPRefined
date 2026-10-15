@@ -1,0 +1,214 @@
+package net.rose.elementSMPRefined.ability.main.upgraded.storm;
+
+import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
+import net.rose.elementSMPRefined.core.API.element.ElementContext;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.status.StatusEffectType;
+import net.rose.elementSMPRefined.util.damage.TrueDamage;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.FluidCollisionMode;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.World;
+import org.bukkit.damage.DamageType;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
+
+import java.util.concurrent.ThreadLocalRandom;
+
+/**
+ * Lightning Spear - hurls a spear of crackling lightning in a straight line at very high speed.
+ * It stops on the first thing it touches: a block, or an enemy. On an enemy it deals damage,
+ * shocks them (a short stun on players, heavy slow on mobs) and a lightning flash with a small
+ * shock burst goes off at the point of impact.
+ * <p>
+ * The spear is drawn entirely with particles, so it needs no resource-pack assets. Every tick it
+ * travels {@link #SPEED} blocks, and the whole segment is ray-traced in one go, so even at that
+ * speed it can't skip over a thin wall or a player.
+ */
+public class LightningSpearAbility extends BaseAbility {
+
+    /** Blocks travelled per tick (50 blocks/second). */
+    private static final double SPEED = 2.5;
+    /** Max distance before the spear fizzles out. */
+    private static final double RANGE = 48.0;
+    /** How wide the spear is for hit detection (radius, in blocks). */
+    private static final double HIT_RADIUS = 0.6;
+    /** Visible length of the spear shaft, tip to tail. */
+    private static final double SPEAR_LENGTH = 3.0;
+
+    /** True damage dealt to the entity the spear hits directly. */
+    private static final double DIRECT_DAMAGE = 7.0;
+    /** Radius of the shock burst at the impact point. Set SHOCK_DAMAGE to 0 to disable the burst damage. */
+    private static final double SHOCK_RADIUS = 3.0;
+    /** True damage dealt to everything else caught in the shock burst. */
+    private static final double SHOCK_DAMAGE = 3.0;
+
+    /** How long a hit player is stunned (ticks). */
+    private static final int PLAYER_STUN_TICKS = 15;
+    /** How long a hit mob is heavily slowed (ticks). */
+    private static final int MOB_SLOW_TICKS = 30;
+
+    private static final Particle.DustOptions CORE_DUST = new Particle.DustOptions(Color.fromRGB(255, 244, 150), 1.3f);
+    private static final Particle.DustOptions EDGE_DUST = new Particle.DustOptions(Color.fromRGB(120, 190, 255), 1.0f);
+
+    private final ElementSMPRefined plugin;
+
+    public LightningSpearAbility(JavaPlugin plugin, ConfigManager configManager) {
+        super("storm_lightning_spear", ElementType.STORM, 1, 12, 1, configManager);
+        this.plugin = (ElementSMPRefined) plugin;
+    }
+
+    @Override
+    public boolean execute(ElementContext context) {
+        Player player = context.getPlayer();
+        TrustManager trust = context.getTrustManager();
+        World world = player.getWorld();
+
+        Vector direction = player.getEyeLocation().getDirection().normalize();
+        // Starts just in front of and slightly below the eyes so it doesn't blot out your view.
+        Location start = player.getEyeLocation().add(0, -0.25, 0).add(direction.clone().multiply(0.6));
+
+        world.playSound(start, Sound.ITEM_TRIDENT_THROW, 1.2f, 1.7f);
+        world.playSound(start, Sound.ITEM_TRIDENT_THUNDER, 0.7f, 1.6f);
+        world.playSound(start, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.35f, 2.0f);
+
+        new BukkitRunnable() {
+            final Location position = start.clone();
+            double travelled = 0;
+
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    cancel();
+                    return;
+                }
+
+                // One ray per tick covers the whole step: first block or first valid entity along it.
+                RayTraceResult hit = world.rayTrace(
+                        position, direction, SPEED, FluidCollisionMode.NEVER, true, HIT_RADIUS,
+                        entity -> isTargetable(context, entity));
+
+                if (hit != null) {
+                    Location impact = hit.getHitPosition().toLocation(world);
+                    drawSpear(world, impact, direction);
+                    Entity hitEntity = hit.getHitEntity();
+                    explode(context, impact, hitEntity instanceof LivingEntity living ? living : null);
+                    cancel();
+                    return;
+                }
+
+                position.add(direction.clone().multiply(SPEED));
+                travelled += SPEED;
+                drawSpear(world, position, direction);
+
+                if (travelled >= RANGE) {
+                    // Ran out of range - fizzle out instead of vanishing silently.
+                    world.spawnParticle(Particle.ELECTRIC_SPARK, position, 25, 0.4, 0.4, 0.4, 0.3, null, true);
+                    world.playSound(position, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.8f, 1.8f);
+                    cancel();
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+
+        return true;
+    }
+
+    /** Whether the spear should collide with this entity. */
+    private boolean isTargetable(ElementContext context, Entity entity) {
+        if (!(entity instanceof LivingEntity living)) return false;
+        if (entity instanceof ArmorStand) return false;
+        if (!living.isValid() || living.isDead()) return false;
+        if (living instanceof Player other) {
+            GameMode mode = other.getGameMode();
+            if (mode == GameMode.SPECTATOR || mode == GameMode.CREATIVE) return false;
+        }
+        return isValidTarget(context, living);
+    }
+
+    /** Draws the spear with its tip at {@code head}: a bright shaft, a glowing tip and loose sparks. */
+    private void drawSpear(World world, Location head, Vector direction) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+
+        for (double d = 0; d <= SPEAR_LENGTH; d += 0.4) {
+            Location p = head.clone().subtract(direction.clone().multiply(d));
+            world.spawnParticle(Particle.DUST, p, 1, 0.03, 0.03, 0.03, 0.0, CORE_DUST, true);
+            if (((int) (d / 0.4)) % 2 == 0) {
+                world.spawnParticle(Particle.END_ROD, p, 1, 0, 0, 0, 0.0, null, true);
+            }
+        }
+
+        // Pointed, glowing tip.
+        world.spawnParticle(Particle.END_ROD, head, 3, 0.05, 0.05, 0.05, 0.0, null, true);
+        world.spawnParticle(Particle.DUST, head, 2, 0.1, 0.1, 0.1, 0.0, EDGE_DUST, true);
+
+        // Loose arcs of electricity crackling around the shaft.
+        for (int i = 0; i < 3; i++) {
+            double along = random.nextDouble() * SPEAR_LENGTH;
+            Location p = head.clone().subtract(direction.clone().multiply(along));
+            world.spawnParticle(Particle.ELECTRIC_SPARK, p, 1, 0.35, 0.35, 0.35, 0.15, null, true);
+        }
+    }
+
+    /** Impact: lightning flash, shock burst, and the direct hit's damage + shock. */
+    private void explode(ElementContext context, Location impact, LivingEntity directHit) {
+        Player caster = context.getPlayer();
+        World world = impact.getWorld();
+
+        // Visual + sound only - never sets anything on fire or damages anything by itself.
+        world.strikeLightningEffect(impact);
+        world.spawnParticle(Particle.ELECTRIC_SPARK, impact, 60, 0.8, 0.8, 0.8, 0.5, null, true);
+        world.spawnParticle(Particle.END_ROD, impact, 20, 0.5, 0.5, 0.5, 0.2, null, true);
+
+        if (directHit != null) {
+            TrueDamage.of(DIRECT_DAMAGE).attacker(caster).type(DamageType.LIGHTNING_BOLT)
+                    .ignoreIFrames(false).apply(directHit);
+            shock(caster, directHit);
+        }
+
+        for (LivingEntity nearby : impact.getNearbyLivingEntities(SHOCK_RADIUS)) {
+            if (nearby.equals(directHit)) continue;
+            if (!isTargetable(context, nearby)) continue;
+
+            TrueDamage.of(SHOCK_DAMAGE).attacker(caster).type(DamageType.LIGHTNING_BOLT)
+                    .ignoreIFrames(false).apply(nearby);
+            shock(caster, nearby);
+            world.spawnParticle(Particle.ELECTRIC_SPARK, nearby.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.3, null, true);
+        }
+    }
+
+    /** The "shock": a very short stun for players, a heavy slow for everything else. */
+    private void shock(Player caster, LivingEntity target) {
+        if (target instanceof Player player) {
+            plugin.getStatusEffectManager().applyEffect(caster, player, StatusEffectType.STUN, PLAYER_STUN_TICKS, 1);
+        } else {
+            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, MOB_SLOW_TICKS, 4, false, false));
+        }
+        target.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, target.getLocation().add(0, 1, 0), 20, 0.3, 0.6, 0.3, 0.4, null, true);
+    }
+
+    @Override
+    public String getName() {
+        return ChatColor.YELLOW + "Lightning Spear";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Hurl a fast spear of lightning. It strikes the first enemy or block in its path, "
+                + "damaging and shocking whatever it hits in a burst of lightning.";
+    }
+}

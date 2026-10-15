@@ -17,6 +17,7 @@ import net.rose.elementSMPRefined.ability.passive.upgraded.frost.FrostElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.lava.LavaElement;
 import net.rose.elementSMPRefined.ability.passive.mythic.life.LifeElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
+import net.rose.elementSMPRefined.ability.passive.upgraded.storm.StormElement;
 import net.rose.elementSMPRefined.ability.passive.basic.water.WaterElement;
 import net.rose.elementSMPRefined.core.registry.ElementRegistry;
 import net.rose.elementSMPRefined.services.EffectService;
@@ -110,6 +111,7 @@ public class ElementManager {
         elementRegistry.register(new MetalElement(plugin, configManager));
         elementRegistry.register(new FrostElement(plugin, configManager));
         elementRegistry.register(new LavaElement(plugin, configManager));
+        elementRegistry.register(new StormElement(plugin, configManager));
 
         elementRegistry.freeze();
     }

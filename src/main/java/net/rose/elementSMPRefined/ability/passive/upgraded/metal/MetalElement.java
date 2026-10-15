@@ -28,7 +28,9 @@ import java.util.List;
 public class MetalElement extends BaseElement implements ListenerProvider {
 
     public MetalElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.METAL, new MetalShieldAbility(plugin, configManager), new MetalMagnetarAbility(plugin, configManager));
+        super(plugin, ElementType.METAL,
+                new MetalShieldAbility(plugin, configManager),
+                new MetalMagnetarAbility(plugin, configManager));
     }
 
     public MetalMagnetarAbility getMagnetarAbility() {

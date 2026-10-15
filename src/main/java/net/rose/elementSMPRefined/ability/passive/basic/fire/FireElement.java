@@ -17,7 +17,9 @@ import java.util.List;
 public class FireElement extends BaseElement {
 
     public FireElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.FIRE, new HellChainAbility(plugin, configManager), new StarFallAbility(plugin, configManager));
+        super(plugin, ElementType.FIRE,
+                new HellChainAbility(plugin, configManager),
+                new StarFallAbility(plugin, configManager));
     }
 
     @Override

@@ -16,7 +16,9 @@ public class AirElement extends BaseElement {
     private AirFallImpactListener fallImpactListener;
 
     public AirElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.AIR, new AirDashAbility(plugin, configManager), new AirCutterAbility(plugin, configManager));
+        super(plugin, ElementType.AIR,
+                new AirDashAbility(plugin, configManager),
+                new AirCutterAbility(plugin, configManager));
     }
 
     public void setFallImpactListener(AirFallImpactListener listener) {

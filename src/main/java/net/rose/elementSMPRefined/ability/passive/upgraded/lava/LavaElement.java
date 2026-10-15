@@ -28,7 +28,9 @@ import java.util.List;
 public class LavaElement extends BaseElement implements ListenerProvider {
 
     public LavaElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.LAVA, new EruptionAbility(plugin, configManager), new MagmaBeamAbility(plugin, configManager));
+        super(plugin, ElementType.LAVA,
+                new EruptionAbility(plugin, configManager),
+                new MagmaBeamAbility(plugin, configManager));
     }
 
     @Override

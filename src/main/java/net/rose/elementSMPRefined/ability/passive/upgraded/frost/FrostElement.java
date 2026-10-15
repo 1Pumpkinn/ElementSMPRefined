@@ -15,7 +15,9 @@ public class FrostElement extends BaseElement {
     public static final String META_FROZEN_PUNCH_READY = "frost_frozen_punch_ready";
 
     public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.FROST, new FrostCircleAbility(plugin, configManager), new FrostPunchAbility(plugin, configManager));
+        super(plugin, ElementType.FROST,
+                new FrostCircleAbility(plugin, configManager),
+                new FrostPunchAbility(plugin, configManager));
     }
 
     @Override

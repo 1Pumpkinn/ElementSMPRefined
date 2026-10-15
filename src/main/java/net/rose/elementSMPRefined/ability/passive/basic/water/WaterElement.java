@@ -20,7 +20,9 @@ import java.util.List;
 public class WaterElement extends BaseElement implements ListenerProvider {
 
     public WaterElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.WATER, new WaterGeyserAbility(plugin, configManager), new WaterDomeAbility(plugin, configManager));
+        super(plugin, ElementType.WATER,
+                new WaterGeyserAbility(plugin, configManager),
+                new WaterDomeAbility(plugin, configManager));
     }
 
     @Override

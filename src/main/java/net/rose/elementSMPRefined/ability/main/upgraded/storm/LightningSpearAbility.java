@@ -35,13 +35,14 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Lightning Spear - hurls a spear of crackling lightning in a straight line at very high speed.
  * It stops on the first thing it touches: a block, or an enemy. On an enemy it deals damage,
- * shocks them (a short stun on players, heavy slow on mobs) and a lightning flash with a small
- * shock burst goes off at the point of impact.
+ * shocks them (a short stun on players, heavy slow on mobs) and a real lightning strike
+ * goes off at the point of impact.
  * <p>
  * The spear itself is the {@code elementsmp:lightning_spear} resource-pack model (see
- * {@link LightningSpearVisual}); the impact bolt and the crackle around it are particles. Every tick
- * it travels {@link #SPEED} blocks, and the whole segment is ray-traced in one go, so even at that
- * speed it can't skip over a thin wall or a player.
+ * {@link LightningSpearVisual}); the crackle around it is particles, but the impact is a real
+ * visual-only lightning strike (no vanilla damage, fire or mob conversion - all damage is ours).
+ * Every tick it travels {@link #SPEED} blocks, and the whole segment is ray-traced in one go, so
+ * even at that speed it can't skip over a thin wall or a player.
  */
 public class LightningSpearAbility extends BaseAbility {
 
@@ -67,16 +68,14 @@ public class LightningSpearAbility extends BaseAbility {
     private static final int MOB_SLOW_TICKS = 30;
 
     // ---- Sound volumes (1.0 = vanilla "normal"; lower = quieter and shorter range) ----
+    // The impact thunder/zap are played by the lightning entity itself on the client, so their
+    // volume can't be set here (override entity.lightning_bolt.* in the resource pack if needed).
     /** Launch whoosh. */
     private static final float THROW_VOLUME = 0.45f;
     /** Launch crackle. */
     private static final float CRACKLE_VOLUME = 0.25f;
     /** Faint rumble under the launch. */
     private static final float RUMBLE_VOLUME = 0.12f;
-    /** Impact thunder crack. */
-    private static final float IMPACT_THUNDER_VOLUME = 0.35f;
-    /** Impact zap. */
-    private static final float IMPACT_ZAP_VOLUME = 0.3f;
     /** Spear fizzling out at max range. */
     private static final float FIZZLE_VOLUME = 0.35f;
 
@@ -86,9 +85,6 @@ public class LightningSpearAbility extends BaseAbility {
      * carries on when you {@code /tick unfreeze}, and moves one step per {@code /tick step}.
      */
     private static final boolean HOLD_WHEN_TICK_FROZEN = true;
-
-    /** Height of the particle lightning bolt that drops onto the impact point. */
-    private static final double BOLT_HEIGHT = 14.0;
 
     private static final Particle.DustOptions CORE_DUST = new Particle.DustOptions(Color.fromRGB(255, 244, 150), 1.3f);
     private static final Particle.DustOptions EDGE_DUST = new Particle.DustOptions(Color.fromRGB(250, 236, 160), 1.0f);
@@ -212,19 +208,15 @@ public class LightningSpearAbility extends BaseAbility {
         }
     }
 
-    /** Impact: lightning flash, shock burst, and the direct hit's damage + shock. */
+    /** Impact: real lightning strike, then the direct hit's damage + shock and the shock burst. */
     private void explode(ElementContext context, Location impact, LivingEntity directHit) {
         Player caster = context.getPlayer();
         World world = impact.getWorld();
 
-        // World#strikeLightningEffect is deliberately NOT used: vanilla plays its thunder at a
-        // hard-coded huge volume that can't be turned down. A particle bolt + our own sounds
-        // gives the same look with a volume we control.
-        drawBolt(world, impact);
-        world.playSound(impact, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, IMPACT_THUNDER_VOLUME, 1.7f);
-        world.playSound(impact, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, IMPACT_ZAP_VOLUME, 1.5f);
-        world.spawnParticle(Particle.ELECTRIC_SPARK, impact, 60, 0.8, 0.8, 0.8, 0.5, null, true);
-        world.spawnParticle(Particle.END_ROD, impact, 20, 0.5, 0.5, 0.5, 0.2, null, true);
+        // Visual-only lightning: no vanilla damage, no fire, no creeper charging, no mob
+        // conversion. The damage below is ours, so it stays tunable via the constants above.
+        // Its thunder/impact sounds are played by the client when the entity appears.
+        world.strikeLightningEffect(impact);
 
         if (directHit != null) {
             TrueDamage.of(DIRECT_DAMAGE).attacker(caster).type(DamageType.LIGHTNING_BOLT)
@@ -240,25 +232,6 @@ public class LightningSpearAbility extends BaseAbility {
                     .ignoreIFrames(false).apply(nearby);
             shock(caster, nearby);
             world.spawnParticle(Particle.ELECTRIC_SPARK, nearby.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.3, null, true);
-        }
-    }
-
-    /** A jagged particle lightning bolt dropping from the sky onto {@code impact}. Purely visual. */
-    private void drawBolt(World world, Location impact) {
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        double offsetX = 0;
-        double offsetZ = 0;
-        for (double y = 0; y <= BOLT_HEIGHT; y += 0.5) {
-            // Random walk away from the vertical, pulled back toward it near the ground.
-            double pull = 1.0 - (y / BOLT_HEIGHT);
-            offsetX = offsetX * 0.7 + (random.nextDouble() - 0.5) * 0.9 * (1.0 - pull * 0.5);
-            offsetZ = offsetZ * 0.7 + (random.nextDouble() - 0.5) * 0.9 * (1.0 - pull * 0.5);
-            Location p = impact.clone().add(offsetX * (1.0 - pull), y, offsetZ * (1.0 - pull));
-            world.spawnParticle(Particle.DUST, p, 2, 0.04, 0.04, 0.04, 0.0, CORE_DUST, true);
-            world.spawnParticle(Particle.END_ROD, p, 1, 0, 0, 0, 0.0, null, true);
-            if (random.nextInt(3) == 0) {
-                world.spawnParticle(Particle.ELECTRIC_SPARK, p, 2, 0.2, 0.2, 0.2, 0.1, null, true);
-            }
         }
     }
 

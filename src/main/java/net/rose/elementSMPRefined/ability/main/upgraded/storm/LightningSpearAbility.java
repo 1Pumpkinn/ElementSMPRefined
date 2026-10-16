@@ -112,7 +112,7 @@ public class LightningSpearAbility extends BaseAbility {
 
         new BukkitRunnable() {
             final Location position = start.clone();
-            final LightningSpearVisual spear = new LightningSpearVisual(start, direction);
+            final LightningSpearVisual spear = new LightningSpearVisual(start, direction, player);
             double travelled = 0;
 
             /** Every exit path calls cancel(), so the spear entity can never outlive the ability. */

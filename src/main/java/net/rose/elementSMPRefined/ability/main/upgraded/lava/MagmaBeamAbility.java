@@ -80,7 +80,7 @@ public class MagmaBeamAbility extends BaseAbility {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WARDEN_SONIC_CHARGE, 1.0f, 1.2f);
 
         new BukkitRunnable() {
-            final MagmaBeamVisual visual = new MagmaBeamVisual();
+            final MagmaBeamVisual visual = new MagmaBeamVisual(player);
             int tick = 0;
             float roll = 0f;
 

@@ -79,7 +79,7 @@ public class AirCutterAbility extends BaseAbility {
         new BukkitRunnable() {
             double travelled = 0;
             final AirCutterVisual blade =
-                    new AirCutterVisual(origin.clone().add(direction.clone().multiply(1.0)), direction);
+                    new AirCutterVisual(origin.clone().add(direction.clone().multiply(1.0)), direction, player);
 
             /** Every exit path calls cancel(), so the blade entity can never outlive the ability. */
             @Override

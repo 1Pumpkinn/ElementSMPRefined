@@ -1,12 +1,14 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -45,17 +47,29 @@ public final class LightningSpearVisual {
      */
     private static final Vector3f MODEL_FORWARD = new Vector3f(0f, 0f, 1f);
 
+    /** Most extra interpolation ticks a high-ping caster gets (the spear is fast - see {@link AirCutterVisual}). */
+    private static final int MAX_SMOOTHING_TICKS = 2;
+
     /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<LightningSpearVisual> ACTIVE = new HashSet<>();
 
     private final ItemDisplay display;
     private final Vector direction;
+    private final Player caster; // may be null: then the teleport window stays at 1 tick
+    private int smoothing = 1;
+
+    public LightningSpearVisual(Location head, Vector direction) {
+        this(head, direction, null);
+    }
 
     /**
      * @param head      where the spear's TIP should be
      * @param direction flight direction
+     * @param caster    whose ping decides how much the spear's movement is smoothed (null = never)
      */
-    public LightningSpearVisual(Location head, Vector direction) {
+    public LightningSpearVisual(Location head, Vector direction, Player caster) {
+        this.caster = caster;
+        this.smoothing = PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS);
         this.direction = direction.clone().normalize();
         Vector3f dir = new Vector3f(
                 (float) this.direction.getX(), (float) this.direction.getY(), (float) this.direction.getZ());
@@ -75,7 +89,7 @@ public final class LightningSpearVisual {
             d.setBillboard(Display.Billboard.FIXED);
             d.setBrightness(new Display.Brightness(15, 15));
             d.setTransformation(transformation);
-            d.setTeleportDuration(1);
+            d.setTeleportDuration(smoothing);
             d.setPersistent(false);
             d.setInvulnerable(true);
         });
@@ -86,6 +100,11 @@ public final class LightningSpearVisual {
     public void moveTo(Location head) {
         World world = head.getWorld();
         if (world == null || !display.isValid() || !isLoaded(head)) return;
+        int wanted = PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS);
+        if (wanted != smoothing) {
+            smoothing = wanted;
+            display.setTeleportDuration(wanted);
+        }
         display.teleport(centre(head));
     }
 

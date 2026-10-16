@@ -1,12 +1,14 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -45,12 +47,27 @@ public final class AirCutterVisual {
      */
     private static final Vector3f MODEL_FORWARD = new Vector3f(0f, 0f, 1f);
 
+    /**
+     * Most extra interpolation ticks a high-ping caster gets. Kept low: the blade moves 1.5 blocks
+     * a tick, so every tick of smoothing makes the model trail the real hit position by that much.
+     */
+    private static final int MAX_SMOOTHING_TICKS = 2;
+
     /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<AirCutterVisual> ACTIVE = new HashSet<>();
 
     private final ItemDisplay display;
+    private final Player caster; // may be null: then the teleport window stays at 1 tick
+    private int smoothing = 1;
 
     public AirCutterVisual(Location at, Vector direction) {
+        this(at, direction, null);
+    }
+
+    /** @param caster whose ping decides how much the blade's movement is smoothed (null = never) */
+    public AirCutterVisual(Location at, Vector direction, Player caster) {
+        this.caster = caster;
+        this.smoothing = PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS);
         Vector3f dir = new Vector3f(
                 (float) direction.getX(), (float) direction.getY(), (float) direction.getZ()).normalize();
 
@@ -71,7 +88,7 @@ public final class AirCutterVisual {
             d.setBillboard(Display.Billboard.FIXED);
             d.setBrightness(new Display.Brightness(15, 15));
             d.setTransformation(transformation);
-            d.setTeleportDuration(1);
+            d.setTeleportDuration(smoothing);
             d.setPersistent(false);
             d.setInvulnerable(true);
         });
@@ -82,6 +99,11 @@ public final class AirCutterVisual {
     public void moveTo(Location at) {
         World world = at.getWorld();
         if (world == null || !display.isValid() || !isLoaded(at)) return;
+        int wanted = PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS);
+        if (wanted != smoothing) {
+            smoothing = wanted;
+            display.setTeleportDuration(wanted);
+        }
         display.teleport(flat(at));
     }
 

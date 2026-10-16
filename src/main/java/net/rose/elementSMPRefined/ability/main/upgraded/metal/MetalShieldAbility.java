@@ -89,7 +89,7 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
             return false;
         }
 
-        Shield shield = new Shield(new MetalShieldVisual(player.getLocation(), SHIELD_COUNT));
+        Shield shield = new Shield(new MetalShieldVisual(player, SHIELD_COUNT));
         shields.put(player.getUniqueId(), shield);
         setActive(player, true);
 
@@ -109,7 +109,7 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
                     end(player, EndReason.EXPIRED);
                     return;
                 }
-                shield.visual.update(player.getLocation(), ticks);
+                shield.visual.update(ticks);
                 ticks++;
             }
         };

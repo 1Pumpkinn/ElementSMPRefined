@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.util.visual.model;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -55,6 +56,9 @@ public final class ElementGemOrbitVisual {
     private static final double FRONT_DISTANCE = 1.8;   // how far ahead the chosen gem stops
     private static final double FRONT_HEIGHT = 1.35;    // roughly eye height
 
+    /** Furthest the ring may be led ahead of the player to hide high ping, in blocks. */
+    private static final double MAX_LEAD_BLOCKS = 2.5;
+
     private static final double SPIN_START_DEG = 6.0;   // degrees per tick
     private static final double SPIN_MAX_DEG = 22.0;
 
@@ -68,6 +72,8 @@ public final class ElementGemOrbitVisual {
     private final List<Gem> gems = new ArrayList<>();
     private final Gem survivor;
     private final int initialCount;
+    private final PingCompensation.Tracker tracker;
+    private int smoothing;              // teleport window currently set on the gems, in ticks
 
     private Phase phase = Phase.SPIN;
     private int tick = 0;
@@ -81,6 +87,8 @@ public final class ElementGemOrbitVisual {
      */
     public ElementGemOrbitVisual(Player owner, ElementType[] ring, ElementType chosen) {
         this.owner = owner;
+        this.tracker = new PingCompensation.Tracker(owner, MAX_LEAD_BLOCKS);
+        this.smoothing = PingCompensation.smoothingTicks(owner);
 
         List<ElementType> types = new ArrayList<>();
         for (int pass = 0; pass < Constants.Animation.ORBIT_GEMS_PER_ELEMENT; pass++) {
@@ -124,8 +132,12 @@ public final class ElementGemOrbitVisual {
             return;
         }
 
-        Location base = owner.getLocation();
+        // Centre on where the player will be on THEIR screen when this update lands, and give
+        // high-ping players a longer interpolation window to ride out packet jitter.
+        int wanted = PingCompensation.smoothingTicks(owner);
+        Location base = tracker.sample(wanted);
         if (!isLoaded(base)) return;
+        applySmoothing(wanted);
 
         tick++;
         phaseTick++;
@@ -150,7 +162,7 @@ public final class ElementGemOrbitVisual {
             case REVEAL -> {
                 double t = Math.min(1.0, phaseTick / (double) Constants.Animation.ORBIT_GLIDE_TICKS);
                 double eased = 1 - Math.pow(1 - t, 3); // ease-out: fast at first, settles gently
-                Location target = front(base, tick);
+                Location target = front(base, tracker.yaw(), tick);
                 survivor.display().teleport(lerp(revealFrom, target, eased));
                 if (t >= 1.0) {
                     base.getWorld().playSound(target, Sound.BLOCK_AMETHYST_BLOCK_RESONATE,
@@ -160,7 +172,7 @@ public final class ElementGemOrbitVisual {
                 }
             }
             case HOLD -> {
-                survivor.display().teleport(front(base, tick));
+                survivor.display().teleport(front(base, tracker.yaw(), tick));
                 if (tick % 4 == 0) {
                     base.getWorld().spawnParticle(Particle.END_ROD, survivor.display().getLocation(),
                             1, 0.2, 0.3, 0.2, 0.0);
@@ -191,6 +203,15 @@ public final class ElementGemOrbitVisual {
     public static void removeAll() {
         for (ElementGemOrbitVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();
+        }
+    }
+
+    /** Re-applies the teleport window to every gem, but only when the player's ping tier changed. */
+    private void applySmoothing(int ticks) {
+        if (ticks == smoothing) return;
+        smoothing = ticks;
+        for (Gem g : gems) {
+            if (g.display().isValid()) g.display().setTeleportDuration(ticks);
         }
     }
 
@@ -246,7 +267,7 @@ public final class ElementGemOrbitVisual {
             d.setBrightness(new Display.Brightness(15, 15));
             d.setTransformation(new Transformation(
                     new Vector3f(), new Quaternionf(), new Vector3f(ORBIT_SCALE), new Quaternionf()));
-            d.setTeleportDuration(1);
+            d.setTeleportDuration(smoothing);
             d.setPersistent(false);
             d.setInvulnerable(true);
         });
@@ -262,9 +283,9 @@ public final class ElementGemOrbitVisual {
                 owner.getZ() + Math.sin(a) * RADIUS);
     }
 
-    /** The spot straight ahead of where the player is currently looking (horizontally). */
-    private static Location front(Location owner, int tick) {
-        double yaw = Math.toRadians(owner.getYaw());
+    /** The spot straight ahead of where the player is looking (horizontally), for the given (led) yaw. */
+    private static Location front(Location owner, float yawDegrees, int tick) {
+        double yaw = Math.toRadians(yawDegrees);
         double dx = -Math.sin(yaw);
         double dz = Math.cos(yaw);
         double bob = Math.sin(tick * 0.12) * 0.04;

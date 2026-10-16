@@ -162,7 +162,7 @@ public class HellChainAbility extends BaseAbility {
                 .subtract(player.getLocation().toVector()).setY(0);
 
         new BukkitRunnable() {
-            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN);
+            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
             int ticks = 0;
 
             /** Every exit path calls cancel(), so the chain entities can never outlive the ability. */
@@ -251,7 +251,7 @@ public class HellChainAbility extends BaseAbility {
         final int latencyTicks = pingTicks(player);
 
         new BukkitRunnable() {
-            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN);
+            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
             int ticks = 0;
             boolean climbing = false;
             double bestDistance = Double.MAX_VALUE; // approach-phase progress tracking (closest point reached so far)

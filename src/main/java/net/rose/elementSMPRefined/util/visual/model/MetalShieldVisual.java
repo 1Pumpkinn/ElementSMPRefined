@@ -1,11 +1,13 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
@@ -23,7 +25,7 @@ import java.util.Set;
  * outward. They start evenly spaced and keep their slot when one is popped, so the remaining
  * shields just carry on orbiting.
  * <p>
- * {@link #update(Location, int)} re-places every shield each tick, and {@link #popNearest(Location)}
+ * {@link #update(int)} re-places every shield each tick (led ahead of the owner by their ping), and {@link #popNearest(Location)}
  * removes the shield closest to an incoming hit.
  * <p>
  * Always call {@link #remove()} when the effect ends (or {@link #removeAll()} on plugin disable
@@ -42,6 +44,8 @@ public final class MetalShieldVisual {
     private static final double HEIGHT = 0.85;          // shield centre above the owner's feet
     private static final double BOB = 0.04;             // gentle vertical drift
     private static final double SPIN_DEGREES_PER_TICK = 6.0; // one lap every 3 seconds
+    /** Furthest the ring may be led ahead of the owner to hide high ping, in blocks. */
+    private static final double MAX_LEAD_BLOCKS = 2.5;
 
     /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<MetalShieldVisual> ACTIVE = new HashSet<>();
@@ -50,21 +54,29 @@ public final class MetalShieldVisual {
     private record Orbiter(ItemDisplay display, double slotDegrees, int index) {}
 
     private final List<Orbiter> orbiters = new ArrayList<>();
+    private final Player owner;
+    private final PingCompensation.Tracker tracker;
+    private int smoothing; // teleport window currently set on the shields, in ticks
 
-    public MetalShieldVisual(Location owner, int count) {
+    public MetalShieldVisual(Player owner, int count) {
+        this.owner = owner;
+        this.tracker = new PingCompensation.Tracker(owner, MAX_LEAD_BLOCKS);
+        this.smoothing = PingCompensation.smoothingTicks(owner);
+        Location start = owner.getLocation();
+
         // The base material is irrelevant - the item_model component replaces its model entirely.
         ItemStack modelItem = ItemBuilder.of(Material.STICK).itemModel(METAL_SHIELD).build();
 
         for (int i = 0; i < count; i++) {
             double slot = i * (360.0 / count);
-            ItemDisplay display = owner.getWorld().spawn(place(owner, slot, 0, i), ItemDisplay.class, d -> {
+            ItemDisplay display = start.getWorld().spawn(place(start, slot, 0, i), ItemDisplay.class, d -> {
                 d.setItemStack(modelItem);
                 d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
                 d.setBillboard(Display.Billboard.FIXED);
                 d.setBrightness(new Display.Brightness(15, 15));
                 d.setTransformation(new Transformation(
                         new Vector3f(), new Quaternionf(), new Vector3f(SCALE), new Quaternionf()));
-                d.setTeleportDuration(1);
+                d.setTeleportDuration(smoothing);
                 d.setPersistent(false);
                 d.setInvulnerable(true);
             });
@@ -73,13 +85,23 @@ public final class MetalShieldVisual {
         ACTIVE.add(this);
     }
 
-    /** Moves every shield along its orbit around {@code owner}. Call once per tick. */
-    public void update(Location owner, int tick) {
-        if (!isLoaded(owner)) return;
+    /** Moves every shield along its orbit around the owner. Call once per tick. */
+    public void update(int tick) {
+        int wanted = PingCompensation.smoothingTicks(owner);
+        Location centre = tracker.sample(wanted);
+        if (!isLoaded(centre)) return;
+
+        if (wanted != smoothing) {
+            smoothing = wanted;
+            for (Orbiter o : orbiters) {
+                if (o.display().isValid()) o.display().setTeleportDuration(wanted);
+            }
+        }
+
         double spin = tick * SPIN_DEGREES_PER_TICK;
         for (Orbiter o : orbiters) {
             if (o.display().isValid()) {
-                o.display().teleport(place(owner, o.slotDegrees() + spin, tick, o.index()));
+                o.display().teleport(place(centre, o.slotDegrees() + spin, tick, o.index()));
             }
         }
     }

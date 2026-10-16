@@ -22,8 +22,11 @@ import java.util.Set;
  * ({@code elementsmp:magnetar_core_ring}). The core tumbles, the ring spins the other way, and the
  * whole thing bobs gently in place.
  * <p>
- * Orientation lives entirely in each display's transformation (entity yaw/pitch stay 0), so
- * {@link #update(int)} just feeds it a new rotation every tick.
+ * Orientation AND the bobbing both live in each display's transformation (the entities never move),
+ * so the client does all the animating. {@link #update(int)} only sends a new pose every
+ * {@link #STEP_TICKS} ticks and each pose is interpolated over {@link #INTERPOLATION_TICKS}: the
+ * windows overlap, so a late or bunched-up packet on a high-ping connection no longer freezes or
+ * skips the spin, and half as many packets are sent.
  * <p>
  * Always call {@link #remove()} when the effect ends (or {@link #removeAll()} on plugin disable
  * as a safety net) - they're real entities and will otherwise hang around.
@@ -40,6 +43,11 @@ public final class MagnetarVisual {
     /** The models are 16 units (1 block) across before scaling; the ring reaches ~0.7 blocks from the centre at this scale. */
     private static final float SCALE = 1.4f;
 
+    /** A new pose is sent every this many ticks... */
+    private static final int STEP_TICKS = 2;
+    /** ...and interpolated over this many, so consecutive windows overlap (slack for packet jitter). */
+    private static final int INTERPOLATION_TICKS = 3;
+
     private static final double BOB = 0.08;
     private static final float CORE_YAW_PER_TICK = 9f;     // degrees
     private static final float CORE_PITCH_PER_TICK = 4f;
@@ -49,12 +57,10 @@ public final class MagnetarVisual {
     /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<MagnetarVisual> ACTIVE = new HashSet<>();
 
-    private final Location centre;
     private final ItemDisplay core;
     private final ItemDisplay ring;
 
     public MagnetarVisual(Location centre) {
-        this.centre = centre.clone();
         this.core = spawn(centre, MAGNETAR_CORE);
         this.ring = spawn(centre, MAGNETAR_CORE_RING);
         ACTIVE.add(this);
@@ -62,20 +68,24 @@ public final class MagnetarVisual {
 
     /** Advances the animation. Call once per tick with the number of ticks since the core was placed. */
     public void update(int tick) {
-        Location bobbed = centre.clone().add(0, Math.sin(tick * 0.1) * BOB, 0);
+        if (tick % STEP_TICKS != 0) return;
+
+        // Aim at the pose STEP_TICKS ahead so the motion keeps its real speed.
+        int target = tick + STEP_TICKS;
+        float bob = (float) (Math.sin(target * 0.1) * BOB);
 
         if (core.isValid()) {
             Quaternionf spin = new Quaternionf().rotationYXZ(
-                    (float) Math.toRadians(tick * CORE_YAW_PER_TICK),
-                    (float) Math.toRadians(tick * CORE_PITCH_PER_TICK), 0f);
-            animate(core, bobbed, spin);
+                    (float) Math.toRadians(target * CORE_YAW_PER_TICK),
+                    (float) Math.toRadians(target * CORE_PITCH_PER_TICK), 0f);
+            animate(core, bob, spin);
         }
         if (ring.isValid()) {
             // spin about the ring's own axis first, then tip the whole ring over
             Quaternionf spin = new Quaternionf()
                     .rotateX((float) Math.toRadians(RING_TILT))
-                    .rotateY((float) Math.toRadians(tick * RING_SPIN_PER_TICK));
-            animate(ring, bobbed, spin);
+                    .rotateY((float) Math.toRadians(target * RING_SPIN_PER_TICK));
+            animate(ring, bob, spin);
         }
     }
 
@@ -93,10 +103,9 @@ public final class MagnetarVisual {
         }
     }
 
-    private static void animate(ItemDisplay display, Location at, Quaternionf rotation) {
-        display.teleport(at);
+    private static void animate(ItemDisplay display, float bob, Quaternionf rotation) {
         display.setTransformation(new Transformation(
-                new Vector3f(), rotation, new Vector3f(SCALE), new Quaternionf()));
+                new Vector3f(0f, bob, 0f), rotation, new Vector3f(SCALE), new Quaternionf()));
         display.setInterpolationDelay(0);
     }
 
@@ -111,8 +120,7 @@ public final class MagnetarVisual {
             d.setBrightness(new Display.Brightness(15, 15));
             d.setTransformation(new Transformation(
                     new Vector3f(), new Quaternionf(), new Vector3f(SCALE), new Quaternionf()));
-            d.setInterpolationDuration(1);
-            d.setTeleportDuration(1);
+            d.setInterpolationDuration(INTERPOLATION_TICKS);
             d.setPersistent(false);
             d.setInvulnerable(true);
         });

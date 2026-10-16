@@ -1,12 +1,14 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -58,6 +60,10 @@ public final class ChainVisual {
     private static final float THICKNESS = 1.5f;
     /** The model's long axis. */
     private static final Vector3f MODEL_AXIS = new Vector3f(0f, 1f, 0f);
+    /** Most extra interpolation ticks a high-ping owner gets. */
+    private static final int MAX_SMOOTHING_TICKS = 2;
+    /** Furthest the owner end may be led ahead of the server position (a grapple moves fast), in blocks. */
+    private static final double MAX_LEAD_BLOCKS = 5.0;
 
     /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<ChainVisual> ACTIVE = new HashSet<>();
@@ -65,8 +71,21 @@ public final class ChainVisual {
     private final ItemStack modelItem;
     /** Entries may be null where a segment couldn't be spawned (unloaded chunk) - retried next update. */
     private final List<ItemDisplay> segments = new ArrayList<>();
+    private final Player owner;                       // may be null: no ping handling
+    private final PingCompensation.Tracker tracker;   // null when owner is null
+    private int smoothing = 1;
 
     public ChainVisual(NamespacedKey model) {
+        this(model, null);
+    }
+
+    /**
+     * @param owner the player the chain is attached to: their ping leads the anchor end ahead of
+     *              the server position (so it stays on them on screen) and sets the smoothing
+     */
+    public ChainVisual(NamespacedKey model, Player owner) {
+        this.owner = owner;
+        this.tracker = owner == null ? null : new PingCompensation.Tracker(owner, MAX_LEAD_BLOCKS);
         // The base material is irrelevant - the item_model component replaces its model entirely.
         this.modelItem = ItemBuilder.of(Material.STICK).itemModel(model).build();
         ACTIVE.add(this);
@@ -78,6 +97,21 @@ public final class ChainVisual {
         if (world == null || !world.equals(to.getWorld())) {
             hide();
             return;
+        }
+
+        if (tracker != null) {
+            int wanted = PingCompensation.smoothingTicks(owner, MAX_SMOOTHING_TICKS);
+            tracker.sample(wanted);
+            from = from.clone().add(tracker.lead());
+            if (wanted != smoothing) {
+                smoothing = wanted;
+                for (ItemDisplay segment : segments) {
+                    if (segment != null && segment.isValid()) {
+                        segment.setTeleportDuration(wanted);
+                        segment.setInterpolationDuration(wanted);
+                    }
+                }
+            }
         }
 
         Vector delta = to.toVector().subtract(from.toVector());
@@ -118,7 +152,7 @@ public final class ChainVisual {
 
             ItemDisplay display = i < segments.size() ? segments.get(i) : null;
             if (display == null || !display.isValid()) {
-                display = isLoaded(at) ? spawn(at, transformation) : null;
+                display = isLoaded(at) ? spawn(at, transformation, smoothing) : null;
                 if (i < segments.size()) {
                     segments.set(i, display);
                 } else {
@@ -154,15 +188,15 @@ public final class ChainVisual {
         }
     }
 
-    private ItemDisplay spawn(Location at, Transformation transformation) {
+    private ItemDisplay spawn(Location at, Transformation transformation, int smoothing) {
         return at.getWorld().spawn(at, ItemDisplay.class, display -> {
             display.setItemStack(modelItem);
             display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
             display.setBillboard(Display.Billboard.FIXED);
             display.setBrightness(new Display.Brightness(15, 15));
             display.setTransformation(transformation);
-            display.setTeleportDuration(1);
-            display.setInterpolationDuration(1);
+            display.setTeleportDuration(smoothing);
+            display.setInterpolationDuration(smoothing);
             display.setPersistent(false);
             display.setInvulnerable(true);
         });

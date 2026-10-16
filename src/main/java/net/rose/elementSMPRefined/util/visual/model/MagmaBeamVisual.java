@@ -1,12 +1,14 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -43,10 +45,18 @@ public final class MagmaBeamVisual {
     private static final Set<MagmaBeamVisual> ACTIVE = new HashSet<>();
 
     private final ItemStack modelItem;
+    private final Player caster; // may be null: then the interpolation window stays at 1 tick
+    private int smoothing = 1;
     /** Spawned lazily on the first update (and respawned if it ever goes invalid). */
     private ItemDisplay display;
 
     public MagmaBeamVisual() {
+        this(null);
+    }
+
+    /** @param caster whose ping decides how much the beam's movement is smoothed (null = never) */
+    public MagmaBeamVisual(Player caster) {
+        this.caster = caster;
         // The base material is irrelevant - the item_model component replaces its model entirely.
         this.modelItem = ItemBuilder.of(Material.STICK).itemModel(MAGMA_BEAM).build();
         ACTIVE.add(this);
@@ -78,6 +88,8 @@ public final class MagmaBeamVisual {
         Location mid = from.clone().add(dir.clone().multiply(length / 2.0));
         if (!isLoaded(mid)) return;
 
+        int wanted = PingCompensation.smoothingTicks(caster);
+
         // aim * roll: the roll is applied around the model's own Z axis first, then the whole
         // thing is swung to face along the beam, so it spins around the beam's axis.
         Quaternionf rotation = new Quaternionf()
@@ -97,14 +109,20 @@ public final class MagmaBeamVisual {
                 d.setBillboard(Display.Billboard.FIXED);
                 d.setBrightness(new Display.Brightness(15, 15));
                 d.setTransformation(transformation);
-                d.setTeleportDuration(1);
-                d.setInterpolationDuration(1);
+                d.setTeleportDuration(wanted);
+                d.setInterpolationDuration(wanted);
                 d.setPersistent(false);
                 d.setInvulnerable(true);
             });
+            smoothing = wanted;
             return;
         }
 
+        if (wanted != smoothing) {
+            smoothing = wanted;
+            display.setTeleportDuration(wanted);
+            display.setInterpolationDuration(wanted);
+        }
         display.teleport(flat(mid));
         display.setTransformation(transformation);
         display.setInterpolationDelay(0);

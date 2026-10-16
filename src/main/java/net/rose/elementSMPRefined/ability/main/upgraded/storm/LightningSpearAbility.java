@@ -8,6 +8,8 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
+import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
@@ -36,8 +38,9 @@ import java.util.concurrent.ThreadLocalRandom;
  * shocks them (a short stun on players, heavy slow on mobs) and a lightning flash with a small
  * shock burst goes off at the point of impact.
  * <p>
- * The spear is drawn entirely with particles, so it needs no resource-pack assets. Every tick it
- * travels {@link #SPEED} blocks, and the whole segment is ray-traced in one go, so even at that
+ * The spear itself is the {@code elementsmp:lightning_spear} resource-pack model (see
+ * {@link LightningSpearVisual}); the impact bolt and the crackle around it are particles. Every tick
+ * it travels {@link #SPEED} blocks, and the whole segment is ray-traced in one go, so even at that
  * speed it can't skip over a thin wall or a player.
  */
 public class LightningSpearAbility extends BaseAbility {
@@ -63,8 +66,32 @@ public class LightningSpearAbility extends BaseAbility {
     /** How long a hit mob is heavily slowed (ticks). */
     private static final int MOB_SLOW_TICKS = 30;
 
+    // ---- Sound volumes (1.0 = vanilla "normal"; lower = quieter and shorter range) ----
+    /** Launch whoosh. */
+    private static final float THROW_VOLUME = 0.45f;
+    /** Launch crackle. */
+    private static final float CRACKLE_VOLUME = 0.25f;
+    /** Faint rumble under the launch. */
+    private static final float RUMBLE_VOLUME = 0.12f;
+    /** Impact thunder crack. */
+    private static final float IMPACT_THUNDER_VOLUME = 0.35f;
+    /** Impact zap. */
+    private static final float IMPACT_ZAP_VOLUME = 0.3f;
+    /** Spear fizzling out at max range. */
+    private static final float FIZZLE_VOLUME = 0.35f;
+
+    /**
+     * Inspection helper: while the server tick is frozen ({@code /tick freeze}) the spear stops
+     * advancing and stays exactly where it is, so you can walk up and look at the model. It
+     * carries on when you {@code /tick unfreeze}, and moves one step per {@code /tick step}.
+     */
+    private static final boolean HOLD_WHEN_TICK_FROZEN = true;
+
+    /** Height of the particle lightning bolt that drops onto the impact point. */
+    private static final double BOLT_HEIGHT = 14.0;
+
     private static final Particle.DustOptions CORE_DUST = new Particle.DustOptions(Color.fromRGB(255, 244, 150), 1.3f);
-    private static final Particle.DustOptions EDGE_DUST = new Particle.DustOptions(Color.fromRGB(120, 190, 255), 1.0f);
+    private static final Particle.DustOptions EDGE_DUST = new Particle.DustOptions(Color.fromRGB(250, 236, 160), 1.0f);
 
     private final ElementSMPRefined plugin;
 
@@ -83,13 +110,21 @@ public class LightningSpearAbility extends BaseAbility {
         // Starts just in front of and slightly below the eyes so it doesn't blot out your view.
         Location start = player.getEyeLocation().add(0, -0.25, 0).add(direction.clone().multiply(0.6));
 
-        world.playSound(start, Sound.ITEM_TRIDENT_THROW, 1.2f, 1.7f);
-        world.playSound(start, Sound.ITEM_TRIDENT_THUNDER, 0.7f, 1.6f);
-        world.playSound(start, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.35f, 2.0f);
+        world.playSound(start, Sound.ITEM_TRIDENT_THROW, THROW_VOLUME, 1.7f);
+        world.playSound(start, Sound.ITEM_TRIDENT_THUNDER, CRACKLE_VOLUME, 1.6f);
+        world.playSound(start, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, RUMBLE_VOLUME, 2.0f);
 
         new BukkitRunnable() {
             final Location position = start.clone();
+            final LightningSpearVisual spear = new LightningSpearVisual(start, direction);
             double travelled = 0;
+
+            /** Every exit path calls cancel(), so the spear entity can never outlive the ability. */
+            @Override
+            public synchronized void cancel() throws IllegalStateException {
+                spear.remove();
+                super.cancel();
+            }
 
             @Override
             public void run() {
@@ -98,6 +133,9 @@ public class LightningSpearAbility extends BaseAbility {
                     return;
                 }
 
+                // Frozen: hang in the air (model stays visible) instead of flying on and vanishing.
+                if (HOLD_WHEN_TICK_FROZEN && isTickFrozen()) return;
+
                 // One ray per tick covers the whole step: first block or first valid entity along it.
                 RayTraceResult hit = world.rayTrace(
                         position, direction, SPEED, FluidCollisionMode.NEVER, true, HIT_RADIUS,
@@ -105,6 +143,7 @@ public class LightningSpearAbility extends BaseAbility {
 
                 if (hit != null) {
                     Location impact = hit.getHitPosition().toLocation(world);
+                    spear.moveTo(impact);
                     drawSpear(world, impact, direction);
                     Entity hitEntity = hit.getHitEntity();
                     explode(context, impact, hitEntity instanceof LivingEntity living ? living : null);
@@ -114,18 +153,25 @@ public class LightningSpearAbility extends BaseAbility {
 
                 position.add(direction.clone().multiply(SPEED));
                 travelled += SPEED;
+                spear.moveTo(position);
                 drawSpear(world, position, direction);
 
                 if (travelled >= RANGE) {
                     // Ran out of range - fizzle out instead of vanishing silently.
                     world.spawnParticle(Particle.ELECTRIC_SPARK, position, 25, 0.4, 0.4, 0.4, 0.3, null, true);
-                    world.playSound(position, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.8f, 1.8f);
+                    world.playSound(position, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, FIZZLE_VOLUME, 1.8f);
                     cancel();
                 }
             }
         }.runTaskTimer(plugin, 0L, 1L);
 
         return true;
+    }
+
+    /** True while {@code /tick freeze} is active and no {@code /tick step} is being run. */
+    private static boolean isTickFrozen() {
+        var ticks = Bukkit.getServerTickManager();
+        return ticks.isFrozen() && !ticks.isStepping();
     }
 
     /** Whether the spear should collide with this entity. */
@@ -140,21 +186,23 @@ public class LightningSpearAbility extends BaseAbility {
         return isValidTarget(context, living);
     }
 
-    /** Draws the spear with its tip at {@code head}: a bright shaft, a glowing tip and loose sparks. */
+    /**
+     * Particle accents around the spear model (tip at {@code head}): a glowing tip, a thin
+     * energy trail and loose arcs of electricity. The shaft itself is the model.
+     */
     private void drawSpear(World world, Location head, Vector direction) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
-        for (double d = 0; d <= SPEAR_LENGTH; d += 0.4) {
-            Location p = head.clone().subtract(direction.clone().multiply(d));
-            world.spawnParticle(Particle.DUST, p, 1, 0.03, 0.03, 0.03, 0.0, CORE_DUST, true);
-            if (((int) (d / 0.4)) % 2 == 0) {
-                world.spawnParticle(Particle.END_ROD, p, 1, 0, 0, 0, 0.0, null, true);
-            }
-        }
-
-        // Pointed, glowing tip.
-        world.spawnParticle(Particle.END_ROD, head, 3, 0.05, 0.05, 0.05, 0.0, null, true);
+        // Glowing tip.
+        world.spawnParticle(Particle.END_ROD, head, 2, 0.05, 0.05, 0.05, 0.0, null, true);
         world.spawnParticle(Particle.DUST, head, 2, 0.1, 0.1, 0.1, 0.0, EDGE_DUST, true);
+
+        // Thin energy trail behind the tail so the fast spear still leaves a streak.
+        Location tail = head.clone().subtract(direction.clone().multiply(SPEAR_LENGTH));
+        for (double d = 0; d <= SPEAR_LENGTH; d += 0.75) {
+            Location p = tail.clone().subtract(direction.clone().multiply(d));
+            world.spawnParticle(Particle.DUST, p, 1, 0.03, 0.03, 0.03, 0.0, CORE_DUST, true);
+        }
 
         // Loose arcs of electricity crackling around the shaft.
         for (int i = 0; i < 3; i++) {
@@ -169,8 +217,12 @@ public class LightningSpearAbility extends BaseAbility {
         Player caster = context.getPlayer();
         World world = impact.getWorld();
 
-        // Visual + sound only - never sets anything on fire or damages anything by itself.
-        world.strikeLightningEffect(impact);
+        // World#strikeLightningEffect is deliberately NOT used: vanilla plays its thunder at a
+        // hard-coded huge volume that can't be turned down. A particle bolt + our own sounds
+        // gives the same look with a volume we control.
+        drawBolt(world, impact);
+        world.playSound(impact, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, IMPACT_THUNDER_VOLUME, 1.7f);
+        world.playSound(impact, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, IMPACT_ZAP_VOLUME, 1.5f);
         world.spawnParticle(Particle.ELECTRIC_SPARK, impact, 60, 0.8, 0.8, 0.8, 0.5, null, true);
         world.spawnParticle(Particle.END_ROD, impact, 20, 0.5, 0.5, 0.5, 0.2, null, true);
 
@@ -188,6 +240,25 @@ public class LightningSpearAbility extends BaseAbility {
                     .ignoreIFrames(false).apply(nearby);
             shock(caster, nearby);
             world.spawnParticle(Particle.ELECTRIC_SPARK, nearby.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.3, null, true);
+        }
+    }
+
+    /** A jagged particle lightning bolt dropping from the sky onto {@code impact}. Purely visual. */
+    private void drawBolt(World world, Location impact) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        double offsetX = 0;
+        double offsetZ = 0;
+        for (double y = 0; y <= BOLT_HEIGHT; y += 0.5) {
+            // Random walk away from the vertical, pulled back toward it near the ground.
+            double pull = 1.0 - (y / BOLT_HEIGHT);
+            offsetX = offsetX * 0.7 + (random.nextDouble() - 0.5) * 0.9 * (1.0 - pull * 0.5);
+            offsetZ = offsetZ * 0.7 + (random.nextDouble() - 0.5) * 0.9 * (1.0 - pull * 0.5);
+            Location p = impact.clone().add(offsetX * (1.0 - pull), y, offsetZ * (1.0 - pull));
+            world.spawnParticle(Particle.DUST, p, 2, 0.04, 0.04, 0.04, 0.0, CORE_DUST, true);
+            world.spawnParticle(Particle.END_ROD, p, 1, 0, 0, 0, 0.0, null, true);
+            if (random.nextInt(3) == 0) {
+                world.spawnParticle(Particle.ELECTRIC_SPARK, p, 2, 0.2, 0.2, 0.2, 0.1, null, true);
+            }
         }
     }
 

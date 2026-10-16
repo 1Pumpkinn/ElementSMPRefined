@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
 import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
 import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
+import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
 
 /**
@@ -28,6 +29,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         StarFallAbility.removeAll();
         ChainVisual.removeAll();
         AirCutterVisual.removeAll();
+        LightningSpearVisual.removeAll();
         MagmaBeamVisual.removeAll();
         MetalShieldVisual.removeAll();
         ElementGemOrbitVisual.removeAll();

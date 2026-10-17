@@ -121,6 +121,16 @@ public class HellChainAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
+
+        // Pressed again while the chain is out: let go. (FireElement lets this through without a
+        // cooldown check, and the cooldown from the original cast keeps running.) The running task
+        // sees the ability go inactive on its next tick and cleans up.
+        if (isActiveFor(player)) {
+            setActive(player, false);
+            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_CHAIN_BREAK, 0.8f, 1.0f);
+            return true;
+        }
+
         Location eyeLoc = player.getEyeLocation();
         Vector direction = eyeLoc.getDirection();
 
@@ -146,6 +156,7 @@ public class HellChainAbility extends BaseAbility {
         BlockFace hitFace = result.getHitBlockFace();
         playCastSounds(player);
 
+        setActive(player, true);
         if (hookedEntity != null) {
             dragEntityIn(player, hookedEntity);
         } else {
@@ -169,12 +180,19 @@ public class HellChainAbility extends BaseAbility {
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 chain.remove();
+                setActive(player, false);
                 super.cancel();
             }
 
             @Override
             public void run() {
                 if (!player.isOnline() || !target.isValid()) {
+                    cancel();
+                    return;
+                }
+                if (!isActiveFor(player)) {
+                    // Cancelled mid-pull (pressed again, or element changed) - let the target go.
+                    target.setVelocity(new Vector(0, 0, 0));
                     cancel();
                     return;
                 }
@@ -200,7 +218,7 @@ public class HellChainAbility extends BaseAbility {
                 if (horizontal < DRAG_STOP_DISTANCE || passedCaster) {
                     target.setVelocity(new Vector(0, 0, 0));
                     target.setFireTicks(Math.max(target.getFireTicks(), BURN_FIRE_TICKS));
-                    AbilityDamage.deal(target, () -> target.damage(IMPACT_DAMAGE, player));
+                    AbilityDamage.deal(target, getName(), () -> target.damage(IMPACT_DAMAGE, player));
                     player.getWorld().spawnParticle(Particle.LAVA, targetLoc, 15, 0.3, 0.3, 0.3, 0.05);
                     player.getWorld().playSound(targetLoc, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
                     cancel();
@@ -264,12 +282,20 @@ public class HellChainAbility extends BaseAbility {
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 chain.remove();
+                setActive(player, false);
                 super.cancel();
             }
 
             @Override
             public void run() {
                 if (!player.isOnline() || ticks >= MAX_TICKS) {
+                    cancel();
+                    return;
+                }
+                if (!isActiveFor(player)) {
+                    // Cancelled mid-grapple (pressed again, or element changed) - drop the chain,
+                    // keeping a little momentum so it doesn't feel like hitting a wall.
+                    player.setVelocity(player.getVelocity().multiply(0.3));
                     cancel();
                     return;
                 }
@@ -497,6 +523,6 @@ public class HellChainAbility extends BaseAbility {
     public String getDescription() {
         return ChatColor.GRAY + "Launch a fiery chain at whatever you're looking at - drag enemies in directly, "
                 + "hook the ground near them to pull yourself there, or scale a wall face outright, "
-                + "scorching anything nearby on arrival.";
+                + "scorching anything nearby on arrival. Press again mid-chain to let go.";
     }
 }

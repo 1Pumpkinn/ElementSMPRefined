@@ -72,6 +72,8 @@ public class StarFallAbility extends BaseAbility {
     // Hard stop so a barrage can never run forever
     private static final int MAX_TASK_TICKS = BARRAGE_DURATION_TICKS + LAUNCH_DELAY_TICKS + FALL_TICKS + 20;
 
+    private static final String NAME = ChatColor.RED + "Starfall";
+
     // Every live meteor display, so they can be swept up when the plugin shuts down or reloads
     private static final Set<BlockDisplay> ACTIVE_DISPLAYS = new HashSet<>();
 
@@ -225,7 +227,7 @@ public class StarFallAbility extends BaseAbility {
             if (trust != null && entity instanceof Player other
                     && trust.isTrusted(caster.getUniqueId(), other.getUniqueId())) continue;
 
-            TrueDamage.of(IMPACT_DAMAGE).attacker(caster).ignoreIFrames(false).apply(entity);
+            TrueDamage.of(IMPACT_DAMAGE).attacker(caster).ability(NAME).ignoreIFrames(false).apply(entity);
             entity.setFireTicks(Math.max(entity.getFireTicks(), IMPACT_FIRE_TICKS));
 
             Vector knockback = entity.getLocation().toVector().subtract(impact.toVector());
@@ -340,7 +342,7 @@ public class StarFallAbility extends BaseAbility {
 
     @Override
     public String getName() {
-        return ChatColor.RED + "Starfall";
+        return NAME;
     }
 
     @Override

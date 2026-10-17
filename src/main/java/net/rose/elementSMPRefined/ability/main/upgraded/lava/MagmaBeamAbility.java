@@ -53,6 +53,11 @@ public class MagmaBeamAbility extends BaseAbility {
     private static final float SPIN_PER_TICK = 0.45f;
     /** Radius of the particle spiral wrapped around the firing beam. */
     private static final double HELIX_RADIUS = 0.6;
+    /** Blocks between particle samples along the beam. Bigger = fewer particles. */
+    private static final double HELIX_STEP = 2.0;
+    private static final double SHEATH_STEP = 3.0;
+    /** Flame sparks pulled towards the orb each tick while charging. */
+    private static final int CHARGE_SPARKS = 2;
 
     private static final Component ALREADY_CHARGING =
             Component.text("Magma Beam is already charging!", NamedTextColor.RED);
@@ -140,7 +145,7 @@ public class MagmaBeamAbility extends BaseAbility {
         visual.update(orb.clone().subtract(dir.clone().multiply(0.2)), dir, 0.4 + 0.8 * progress, (float) (0.4 + 1.0 * progress), roll);
 
         double radius = 2.6 * (1.0 - progress) + 0.3;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < CHARGE_SPARKS; i++) {
             Vector offset = Vector.getRandom().subtract(new Vector(0.5, 0.5, 0.5)).normalize().multiply(radius);
             w.spawnParticle(Particle.FLAME, orb.clone().add(offset), 1, 0, 0, 0, 0.0, null, true);
         }
@@ -175,7 +180,7 @@ public class MagmaBeamAbility extends BaseAbility {
             if (side.lengthSquared() < 1.0E-6) side = new Vector(1, 0, 0);
             side.normalize();
             Vector up = step.clone().crossProduct(side).normalize();
-            for (double d = 0; d < visualLength; d += 1.0) {
+            for (double d = 0; d < visualLength; d += HELIX_STEP) {
                 double angle = roll + d * 0.9;
                 for (int strand = 0; strand < 2; strand++) {
                     double a = angle + strand * Math.PI;
@@ -186,10 +191,10 @@ public class MagmaBeamAbility extends BaseAbility {
                 }
             }
 
-            for (double d = 0; d < visualLength; d += 1.5) {
+            for (double d = 0; d < visualLength; d += SHEATH_STEP) {
                 Location p = start.clone().add(step.clone().multiply(d));
                 w.spawnParticle(Particle.FLAME, p, 1, 0.12, 0.12, 0.12, 0.0, null, true);
-                if (((int) (d / 1.5) + beamTick) % 3 == 0) {
+                if (((int) (d / SHEATH_STEP) + beamTick) % 3 == 0) {
                     w.spawnParticle(Particle.LAVA, p, 1, 0.2, 0.2, 0.2, 0.0, null, true);
                 }
             }
@@ -214,7 +219,7 @@ public class MagmaBeamAbility extends BaseAbility {
             for (LivingEntity e : point.getNearbyLivingEntities(HIT_RADIUS)) {
                 if (!LavaTargets.isValid(player, e, trust) || !hit.add(e.getUniqueId())) continue;
 
-                TrueDamage.of(DAMAGE_PER_PULSE).attacker(player).ignoreIFrames(true).apply(e);
+                TrueDamage.of(DAMAGE_PER_PULSE).attacker(player).ability(getName()).ignoreIFrames(true).apply(e);
                 e.setFireTicks(BURN_TICKS);
                 w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 8, 0.3, 0.4, 0.3, 0.03, null, true);
             }

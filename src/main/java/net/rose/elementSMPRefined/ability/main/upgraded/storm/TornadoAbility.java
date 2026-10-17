@@ -517,7 +517,7 @@ public class TornadoAbility extends BaseAbility {
 
         if (t.ticks >= t.nextHit.getOrDefault(id, 0)) {
             t.nextHit.put(id, t.ticks + DAMAGE_INTERVAL_TICKS);
-            TrueDamage.of(DAMAGE).attacker(caster).ignoreIFrames(true).apply(target);
+            TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).ignoreIFrames(true).apply(target);
 
             Location chest = target.getLocation().add(0, 1.0, 0);
             t.world.spawnParticle(Particle.CRIT, chest, 10, 0.3, 0.5, 0.3, 0.2);

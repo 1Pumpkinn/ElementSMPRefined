@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.ability.passive.basic.fire;
 
 import net.rose.elementSMPRefined.ability.main.basic.fire.HellChainAbility;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.basic.fire.StarFallAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
@@ -33,6 +34,12 @@ public class FireElement extends BaseElement {
         } else {
             EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
         }
+    }
+
+    @Override
+    protected boolean canCancelAbility1(ElementContext context) {
+        // Hell Chain is out - pressing the ability again lets go of it, no cooldown check.
+        return ability1.isActiveFor(context.getPlayer());
     }
 
     @Override

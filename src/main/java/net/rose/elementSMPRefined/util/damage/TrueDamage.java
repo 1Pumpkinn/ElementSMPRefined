@@ -11,6 +11,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
@@ -33,13 +34,14 @@ import java.util.UUID;
  *   TrueDamage.apply(target, 4.0);                       // 2 hearts, no attacker
  *   TrueDamage.apply(target, 4.0, attacker);             // with attacker (knockback + kill credit)
  *   TrueDamage.of(4.0).attacker(p).ignoreIFrames(false).bypassAbsorption(true).apply(target);
+ *   TrueDamage.of(4.0).attacker(p).ability(getName()).apply(target);   // death message names the ability
  */
 public final class TrueDamage implements Listener {
 
     /** Entities currently being hit by true damage -> the exact amount to deal. */
     private static final Map<UUID, Pending> PENDING = new HashMap<>();
 
-    private record Pending(double amount, boolean bypassAbsorption) {}
+    private record Pending(double amount, boolean bypassAbsorption, String abilityName) {}
 
     /** Creates the instance and registers its listener (auto-unregistered when the plugin disables). */
     public TrueDamage(Plugin plugin) {
@@ -71,6 +73,7 @@ public final class TrueDamage implements Listener {
         private DamageType type = DamageType.GENERIC;
         private boolean ignoreIFrames = true;
         private boolean bypassAbsorption = false;
+        private String abilityName = null;
 
         private Builder(double amount) {
             this.amount = amount;
@@ -100,6 +103,15 @@ public final class TrueDamage implements Listener {
             return this;
         }
 
+        /**
+         * Display name of the ability dealing this damage. If the hit kills a player, the death
+         * message names it ("X was slain by Y using Magma Beam") instead of a generic message.
+         */
+        public Builder ability(String abilityName) {
+            this.abilityName = abilityName;
+            return this;
+        }
+
         /** Applies the damage. Returns false if skipped (invalid/dead/creative/etc). */
         public boolean apply(LivingEntity target) {
             if (target == null || target.isDead() || !target.isValid()) return false;
@@ -124,7 +136,7 @@ public final class TrueDamage implements Listener {
             }
             DamageSource source = sb.build();
 
-            PENDING.put(id, new Pending(amount, bypassAbsorption));
+            PENDING.put(id, new Pending(amount, bypassAbsorption, abilityName));
             try {
                 target.damage(amount, source);
             } finally {
@@ -148,5 +160,19 @@ public final class TrueDamage implements Listener {
             event.setDamage(mod, 0);
         }
         event.setDamage(DamageModifier.BASE, pending.amount());
+    }
+
+    /**
+     * The death event fires synchronously inside {@code damage()}, so the ability that dealt the
+     * killing blow is still registered here and can be named in the death message.
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onDeath(PlayerDeathEvent event) {
+        if (event.deathMessage() == null) return; // death messages are turned off
+        Player victim = event.getEntity();
+        Pending pending = PENDING.get(victim.getUniqueId());
+        String abilityName = pending != null ? pending.abilityName() : AbilityDamage.abilityName(victim);
+        if (abilityName == null) return;
+        event.deathMessage(AbilityDeathMessage.build(victim, abilityName));
     }
 }

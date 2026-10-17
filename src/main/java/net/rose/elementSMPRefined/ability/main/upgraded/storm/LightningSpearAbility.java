@@ -219,7 +219,7 @@ public class LightningSpearAbility extends BaseAbility {
         world.strikeLightningEffect(impact);
 
         if (directHit != null) {
-            TrueDamage.of(DIRECT_DAMAGE).attacker(caster).type(DamageType.LIGHTNING_BOLT)
+            TrueDamage.of(DIRECT_DAMAGE).attacker(caster).ability(getName()).type(DamageType.LIGHTNING_BOLT)
                     .ignoreIFrames(false).apply(directHit);
             shock(caster, directHit);
         }
@@ -228,7 +228,7 @@ public class LightningSpearAbility extends BaseAbility {
             if (nearby.equals(directHit)) continue;
             if (!isTargetable(context, nearby)) continue;
 
-            TrueDamage.of(SHOCK_DAMAGE).attacker(caster).type(DamageType.LIGHTNING_BOLT)
+            TrueDamage.of(SHOCK_DAMAGE).attacker(caster).ability(getName()).type(DamageType.LIGHTNING_BOLT)
                     .ignoreIFrames(false).apply(nearby);
             shock(caster, nearby);
             world.spawnParticle(Particle.ELECTRIC_SPARK, nearby.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.3, null, true);

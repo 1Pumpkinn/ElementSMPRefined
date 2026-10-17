@@ -255,7 +255,7 @@ public class MetalMagnetarAbility extends BaseAbility {
 
         if (core.ticks >= core.nextHit.getOrDefault(id, 0)) {
             core.nextHit.put(id, core.ticks + DAMAGE_INTERVAL_TICKS);
-            TrueDamage.of(DAMAGE).attacker(caster).ignoreIFrames(true).apply(target);
+            TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).ignoreIFrames(true).apply(target);
 
             Location at = target.getLocation().add(0, 1.0, 0);
             at.getWorld().spawnParticle(Particle.CRIT, at, 12, 0.3, 0.5, 0.3, 0.2);

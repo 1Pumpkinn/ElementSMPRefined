@@ -24,6 +24,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -51,7 +52,7 @@ public class EruptionAbility extends BaseAbility {
     private static final double RAY_SIZE = 0.8;
     /** Warning time before the blast. The spot is locked when cast, so moving away dodges it. */
     private static final int WARNING_TICKS = 14;
-    private static final double RADIUS = 2.5;
+    private static final double RADIUS = 6.0;
     private static final double DAMAGE = 7.0;
     private static final double LAUNCH_VELOCITY = 1.0;
     private static final int BURN_TICKS = 80;
@@ -158,8 +159,8 @@ public class EruptionAbility extends BaseAbility {
 
                     // Thin ring marking the blast radius, tightening as the timer runs out.
                     double ringRadius = RADIUS * (1.0 - 0.2 * progress);
-                    for (int i = 0; i < 32; i++) {
-                        double angle = i * (Math.PI * 2 / 32);
+                    for (int i = 0; i < RING_POINTS; i++) {
+                        double angle = i * (Math.PI * 2 / RING_POINTS);
                         Location p = center.clone().add(Math.cos(angle) * ringRadius, 0.1, Math.sin(angle) * ringRadius);
                         world.spawnParticle(Particle.DUST, p, 1, 0, 0, 0, 0.0, EDGE_DUST, true);
                     }
@@ -196,17 +197,34 @@ public class EruptionAbility extends BaseAbility {
         List<Location> tips = spawnSpikeRing(center);
         spawnFountain(center, tips);
 
-        for (LivingEntity e : mid.getNearbyLivingEntities(RADIUS, 2.0, RADIUS)) {
+        // Damage follows the visuals exactly: a round blast the size of the shockwave ring, as tall
+        // as the fountain. Anyone who has stepped out of the particles and spikes is not hit.
+        Location column = center.clone().add(0, COLUMN_HEIGHT / 2, 0);
+        for (LivingEntity e : column.getNearbyLivingEntities(RADIUS + 1.0, COLUMN_HEIGHT / 2 + 1.0, RADIUS + 1.0)) {
             if (!LavaTargets.isValid(caster, e, trust)) continue;
+            if (!insideBlast(center, e)) continue;
 
-            TrueDamage.of(DAMAGE).attacker(caster).ignoreIFrames(false).apply(e);
+            TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).ignoreIFrames(false).apply(e);
             e.setFireTicks(BURN_TICKS);
             e.setVelocity(new Vector(0, LAUNCH_VELOCITY, 0));
         }
     }
 
 
-    private static final int CRACKS = 7;
+    /** True while the entity is standing inside the eruption's particles and spikes (a round area, not a box). */
+    private static boolean insideBlast(Location center, LivingEntity entity) {
+        Location at = entity.getLocation();
+        double dx = at.getX() - center.getX();
+        double dz = at.getZ() - center.getZ();
+        if (dx * dx + dz * dz > RADIUS * RADIUS) return false;
+
+        BoundingBox box = entity.getBoundingBox();
+        return box.getMaxY() >= center.getY() && box.getMinY() <= center.getY() + COLUMN_HEIGHT;
+    }
+
+    private static final int CRACKS = 9;
+    /** Points on the shockwave / warning rings - scales with the radius so the rings have no gaps. */
+    private static final int RING_POINTS = (int) Math.round(RADIUS * 11);
 
     private static final Particle.DustOptions CORE_DUST = new Particle.DustOptions(Color.fromRGB(255, 130, 25), 1.5f);
     private static final Particle.DustOptions EDGE_DUST = new Particle.DustOptions(Color.fromRGB(210, 45, 0), 1.0f);
@@ -223,7 +241,7 @@ public class EruptionAbility extends BaseAbility {
     private static final int RISE_TICKS = 4;
     private static final int ERUPTION_TICKS = 24;
     private static final double COLUMN_RADIUS = 0.55;
-    private static final int DROPLETS = 16;
+    private static final int DROPLETS = 28;
     private static final double GRAVITY = 0.07;
 
     /**
@@ -243,7 +261,7 @@ public class EruptionAbility extends BaseAbility {
         boolean[] landed = new boolean[DROPLETS];
         for (int i = 0; i < DROPLETS; i++) {
             angle[i] = rng.nextDouble() * Math.PI * 2;
-            horizontal[i] = 0.05 + rng.nextDouble() * 0.08;
+            horizontal[i] = (0.05 + rng.nextDouble() * 0.08) * (RADIUS / 2.5);
             vertical[i] = 0.5 + rng.nextDouble() * 0.25;
             start[i] = rng.nextInt(4);
         }
@@ -261,13 +279,13 @@ public class EruptionAbility extends BaseAbility {
                 // Shockwave: a bright ring plus a trailing smoke ring racing out along the ground.
                 if (t < 7) {
                     double ringRadius = RADIUS * (t + 1) / 7.0;
-                    for (int i = 0; i < 32; i++) {
-                        double a = i * (Math.PI * 2 / 32);
+                    for (int i = 0; i < RING_POINTS; i++) {
+                        double a = i * (Math.PI * 2 / RING_POINTS);
                         double cos = Math.cos(a);
                         double sin = Math.sin(a);
                         Location p = center.clone().add(cos * ringRadius, 0.12, sin * ringRadius);
                         world.spawnParticle(Particle.DUST, p, 1, 0.04, 0.03, 0.04, 0.0, EDGE_DUST, true);
-                        if (i % 4 == 0) {
+                        if (i % 5 == 0) {
                             world.spawnParticle(Particle.SMALL_FLAME, p, 1, 0, 0.03, 0, 0.01, null, true);
                         }
                         if (t > 1 && i % 8 == 0) {
@@ -353,10 +371,16 @@ public class EruptionAbility extends BaseAbility {
     private static final float SLAB_WIDTH = 0.55f;
     private static final float SLAB_DEPTH = 0.35f;
     private static final float SLAB_TILT = (float) Math.toRadians(14);
+    /** Roughly how many blocks apart neighbouring slabs on a ring are. Lower = denser (more entities). */
+    private static final double SLAB_SPACING = 1.8;
+    /** Concentric rings of slabs, as a fraction of the blast radius, outermost first. */
+    private static final double[] RING_FRACTIONS = {0.86, 0.60, 0.34};
 
     /**
-     * A ring of identical leaning basalt slabs around the particle fountain plus a few more inside
-     * it. Every slab is exactly one {@link BlockDisplay}: a single block scaled into a rectangle.
+     * Concentric rings of identical leaning basalt slabs, with a few more near the middle, so the
+     * whole blast area is covered however big the radius is. The number of slabs on each ring
+     * follows its circumference. Every slab is exactly one {@link BlockDisplay}: a single block
+     * scaled into a rectangle.
      *
      * @return the world position of every slab top, for the glow
      */
@@ -364,31 +388,29 @@ public class EruptionAbility extends BaseAbility {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         List<Location> tips = new ArrayList<>();
 
-        int ring = 8;
-        double offset = rng.nextDouble() * Math.PI * 2;
-        for (int i = 0; i < ring; i++) {
-            double angle = offset + i * (Math.PI * 2 / ring) + (rng.nextDouble() - 0.5) * 0.35;
-            double dist = RADIUS * (0.6 + rng.nextDouble() * 0.3);
-            float height = SLAB_HEIGHT;
-            float width = SLAB_WIDTH;
-            float depth = SLAB_DEPTH;
-            float tilt = SLAB_TILT;
-            tips.add(spawnSlab(center, (float) (Math.cos(angle) * dist), (float) (Math.sin(angle) * dist),
-                    width, height, depth, tilt, (float) angle, i % 3 == 0 ? SMOOTH_BASALT : BASALT));
+        int ringIndex = 0;
+        for (double fraction : RING_FRACTIONS) {
+            double ringRadius = RADIUS * fraction;
+            int count = Math.max(4, (int) Math.round(Math.PI * 2 * ringRadius / SLAB_SPACING));
+            double offset = rng.nextDouble() * Math.PI * 2;
+            for (int i = 0; i < count; i++) {
+                double angle = offset + i * (Math.PI * 2 / count) + (rng.nextDouble() - 0.5) * (0.5 / count * Math.PI);
+                double dist = ringRadius + (rng.nextDouble() - 0.5) * 0.5;
+                tips.add(spawnSlab(center, (float) (Math.cos(angle) * dist), (float) (Math.sin(angle) * dist),
+                        SLAB_WIDTH, SLAB_HEIGHT, SLAB_DEPTH, SLAB_TILT, (float) angle,
+                        (i + ringIndex) % 3 == 0 ? SMOOTH_BASALT : BASALT));
+            }
+            ringIndex++;
         }
 
-        // Inner slabs so the ring has depth.
-        int inner = 4;
-        double innerOffset = rng.nextDouble() * Math.PI * 2;
-        for (int i = 0; i < inner; i++) {
-            double angle = innerOffset + i * (Math.PI * 2 / inner) + (rng.nextDouble() - 0.5) * 0.6;
-            double dist = RADIUS * (0.2 + rng.nextDouble() * 0.2);
-            float height = SLAB_HEIGHT;
-            float width = SLAB_WIDTH;
-            float depth = SLAB_DEPTH;
-            float tilt = SLAB_TILT;
+        // A small cluster around the fountain itself.
+        int core = 4;
+        double coreOffset = rng.nextDouble() * Math.PI * 2;
+        for (int i = 0; i < core; i++) {
+            double angle = coreOffset + i * (Math.PI * 2 / core) + (rng.nextDouble() - 0.5) * 0.6;
+            double dist = RADIUS * 0.12 + rng.nextDouble() * 0.3;
             tips.add(spawnSlab(center, (float) (Math.cos(angle) * dist), (float) (Math.sin(angle) * dist),
-                    width, height, depth, tilt, (float) angle, BASALT));
+                    SLAB_WIDTH, SLAB_HEIGHT, SLAB_DEPTH, SLAB_TILT, (float) angle, BASALT));
         }
         return tips;
     }
@@ -490,6 +512,6 @@ public class EruptionAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Look at an enemy to crack the ground beneath them. After a short warning it erupts, damaging, igniting and launching everything in the blast.";
+        return "Look at an enemy to crack the ground beneath them. After a short warning it erupts, damaging, igniting and launching everything standing in the blast. Move out of the particles and you are safe.";
     }
 }

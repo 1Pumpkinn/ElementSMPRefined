@@ -23,6 +23,8 @@ public final class AbilityDamage {
 
     /** Entities currently taking ability damage -> [0] flips to true if a shield absorbed it. */
     private static final Map<UUID, boolean[]> IN_FLIGHT = new HashMap<>();
+    /** Entities currently taking named ability damage -> the ability's display name (for death messages). */
+    private static final Map<UUID, String> NAMES = new HashMap<>();
 
     private AbilityDamage() {}
 
@@ -32,15 +34,32 @@ public final class AbilityDamage {
      * @return false if an ability shield absorbed the hit (see {@link #markBlocked}), true otherwise
      */
     public static boolean deal(LivingEntity target, Runnable damageCall) {
+        return deal(target, null, damageCall);
+    }
+
+    /**
+     * Same as {@link #deal(LivingEntity, Runnable)}, but if this hit kills a player the death
+     * message names {@code abilityName} instead of whatever the attacker happens to be holding.
+     */
+    public static boolean deal(LivingEntity target, String abilityName, Runnable damageCall) {
         UUID id = target.getUniqueId();
         boolean[] blocked = new boolean[1];
         boolean outermost = IN_FLIGHT.putIfAbsent(id, blocked) == null;
+        if (outermost && abilityName != null) NAMES.put(id, abilityName);
         try {
             damageCall.run();
         } finally {
-            if (outermost) IN_FLIGHT.remove(id);
+            if (outermost) {
+                IN_FLIGHT.remove(id);
+                NAMES.remove(id);
+            }
         }
         return !blocked[0];
+    }
+
+    /** Display name of the ability currently dealing named damage to this entity, or null. */
+    static String abilityName(Entity entity) {
+        return NAMES.get(entity.getUniqueId());
     }
 
     /** True while ability damage (via {@link #deal} or {@link TrueDamage}) is being processed on this entity. */

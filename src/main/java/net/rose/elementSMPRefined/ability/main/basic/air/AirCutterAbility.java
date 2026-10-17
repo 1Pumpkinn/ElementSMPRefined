@@ -108,7 +108,7 @@ public class AirCutterAbility extends BaseAbility {
                     if (hitEntities.contains(e.getUniqueId())) continue;
 
                     hitEntities.add(e.getUniqueId());
-                    TrueDamage.of(damage).attacker(player).ignoreIFrames(false).apply(e);
+                    TrueDamage.of(damage).attacker(player).ability(getName()).ignoreIFrames(false).apply(e);
 
                     // Horizontal only, and SET rather than added onto existing velocity.
                     Vector knockback = new Vector(direction.getX(), 0, direction.getZ());

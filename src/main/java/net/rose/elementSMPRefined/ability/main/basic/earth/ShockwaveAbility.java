@@ -279,7 +279,7 @@ public class ShockwaveAbility extends BaseAbility {
 
             // Damage first: it applies its own knockback, which would otherwise
             // overwrite the launch if we set velocity before it.
-            TrueDamage.of(DAMAGE).attacker(caster).apply(entity);
+            TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).apply(entity);
 
             Vector launch = outward.clone().multiply(LAUNCH_OUTWARD);
             launch.setY(LAUNCH_UP);

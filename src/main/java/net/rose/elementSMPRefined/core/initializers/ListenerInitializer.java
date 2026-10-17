@@ -22,6 +22,7 @@ import net.rose.elementSMPRefined.listeners.status.DisarmListener;
 import net.rose.elementSMPRefined.listeners.status.StatusEffectListener;
 import net.rose.elementSMPRefined.util.server.DimensionDisable;
 import net.rose.elementSMPRefined.util.server.GracePeriod;
+import net.rose.elementSMPRefined.util.visual.ElementSmpTablist;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -38,6 +39,7 @@ public class ListenerInitializer {
     private FrostPassiveListener frostPassiveListener;
     private MetalMagnetarAbility metalMagnetarAbility;
     private GracePeriod gracePeriod;
+
 
     public ListenerInitializer(JavaPlugin plugin) {
         this.plugin = (ElementSMPRefined) plugin;
@@ -69,6 +71,7 @@ public class ListenerInitializer {
         // see CooldownActionBarTask's class doc for why that's needed alongside its
         // periodic tick.
         pluginManager.registerEvents(plugin.getCooldownActionBarTask(), plugin);
+        ElementSmpTablist.register(plugin);
     }
 
     private void registerItemListeners() {

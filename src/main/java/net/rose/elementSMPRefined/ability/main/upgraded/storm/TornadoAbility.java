@@ -17,6 +17,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -31,7 +32,10 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -103,6 +107,19 @@ public class TornadoAbility extends BaseAbility {
     private static final int SPIRAL_POINTS = 8;           // cloud particles per tick on the spiral up the funnel
     private static final int DEBRIS_POINTS = 4;           // block-crumb particles per tick flung around inside it
 
+    // ---- Wind loop sound ----
+    /** Wind loop sound. It's played in its own category so stopSound() can cancel it without touching real elytra sounds. */
+    private static final Sound WIND_SOUND = Sound.ITEM_ELYTRA_FLYING;
+    private static final SoundCategory WIND_CATEGORY = SoundCategory.AMBIENT;
+    private static final int WIND_INTERVAL_TICKS = 10;
+    /** Wind loudness at full size (1.0 = normal). Lower = quieter. */
+    private static final double WIND_VOLUME = 0.4;
+    /** Players within this range (blocks) hear the wind. Leave it and the wind is cut off immediately. */
+    private static final double WIND_LISTEN_RANGE = 24.0;
+    /** When the tornado collapses the wind steps down to silence over WIND_FADE_STEPS * WIND_FADE_STEP_TICKS ticks. */
+    private static final int WIND_FADE_STEPS = 6;
+    private static final int WIND_FADE_STEP_TICKS = 5;
+
     private final ElementSMPRefined plugin;
     private final Map<UUID, Tornado> tornadoes = new HashMap<>();
 
@@ -120,6 +137,8 @@ public class TornadoAbility extends BaseAbility {
         /** Tick at which each caught entity may next be hit. */
         final Map<UUID, Integer> nextHit = new HashMap<>();
         BukkitRunnable task;
+        /** Players currently hearing the wind loop, so it can be cut off for them when they leave or it ends. */
+        final Set<UUID> windListeners = new HashSet<>();
 
         Tornado(World world, Location pos, TornadoVisual visual, TrustManager trust, double heading) {
             this.world = world;
@@ -220,9 +239,100 @@ public class TornadoAbility extends BaseAbility {
         suck(t, caster, growth);
 
         spawnParticles(t, growth);
-        if (t.ticks % 10 == 0) {
-            t.world.playSound(t.pos, Sound.ITEM_ELYTRA_FLYING, 1.2f, 0.5f);
+
+        // Wind loop, handled per player so it can be cut off the moment someone leaves range.
+        if (t.ticks % WIND_INTERVAL_TICKS == 0) {
+            updateWind(t, growth);
         }
+    }
+
+    /**
+     * Plays the wind to every player within {@link #WIND_LISTEN_RANGE} and stops it for anyone who
+     * was hearing it but has since left range, teleported to another world, or logged off. Once the
+     * fade begins no new clips are started, so it dies down with the tornado.
+     */
+    private void updateWind(Tornado t, double growth) {
+        boolean fading = t.ticks >= DURATION_TICKS - FADE_TICKS;
+        double rangeSq = WIND_LISTEN_RANGE * WIND_LISTEN_RANGE;
+
+        // Cut off anyone who is no longer in range.
+        Iterator<UUID> it = t.windListeners.iterator();
+        while (it.hasNext()) {
+            Player listener = plugin.getServer().getPlayer(it.next());
+            if (listener == null || !listener.isOnline()) {
+                it.remove();
+                continue;
+            }
+            boolean inRange = listener.getWorld().equals(t.world)
+                    && listener.getLocation().distanceSquared(t.pos) <= rangeSq;
+            if (!inRange) {
+                listener.stopSound(WIND_SOUND, WIND_CATEGORY);
+                it.remove();
+            }
+        }
+
+        if (fading) return;
+
+        // Start / keep the loop going for everyone in range.
+        for (Player listener : t.world.getNearbyPlayers(t.pos, WIND_LISTEN_RANGE)) {
+            listener.playSound(t.pos, WIND_SOUND, WIND_CATEGORY, (float) (WIND_VOLUME * growth), 0.5f);
+            t.windListeners.add(listener.getUniqueId());
+        }
+    }
+
+    /**
+     * Fades the wind out after the tornado is gone. Vanilla can't turn a playing sound down, so each
+     * step stops the wind and restarts it a little quieter, until the last step stops it for good.
+     * Listeners who leave range or log off during the fade are cut off straight away.
+     */
+    private void fadeWind(Tornado t) {
+        if (t.windListeners.isEmpty()) return;
+
+        Location at = t.pos.clone();
+        Set<UUID> listeners = new HashSet<>(t.windListeners);
+        t.windListeners.clear();
+        double rangeSq = WIND_LISTEN_RANGE * WIND_LISTEN_RANGE;
+
+        new BukkitRunnable() {
+            int step = 0;
+
+            @Override
+            public void run() {
+                step++;
+                boolean last = step >= WIND_FADE_STEPS;
+                float volume = (float) (WIND_VOLUME * (1.0 - step / (double) WIND_FADE_STEPS));
+
+                Iterator<UUID> it = listeners.iterator();
+                while (it.hasNext()) {
+                    Player listener = plugin.getServer().getPlayer(it.next());
+                    if (listener == null || !listener.isOnline()) {
+                        it.remove();
+                        continue;
+                    }
+                    listener.stopSound(WIND_SOUND, WIND_CATEGORY);
+                    boolean inRange = listener.getWorld().equals(at.getWorld())
+                            && listener.getLocation().distanceSquared(at) <= rangeSq;
+                    if (last || !inRange) {
+                        it.remove();
+                        continue;
+                    }
+                    listener.playSound(at, WIND_SOUND, WIND_CATEGORY, volume, 0.5f);
+                }
+
+                if (last || listeners.isEmpty()) cancel();
+            }
+        }.runTaskTimer(plugin, 0L, WIND_FADE_STEP_TICKS);
+    }
+
+    /** Cuts the wind off for everyone who was hearing it, wherever they are now. */
+    private void stopWind(Tornado t) {
+        for (UUID id : t.windListeners) {
+            Player listener = plugin.getServer().getPlayer(id);
+            if (listener != null && listener.isOnline()) {
+                listener.stopSound(WIND_SOUND, WIND_CATEGORY);
+            }
+        }
+        t.windListeners.clear();
     }
 
     /** 0 -> 1 as it grows in, 1 while it roams, 1 -> 0 as it dies down. */
@@ -505,7 +615,6 @@ public class TornadoAbility extends BaseAbility {
             Location spark = new Location(world,
                     pos.getX() + Math.cos(angle) * radius, pos.getY() + f * height, pos.getZ() + Math.sin(angle) * radius);
             world.spawnParticle(Particle.ELECTRIC_SPARK, spark, 10, 0.35, 0.35, 0.35, 0.3);
-            world.playSound(spark, Sound.ITEM_TRIDENT_THUNDER, 0.25f, 1.5f);
         }
     }
 
@@ -530,6 +639,14 @@ public class TornadoAbility extends BaseAbility {
 
         if (tornado.task != null) tornado.task.cancel();
         tornado.visual.remove();
+
+        // Natural collapse: fade the wind out. Anything else (recast, death, element change, quit):
+        // cut it off straight away so it can't bleed into a new tornado or linger.
+        if (collapsed && plugin.isEnabled()) {
+            fadeWind(tornado);
+        } else {
+            stopWind(tornado);
+        }
 
         Player caster = plugin.getServer().getPlayer(casterId);
         if (caster != null) super.setActive(caster, false);

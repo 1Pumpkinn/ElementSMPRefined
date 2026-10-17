@@ -1,9 +1,7 @@
 import proguard.gradle.ProGuardTask
 buildscript {
     repositories { mavenCentral() }
-    dependencies {
-        classpath("com.guardsquare:proguard-gradle:7.8.0")
-    }
+    dependencies { classpath("com.guardsquare:proguard-gradle:7.8.0") }
 }
 
 plugins {
@@ -29,8 +27,7 @@ java {
 
 tasks {
     shadowJar {
-        archiveClassifier.set("")
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        archiveClassifier.set("shaded")
         minimize()
         mergeServiceFiles()
     }
@@ -54,20 +51,17 @@ tasks {
     }
 }
 
-val obfuscate by tasks.registering(ProGuardTask::class) {
+val obfuscate = tasks.register<ProGuardTask>("obfuscate") {
     dependsOn(tasks.shadowJar)
-
-    // JDK 25 from your toolchain, not whatever JVM Gradle itself runs on
-    val jdkHome = javaToolchains.launcherFor(java.toolchain).get()
-        .metadata.installationPath.asFile
-    val jmodFilter = mapOf("jarfilter" to "!**.jar", "filter" to "!module-info.class")
-
     injars(tasks.shadowJar.flatMap { it.archiveFile })
-    outjars(layout.buildDirectory.file("libs/${project.name}-obf.jar"))
+    outjars(layout.buildDirectory.file("libs/${project.name}-${project.version}-obf.jar"))
 
-    libraryjars(jmodFilter, "$jdkHome/jmods/java.base.jmod")
-    libraryjars(jmodFilter, "$jdkHome/jmods/java.logging.jmod")
+    libraryjars("${System.getProperty("java.home")}/jmods")
     libraryjars(configurations.compileClasspath.get())
 
     configuration("proguard-rules.pro")
+}
+
+tasks.build {
+    dependsOn(obfuscate)
 }

@@ -47,7 +47,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class LightningSpearAbility extends BaseAbility {
 
     /** Blocks travelled per tick. */
-    private static final double SPEED = 2.2;
+    private static final double SPEED = 2.2 ;
     /** Max distance before the spear fizzles out. */
     private static final double RANGE = 48.0;
     /** How wide the spear is for hit detection (radius, in blocks). */

@@ -10,6 +10,7 @@ import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
 import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
+import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
 
 /**
  * Main plugin class which significantly simplified by extending AbstractElementPlugin.
@@ -34,6 +35,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         MetalShieldVisual.removeAll();
         ElementGemOrbitVisual.removeAll();
         MagnetarVisual.removeAll();
+        TornadoVisual.removeAll();
         EruptionAbility.removeAll();
         getLogger().info("ElementSMPRefined disabled successfully!");
     }

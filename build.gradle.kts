@@ -1,3 +1,11 @@
+import proguard.gradle.ProGuardTask
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath("com.guardsquare:proguard-gradle:7.8.0")
+    }
+}
+
 plugins {
     id("java-library")
     id("com.gradleup.shadow") version "9.0.0"
@@ -44,4 +52,22 @@ tasks {
             expand(props)
         }
     }
+}
+
+val obfuscate by tasks.registering(ProGuardTask::class) {
+    dependsOn(tasks.shadowJar)
+
+    // JDK 25 from your toolchain, not whatever JVM Gradle itself runs on
+    val jdkHome = javaToolchains.launcherFor(java.toolchain).get()
+        .metadata.installationPath.asFile
+    val jmodFilter = mapOf("jarfilter" to "!**.jar", "filter" to "!module-info.class")
+
+    injars(tasks.shadowJar.flatMap { it.archiveFile })
+    outjars(layout.buildDirectory.file("libs/${project.name}-obf.jar"))
+
+    libraryjars(jmodFilter, "$jdkHome/jmods/java.base.jmod")
+    libraryjars(jmodFilter, "$jdkHome/jmods/java.logging.jmod")
+    libraryjars(configurations.compileClasspath.get())
+
+    configuration("proguard-rules.pro")
 }

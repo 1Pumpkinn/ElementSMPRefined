@@ -22,8 +22,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Handles Air element's fall impact passive - the further you fall, 
- * the further nearby entities get knocked back on landing
+ * Handles Air element's passives - no fall damage, and the further you fall,
+ * the further nearby entities get knocked back on landing.
+ * Also inherited by Storm (upgraded from Air).
  */
 public class AirFallImpactListener implements Listener {
     private final ElementSMPRefined plugin;
@@ -38,13 +39,18 @@ public class AirFallImpactListener implements Listener {
         this.playerIsFalling = new HashMap<>();
     }
 
+    /** Air, and Storm (upgraded from Air, inherits these passives). */
+    private static boolean hasAirPassives(ElementType type) {
+        return type == ElementType.AIR || type == ElementType.STORM;
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerFall(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
 
         var playerData = elementManager.data(player.getUniqueId());
-        if (playerData == null || playerData.getCurrentElement() != ElementType.AIR) return;
+        if (playerData == null || !hasAirPassives(playerData.getCurrentElement())) return;
 
         UUID playerId = player.getUniqueId();
         Double startY = playerFallStartY.get(playerId);
@@ -66,7 +72,7 @@ public class AirFallImpactListener implements Listener {
         UUID playerId = player.getUniqueId();
 
         var playerData = elementManager.data(playerId);
-        if (playerData == null || playerData.getCurrentElement() != ElementType.AIR) return;
+        if (playerData == null || !hasAirPassives(playerData.getCurrentElement())) return;
 
         Location from = event.getFrom();
         Location to = event.getTo();

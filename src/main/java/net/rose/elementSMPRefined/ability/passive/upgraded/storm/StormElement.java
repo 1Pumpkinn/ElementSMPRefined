@@ -9,12 +9,17 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.List;
+
 /**
  * Storm - lightning-based element.
  * <p>
  * Ability 1: Lightning Spear (fast lightning projectile that shocks what it hits)
  * Ability 2: Tornado (a roaming funnel that sucks in and damages everything near it)
- * Passives: none yet
+ * Passive 1: No fall damage (inherited from Air, see AirFallImpactListener)
+ * Passive 2: The further you fall, the further nearby entities get knocked back on landing
+ *            (inherited from Air, see AirFallImpactListener)
+ * Passive 3: Coming soon
  */
 public class StormElement extends BaseElement {
 
@@ -26,11 +31,20 @@ public class StormElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // No passives yet.
+        // Passives 1 and 2 (no fall damage, fall impact knockback) are handled by AirFallImpactListener.
+        // Passive 3 is coming soon.
     }
 
     @Override
     public String getDisplayName() {
         return ChatColor.YELLOW + "Storm";
+    }
+
+    @Override
+    public List<String> getPassiveBenefits() {
+        return List.of(
+                "No fall damage",
+                "The further you fall the further nearby entities are knocked back when landing",
+                "Coming soon");
     }
 }

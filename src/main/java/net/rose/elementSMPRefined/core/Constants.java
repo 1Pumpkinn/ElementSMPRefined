@@ -36,7 +36,6 @@ public final class Constants {
         public static final long EARTH_TUNNEL_MS = 10_000L;
         public static final long FROST_PUNCH_READY_MS = 10_000L;
         public static final long FROST_FREEZE_MS = 5_000L;
-        public static final long FROST_CIRCLE_MS = 10_000L;
         public static final long METAL_CHAIN_STUN_MS = 3_000L;
 
         private Duration() {}
@@ -46,7 +45,6 @@ public final class Constants {
         public static final double AIR_DASH_RADIUS = 3.0;
         public static final double FIRE_GEYSER_RADIUS = 5.5;
         public static final double LIFE_REGEN_RADIUS = 5.0;
-        public static final double FROST_CIRCLE_RADIUS = 5.0;
 
         private Distance() {}
     }

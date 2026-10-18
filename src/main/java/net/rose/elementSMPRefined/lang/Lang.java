@@ -44,10 +44,6 @@ public final class Lang {
             Component.text("Tunneling ended", NamedTextColor.YELLOW);
 
 
-    public static final Component FROST_CIRCLE_FREEZING_CIRCLE_IS_ALREADY_ACTIVE =
-            Component.text("Freezing Circle is already active!", NamedTextColor.RED);
-
-
     public static final Component LIFE_REGEN_REGEN_AURA_APPLIED_YOU_TRUSTED =
             Component.text("Regen aura applied to you and trusted allies!", NamedTextColor.GREEN);
 

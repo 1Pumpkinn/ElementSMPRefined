@@ -13,12 +13,15 @@ public enum ElementType {
     WATER,
     FIRE,
     EARTH,
-    LIFE,
-    DEATH,
+
     METAL,
     FROST,
     LAVA,
     STORM,
+
+    LIFE,
+    DEATH,
+
 
     /**
      * Placeholder used by {@code ExampleElement}. It is never registered, so it is

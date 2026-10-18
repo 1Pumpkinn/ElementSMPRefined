@@ -2,35 +2,52 @@ package net.rose.elementSMPRefined.ability.passive.upgraded.frost;
 
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostCircleAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIceSpikesAbility;
 import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostPunchAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
 
+/**
+ * Frost - upgraded from Water.
+ *
+ * Passive 1: Breath of the Nautilus (inherited from Water)
+ * Passive 2: True invisibility while standing still in water (inherited from Water,
+ *            see WaterInvisibilityListener, which handles both Water and Frost)
+ * Frost's own passives: Speed II with leather boots, Speed III on ice at Upgrade II
+ *            (see FrostPassiveListener)
+ */
 public class FrostElement extends BaseElement {
     public static final String META_FROZEN_PUNCH_READY = "frost_frozen_punch_ready";
 
     public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.FROST,
-                new FrostCircleAbility(plugin, configManager),
+                new FrostIceSpikesAbility(plugin, configManager),
                 new FrostPunchAbility(plugin, configManager));
     }
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Upsides are handled by FrostPassiveListener
-        // Upside 1: Speed 2 when wearing leather boots (always active)
-        // Upside 2: Speed 3 on ice (requires upgrade level 2)
+        // Passive 1 (from Water): Breath of the Nautilus, same effect Water uses.
+        player.addPotionEffect(new PotionEffect(PotionEffectType.BREATH_OF_THE_NAUTILUS, PotionEffect.INFINITE_DURATION, 0, true, false));
+
+        // Passive 2 (from Water) is handled by WaterInvisibilityListener.
+        // Speed passives are handled by FrostPassiveListener:
+        //   Speed 2 when wearing leather boots (always active)
+        //   Speed 3 on ice (requires upgrade level 2)
     }
 
     @Override
     public void clearEffects(Player player) {
         super.clearEffects(player);
         player.removeMetadata(META_FROZEN_PUNCH_READY, plugin);
+        EffectService.removeElementPotionEffect(player, PotionEffectType.BREATH_OF_THE_NAUTILUS);
     }
 
     @Override
@@ -41,6 +58,8 @@ public class FrostElement extends BaseElement {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
+                "Breath of the Nautilus",
+                "True invisibility while still in water",
                 "Speed II on snow",
                 "Speed III on ice (Upgrade II)"
         );

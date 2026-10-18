@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Water passive 2: standing still in water grants true invisibility from other players.
+ * Frost inherits this passive from Water, so it applies to both elements.
  * This is implemented with Bukkit hide/show semantics so the player remains fully visible
  * to themselves while all other players cannot see their armor, held items, or body.
  */
@@ -47,18 +48,24 @@ public class WaterInvisibilityListener implements Listener {
 
     private void startMonitor() {
         monitorTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            // Only check Water element players to avoid wasting cycles on other elements
+            // Only check players whose element has this passive to avoid wasting cycles on other elements
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (elementManager.getPlayerElement(player) == ElementType.WATER) {
+                if (hasPassive(player)) {
                     tick(player);
                 } else if (trulyInvisible.contains(player.getUniqueId())) {
-                    // No longer Water (reroll/admin set) - tick() never runs for them again, so reveal here.
+                    // No longer Water/Frost (reroll/admin set) - tick() never runs for them again, so reveal here.
                     idleChecks.remove(player.getUniqueId());
                     lastLocation.remove(player.getUniqueId());
                     revealPlayer(player);
                 }
             }
         }, 20L, MONITOR_PERIOD_TICKS);
+    }
+
+    /** Water and Frost (upgraded from Water) both get the in-water invisibility passive. */
+    private boolean hasPassive(Player player) {
+        ElementType type = elementManager.getPlayerElement(player);
+        return type == ElementType.WATER || type == ElementType.FROST;
     }
 
     private void tick(Player player) {

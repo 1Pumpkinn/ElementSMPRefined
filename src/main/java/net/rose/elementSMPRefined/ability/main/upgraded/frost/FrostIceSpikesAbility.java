@@ -37,8 +37,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * spikes burst up around the caster, sweeping around the circle like it is unzipping. Anything a
  * spike comes up under is hurt, thrown up and slowed.
  *
- * <p>The spikes are Blockbench models (see {@link IceSpikeVisual}); no real blocks are ever
- * changed, so there is nothing to clean up if the server stops mid-cast.</p>
+ * <p>The spikes use the same icicle model as Icicle Barrage (see {@link IceSpikeVisual}); no real
+ * blocks are ever changed, so there is nothing to clean up if the server stops mid-cast.</p>
  */
 public class FrostIceSpikesAbility extends BaseAbility {
 
@@ -51,8 +51,8 @@ public class FrostIceSpikesAbility extends BaseAbility {
     private static final int[] RING_SPIKES = {8, 13, 18};
     private static final int RING_DELAY_TICKS = 2;      // gap between one ring starting and the next
     private static final int SWEEP_TICKS = 8;           // a ring unzips around the circle over this long
-    private static final double SPIKE_MAX_HEIGHT = 1.9; // inner ring, tallest point of the model, in blocks
-    private static final double SPIKE_MIN_HEIGHT = 1.2; // outer ring, in blocks
+    private static final double SPIKE_MAX_HEIGHT = 1.9; // inner ring, ground to point, in blocks
+    private static final double SPIKE_MIN_HEIGHT = 1.2; // outer ring, ground to point, in blocks
 
     // Hit
     private static final double DAMAGE = 5.0;

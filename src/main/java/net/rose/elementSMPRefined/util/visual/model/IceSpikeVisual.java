@@ -22,32 +22,38 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * One Frost ice spike cluster, drawn with a resource-pack MODEL shown by an {@link ItemDisplay}.
+ * One Frost ice spike, drawn with the SAME resource-pack model as Icicle Barrage
+ * ({@code elementsmp:icicle_tip}, the pointed-dripstone shape wearing the icicle texture) shown by an
+ * {@link ItemDisplay}.
  * <p>
- * There are two hand-built variants ({@code elementsmp:ice_spike_a/b}, sources in
- * {@code blockbench/}), each a tall main spike with smaller shards leaning out beside it and a few
- * low chunks of ice at the base. One is picked at random per spike and given a random facing,
- * width and height, so a ring of them never looks copy-pasted.
+ * That model's sprite hangs point-DOWN (wide end at the top of the model, point 5 of 16 units below its
+ * centre), so for a spike standing on the ground it is flipped upside down: wide end in the floor, point
+ * in the air. Each spike gets a random facing and a little width jitter so a ring of them never looks
+ * copy-pasted.
  * <p>
  * The whole life cycle lives in here: the spike bursts up out of the ground, holds, sinks back and
  * removes itself. Growth is a client-side interpolated transformation (same approach as
- * {@link TornadoVisual}), planted by the BASE of the model - position it at the ground contact
- * point and the visual works out where the display's centre goes.
- * <p>
- * If you edit a model's height in Blockbench, update {@link #MODEL_UNITS} to match (tallest point
- * of the model, in model units, 16 = 1 block).
+ * {@link TornadoVisual}), planted by the BASE of the model - position it at the ground contact point and
+ * the visual works out where the display's centre goes.
  * <p>
  * Spikes remove themselves, but call {@link #removeAll()} on plugin disable as a safety net.
  */
 public final class IceSpikeVisual {
 
-    private static final NamespacedKey[] MODELS = {
-            key("elementsmp:ice_spike_a"),
-            key("elementsmp:ice_spike_b")
-    };
+    /** Same model Icicle Barrage fires. */
+    private static final NamespacedKey MODEL = Objects.requireNonNull(NamespacedKey.fromString("elementsmp:icicle_tip"));
 
-    /** Tallest point of each model above its base, in model units (16 per block). Mirrors the models. */
-    private static final double[] MODEL_UNITS = {29, 24};
+    /**
+     * How much of the model's height the sprite actually fills: the point sits at pixel 3 and the wide end
+     * at pixel 16, so 13 of 16 units. Used to turn a wanted visible height into a model scale.
+     */
+    private static final double SPRITE_FILL = 13.0 / 16.0;
+
+    /** Width of a spike as a fraction of its visible height. */
+    private static final double WIDTH_RATIO = 0.6;
+
+    /** How far the wide end is sunk into the ground so there is never a gap under it, in blocks. */
+    private static final double EMBED = 0.08;
 
     private static final int GROW_TICKS = 3;
     private static final int HOLD_TICKS = 40;
@@ -62,28 +68,28 @@ public final class IceSpikeVisual {
     private IceSpikeVisual() {}
 
     /**
-     * Spawns a spike cluster and runs its whole life cycle.
+     * Spawns a spike and runs its whole life cycle.
      *
      * @param base   where the spike's bottom touches the ground
-     * @param height how tall the tallest point should be, in blocks
+     * @param height how tall the visible spike should be, in blocks (ground to point)
      */
     public static void spawn(JavaPlugin plugin, Location base, double height) {
         World world = base.getWorld();
         if (world == null) return;
 
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        int variant = rnd.nextInt(MODELS.length);
 
-        float sy = (float) (height / (MODEL_UNITS[variant] / 16.0));
-        float sw = sy * (float) (0.9 + rnd.nextDouble() * 0.2);
+        // Model-height scale so the visible sprite (13/16 of the model) comes out `height` blocks tall.
+        float sy = (float) (height / SPRITE_FILL);
+        float sw = (float) (height * WIDTH_RATIO * (0.9 + rnd.nextDouble() * 0.2));
         float yaw = (float) (rnd.nextDouble() * Math.PI * 2);
 
-        // The model's centre (8, 8, 8) sits on the display, and its base is 8 units below that,
-        // so the display goes half a (scaled) block above the ground.
-        Location centre = new Location(world, base.getX(), base.getY() + 0.5 * sy, base.getZ(), 0f, 0f);
+        // The model's centre sits on the display and its wide end is half a (scaled) model below that,
+        // so the display goes half a model above the ground (less the small embed).
+        Location centre = new Location(world, base.getX(), base.getY() + 0.5 * sy - EMBED, base.getZ(), 0f, 0f);
 
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        ItemStack modelItem = ItemBuilder.of(Material.STICK).itemModel(MODELS[variant]).build();
+        ItemStack modelItem = ItemBuilder.of(Material.STICK).itemModel(MODEL).build();
 
         ItemDisplay display = world.spawn(centre, ItemDisplay.class, d -> {
             d.setItemStack(modelItem);
@@ -133,9 +139,10 @@ public final class IceSpikeVisual {
     }
 
     /**
-     * Pose at a given growth. Scaling happens around the model's centre (mid-height), so the display
-     * is dropped by however much the spike shrank to keep its base planted on the ground. Width
-     * eases in more slowly than height so a half-grown spike reads as rising, not as a squashed disc.
+     * Pose at a given growth. The model is flipped upside down (point up) and spun by {@code yaw}. Scaling
+     * happens around the model's centre, so the display is dropped by however much the spike shrank to
+     * keep its base planted on the ground. Width eases in more slowly than height so a half-grown spike
+     * reads as rising, not as a squashed disc.
      *
      * @param growth 1.0 = fully grown, {@link #COLLAPSED} = sunk into the ground
      */
@@ -143,14 +150,12 @@ public final class IceSpikeVisual {
         float w = width * (0.5f + 0.5f * growth);
         float h = height * growth;
         float lift = -0.5f * height * (1.0f - growth);
+        // Flip first (point down -> point up), then spin around the vertical axis.
+        Quaternionf rotation = new Quaternionf().rotateY(yaw).rotateX((float) Math.PI);
         return new Transformation(
                 new Vector3f(0f, lift, 0f),
-                new Quaternionf().rotateY(yaw),
+                rotation,
                 new Vector3f(w, h, w),
                 new Quaternionf());
-    }
-
-    private static NamespacedKey key(String value) {
-        return Objects.requireNonNull(NamespacedKey.fromString(value));
     }
 }

@@ -34,8 +34,6 @@ public final class Constants {
 
     public static final class Duration {
         public static final long EARTH_TUNNEL_MS = 10_000L;
-        public static final long FROST_PUNCH_READY_MS = 10_000L;
-        public static final long FROST_FREEZE_MS = 5_000L;
         public static final long METAL_CHAIN_STUN_MS = 3_000L;
 
         private Duration() {}

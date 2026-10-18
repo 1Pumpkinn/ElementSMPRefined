@@ -8,7 +8,6 @@ import net.rose.elementSMPRefined.ability.passive.basic.air.AirElement;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
 import net.rose.elementSMPRefined.ability.passive.basic.earth.listeners.EarthVeinMinerListener;
 import net.rose.elementSMPRefined.ability.passive.basic.fire.listeners.FireSmeltListener;
-import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostFrozenPunchListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostPassiveListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners.MetalChainStunListener;
@@ -118,7 +117,6 @@ public class ListenerInitializer {
 
         pluginManager.registerEvents(new FireSmeltListener(plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new MetalChainStunListener(plugin), plugin);
-        pluginManager.registerEvents(new FrostFrozenPunchListener(plugin, plugin.getElementManager()), plugin);
     }
 
     private void registerLifecycleListener() {

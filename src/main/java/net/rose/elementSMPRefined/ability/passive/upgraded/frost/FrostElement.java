@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.upgraded.frost;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIceSpikesAbility;
-import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostPunchAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBurstAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
@@ -24,12 +24,10 @@ import java.util.List;
  *            (see FrostPassiveListener)
  */
 public class FrostElement extends BaseElement {
-    public static final String META_FROZEN_PUNCH_READY = "frost_frozen_punch_ready";
-
     public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.FROST,
                 new FrostIceSpikesAbility(plugin, configManager),
-                new FrostPunchAbility(plugin, configManager));
+                new FrostIcicleBurstAbility(plugin, configManager));
     }
 
     @Override
@@ -46,7 +44,6 @@ public class FrostElement extends BaseElement {
     @Override
     public void clearEffects(Player player) {
         super.clearEffects(player);
-        player.removeMetadata(META_FROZEN_PUNCH_READY, plugin);
         EffectService.removeElementPotionEffect(player, PotionEffectType.BREATH_OF_THE_NAUTILUS);
     }
 

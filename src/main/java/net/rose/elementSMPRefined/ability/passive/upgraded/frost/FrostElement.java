@@ -20,8 +20,6 @@ import java.util.List;
  * Passive 1: Breath of the Nautilus (inherited from Water)
  * Passive 2: True invisibility while standing still in water (inherited from Water,
  *            see WaterInvisibilityListener, which handles both Water and Frost)
- * Frost's own passives: Speed II with leather boots, Speed III on ice at Upgrade II
- *            (see FrostPassiveListener)
  */
 public class FrostElement extends BaseElement {
     public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
@@ -36,9 +34,7 @@ public class FrostElement extends BaseElement {
         player.addPotionEffect(new PotionEffect(PotionEffectType.BREATH_OF_THE_NAUTILUS, PotionEffect.INFINITE_DURATION, 0, true, false));
 
         // Passive 2 (from Water) is handled by WaterInvisibilityListener.
-        // Speed passives are handled by FrostPassiveListener:
-        //   Speed 2 when wearing leather boots (always active)
-        //   Speed 3 on ice (requires upgrade level 2)
+
     }
 
     @Override
@@ -57,8 +53,7 @@ public class FrostElement extends BaseElement {
         return List.of(
                 "Breath of the Nautilus",
                 "True invisibility while still in water",
-                "Speed II on snow",
-                "Speed III on ice (Upgrade II)"
+                "Passive 3 Coming Soon"
         );
     }
 }

@@ -62,7 +62,7 @@ import java.util.Set;
  * shown by {@link ItemDisplay}s. No real blocks are ever changed, so there is nothing to clean up if the
  * server stops.
  */
-public class FrostIcicleBurstAbility extends BaseAbility {
+public class FrostIcicleBarrageAbility extends BaseAbility {
 
     private static final NamespacedKey ICICLE_MODEL = Objects.requireNonNull(NamespacedKey.fromString("elementsmp:icicle_tip"));
 
@@ -109,6 +109,9 @@ public class FrostIcicleBurstAbility extends BaseAbility {
     private static final int STUCK_TICKS = 40;
     private static final int STUCK_SHRINK_TICKS = 5;
     private static final float COLLAPSED = 0.05f;
+    private static final float STUCK_SCALE = 0.55f;         // a planted icicle is smaller than a flying one
+    private static final double STUCK_EMBED = 0.12;         // how far the point sits inside the surface
+    private static final double STUCK_STRAIGHTEN = 0.7;     // 0 = keep the flight angle, 1 = point straight into the wall
 
     // Hard stop so a cast can never run forever
     private static final int MAX_TASK_TICKS = CHARGE_TICKS + (ICICLE_COUNT - 1) * FIRE_INTERVAL_TICKS
@@ -123,7 +126,7 @@ public class FrostIcicleBurstAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
 
-    public FrostIcicleBurstAbility(JavaPlugin plugin, ConfigManager configManager) {
+    public FrostIcicleBarrageAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("frost_icicle_barrage", ElementType.FROST, 2, 60, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
@@ -164,6 +167,7 @@ public class FrostIcicleBurstAbility extends BaseAbility {
         boolean inRing = true;
         double travelled = 0;
         int stuckLeft = -1; // -1 = still flying
+        Vector stuckDir;    // direction the point faces once planted
 
         Icicle(ItemDisplay display, Location pos, int appearTick) {
             this.display = display;
@@ -382,7 +386,9 @@ public class FrostIcicleBurstAbility extends BaseAbility {
                 if (ic.stuckLeft == STUCK_SHRINK_TICKS) {
                     ic.display.setInterpolationDelay(0);
                     ic.display.setInterpolationDuration(STUCK_SHRINK_TICKS);
-                    ic.display.setTransformation(pose(ic.velocity, COLLAPSED));
+                    // Sinks back into the wall while it shrinks instead of hanging in the air.
+                    ic.display.setTransformation(pose(ic.stuckDir, COLLAPSED,
+                            (float) (ICICLE_HALF_LENGTH * STUCK_SCALE)));
                 }
                 if (ic.stuckLeft-- <= 0) {
                     remove(ic);
@@ -430,18 +436,32 @@ public class FrostIcicleBurstAbility extends BaseAbility {
 
         private void stickInto(Icicle ic, RayTraceResult hit) {
             Vector at = hit.getHitPosition();
-            Vector dir = ic.velocity.clone().normalize();
-            // Centre the model so its point sits just inside the surface.
-            Location embedded = new Location(world, at.getX(), at.getY(), at.getZ())
-                    .subtract(dir.clone().multiply(ICICLE_HALF_LENGTH - 0.15));
+            BlockFace face = hit.getHitBlockFace();
 
+            // The icicle arrives at whatever angle it was fired (it starts off to the side of the ring),
+            // which looks lopsided when planted. Pull it most of the way towards pointing straight into
+            // the surface so it looks stuck in, like an arrow.
+            Vector dir = ic.velocity.clone().normalize();
+            if (face != null) {
+                Vector inward = face.getDirection().multiply(-1);
+                Vector blended = dir.clone().multiply(1.0 - STUCK_STRAIGHTEN).add(inward.multiply(STUCK_STRAIGHTEN));
+                if (blended.lengthSquared() > 1.0E-6) dir = blended.normalize();
+            }
+            ic.stuckDir = dir;
+
+            // Smaller than the flying size, with the point just inside the surface.
+            double halfLength = ICICLE_HALF_LENGTH * STUCK_SCALE;
+            Location embedded = new Location(world, at.getX(), at.getY(), at.getZ())
+                    .subtract(dir.clone().multiply(halfLength - STUCK_EMBED));
+
+            // Snap straight to the final pose (no interpolation from the flying pose), then place it.
             ic.display.setInterpolationDelay(0);
             ic.display.setInterpolationDuration(0);
             ic.display.setTeleportDuration(0);
+            ic.display.setTransformation(pose(dir, STUCK_SCALE));
             ic.display.teleport(embedded);
             ic.stuckLeft = STUCK_TICKS;
 
-            BlockFace face = hit.getHitBlockFace();
             Location puff = new Location(world, at.getX(), at.getY(), at.getZ());
             if (face != null) puff.add(face.getDirection().multiply(0.1));
             world.spawnParticle(Particle.BLOCK, puff, 6, 0.15, 0.15, 0.15, 0.0, ICE_DATA, true);
@@ -520,11 +540,16 @@ public class FrostIcicleBurstAbility extends BaseAbility {
 
     /** Points the model's tip (TIP_AXIS) along the given direction. Scale 0..1 shrinks it away. */
     private static Transformation pose(Vector direction, float scale) {
+        return pose(direction, scale, 0f);
+    }
+
+    /** Same, but also shoves the model {@code push} blocks along the direction it points (used to sink it into a wall). */
+    private static Transformation pose(Vector direction, float scale, float push) {
         Vector d = direction.clone().normalize();
         Quaternionf facing = new Quaternionf().rotationTo(TIP_AXIS,
                 new Vector3f((float) d.getX(), (float) d.getY(), (float) d.getZ()));
         return new Transformation(
-                new Vector3f(),
+                new Vector3f((float) d.getX() * push, (float) d.getY() * push, (float) d.getZ() * push),
                 facing,
                 new Vector3f(ICICLE_WIDTH * scale, ICICLE_LENGTH * scale, ICICLE_WIDTH * scale),
                 new Quaternionf());

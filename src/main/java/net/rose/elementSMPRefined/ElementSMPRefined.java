@@ -9,7 +9,7 @@ import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
 import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
 import net.rose.elementSMPRefined.util.visual.model.IceSpikeVisual;
-import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBurstAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBarrageAbility;
 import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
 import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
@@ -39,7 +39,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         MagnetarVisual.removeAll();
         TornadoVisual.removeAll();
         IceSpikeVisual.removeAll();
-        FrostIcicleBurstAbility.removeAll();
+        FrostIcicleBarrageAbility.removeAll();
         EruptionAbility.removeAll();
         getLogger().info("ElementSMPRefined disabled successfully!");
     }

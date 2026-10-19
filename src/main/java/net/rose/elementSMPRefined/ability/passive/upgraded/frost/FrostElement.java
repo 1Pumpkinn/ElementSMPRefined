@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.upgraded.frost;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIceSpikesAbility;
-import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBurstAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBarrageAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
@@ -25,7 +25,7 @@ public class FrostElement extends BaseElement {
     public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.FROST,
                 new FrostIceSpikesAbility(plugin, configManager),
-                new FrostIcicleBurstAbility(plugin, configManager));
+                new FrostIcicleBarrageAbility(plugin, configManager));
     }
 
     @Override

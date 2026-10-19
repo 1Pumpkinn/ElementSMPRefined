@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -11,14 +11,15 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -35,6 +36,11 @@ import java.util.concurrent.ThreadLocalRandom;
  * removes itself. Growth is a client-side interpolated transformation (same approach as
  * {@link TornadoVisual}), planted by the BASE of the model - position it at the ground contact point and
  * the visual works out where the display's centre goes.
+ * <p>
+ * Performance: every live spike is advanced by ONE shared repeating task (started with the first
+ * spike, cancelled when the last one is gone) instead of three scheduled tasks per spike - a single
+ * Ice Spikes cast spawns ~40 of them. The model item is cached ({@link ModelItems}) rather than
+ * rebuilt for each entity.
  * <p>
  * Spikes remove themselves, but call {@link #removeAll()} on plugin disable as a safety net.
  */
@@ -59,13 +65,44 @@ public final class IceSpikeVisual {
     private static final int HOLD_TICKS = 40;
     private static final int SHRINK_TICKS = 6;
 
+    // Ages (in ticks since the spike spawned) at which each stage starts.
+    private static final int GROW_AT = 1;
+    private static final int SHRINK_AT = GROW_AT + GROW_TICKS + HOLD_TICKS;
+    private static final int REMOVE_AT = SHRINK_AT + SHRINK_TICKS + 2;
+
     /** Never scale to exactly zero - a degenerate transformation can render glitchy. */
     private static final float COLLAPSED = 0.05f;
 
-    /** Every live spike display, so plugin disable can sweep up anything still on screen. */
-    private static final Set<ItemDisplay> ACTIVE = new HashSet<>();
+    private static final org.bukkit.block.data.BlockData PACKED_ICE = Material.PACKED_ICE.createBlockData();
+    private static final org.bukkit.block.data.BlockData ICE = Material.ICE.createBlockData();
+
+    /** Every live spike, advanced by {@link #tickAll()}. */
+    private static final List<Spike> ACTIVE = new ArrayList<>();
+    private static BukkitTask ticker;
 
     private IceSpikeVisual() {}
+
+    /** One spike's state. The pose numbers are fixed at spawn; only the growth changes. */
+    private static final class Spike {
+        final ItemDisplay display;
+        final World world;
+        final double baseX, baseY, baseZ;
+        final float width, height, yaw;
+        final int spawnTick;
+        int stage = 0; // 0 = just spawned, 1 = growing/held, 2 = shrinking
+
+        Spike(ItemDisplay display, Location base, float width, float height, float yaw) {
+            this.display = display;
+            this.world = base.getWorld();
+            this.baseX = base.getX();
+            this.baseY = base.getY();
+            this.baseZ = base.getZ();
+            this.width = width;
+            this.height = height;
+            this.yaw = yaw;
+            this.spawnTick = Bukkit.getCurrentTick();
+        }
+    }
 
     /**
      * Spawns a spike and runs its whole life cycle.
@@ -89,53 +126,92 @@ public final class IceSpikeVisual {
         Location centre = new Location(world, base.getX(), base.getY() + 0.5 * sy - EMBED, base.getZ(), 0f, 0f);
 
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        ItemStack modelItem = ItemBuilder.of(Material.STICK).itemModel(MODEL).build();
+        // Shared, cached stack: setItemStack copies it, so it is never mutated.
+        ItemStack modelItem = ModelItems.of(MODEL);
+        Transformation collapsed = pose(sw, sy, yaw, COLLAPSED);
 
         ItemDisplay display = world.spawn(centre, ItemDisplay.class, d -> {
             d.setItemStack(modelItem);
             d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
             d.setBillboard(Display.Billboard.FIXED);
             d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(pose(sw, sy, yaw, COLLAPSED));
+            d.setTransformation(collapsed);
             d.setPersistent(false);
             d.setInvulnerable(true);
         });
-        ACTIVE.add(display);
 
-        world.spawnParticle(Particle.BLOCK, base.clone().add(0, 0.1, 0), 6, 0.3, 0.1, 0.3, 0.0,
-                Material.PACKED_ICE.createBlockData(), true);
-        world.spawnParticle(Particle.SNOWFLAKE, base.clone().add(0, 0.5, 0), 6, 0.3, 0.4, 0.3, 0.02, null, true);
+        ACTIVE.add(new Spike(display, base, sw, sy, yaw));
+        ensureTicker(plugin);
 
-        // Interpolation only animates if the transformation changes after the entity has been
-        // sent to clients, so the growth starts a tick later.
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!display.isValid()) return;
-            display.setInterpolationDelay(0);
-            display.setInterpolationDuration(GROW_TICKS);
-            display.setTransformation(pose(sw, sy, yaw, 1.0f));
-        }, 1L);
+        // One reusable Location for both particle bursts.
+        Location fx = new Location(world, base.getX(), base.getY() + 0.1, base.getZ());
+        world.spawnParticle(Particle.BLOCK, fx, 6, 0.3, 0.1, 0.3, 0.0,
+                PACKED_ICE, true);
+        fx.setY(base.getY() + 0.5);
+        world.spawnParticle(Particle.SNOWFLAKE, fx, 6, 0.3, 0.4, 0.3, 0.02, null, true);
+    }
 
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!display.isValid()) return;
-            display.setInterpolationDelay(0);
-            display.setInterpolationDuration(SHRINK_TICKS);
-            display.setTransformation(pose(sw, sy, yaw, COLLAPSED));
-        }, 1L + GROW_TICKS + HOLD_TICKS);
+    private static void ensureTicker(JavaPlugin plugin) {
+        if (ticker != null) return;
+        ticker = Bukkit.getScheduler().runTaskTimer(plugin, IceSpikeVisual::tickAll, 1L, 1L);
+    }
 
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (display.isValid()) display.remove();
-            ACTIVE.remove(display);
-            world.spawnParticle(Particle.BLOCK, base.clone().add(0, 0.5, 0), 10, 0.4, 0.5, 0.4, 0.0,
-                    Material.ICE.createBlockData(), true);
-        }, 1L + GROW_TICKS + HOLD_TICKS + SHRINK_TICKS + 2L);
+    /** Advances every live spike one step; stops the shared task once none are left. */
+    private static void tickAll() {
+        int now = Bukkit.getCurrentTick();
+
+        for (Iterator<Spike> it = ACTIVE.iterator(); it.hasNext(); ) {
+            Spike s = it.next();
+
+            if (!s.display.isValid()) { // killed or unloaded: it is simply gone
+                it.remove();
+                continue;
+            }
+
+            int age = now - s.spawnTick;
+
+            if (age >= REMOVE_AT) {
+                s.display.remove();
+                it.remove();
+                s.world.spawnParticle(Particle.BLOCK, new Location(s.world, s.baseX, s.baseY + 0.5, s.baseZ),
+                        10, 0.4, 0.5, 0.4, 0.0, ICE, true);
+            } else if (age >= SHRINK_AT) {
+                if (s.stage < 2) {
+                    s.stage = 2;
+                    animate(s, SHRINK_TICKS, COLLAPSED);
+                }
+            } else if (age >= GROW_AT) {
+                // Interpolation only animates if the transformation changes after the entity has been
+                // sent to clients, so the growth starts a tick after the spawn.
+                if (s.stage < 1) {
+                    s.stage = 1;
+                    animate(s, GROW_TICKS, 1.0f);
+                }
+            }
+        }
+
+        if (ACTIVE.isEmpty() && ticker != null) {
+            ticker.cancel();
+            ticker = null;
+        }
+    }
+
+    private static void animate(Spike s, int durationTicks, float growth) {
+        s.display.setInterpolationDelay(0);
+        s.display.setInterpolationDuration(durationTicks);
+        s.display.setTransformation(pose(s.width, s.height, s.yaw, growth));
     }
 
     /** Safety net for plugin disable - removes every spike still on screen. */
     public static void removeAll() {
-        for (ItemDisplay display : new ArrayList<>(ACTIVE)) {
-            if (display.isValid()) display.remove();
+        for (Spike s : ACTIVE) {
+            if (s.display.isValid()) s.display.remove();
         }
         ACTIVE.clear();
+        if (ticker != null) {
+            ticker.cancel();
+            ticker = null;
+        }
     }
 
     /**

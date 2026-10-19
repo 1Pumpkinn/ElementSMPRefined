@@ -162,6 +162,10 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
         double search = DOME_RADIUS + 2.0;
 
         for (Entity e : world.getNearbyEntities(center, search, search, search)) {
+            // Cheap type check first: the box is full of items, XP orbs and display entities
+            // (including the Ice Spikes / Icicle displays) that the barrier never touches.
+            if (!(e instanceof LivingEntity) && !(e instanceof Projectile)) continue;
+            if (e instanceof ArmorStand) continue;
             if (isAllowed(state, e)) continue;
 
             if (e instanceof Projectile projectile) {
@@ -213,27 +217,72 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
         }
     }
 
+    /** Packs a block position into one long (26 bits x, 26 bits z, 12 bits y), so the shell needs no Location objects. */
+    private static long pack(int x, int y, int z) {
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | ((y + 2048) & 0xFFFL);
+    }
+
+    private static int unpackX(long key) {
+        return (int) (key >> 38);
+    }
+
+    private static int unpackZ(long key) {
+        return (int) ((key << 26) >> 38);
+    }
+
+    private static int unpackY(long key) {
+        return (int) (key & 0xFFFL) - 2048;
+    }
+
+    private static Location[] toLocations(World world, java.util.Collection<Long> keys) {
+        Location[] out = new Location[keys.size()];
+        int i = 0;
+        for (long key : keys) {
+            out[i++] = new Location(world, unpackX(key), unpackY(key), unpackZ(key));
+        }
+        return out;
+    }
+
     /**
      * Works out which blocks of the shell can actually hold water (air / replaceable only -
      * terrain is left alone) for the dome's current centre block.
      */
-    private Set<Location> computeShell(DomeState state) {
+    private Set<Long> computeShell(DomeState state) {
         World world = state.center.getWorld();
         int cx = state.center.getBlockX();
         int cy = state.center.getBlockY();
         int cz = state.center.getBlockZ();
+        int minY = world.getMinHeight();
+        int maxY = world.getMaxHeight();
 
-        Set<Location> shell = new HashSet<>();
+        Set<Long> shell = new HashSet<>(SHELL_OFFSETS.size() * 2);
+
+        // The shell is ~400 blocks spread over a handful of chunks: remember the last chunk's
+        // loaded state instead of asking the world for every block.
+        int lastChunkX = Integer.MIN_VALUE;
+        int lastChunkZ = Integer.MIN_VALUE;
+        boolean lastLoaded = false;
+
         for (int[] o : SHELL_OFFSETS) {
             int x = cx + o[0];
             int y = cy + o[1];
             int z = cz + o[2];
-            if (!world.isChunkLoaded(x >> 4, z >> 4)) continue; // never force a chunk load for a particle-grade effect
+            if (y < minY || y >= maxY) continue;
+
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
+            if (chunkX != lastChunkX || chunkZ != lastChunkZ) {
+                lastChunkX = chunkX;
+                lastChunkZ = chunkZ;
+                // never force a chunk load for a particle-grade effect
+                lastLoaded = world.isChunkLoaded(chunkX, chunkZ);
+            }
+            if (!lastLoaded) continue;
 
             Block block = world.getBlockAt(x, y, z);
             if (block.getType() == Material.LAVA) continue;
             if (block.isEmpty() || block.isReplaceable()) {
-                shell.add(block.getLocation());
+                shell.add(pack(x, y, z));
             }
         }
         return shell;
@@ -242,31 +291,46 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
     /**
      * Moves the shell to the dome's current centre block: new water goes up where the dome
      * now is, and blocks it just left are put back to their real state - only the difference
-     * is sent, not the whole shell.
+     * is sent, not the whole shell. The difference and the real block data are worked out once,
+     * not once per viewer.
      */
     private void updateShell(DomeState state) {
-        Set<Location> next = computeShell(state);
-        Set<Location> old = state.shellBlocks;
-
+        Set<Long> next = computeShell(state);
+        Set<Long> old = state.shellBlocks;
         World world = state.center.getWorld();
-        double maxSq = VIEW_DISTANCE * VIEW_DISTANCE;
 
-        for (Player viewer : world.getPlayers()) {
-            if (viewer.getLocation().distanceSquared(state.center) > maxSq) continue;
+        List<Long> added = new ArrayList<>();
+        for (long key : next) {
+            if (!old.contains(key)) added.add(key);
+        }
+        List<Long> removed = new ArrayList<>();
+        for (long key : old) {
+            if (!next.contains(key)) removed.add(key);
+        }
 
-            for (Location loc : next) {
-                if (!old.contains(loc)) {
+        if (!added.isEmpty() || !removed.isEmpty()) {
+            Location[] addLocs = toLocations(world, added);
+            Location[] removeLocs = toLocations(world, removed);
+            BlockData[] removeData = new BlockData[removeLocs.length];
+            for (int i = 0; i < removeLocs.length; i++) {
+                removeData[i] = removeLocs[i].getBlock().getBlockData();
+            }
+
+            double maxSq = VIEW_DISTANCE * VIEW_DISTANCE;
+            for (Player viewer : world.getPlayers()) {
+                if (viewer.getLocation().distanceSquared(state.center) > maxSq) continue;
+
+                for (Location loc : addLocs) {
                     viewer.sendBlockChange(loc, WATER_DATA);
                 }
-            }
-            for (Location loc : old) {
-                if (!next.contains(loc)) {
-                    viewer.sendBlockChange(loc, loc.getBlock().getBlockData());
+                for (int i = 0; i < removeLocs.length; i++) {
+                    viewer.sendBlockChange(removeLocs[i], removeData[i]);
                 }
             }
         }
 
         state.shellBlocks = next;
+        state.shellLocations = toLocations(world, next);
         state.shellX = state.center.getBlockX();
         state.shellY = state.center.getBlockY();
         state.shellZ = state.center.getBlockZ();
@@ -279,7 +343,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
 
         for (Player viewer : world.getPlayers()) {
             if (viewer.getLocation().distanceSquared(state.center) > maxSq) continue;
-            for (Location loc : state.shellBlocks) {
+            for (Location loc : state.shellLocations) {
                 viewer.sendBlockChange(loc, WATER_DATA);
             }
         }
@@ -288,12 +352,19 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
     /** Puts the real blocks back on every client that might have been shown the shell. */
     private void restoreShell(DomeState state) {
         World world = state.center.getWorld();
+        Location[] locations = state.shellLocations;
+        BlockData[] real = new BlockData[locations.length];
+        for (int i = 0; i < locations.length; i++) {
+            real[i] = locations[i].getBlock().getBlockData();
+        }
+
         for (Player viewer : world.getPlayers()) {
-            for (Location loc : state.shellBlocks) {
-                viewer.sendBlockChange(loc, loc.getBlock().getBlockData());
+            for (int i = 0; i < locations.length; i++) {
+                viewer.sendBlockChange(locations[i], real[i]);
             }
         }
         state.shellBlocks.clear();
+        state.shellLocations = new Location[0];
     }
 
     /** Entities the dome lets through (and protects): the caster, their trusted players, and their tamed pets. */
@@ -404,7 +475,8 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
         final UUID owner;
         Location center; // follows the caster
         final TrustManager trust;
-        Set<Location> shellBlocks = new HashSet<>();
+        Set<Long> shellBlocks = new HashSet<>();      // packed block positions, see pack()
+        Location[] shellLocations = new Location[0];  // the same blocks as Locations, built once per shell move
         int shellX = Integer.MIN_VALUE, shellY = Integer.MIN_VALUE, shellZ = Integer.MIN_VALUE; // centre block the shell was last built for
         BukkitTask task;
 

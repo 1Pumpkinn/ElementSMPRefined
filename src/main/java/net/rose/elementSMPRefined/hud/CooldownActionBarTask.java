@@ -18,6 +18,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 /**
  * Repeating task that shows each online player's current element's two
  * ability cooldowns in their action bar, refreshed once a second.
@@ -46,6 +49,7 @@ public class CooldownActionBarTask implements Listener {
     private final ElementManager elementManager;
     private final CooldownManager cooldownManager;
     private BukkitTask task;
+    private final Map<ElementType, String[]> strippedNames = new EnumMap<>(ElementType.class);
 
     public CooldownActionBarTask(JavaPlugin plugin, ElementManager elementManager, CooldownManager cooldownManager) {
         this.plugin = (ElementSMPRefined) plugin;
@@ -98,8 +102,13 @@ public class CooldownActionBarTask implements Listener {
         // one of those hits Component.text() raw, and this runs every
         // second for every player with an element, so strip them here
         // rather than spamming the console.
-        String ability1Name = ChatColor.stripColor(element.getAbility1Name());
-        String ability2Name = ChatColor.stripColor(element.getAbility2Name());
+        // The names never change while the server runs, so strip them once per element instead of
+        // twice per player per second.
+        String[] names = strippedNames.computeIfAbsent(type, t -> new String[]{
+                ChatColor.stripColor(element.getAbility1Name()),
+                ChatColor.stripColor(element.getAbility2Name())});
+        String ability1Name = names[0];
+        String ability2Name = names[1];
 
         Component bar = Lang.cooldownActionBar(ability1Name, remaining1, ability2Name, remaining2);
         player.sendActionBar(bar);

@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -111,7 +111,7 @@ public final class MagnetarVisual {
 
     private static ItemDisplay spawn(Location at, NamespacedKey model) {
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        ItemStack modelItem = ItemBuilder.of(Material.STICK).itemModel(model).build();
+        ItemStack modelItem = ModelItems.of(model);
 
         return at.getWorld().spawn(at, ItemDisplay.class, d -> {
             d.setItemStack(modelItem);

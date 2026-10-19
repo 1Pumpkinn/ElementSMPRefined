@@ -2,7 +2,7 @@ package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -257,7 +257,7 @@ public final class ElementGemOrbitVisual {
         NamespacedKey model = Objects.requireNonNull(
                 NamespacedKey.fromString("elementsmp:" + type.name().toLowerCase() + "_gem"));
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        ItemStack stack = ItemBuilder.of(Material.STICK).itemModel(model).build();
+        ItemStack stack = ModelItems.of(model);
 
         return base.getWorld().spawn(place(base, slot, 0, index), ItemDisplay.class, d -> {
             d.setItemStack(stack);

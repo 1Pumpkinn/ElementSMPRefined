@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -15,7 +16,6 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.TileState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.BlockDisplay;
@@ -23,12 +23,18 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -160,6 +166,9 @@ public class ShockwaveAbility extends BaseAbility {
 
         final Set<UUID> alreadyHit = new HashSet<>();
         final Set<Long> raisedColumns = new HashSet<>();
+        // The ring revisits the same columns many times (points are closer together than a block),
+        // so each column's ground is looked up once per cast. null = "no usable ground here".
+        final Map<Long, Block> groundByColumn = new HashMap<>();
         final int startY = origin.getBlockY();
 
         new BukkitRunnable() {
@@ -174,12 +183,24 @@ public class ShockwaveAbility extends BaseAbility {
 
                 int points = Math.max(8, (int) Math.ceil((2 * Math.PI * radius) / ARC_SPACING));
 
+                // Fetched once per tick, and only if a point actually finds ground.
+                List<LivingEntity> candidates = null;
+
                 for (int i = 0; i < points; i++) {
                     double angle = (2 * Math.PI * i) / points;
-                    Vector d = new Vector(Math.cos(angle), 0, Math.sin(angle));
-                    Location point = origin.clone().add(d.clone().multiply(radius));
+                    double dirX = Math.cos(angle);
+                    double dirZ = Math.sin(angle);
+                    int bx = (int) Math.floor(origin.getX() + dirX * radius);
+                    int bz = (int) Math.floor(origin.getZ() + dirZ * radius);
 
-                    Block ground = findGround(point, startY);
+                    long column = planarKey(bx, bz);
+                    Block ground;
+                    if (groundByColumn.containsKey(column)) {
+                        ground = groundByColumn.get(column);
+                    } else {
+                        ground = GroundScan.findGround(world, bx, bz, startY, SCAN_UP, SCAN_DOWN);
+                        groundByColumn.put(column, ground);
+                    }
                     if (ground == null) continue;
 
                     if (raisedColumns.add(columnKey(ground))) {
@@ -188,29 +209,16 @@ public class ShockwaveAbility extends BaseAbility {
                         raiseBlock(ground, falloff);
                     }
 
-                    launchNearby(caster, trust, ground.getLocation().add(0.5, 1.0, 0.5), d, alreadyHit);
+                    if (candidates == null) candidates = collectCandidates(caster, trust, origin, radius, alreadyHit);
+                    if (!candidates.isEmpty()) {
+                        launchNearby(caster, candidates, ground, dirX, dirZ, alreadyHit);
+                    }
                 }
 
                 world.playSound(origin.clone().add(radius, 0, 0), Sound.BLOCK_STONE_BREAK, 0.5f, 0.7f);
                 radius += STEP_PER_TICK;
             }
         }.runTaskTimer(plugin, 0L, 1L);
-    }
-
-    /** Topmost solid, non-special block with open air above it near the given column. */
-    private Block findGround(Location point, int startY) {
-        World w = point.getWorld();
-        int x = point.getBlockX();
-        int z = point.getBlockZ();
-        for (int y = startY + SCAN_UP; y >= startY - SCAN_DOWN; y--) {
-            Block b = w.getBlockAt(x, y, z);
-            if (!b.getType().isSolid()) continue;
-            if (!b.getRelative(0, 1, 0).isPassable()) continue;
-            if (b.getType().getHardness() < 0) return null;          // bedrock, barriers, etc.
-            if (b.getState(false) instanceof TileState) return null; // chests, spawners, signs
-            return b;
-        }
-        return null;
     }
 
     /** Heaves a copy of the block up out of the ground, holds it, then settles it back down. */
@@ -269,22 +277,49 @@ public class ShockwaveAbility extends BaseAbility {
                 new Vector3f(CUBE_SCALE, CUBE_SCALE, CUBE_SCALE), new Quaternionf());
     }
 
-    private void launchNearby(Player caster, TrustManager trust, Location at, Vector outward, Set<UUID> alreadyHit) {
-        for (LivingEntity entity : at.getNearbyLivingEntities(HIT_RADIUS_XZ, HIT_RADIUS_Y, HIT_RADIUS_XZ)) {
+    /** Everything near the ring that it is allowed to launch, fetched with a single query. */
+    private List<LivingEntity> collectCandidates(Player caster, TrustManager trust, Location origin,
+                                                 double radius, Set<UUID> alreadyHit) {
+        double reachXZ = radius + STEP_PER_TICK + HIT_RADIUS_XZ + 1.0;
+        double reachY = SCAN_UP + SCAN_DOWN + 1 + HIT_RADIUS_Y + 1.0;
+
+        List<LivingEntity> out = new ArrayList<>();
+        for (LivingEntity entity : origin.getNearbyLivingEntities(reachXZ, reachY, reachXZ)) {
             if (entity.equals(caster)) continue;
             if (entity instanceof ArmorStand) continue;
             if (trust != null && entity instanceof Player other
                     && trust.isTrusted(caster.getUniqueId(), other.getUniqueId())) continue;
+            if (alreadyHit.contains(entity.getUniqueId())) continue;
+            out.add(entity);
+        }
+        return out;
+    }
+
+    /** Launches whoever overlaps the hit zone above this ground block, once each. */
+    private void launchNearby(Player caster, List<LivingEntity> candidates, Block ground,
+                              double outwardX, double outwardZ, Set<UUID> alreadyHit) {
+        BoundingBox zone = BoundingBox.of(
+                new Vector(ground.getX() + 0.5, ground.getY() + 1.0, ground.getZ() + 0.5),
+                HIT_RADIUS_XZ, HIT_RADIUS_Y, HIT_RADIUS_XZ);
+
+        for (Iterator<LivingEntity> it = candidates.iterator(); it.hasNext(); ) {
+            LivingEntity entity = it.next();
+            if (!entity.isValid() || !entity.getBoundingBox().overlaps(zone)) continue;
+
+            it.remove(); // each entity is only launched once per cast
             if (!alreadyHit.add(entity.getUniqueId())) continue;
 
             // Damage first: it applies its own knockback, which would otherwise
             // overwrite the launch if we set velocity before it.
             TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).apply(entity);
 
-            Vector launch = outward.clone().multiply(LAUNCH_OUTWARD);
-            launch.setY(LAUNCH_UP);
-            entity.setVelocity(launch);
+            entity.setVelocity(new Vector(outwardX * LAUNCH_OUTWARD, LAUNCH_UP, outwardZ * LAUNCH_OUTWARD));
         }
+    }
+
+    /** Packs an (x, z) column into one long. */
+    private static long planarKey(int x, int z) {
+        return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
     }
 
     private static long columnKey(Block b) {

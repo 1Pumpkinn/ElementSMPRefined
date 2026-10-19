@@ -50,7 +50,11 @@ public class StatusEffectListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        
+
+        // This fires for every step of every player; almost nobody has an effect, so do ONE map
+        // lookup and leave instead of five.
+        if (!statusEffectManager.hasAnyEffect(player)) return;
+
         boolean isFullyStunned = statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN);
         boolean isPartiallyStunned = statusEffectManager.hasEffect(player, StatusEffectType.PARTIAL_STUN);
         boolean isStunned = statusEffectManager.hasEffect(player, StatusEffectType.STUN);

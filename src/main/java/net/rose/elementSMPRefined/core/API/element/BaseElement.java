@@ -21,7 +21,7 @@ import java.util.function.Predicate;
  * makes it unique: its passives, display text, and its two {@link Ability}
  * instances.
  * <p>
- * See {@code hs.elementSMPRefined.util.example.ExampleElement} for a minimal
+ * See {@code net.rose.elementSMPRefined.util.example.ExampleElement} for a minimal
  * template to copy when adding a new element.
  */
 public abstract class BaseElement implements Element {

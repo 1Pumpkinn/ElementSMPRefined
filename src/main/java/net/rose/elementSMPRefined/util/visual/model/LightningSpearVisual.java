@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -81,7 +81,7 @@ public final class LightningSpearVisual {
                 new Quaternionf());
 
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        ItemStack modelItem = ItemBuilder.of(Material.STICK).itemModel(LIGHTNING_SPEAR).build();
+        ItemStack modelItem = ModelItems.of(LIGHTNING_SPEAR);
 
         this.display = head.getWorld().spawn(centre(head), ItemDisplay.class, d -> {
             d.setItemStack(modelItem);

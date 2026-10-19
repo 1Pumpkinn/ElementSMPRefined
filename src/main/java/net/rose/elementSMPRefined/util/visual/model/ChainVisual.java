@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -87,7 +87,7 @@ public final class ChainVisual {
         this.owner = owner;
         this.tracker = owner == null ? null : new PingCompensation.Tracker(owner, MAX_LEAD_BLOCKS);
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        this.modelItem = ItemBuilder.of(Material.STICK).itemModel(model).build();
+        this.modelItem = ModelItems.of(model);
         ACTIVE.add(this);
     }
 

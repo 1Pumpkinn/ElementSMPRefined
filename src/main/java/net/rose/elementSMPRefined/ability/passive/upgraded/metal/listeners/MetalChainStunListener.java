@@ -2,7 +2,6 @@ package net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.status.StatusEffectType;
-import io.papermc.paper.event.entity.EntityMoveEvent;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Mob;
@@ -16,9 +15,12 @@ import org.bukkit.util.Vector;
 /**
  * Listener for metal chain stun effects.
  * Enforces stun constraints:
- * - Prevents stunned entities from moving
  * - Removes knockback from stunned entities
  * - Works for both players (via StatusEffectManager) and mobs (via AI disable)
+ *
+ * Performance note: this used to also cancel {@code EntityMoveEvent} for AI-less mobs. That event
+ * fires for every moving non-player entity on the server, every tick, as long as ANY plugin listens
+ * to it, and nothing in this plugin disables mob AI any more, so the handler only added overhead.
  */
 public class MetalChainStunListener implements Listener {
     private static final Vector ZERO_VELOCITY = new Vector(0, 0, 0);
@@ -27,24 +29,6 @@ public class MetalChainStunListener implements Listener {
 
     public MetalChainStunListener(JavaPlugin plugin) {
         this.plugin = (ElementSMPRefined) plugin;
-    }
-
-    /**
-     * Prevent stunned entities from moving.
-     * Runs at HIGHEST priority to intercept movement before other listeners.
-     */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onEntityMove(EntityMoveEvent event) {
-        LivingEntity entity = event.getEntity();
-
-        if (entity instanceof Player) {
-            return;
-        }
-
-        if (entity instanceof Mob mob && !mob.hasAI()) {
-            event.setCancelled(true);
-            entity.setVelocity(ZERO_VELOCITY);
-        }
     }
 
     /**

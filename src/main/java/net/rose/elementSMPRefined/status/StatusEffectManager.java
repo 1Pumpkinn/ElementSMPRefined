@@ -187,6 +187,15 @@ public class StatusEffectManager {
         applyEffect(player, StatusEffectType.STUN, duration);
     }
 
+    /**
+     * True if the player has ANY status effect right now. One map lookup - use it as a cheap early
+     * exit in hot paths (e.g. {@code PlayerMoveEvent}) before asking about individual effects.
+     */
+    public boolean hasAnyEffect(Player player) {
+        Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects.get(player.getUniqueId());
+        return playerEffects != null && !playerEffects.isEmpty();
+    }
+
     public boolean hasEffect(Player player, StatusEffectType type) {
         UUID uuid = player.getUniqueId();
         Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects.get(uuid);
@@ -284,6 +293,12 @@ public class StatusEffectManager {
      */
     private void startEffectMonitor() {
         monitorTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            // Runs every tick, and nearly always there is nothing to do - bail before building iterators.
+            if (activeEffects.isEmpty()) return;
+
+            // One clock read per tick, not one per effect.
+            final long now = System.currentTimeMillis();
+
             Iterator<Map.Entry<UUID, Map<StatusEffectType, StatusEffectInstance>>> playerIterator =
                     activeEffects.entrySet().iterator();
 
@@ -309,7 +324,6 @@ public class StatusEffectManager {
                     StatusEffectData data = effectData.get(type);
                     if (data != null && data.damagePerSecond() > 0) {
                         // Process damage over time effects (once per second)
-                        long now = System.currentTimeMillis();
                         if (instance.isDamageDue(now)) {
                             player.damage(data.damagePerSecond() * instance.amplifier());
                             instance = instance.damagedAt(now);
@@ -317,7 +331,7 @@ public class StatusEffectManager {
                         }
                     }
 
-                    if (instance.isExpired()) {
+                    if (instance.isExpired(now)) {
                         removePotionEffects(player, type);
                         effectIterator.remove();
                         // Another active effect may still need the potion we just removed.
@@ -434,7 +448,11 @@ public class StatusEffectManager {
         }
 
         boolean isExpired() {
-            return System.currentTimeMillis() >= expiryTime;
+            return isExpired(System.currentTimeMillis());
+        }
+
+        boolean isExpired(long now) {
+            return now >= expiryTime;
         }
 
         int remainingTicks() {

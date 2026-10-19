@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
@@ -114,6 +114,10 @@ public class FrostIcicleBurstAbility extends BaseAbility {
     private static final int MAX_TASK_TICKS = CHARGE_TICKS + (ICICLE_COUNT - 1) * FIRE_INTERVAL_TICKS
             + (int) (MAX_RANGE / SPEED) + STUCK_TICKS + 40;
 
+    // Block data for the particle bursts, built once instead of on every hit / launch / stick.
+    private static final org.bukkit.block.data.BlockData PACKED_ICE_DATA = Material.PACKED_ICE.createBlockData();
+    private static final org.bukkit.block.data.BlockData ICE_DATA = Material.ICE.createBlockData();
+
     // Every live display, so they can be swept up when the plugin shuts down or reloads
     private static final Set<Display> ACTIVE = new HashSet<>();
 
@@ -173,7 +177,7 @@ public class FrostIcicleBurstAbility extends BaseAbility {
         private final Player caster;
         private final TrustManager trust;
         private final World world;
-        private final ItemStack icicleItem = ItemBuilder.of(Material.STICK).itemModel(ICICLE_MODEL).build();
+        private final ItemStack icicleItem = ModelItems.of(ICICLE_MODEL);
         private final Icicle[] slots = new Icicle[ICICLE_COUNT];
         private final List<Icicle> flying = new ArrayList<>();
 
@@ -203,8 +207,9 @@ public class FrostIcicleBurstAbility extends BaseAbility {
             if (isTickFrozen()) return;
 
             try {
-                Location orb = orbSpot(caster);
-                Vector aim = caster.getEyeLocation().getDirection().normalize();
+                Location eye = caster.getEyeLocation();
+                Location orb = orbSpot(eye);
+                Vector aim = eye.getDirection().normalize();
                 Vector[] axes = axes(aim);
 
                 if (ticks < CHARGE_TICKS) {
@@ -357,7 +362,7 @@ public class FrostIcicleBurstAbility extends BaseAbility {
 
             caster.swingMainHand();
             world.spawnParticle(Particle.CLOUD, ic.pos, 3, 0.15, 0.15, 0.15, 0.04, null, true);
-            world.spawnParticle(Particle.BLOCK, ic.pos, 4, 0.15, 0.15, 0.15, 0.0, Material.PACKED_ICE.createBlockData(), true);
+            world.spawnParticle(Particle.BLOCK, ic.pos, 4, 0.15, 0.15, 0.15, 0.0, PACKED_ICE_DATA, true);
             world.playSound(ic.pos, Sound.BLOCK_GLASS_BREAK, 1.2f, 0.9f);
             world.playSound(ic.pos, Sound.ENTITY_PLAYER_HURT_FREEZE, 1.0f, 1.1f);
             world.playSound(ic.pos, Sound.BLOCK_AMETHYST_CLUSTER_BREAK, 1.0f, 1.4f);
@@ -439,7 +444,7 @@ public class FrostIcicleBurstAbility extends BaseAbility {
             BlockFace face = hit.getHitBlockFace();
             Location puff = new Location(world, at.getX(), at.getY(), at.getZ());
             if (face != null) puff.add(face.getDirection().multiply(0.1));
-            world.spawnParticle(Particle.BLOCK, puff, 6, 0.15, 0.15, 0.15, 0.0, Material.ICE.createBlockData(), true);
+            world.spawnParticle(Particle.BLOCK, puff, 6, 0.15, 0.15, 0.15, 0.0, ICE_DATA, true);
             world.playSound(puff, Sound.BLOCK_GLASS_HIT, 0.8f, 1.3f);
         }
 
@@ -451,7 +456,7 @@ public class FrostIcicleBurstAbility extends BaseAbility {
 
             Location spot = new Location(world, at.getX(), at.getY(), at.getZ());
             world.spawnParticle(Particle.SNOWFLAKE, spot, 14, 0.25, 0.25, 0.25, 0.05, null, true);
-            world.spawnParticle(Particle.BLOCK, spot, 8, 0.2, 0.2, 0.2, 0.0, Material.ICE.createBlockData(), true);
+            world.spawnParticle(Particle.BLOCK, spot, 8, 0.2, 0.2, 0.2, 0.0, ICE_DATA, true);
             world.playSound(spot, Sound.BLOCK_GLASS_BREAK, 1.0f, 1.2f);
         }
 
@@ -494,8 +499,8 @@ public class FrostIcicleBurstAbility extends BaseAbility {
     }
 
     /** Where the ring floats: ahead of the caster's eyes, a little low. */
-    private static Location orbSpot(Player caster) {
-        Location eye = caster.getEyeLocation();
+    private static Location orbSpot(Location eyeLocation) {
+        Location eye = eyeLocation.clone();
         Location spot = eye.add(eye.getDirection().multiply(ORB_DISTANCE)).subtract(0, ORB_DROP, 0);
         // A display entity is also rotated by its own yaw/pitch, on top of its transformation. The eye
         // location carries the caster's look direction, so zero it or every model gets turned twice.

@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -65,7 +65,7 @@ public final class MetalShieldVisual {
         Location start = owner.getLocation();
 
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        ItemStack modelItem = ItemBuilder.of(Material.STICK).itemModel(METAL_SHIELD).build();
+        ItemStack modelItem = ModelItems.of(METAL_SHIELD);
 
         for (int i = 0; i < count; i++) {
             double slot = i * (360.0 / count);

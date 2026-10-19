@@ -80,7 +80,8 @@ public class WaterInvisibilityListener implements Listener {
         }
 
         org.bukkit.Location current = player.getLocation();
-        org.bukkit.Location previous = lastLocation.put(uuid, current.clone());
+        // getLocation() already returns a fresh copy, so it can be stored as is.
+        org.bukkit.Location previous = lastLocation.put(uuid, current);
 
         boolean stationary = previous != null
                 && previous.getWorld().equals(current.getWorld())

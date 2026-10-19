@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -73,7 +73,7 @@ public final class IcicleVisual {
         for (int i = 0; i < count; i++) {
             final int index = i;
             // The base material is irrelevant - the item_model component replaces its model entirely.
-            final ItemStack item = ItemBuilder.of(Material.STICK).itemModel(modelFor(i, count)).build();
+            final ItemStack item = ModelItems.of(modelFor(i, count));
             // The display's centre sits half a (scaled) segment above where the segment starts.
             final Location centre = new Location(world, base.getX(),
                     base.getY() + i * segmentHeight + 0.5 * segmentHeight, base.getZ(), 0f, 0f);

@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -80,7 +80,7 @@ public final class AirCutterVisual {
                 new Quaternionf());
 
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        ItemStack modelItem = ItemBuilder.of(Material.STICK).itemModel(AIR_CUTTER).build();
+        ItemStack modelItem = ModelItems.of(AIR_CUTTER);
 
         this.display = at.getWorld().spawn(flat(at), ItemDisplay.class, d -> {
             d.setItemStack(modelItem);

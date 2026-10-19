@@ -16,12 +16,14 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
@@ -180,19 +182,31 @@ public class MagmaBeamAbility extends BaseAbility {
             if (side.lengthSquared() < 1.0E-6) side = new Vector(1, 0, 0);
             side.normalize();
             Vector up = step.clone().crossProduct(side).normalize();
+            // One reusable Location for every particle on the beam - the loops below place thousands
+            // of particles over a cast and used to allocate several objects for each one.
+            Location p = start.clone();
+            double sx = start.getX(), sy = start.getY(), sz = start.getZ();
+
             for (double d = 0; d < visualLength; d += HELIX_STEP) {
                 double angle = roll + d * 0.9;
+                double bx = sx + step.getX() * d;
+                double by = sy + step.getY() * d;
+                double bz = sz + step.getZ() * d;
                 for (int strand = 0; strand < 2; strand++) {
                     double a = angle + strand * Math.PI;
-                    Vector offset = side.clone().multiply(Math.cos(a) * HELIX_RADIUS)
-                            .add(up.clone().multiply(Math.sin(a) * HELIX_RADIUS));
-                    w.spawnParticle(Particle.FLAME, start.clone().add(step.clone().multiply(d)).add(offset),
-                            1, 0, 0, 0, 0.0, null, true);
+                    double c = Math.cos(a) * HELIX_RADIUS;
+                    double sn = Math.sin(a) * HELIX_RADIUS;
+                    p.setX(bx + side.getX() * c + up.getX() * sn);
+                    p.setY(by + side.getY() * c + up.getY() * sn);
+                    p.setZ(bz + side.getZ() * c + up.getZ() * sn);
+                    w.spawnParticle(Particle.FLAME, p, 1, 0, 0, 0, 0.0, null, true);
                 }
             }
 
             for (double d = 0; d < visualLength; d += SHEATH_STEP) {
-                Location p = start.clone().add(step.clone().multiply(d));
+                p.setX(sx + step.getX() * d);
+                p.setY(sy + step.getY() * d);
+                p.setZ(sz + step.getZ() * d);
                 w.spawnParticle(Particle.FLAME, p, 1, 0.12, 0.12, 0.12, 0.0, null, true);
                 if (((int) (d / SHEATH_STEP) + beamTick) % 3 == 0) {
                     w.spawnParticle(Particle.LAVA, p, 1, 0.2, 0.2, 0.2, 0.0, null, true);
@@ -212,17 +226,29 @@ public class MagmaBeamAbility extends BaseAbility {
 
         if (beamTick % HIT_INTERVAL != 0) return;
 
-        // One pulse per target per interval, even if the sample spheres overlap.
-        Set<UUID> hit = new HashSet<>();
-        for (double d = 1.0; d <= length; d += 0.75) {
-            Location point = eye.clone().add(dir.clone().multiply(d));
-            for (LivingEntity e : point.getNearbyLivingEntities(HIT_RADIUS)) {
-                if (!LavaTargets.isValid(player, e, trust) || !hit.add(e.getUniqueId())) continue;
+        // One pulse per target per interval. The old version asked the world for entities around a
+        // sample point every 0.75 blocks along the beam (~30 queries per pulse); now it is ONE query
+        // over the whole beam, then an exact "does the beam pass within HIT_RADIUS of this entity"
+        // test per entity found. The beam still starts 1 block out from the eyes, like before.
+        if (length < 1.0) return;
 
-                TrueDamage.of(DAMAGE_PER_PULSE).attacker(player).ability(getName()).ignoreIFrames(true).apply(e);
-                e.setFireTicks(BURN_TICKS);
-                w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 8, 0.3, 0.4, 0.3, 0.03, null, true);
-            }
+        Vector from = eye.toVector().add(dir.clone().multiply(1.0));
+        double reach = length - 1.0;
+        Vector to = from.clone().add(dir.clone().multiply(reach));
+        BoundingBox corridor = BoundingBox.of(from, to).expand(HIT_RADIUS);
+
+        Set<UUID> hit = new HashSet<>();
+        for (Entity nearby : w.getNearbyEntities(corridor, candidate -> candidate instanceof LivingEntity)) {
+            LivingEntity e = (LivingEntity) nearby;
+            if (!LavaTargets.isValid(player, e, trust) || hit.contains(e.getUniqueId())) continue;
+
+            BoundingBox grown = e.getBoundingBox().expand(HIT_RADIUS);
+            if (!grown.contains(from) && grown.rayTrace(from, dir, reach) == null) continue;
+            hit.add(e.getUniqueId());
+
+            TrueDamage.of(DAMAGE_PER_PULSE).attacker(player).ability(getName()).ignoreIFrames(true).apply(e);
+            e.setFireTicks(BURN_TICKS);
+            w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 8, 0.3, 0.4, 0.3, 0.03, null, true);
         }
     }
 

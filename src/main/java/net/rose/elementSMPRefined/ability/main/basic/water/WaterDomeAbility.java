@@ -101,7 +101,6 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
         Player player = context.getPlayer();
 
         if (isActiveFor(player)) {
-            player.sendMessage(Lang.WATER_BUBBLE_YOUR_WATER_BUBBLE_IS_ALREADY);
             return false;
         }
 

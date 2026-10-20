@@ -44,20 +44,6 @@ public final class Lang {
             Component.text("Tunneling ended", NamedTextColor.YELLOW);
 
 
-    public static final Component LIFE_REGEN_REGEN_AURA_APPLIED_YOU_TRUSTED =
-            Component.text("Regen aura applied to you and trusted allies!", NamedTextColor.GREEN);
-
-
-    public static final Component METAL_CHAIN_NO_TARGET_FOUND =
-            Component.text("No target found!", NamedTextColor.RED);
-
-    public static final Component METAL_CHAIN_YOU_CANNOT_CHAIN_TRUSTED_PLAYERS =
-            Component.text("You cannot chain trusted players!", NamedTextColor.RED);
-
-
-    public static final Component WATER_BUBBLE_YOUR_WATER_BUBBLE_IS_ALREADY =
-            Component.text("Your dome is already active!", NamedTextColor.RED);
-
     public static final Component TRUST_PLAYERS_ONLY =
             Component.text("Players only");
 

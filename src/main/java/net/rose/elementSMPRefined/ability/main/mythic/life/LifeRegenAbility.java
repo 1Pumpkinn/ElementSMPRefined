@@ -65,7 +65,6 @@ public class LifeRegenAbility extends BaseAbility {
         }
         
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10 * 20, 1, true, true, true));
-        player.sendMessage(Lang.LIFE_REGEN_REGEN_AURA_APPLIED_YOU_TRUSTED);
         return true;
     }
 

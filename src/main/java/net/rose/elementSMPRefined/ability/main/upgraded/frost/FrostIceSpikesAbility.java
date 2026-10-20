@@ -62,7 +62,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
     private static final double SPIKE_MIN_HEIGHT = 1.2; // outer ring, ground to point, in blocks
 
     // Hit
-    private static final double DAMAGE = 5.0;
+    private static final double DAMAGE = 10.0;
     private static final double LAUNCH_UP = 0.8;
     private static final double HIT_RADIUS_XZ = 1.2;
     private static final double HIT_RADIUS_Y = 2.0;

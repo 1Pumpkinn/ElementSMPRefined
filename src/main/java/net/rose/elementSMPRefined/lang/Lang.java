@@ -37,8 +37,9 @@ public final class Lang {
     public static final Component EARTH_TUNNEL_TUNNELING_CANCELLED =
             Component.text("Tunneling cancelled", NamedTextColor.YELLOW);
 
+    // Shown when the tunnel starts: no "started" text, just a hint that it can be cancelled.
     public static final Component EARTH_TUNNEL_TUNNELING_STARTED_PRESS_AGAIN_CANCEL =
-            Component.text("Tunneling started Press again to cancel.", NamedTextColor.GOLD);
+            Component.text("Press again to cancel.", NamedTextColor.GOLD);
 
     public static final Component EARTH_TUNNEL_TUNNELING_ENDED =
             Component.text("Tunneling ended", NamedTextColor.YELLOW);
@@ -501,13 +502,6 @@ public final class Lang {
             Component.text("You are already rerolling!", NamedTextColor.RED);
 
 
-    public static final Component EXAMPLE_EXAMPLE_ABILITY_DEACTIVATED =
-            Component.text("Example ability deactivated", NamedTextColor.RED);
-
-    public static final Component EXAMPLE_EXAMPLE_ABILITY_ACTIVATED =
-            Component.text("Example ability activated", NamedTextColor.GREEN);
-
-
     public static final Component AUTOSMELT_PLAYERS_ONLY =
             Component.text("Only players can use this command!", NamedTextColor.RED);
 
@@ -529,10 +523,6 @@ public final class Lang {
 
     public static final Component ELEMENT_INFO_PLAYERS_ONLY =
             Component.text("Only players can use this command!", NamedTextColor.RED);
-
-
-    public static final Component WATER_BUBBLE_FADED =
-            Component.text("Your dome faded away.", NamedTextColor.AQUA);
 
 
     public static final Component DIMENSION_TRAVEL_DISABLED =

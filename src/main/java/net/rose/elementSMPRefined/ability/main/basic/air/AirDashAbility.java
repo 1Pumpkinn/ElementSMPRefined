@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.air;
 
+import net.rose.elementSMPRefined.particles.AirParticles;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -9,7 +10,6 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -47,7 +47,7 @@ public class AirDashAbility extends BaseAbility {
                 }
 
                 Location loc = player.getLocation();
-                player.getWorld().spawnParticle(Particle.CLOUD, loc, 5, 0.3, 0.3, 0.3, 0.05, null, true);
+                AirParticles.dashTrail(loc);
 
                 if (ticks % 5 == 0) {
                     for (LivingEntity entity : loc.getNearbyLivingEntities(Constants.Distance.AIR_DASH_RADIUS)) {
@@ -61,7 +61,7 @@ public class AirDashAbility extends BaseAbility {
                         Vector knockback = offset.normalize();
                         knockback.setY(0.2);
                         entity.setVelocity(knockback.multiply(1.0));
-                        entity.getWorld().spawnParticle(Particle.CLOUD, entity.getLocation(), 10, 0.3, 0.3, 0.3, 0.05, null, true);
+                        AirParticles.dashKnockback(entity.getLocation());
                     }
                 }
 

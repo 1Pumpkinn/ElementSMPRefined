@@ -1,13 +1,12 @@
 package net.rose.elementSMPRefined.ability.main.mythic.death;
 
+import net.rose.elementSMPRefined.particles.DeathParticles;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -33,9 +32,6 @@ public class DeathSideStepAbility extends BaseAbility {
     /** How finely we sweep the path for solid blocks - smaller = safer, more checks. */
     private static final double SWEEP_STEP = 0.25;
     /** Pure black dust for both the vanish and reappear bursts. */
-    private static final Particle.DustOptions BLACK_DUST =
-            new Particle.DustOptions(Color.fromRGB(5, 5, 5), 1.4F);
-
     public DeathSideStepAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("death_side_step", ElementType.DEATH, 1, 30, 1, configManager);
     }
@@ -64,7 +60,7 @@ public class DeathSideStepAbility extends BaseAbility {
         spawnBurst(world, origin.clone().add(0, 1, 0));
         for (double t = 0.15; t < 1.0; t += 0.15) {
             Location point = origin.clone().add(dir.clone().multiply(safeDistance * t)).add(0, 1, 0);
-            world.spawnParticle(Particle.DUST, point, 3, 0.1, 0.2, 0.1, 0, BLACK_DUST, true);
+            DeathParticles.shadowTrail(world, point);
         }
         world.playSound(origin, Sound.ENTITY_ENDERMAN_TELEPORT, 0.6f, 0.6f);
 
@@ -101,8 +97,7 @@ public class DeathSideStepAbility extends BaseAbility {
     }
 
     private void spawnBurst(World world, Location center) {
-        world.spawnParticle(Particle.DUST, center, 40, 0.35, 0.5, 0.35, 0, BLACK_DUST, true);
-        world.spawnParticle(Particle.SQUID_INK, center, 6, 0.3, 0.4, 0.3, 0.01, null, true);
+        DeathParticles.shadowBurst(world, center);
     }
 
     @Override

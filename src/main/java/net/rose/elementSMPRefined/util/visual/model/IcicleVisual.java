@@ -1,11 +1,11 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
+import net.rose.elementSMPRefined.particles.FrostParticles;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
@@ -92,9 +92,7 @@ public final class IcicleVisual {
                 ACTIVE.add(display);
 
                 if (index == 0) {
-                    world.spawnParticle(Particle.BLOCK, base.clone().add(0, 0.1, 0), 6, 0.3, 0.1, 0.3, 0.0,
-                            Material.PACKED_ICE.createBlockData(), true);
-                    world.spawnParticle(Particle.SNOWFLAKE, base.clone().add(0, 0.5, 0), 6, 0.3, 0.4, 0.3, 0.02, null, true);
+                    FrostParticles.icicleSpawn(world, base);
                 }
 
                 // Interpolation only animates if the transformation changes after the entity has been
@@ -118,8 +116,7 @@ public final class IcicleVisual {
                     if (display.isValid()) display.remove();
                     ACTIVE.remove(display);
                     if (index == 0) {
-                        world.spawnParticle(Particle.BLOCK, base.clone().add(0, 0.5, 0), 10, 0.4, 0.5, 0.4, 0.0,
-                                Material.ICE.createBlockData(), true);
+                        FrostParticles.icicleShatter(world, base);
                     }
                 }, shrinkAt - spawnAt + SHRINK_TICKS + 2L);
             }, spawnAt);

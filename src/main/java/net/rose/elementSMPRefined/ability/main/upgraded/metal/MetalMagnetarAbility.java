@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
+import net.rose.elementSMPRefined.particles.MetalParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -15,7 +16,6 @@ import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
@@ -163,8 +163,7 @@ public class MetalMagnetarAbility extends BaseAbility {
 
         SoundUtils.playTo(caster, SoundUtils.Element.METAL);
         centre.getWorld().playSound(centre, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.5f);
-        centre.getWorld().spawnParticle(Particle.BLOCK, centre, 25, 0.4, 0.4, 0.4, 0.1,
-                Material.IRON_BLOCK.createBlockData(), true);
+        MetalParticles.magnetarCast(centre);
 
         core.task = new BukkitRunnable() {
             @Override
@@ -258,7 +257,7 @@ public class MetalMagnetarAbility extends BaseAbility {
             TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).ignoreIFrames(true).apply(target);
 
             Location at = target.getLocation().add(0, 1.0, 0);
-            at.getWorld().spawnParticle(Particle.CRIT, at, 12, 0.3, 0.5, 0.3, 0.2);
+            MetalParticles.magnetarDamage(at);
             at.getWorld().playSound(at, Sound.ENTITY_IRON_GOLEM_DAMAGE, 0.8f, 0.8f);
         }
 
@@ -330,9 +329,7 @@ public class MetalMagnetarAbility extends BaseAbility {
                             reach * sin * sin * sin * Math.sin(phi));
                     Vector offset = orient(local, loopSpin, precession);
 
-                    Particle.DustOptions dust = new Particle.DustOptions(
-                            fieldColor(Math.abs(Math.cos(theta))), 0.7f);
-                    world.spawnParticle(Particle.DUST, core.centre.clone().add(offset), 1, 0, 0, 0, 0, dust);
+                    MetalParticles.magnetarFieldPoint(world, core.centre.clone().add(offset), fieldColor(Math.abs(Math.cos(theta))));
                 }
             }
         }
@@ -354,7 +351,7 @@ public class MetalMagnetarAbility extends BaseAbility {
                         random.nextDouble(-spread, spread),
                         random.nextDouble(-spread, spread),
                         random.nextDouble(-spread, spread)));
-                world.spawnParticle(Particle.END_ROD, core.centre.clone().add(offset), 1, 0, 0, 0, 0);
+                MetalParticles.magnetarJetPoint(world, core.centre.clone().add(offset));
             }
         }
     }
@@ -366,7 +363,7 @@ public class MetalMagnetarAbility extends BaseAbility {
             Vector dir = new Vector(random.nextGaussian(), random.nextGaussian(), random.nextGaussian());
             if (dir.lengthSquared() < 1.0E-6) continue;
             dir.normalize().multiply(SHIMMER_RADIUS);
-            world.spawnParticle(Particle.ELECTRIC_SPARK, core.centre.clone().add(dir), 1, 0, 0, 0, 0);
+            MetalParticles.magnetarShimmer(world, core.centre.clone().add(dir));
         }
     }
 
@@ -375,7 +372,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         double flow = (core.ticks * STREAM_FLOW) % 1.0;
         double spin = core.ticks * FIELD_SPIN;
         Vector fieldScale = new Vector(core.radiusH / PULL_RADIUS, core.radiusV / PULL_RADIUS, core.radiusH / PULL_RADIUS);
-        Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB(110, 170, 255), 0.5f);
 
         for (int s = 0; s < STREAMS; s++) {
             double phase = (s * 0.37) % 1.0; // stagger the streams so they don't pulse in unison
@@ -391,7 +387,7 @@ public class MetalMagnetarAbility extends BaseAbility {
                         .add(STREAM_V[s].clone().multiply(Math.sin(swirl) * bow))
                         .rotateAroundY(spin)
                         .multiply(fieldScale);
-                world.spawnParticle(Particle.DUST, core.centre.clone().add(offset), 1, 0, 0, 0, 0, dust);
+                MetalParticles.magnetarInflowPoint(world, core.centre.clone().add(offset));
             }
         }
     }
@@ -424,9 +420,7 @@ public class MetalMagnetarAbility extends BaseAbility {
         if (collapsed) {
             World world = core.centre.getWorld();
             world.playSound(core.centre, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 1.2f);
-            world.spawnParticle(Particle.BLOCK, core.centre, 40, 0.5, 0.5, 0.5, 0.15,
-                    Material.IRON_BLOCK.createBlockData(), true);
-            world.spawnParticle(Particle.POOF, core.centre, 10, 0.4, 0.4, 0.4, 0.05);
+            MetalParticles.magnetarCollapse(world, core.centre);
         }
     }
 

@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.commands.element.admin;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
-import net.rose.elementSMPRefined.util.visual.ParticlePreset;
+import net.rose.elementSMPRefined.particles.ParticlePreset;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Color;
 import org.bukkit.Particle;

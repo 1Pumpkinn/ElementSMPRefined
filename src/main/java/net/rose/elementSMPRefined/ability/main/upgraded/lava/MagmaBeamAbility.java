@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
+import net.rose.elementSMPRefined.particles.LavaParticles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -149,9 +150,9 @@ public class MagmaBeamAbility extends BaseAbility {
         double radius = 2.6 * (1.0 - progress) + 0.3;
         for (int i = 0; i < CHARGE_SPARKS; i++) {
             Vector offset = Vector.getRandom().subtract(new Vector(0.5, 0.5, 0.5)).normalize().multiply(radius);
-            w.spawnParticle(Particle.FLAME, orb.clone().add(offset), 1, 0, 0, 0, 0.0, null, true);
+            LavaParticles.magmaChargeSpark(w, orb.clone().add(offset));
         }
-        w.spawnParticle(Particle.LAVA, orb, 1, 0.2, 0.2, 0.2, 0.0, null, true);
+        LavaParticles.magmaChargeOrb(w, orb);
 
         if (tick % 5 == 0) {
             w.playSound(orb, Sound.ITEM_FIRECHARGE_USE, 0.8f, 0.6f + (float) progress);
@@ -199,7 +200,7 @@ public class MagmaBeamAbility extends BaseAbility {
                     p.setX(bx + side.getX() * c + up.getX() * sn);
                     p.setY(by + side.getY() * c + up.getY() * sn);
                     p.setZ(bz + side.getZ() * c + up.getZ() * sn);
-                    w.spawnParticle(Particle.FLAME, p, 1, 0, 0, 0, 0.0, null, true);
+                    LavaParticles.magmaBeamHelix(w, p);
                 }
             }
 
@@ -207,17 +208,13 @@ public class MagmaBeamAbility extends BaseAbility {
                 p.setX(sx + step.getX() * d);
                 p.setY(sy + step.getY() * d);
                 p.setZ(sz + step.getZ() * d);
-                w.spawnParticle(Particle.FLAME, p, 1, 0.12, 0.12, 0.12, 0.0, null, true);
-                if (((int) (d / SHEATH_STEP) + beamTick) % 3 == 0) {
-                    w.spawnParticle(Particle.LAVA, p, 1, 0.2, 0.2, 0.2, 0.0, null, true);
-                }
+                LavaParticles.magmaBeamSheath(w, p, ((int) (d / SHEATH_STEP) + beamTick) % 3 == 0);
             }
         }
 
         if (blockHit != null) {
             Location impact = blockHit.getHitPosition().toLocation(w);
-            w.spawnParticle(Particle.LAVA, impact, 2, 0.2, 0.2, 0.2, 0.0, null, true);
-            w.spawnParticle(Particle.SMOKE, impact, 3, 0.2, 0.2, 0.2, 0.02, null, true);
+            LavaParticles.magmaBeamImpact(w, impact);
         }
 
         if (beamTick % 6 == 0) {
@@ -248,7 +245,7 @@ public class MagmaBeamAbility extends BaseAbility {
 
             TrueDamage.of(DAMAGE_PER_PULSE).attacker(player).ability(getName()).ignoreIFrames(true).apply(e);
             e.setFireTicks(BURN_TICKS);
-            w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 8, 0.3, 0.4, 0.3, 0.03, null, true);
+            LavaParticles.magmaBeamBurn(w, e.getLocation());
         }
     }
 

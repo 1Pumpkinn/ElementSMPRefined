@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
+import net.rose.elementSMPRefined.particles.StormParticles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -15,7 +16,6 @@ import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
@@ -520,7 +520,7 @@ public class TornadoAbility extends BaseAbility {
             TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).ignoreIFrames(true).apply(target);
 
             Location chest = target.getLocation().add(0, 1.0, 0);
-            t.world.spawnParticle(Particle.CRIT, chest, 10, 0.3, 0.5, 0.3, 0.2);
+            StormParticles.tornadoDamage(t.world, chest);
             t.world.playSound(chest, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.6f, 1.2f);
         }
 
@@ -587,9 +587,8 @@ public class TornadoAbility extends BaseAbility {
             double f = ((double) i / SPIRAL_POINTS + t.ticks * 0.035) % 1.0;
             double angle = f * Math.PI * 6 + t.ticks * 0.5;
             double radius = TornadoVisual.radiusAt(f) * growth * 1.1 + 0.2;
-            world.spawnParticle(Particle.CLOUD,
-                    pos.getX() + Math.cos(angle) * radius, pos.getY() + f * height, pos.getZ() + Math.sin(angle) * radius,
-                    1, 0.05, 0.05, 0.05, 0.0);
+            StormParticles.tornadoSpiral(world,
+                    pos.getX() + Math.cos(angle) * radius, pos.getY() + f * height, pos.getZ() + Math.sin(angle) * radius);
         }
 
         // Crumbs of whatever it's standing on, thrown around inside.
@@ -598,14 +597,12 @@ public class TornadoAbility extends BaseAbility {
             double f = random.nextDouble();
             double angle = random.nextDouble() * Math.PI * 2;
             double radius = TornadoVisual.radiusAt(f) * growth * (0.3 + random.nextDouble() * 0.65);
-            world.spawnParticle(Particle.BLOCK,
-                    pos.getX() + Math.cos(angle) * radius, pos.getY() + f * height, pos.getZ() + Math.sin(angle) * radius,
-                    1, 0.0, 0.0, 0.0, 0.0, ground);
+            StormParticles.tornadoDebris(world,
+                    pos.getX() + Math.cos(angle) * radius, pos.getY() + f * height, pos.getZ() + Math.sin(angle) * radius, ground);
         }
 
         // Dust kicked up at the base.
-        world.spawnParticle(Particle.CLOUD, pos.getX(), pos.getY() + 0.2, pos.getZ(),
-                3, 1.0 * growth, 0.1, 1.0 * growth, 0.02);
+        StormParticles.tornadoBase(world, pos.getX(), pos.getY(), pos.getZ(), growth);
 
         // Occasional lightning crackle inside the funnel (it's a Storm tornado).
         if (random.nextInt(18) == 0) {
@@ -614,7 +611,7 @@ public class TornadoAbility extends BaseAbility {
             double radius = TornadoVisual.radiusAt(f) * growth * 0.7;
             Location spark = new Location(world,
                     pos.getX() + Math.cos(angle) * radius, pos.getY() + f * height, pos.getZ() + Math.sin(angle) * radius);
-            world.spawnParticle(Particle.ELECTRIC_SPARK, spark, 10, 0.35, 0.35, 0.35, 0.3);
+            StormParticles.tornadoCrackle(world, spark);
         }
     }
 
@@ -655,8 +652,7 @@ public class TornadoAbility extends BaseAbility {
             World world = tornado.world;
             Location at = tornado.pos.clone().add(0, 1.0, 0);
             world.playSound(at, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.6f, 0.7f);
-            world.spawnParticle(Particle.CLOUD, at, 25, 1.0, 0.6, 1.0, 0.05);
-            world.spawnParticle(Particle.POOF, at, 12, 0.8, 0.4, 0.8, 0.05);
+            StormParticles.tornadoCollapse(world, at);
         }
     }
 

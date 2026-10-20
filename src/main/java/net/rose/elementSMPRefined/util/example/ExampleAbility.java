@@ -34,13 +34,10 @@ public class ExampleAbility extends BaseAbility {
         // these and just run your effect once, then return true.
         if (isActiveFor(player)) {
             setActive(player, false);
-            player.sendMessage(Lang.EXAMPLE_EXAMPLE_ABILITY_DEACTIVATED);
             return true;
         }
 
         setActive(player, true);
-        player.sendMessage(Lang.EXAMPLE_EXAMPLE_ABILITY_ACTIVATED);
-
         // Ability logic goes here: deal damage, apply effects, spawn particles,
         // etc. context also gives you managers (cooldown, trust, config) and the
         // caster's upgrade level via context.getUpgradeLevel().

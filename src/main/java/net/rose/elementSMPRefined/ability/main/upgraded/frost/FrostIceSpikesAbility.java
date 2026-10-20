@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.frost;
 
+import net.rose.elementSMPRefined.particles.FrostParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -12,7 +13,6 @@ import net.rose.elementSMPRefined.util.visual.model.IceSpikeVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -126,8 +126,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
                         scratch.setX(feet.getX() + Math.cos(angle) * r);
                         scratch.setY(feet.getY() + 0.15);
                         scratch.setZ(feet.getZ() + Math.sin(angle) * r);
-                        world.spawnParticle(Particle.SNOWFLAKE, scratch,
-                                1, 0.05, 0.05, 0.05, 0.0, null, true);
+                        FrostParticles.iceSpikesWindup(world, scratch);
                     }
                     if (ticks % 3 == 0) {
                         world.playSound(feet, Sound.BLOCK_GLASS_BREAK, 0.6f, 0.5f + ticks * 0.06f);
@@ -152,12 +151,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
     /** The stomp: impact burst, then the rings of spikes sweeping around the caster. */
     private void startSpikes(Player caster, TrustManager trust, Location origin) {
         World world = origin.getWorld();
-        Location fx = origin.clone();
-        fx.setY(origin.getY() + 0.3);
-        world.spawnParticle(Particle.SNOWFLAKE, fx, 60, 1.0, 0.2, 1.0, 0.1, null, true);
-        world.spawnParticle(Particle.CLOUD, fx, 20, 0.8, 0.1, 0.8, 0.05, null, true);
-        world.spawnParticle(Particle.BLOCK, origin.clone().add(0, 0.2, 0), 30, 0.8, 0.1, 0.8, 0.0,
-                Material.PACKED_ICE.createBlockData(), true);
+        FrostParticles.iceSpikesStomp(world, origin);
         world.playSound(origin, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.5f);
         world.playSound(origin, Sound.BLOCK_GLASS_BREAK, 1.5f, 0.6f);
 
@@ -278,7 +272,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
         entity.setFreezeTicks(entity.getMaxFreezeTicks());
         entity.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, SLOW_TICKS, SLOW_AMPLIFIER, false, true, true));
 
-        entity.getWorld().spawnParticle(Particle.SNOWFLAKE, entity.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.05, null, true);
+        FrostParticles.iceSpikesHit(entity.getLocation());
     }
 
     @Override

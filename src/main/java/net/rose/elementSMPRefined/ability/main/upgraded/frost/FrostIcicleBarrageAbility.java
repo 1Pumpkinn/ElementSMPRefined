@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.frost;
 
+import net.rose.elementSMPRefined.particles.FrostParticles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -18,7 +19,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -117,9 +117,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private static final int MAX_TASK_TICKS = CHARGE_TICKS + (ICICLE_COUNT - 1) * FIRE_INTERVAL_TICKS
             + (int) (MAX_RANGE / SPEED) + STUCK_TICKS + 40;
 
-    // Block data for the particle bursts, built once instead of on every hit / launch / stick.
-    private static final org.bukkit.block.data.BlockData PACKED_ICE_DATA = Material.PACKED_ICE.createBlockData();
-    private static final org.bukkit.block.data.BlockData ICE_DATA = Material.ICE.createBlockData();
 
     // Every live display, so they can be swept up when the plugin shuts down or reloads
     private static final Set<Display> ACTIVE = new HashSet<>();
@@ -262,7 +259,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
                 double r = 1.8 * (1.0 - progress) + 0.4;
                 for (int i = 0; i < CHARGE_SPARKS; i++) {
                     Vector offset = Vector.getRandom().subtract(new Vector(0.5, 0.5, 0.5)).normalize().multiply(r);
-                    world.spawnParticle(Particle.SNOWFLAKE, orb.clone().add(offset), 1, 0, 0, 0, 0.0, null, true);
+                    FrostParticles.barrageChargeSpark(world, orb.clone().add(offset));
                 }
             }
             if (ticks % 4 == 0) {
@@ -273,7 +270,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         /** A light frost haze while the loaded ring waits for its turn to fire. */
         private void ringAura(Location orb) {
             if (ticks % 4 == 0) {
-                world.spawnParticle(Particle.SNOWFLAKE, orb, 1, 0.3, 0.3, 0.3, 0.0, null, true);
+                FrostParticles.barrageRingAura(world, orb);
             }
         }
 
@@ -296,7 +293,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             slots[slot] = new Icicle(display, pos, ticks);
 
             double progress = Math.min(1.0, (double) ticks / CHARGE_TICKS);
-            world.spawnParticle(Particle.SNOWFLAKE, pos, 2, 0.1, 0.1, 0.1, 0.02, null, true);
+            FrostParticles.barrageIciclePlaced(world, pos);
             world.playSound(pos, Sound.BLOCK_GLASS_PLACE, 0.8f, (float) (0.6 + progress * 0.9));
         }
 
@@ -365,8 +362,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             ic.display.setTransformation(pose(ic.velocity, 1.0f));
 
             caster.swingMainHand();
-            world.spawnParticle(Particle.CLOUD, ic.pos, 3, 0.15, 0.15, 0.15, 0.04, null, true);
-            world.spawnParticle(Particle.BLOCK, ic.pos, 4, 0.15, 0.15, 0.15, 0.0, PACKED_ICE_DATA, true);
+            FrostParticles.barrageLaunch(world, ic.pos);
             world.playSound(ic.pos, Sound.BLOCK_GLASS_BREAK, 1.2f, 0.9f);
             world.playSound(ic.pos, Sound.ENTITY_PLAYER_HURT_FREEZE, 1.0f, 1.1f);
             world.playSound(ic.pos, Sound.BLOCK_AMETHYST_CLUSTER_BREAK, 1.0f, 1.4f);
@@ -420,7 +416,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
             ic.display.teleport(ic.pos);
 
-            world.spawnParticle(Particle.SNOWFLAKE, ic.pos, 1, 0.05, 0.05, 0.05, 0.0, null, true);
+            FrostParticles.barrageTrail(world, ic.pos);
 
             if (ic.travelled >= MAX_RANGE) {
                 remove(ic);
@@ -464,7 +460,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
             Location puff = new Location(world, at.getX(), at.getY(), at.getZ());
             if (face != null) puff.add(face.getDirection().multiply(0.1));
-            world.spawnParticle(Particle.BLOCK, puff, 6, 0.15, 0.15, 0.15, 0.0, ICE_DATA, true);
+            FrostParticles.barrageStick(world, puff);
             world.playSound(puff, Sound.BLOCK_GLASS_HIT, 0.8f, 1.3f);
         }
 
@@ -475,8 +471,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, SLOW_TICKS, SLOW_AMPLIFIER, false, true, true));
 
             Location spot = new Location(world, at.getX(), at.getY(), at.getZ());
-            world.spawnParticle(Particle.SNOWFLAKE, spot, 14, 0.25, 0.25, 0.25, 0.05, null, true);
-            world.spawnParticle(Particle.BLOCK, spot, 8, 0.2, 0.2, 0.2, 0.0, ICE_DATA, true);
+            FrostParticles.barrageHit(world, spot);
             world.playSound(spot, Sound.BLOCK_GLASS_BREAK, 1.0f, 1.2f);
         }
 

@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
+import net.rose.elementSMPRefined.particles.LavaParticles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -58,7 +59,6 @@ public class EruptionAbility extends BaseAbility {
     private static final int BURN_TICKS = 80;
 
     private static final Component NO_TARGET = Component.text("No target in sight!", NamedTextColor.RED);
-    private static final BlockData MAGMA = Material.MAGMA_BLOCK.createBlockData();
     private static final BlockData BASALT = Material.BASALT.createBlockData();
 
     /** Every live spike, so plugin disable can sweep up anything still on screen. */
@@ -151,10 +151,10 @@ public class EruptionAbility extends BaseAbility {
                         for (double d = 0.25; d <= reach; d += 0.25) {
                             double wobble = Math.sin(d * 4.5 + crackPhase[c]) * 0.18 * Math.min(1.0, d);
                             Location p = center.clone().add(dirX * d + perpX * wobble, 0.08, dirZ * d + perpZ * wobble);
-                            world.spawnParticle(Particle.DUST_COLOR_TRANSITION, p, 1, 0.02, 0.0, 0.02, 0.0, CRACK_DUST, true);
+                            LavaParticles.eruptionCrackPoint(world, p);
                         }
                         Location end = center.clone().add(dirX * reach, 0.12, dirZ * reach);
-                        world.spawnParticle(Particle.SMALL_FLAME, end, 1, 0.03, 0.03, 0.03, 0.0, null, true);
+                        LavaParticles.eruptionCrackEnd(world, end);
                     }
 
                     // Thin ring marking the blast radius, tightening as the timer runs out.
@@ -162,15 +162,14 @@ public class EruptionAbility extends BaseAbility {
                     for (int i = 0; i < RING_POINTS; i++) {
                         double angle = i * (Math.PI * 2 / RING_POINTS);
                         Location p = center.clone().add(Math.cos(angle) * ringRadius, 0.1, Math.sin(angle) * ringRadius);
-                        world.spawnParticle(Particle.DUST, p, 1, 0, 0, 0, 0.0, EDGE_DUST, true);
+                        LavaParticles.eruptionWarningRingPoint(world, p);
                     }
                 }
 
                 // Heat rising out of the cracked ground.
-                world.spawnParticle(Particle.ASH, center.clone().add(0, 0.3, 0), 3, RADIUS * 0.5, 0.3, RADIUS * 0.5, 0.0, null, true);
+                LavaParticles.eruptionHeat(world, center, RADIUS);
                 if (ticks % 3 == 0) {
-                    world.spawnParticle(Particle.LAVA, center.clone().add(0, 0.2, 0), 2, RADIUS * 0.5, 0.1, RADIUS * 0.5, 0.0, null, true);
-                    world.spawnParticle(Particle.BLOCK, center.clone().add(0, 0.15, 0), 6, RADIUS * 0.4, 0.05, RADIUS * 0.4, 0.0, MAGMA, true);
+                    LavaParticles.eruptionHeatPulse(world, center, RADIUS);
                 }
                 if (ticks % 5 == 0) {
                     world.playSound(center, Sound.BLOCK_LAVA_POP, 0.8f, 0.8f + (float) progress * 0.6f);
@@ -188,11 +187,7 @@ public class EruptionAbility extends BaseAbility {
         world.playSound(center, Sound.ITEM_FIRECHARGE_USE, 1.4f, 0.5f);
         world.playSound(center, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 0.6f);
 
-        world.spawnParticle(Particle.EXPLOSION, center.clone().add(0, 0.4, 0), 1, 0, 0, 0, 0.0, null, true);
-        world.spawnParticle(Particle.LAVA, mid, 25, 0.7, 0.8, 0.7, 0.0, null, true);
-        world.spawnParticle(Particle.LARGE_SMOKE, mid, 14, 0.6, 1.0, 0.6, 0.03, null, true);
-        world.spawnParticle(Particle.BLOCK, mid, 45, 0.9, 1.0, 0.9, 0.0, MAGMA, true);
-        world.spawnParticle(Particle.BLOCK, mid, 25, 0.9, 1.0, 0.9, 0.0, BASALT, true);
+        LavaParticles.eruptionBlast(world, center, mid);
 
         List<Location> tips = spawnSpikeRing(center);
         spawnFountain(center, tips);
@@ -225,16 +220,6 @@ public class EruptionAbility extends BaseAbility {
     private static final int CRACKS = 9;
     /** Points on the shockwave / warning rings - scales with the radius so the rings have no gaps. */
     private static final int RING_POINTS = (int) Math.round(RADIUS * 11);
-
-    private static final Particle.DustOptions CORE_DUST = new Particle.DustOptions(Color.fromRGB(255, 130, 25), 1.5f);
-    private static final Particle.DustOptions EDGE_DUST = new Particle.DustOptions(Color.fromRGB(210, 45, 0), 1.0f);
-    private static final Particle.DustOptions DROP_DUST = new Particle.DustOptions(Color.fromRGB(255, 160, 40), 1.1f);
-    private static final Particle.DustTransition CRACK_DUST =
-            new Particle.DustTransition(Color.fromRGB(255, 150, 30), Color.fromRGB(120, 15, 0), 0.9f);
-    private static final Particle.DustTransition RISING_DUST =
-            new Particle.DustTransition(Color.fromRGB(255, 175, 45), Color.fromRGB(110, 20, 0), 1.4f);
-    private static final Particle.DustTransition TIP_DUST =
-            new Particle.DustTransition(Color.fromRGB(255, 200, 80), Color.fromRGB(200, 40, 0), 1.0f);
 
     private static final double COLUMN_HEIGHT = 3.2;
     /** Ticks the core column takes to shoot up. */
@@ -284,13 +269,13 @@ public class EruptionAbility extends BaseAbility {
                         double cos = Math.cos(a);
                         double sin = Math.sin(a);
                         Location p = center.clone().add(cos * ringRadius, 0.12, sin * ringRadius);
-                        world.spawnParticle(Particle.DUST, p, 1, 0.04, 0.03, 0.04, 0.0, EDGE_DUST, true);
+                        LavaParticles.eruptionShockwavePoint(world, p);
                         if (i % 5 == 0) {
-                            world.spawnParticle(Particle.SMALL_FLAME, p, 1, 0, 0.03, 0, 0.01, null, true);
+                            LavaParticles.eruptionShockwaveFlame(world, p);
                         }
                         if (t > 1 && i % 8 == 0) {
                             Location inner = center.clone().add(cos * ringRadius * 0.7, 0.2, sin * ringRadius * 0.7);
-                            world.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, inner, 0, 0, 0.06, 0, 1.0, null, true);
+                            LavaParticles.eruptionShockwaveSmoke(world, inner);
                         }
                     }
                 }
@@ -305,19 +290,14 @@ public class EruptionAbility extends BaseAbility {
                         double r = COLUMN_RADIUS * taper;
                         Location level = center.clone().add(0, y, 0);
 
-                        world.spawnParticle(Particle.DUST_COLOR_TRANSITION, level, Math.max(1, (int) Math.round(2 * fade)),
-                                r * 0.4, 0.12, r * 0.4, 0.0, RISING_DUST, true);
-                        if (fade > 0.4) {
-                            world.spawnParticle(Particle.DUST, level, 1, r * 0.2, 0.08, r * 0.2, 0.0, CORE_DUST, true);
-                        }
+                        LavaParticles.eruptionColumnLevel(world, level, fade, r);
 
                         double a = t * 0.8 + y * 2.4;
                         Location s = level.clone().add(Math.cos(a) * r * 1.4, 0, Math.sin(a) * r * 1.4);
-                        world.spawnParticle(Particle.DUST, s, 1, 0, 0, 0, 0.0, CORE_DUST, true);
+                        LavaParticles.eruptionColumnHelix(world, s);
                     }
                     if (t % 2 == 0) {
-                        world.spawnParticle(Particle.FLAME, center.clone().add(0, height * 0.5, 0), 2,
-                                COLUMN_RADIUS * 0.3, height * 0.4, COLUMN_RADIUS * 0.3, 0.03, null, true);
+                        LavaParticles.eruptionColumnFlames(world, center, height, COLUMN_RADIUS);
                     }
                 }
 
@@ -332,15 +312,14 @@ public class EruptionAbility extends BaseAbility {
                             landed[i] = true;
                             double d = horizontal[i] * tau;
                             Location splash = center.clone().add(Math.cos(angle[i]) * d, 0.1, Math.sin(angle[i]) * d);
-                            world.spawnParticle(Particle.LAVA, splash, 1, 0.05, 0.0, 0.05, 0.0, null, true);
-                            world.spawnParticle(Particle.SMALL_FLAME, splash, 2, 0.08, 0.02, 0.08, 0.02, null, true);
+                            LavaParticles.eruptionDropletSplash(world, splash);
                             break;
                         }
                         double d = horizontal[i] * tau;
                         Location p = center.clone().add(Math.cos(angle[i]) * d, y, Math.sin(angle[i]) * d);
-                        world.spawnParticle(Particle.DUST, p, 1, 0.02, 0.02, 0.02, 0.0, DROP_DUST, true);
+                        LavaParticles.eruptionDroplet(world, p);
                         if (sub == 0 && vertical[i] - GRAVITY * tau < 0 && (t + i) % 3 == 0) {
-                            world.spawnParticle(Particle.FALLING_LAVA, p, 1, 0, 0, 0, 0.0, null, true);
+                            LavaParticles.eruptionDropletFall(world, p);
                         }
                     }
                 }
@@ -348,15 +327,13 @@ public class EruptionAbility extends BaseAbility {
                 // Glowing tip and a lava drip on every spike while it stands.
                 if (t >= 1 && t <= 14) {
                     for (Location tip : tips) {
-                        world.spawnParticle(Particle.DUST_COLOR_TRANSITION, tip, 2, 0.08, 0.08, 0.08, 0.0, TIP_DUST, true);
-                        if (t % 2 == 0) world.spawnParticle(Particle.SMALL_FLAME, tip, 1, 0.05, 0.05, 0.05, 0.01, null, true);
-                        if (t % 4 == 0) world.spawnParticle(Particle.DRIPPING_LAVA, tip.clone().add(0, -0.3, 0), 1, 0.1, 0.0, 0.1, 0.0, null, true);
+                        LavaParticles.eruptionSpikeTip(world, tip, t);
                     }
                 }
 
                 // Embers drifting up over the whole blast area.
                 if (t < 16) {
-                    world.spawnParticle(Particle.ASH, center.clone().add(0, 1.0, 0), 4, RADIUS * 0.8, 1.0, RADIUS * 0.8, 0.0, null, true);
+                    LavaParticles.eruptionEmbers(world, center, RADIUS);
                 }
                 t++;
             }

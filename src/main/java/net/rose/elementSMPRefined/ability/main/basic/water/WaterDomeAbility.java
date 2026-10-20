@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.water;
 
+import net.rose.elementSMPRefined.particles.WaterParticles;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -12,7 +13,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -110,8 +110,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
         SoundUtils.playTo(player, SoundUtils.Element.WATER);
         world.playSound(center, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.2f, 1.2f);
         world.playSound(center, Sound.ITEM_BUCKET_EMPTY, 1.2f, 0.8f);
-        world.spawnParticle(Particle.SPLASH, center.clone().add(0, 0.5, 0), 60,
-                DOME_RADIUS / 2, 0.3, DOME_RADIUS / 2, 0.1, null, true);
+        WaterParticles.domeCast(world, center, DOME_RADIUS);
 
         setActive(player, true);
 
@@ -169,7 +168,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
 
             if (e instanceof Projectile projectile) {
                 if (projectile.getLocation().distanceSquared(center) <= r2) {
-                    world.spawnParticle(Particle.SPLASH, projectile.getLocation(), 10, 0.2, 0.2, 0.2, 0.05, null, true);
+                    WaterParticles.domeProjectileBlocked(world, projectile.getLocation());
                     world.playSound(projectile.getLocation(), Sound.ENTITY_PLAYER_SPLASH, 0.8f, 1.5f);
                     projectile.remove();
                 }
@@ -194,7 +193,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
             push.setY(living.isOnGround() ? 0.15 : living.getVelocity().getY());
             living.setVelocity(push);
 
-            world.spawnParticle(Particle.BUBBLE_POP, body, 4, 0.3, 0.4, 0.3, 0.05, null, true);
+            WaterParticles.domePush(world, body);
         }
     }
 
@@ -391,8 +390,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
             if (isAllowed(state, event.getDamager())) return;
 
             event.setCancelled(true);
-            victim.getWorld().spawnParticle(Particle.BUBBLE_POP, victim.getLocation().add(0, 1, 0), 10,
-                    0.4, 0.5, 0.4, 0.05, null, true);
+            WaterParticles.domeHitBlocked(victim.getLocation());
             victim.getWorld().playSound(victim.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_HIT, 0.8f, 1.6f);
             return;
         }
@@ -410,13 +408,12 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
 
         World world = state.center.getWorld();
         Location mid = state.center.clone().add(0, DOME_RADIUS / 2, 0);
-        world.spawnParticle(Particle.BUBBLE_POP, mid, 60, DOME_RADIUS / 2, DOME_RADIUS / 3, DOME_RADIUS / 2, 0.15, null, true);
+        WaterParticles.domeBreak(world, mid, DOME_RADIUS);
         world.playSound(state.center, Sound.ENTITY_PLAYER_HURT_DROWN, 1.0f, 0.8f);
 
         if (notify) {
             Player owner = plugin.getServer().getPlayer(ownerId);
             if (owner != null) {
-                owner.sendMessage(Lang.WATER_BUBBLE_FADED);
             }
         }
     }

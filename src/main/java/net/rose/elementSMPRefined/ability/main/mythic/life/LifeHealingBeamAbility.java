@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.mythic.life;
 
+import net.rose.elementSMPRefined.particles.LifeParticles;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
@@ -7,7 +8,6 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -49,7 +49,7 @@ public class LifeHealingBeamAbility extends BaseAbility {
                                 targetPlayer.setHealth(newHealth);
                                 
 							Location hitLoc = rt.getHitPosition().toLocation(player.getWorld());
-							player.getWorld().spawnParticle(Particle.HEART, hitLoc, 3, 0.2, 0.2, 0.2, 0.0, null, true);
+							LifeParticles.healingBeamHit(player.getWorld(), hitLoc);
                             }
                         }
                     }
@@ -60,7 +60,7 @@ public class LifeHealingBeamAbility extends BaseAbility {
                 Location eye = player.getEyeLocation();
 				for (double d = 2.0; d <= 20; d += 1.0) {
                     Location pt = eye.clone().add(dir.clone().multiply(d));
-					player.getWorld().spawnParticle(Particle.HEART, pt, 1, 0.05, 0.05, 0.05, 0, null, true);
+					LifeParticles.healingBeamPoint(player.getWorld(), pt);
                 }
                 
                 ticks++;

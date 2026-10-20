@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.earth;
 
+import net.rose.elementSMPRefined.particles.EarthParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -12,7 +13,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -105,8 +105,7 @@ public class ShockwaveAbility extends BaseAbility {
 
         world.playSound(start, Sound.ENTITY_IRON_GOLEM_ATTACK, 1.2f, 0.6f);
         world.playSound(start, Sound.BLOCK_GRAVEL_BREAK, 1.5f, 0.5f);
-        world.spawnParticle(Particle.BLOCK, start.clone().add(0, 0.2, 0), 30, 0.6, 0.1, 0.6, 0.0,
-                Material.DIRT.createBlockData(), true);
+        EarthParticles.shockwaveLaunch(world, start);
 
         new BukkitRunnable() {
             int ticks = 0;
@@ -138,8 +137,7 @@ public class ShockwaveAbility extends BaseAbility {
                 }
 
                 caster.setVelocity(new Vector(0, -SLAM_SPEED, 0));
-                world.spawnParticle(Particle.BLOCK, caster.getLocation().add(0, 1, 0), 6, 0.3, 0.6, 0.3, 0.0,
-                        Material.STONE.createBlockData(), true);
+                EarthParticles.shockwaveSlamTrail(world, caster.getLocation());
 
                 if (caster.isOnGround() || isSolidBelow(caster) || ticks > SLAM_TIMEOUT_TICKS) {
                     cancel();
@@ -160,7 +158,7 @@ public class ShockwaveAbility extends BaseAbility {
     /** Impact burst, then the ring of rippling earth expanding in every direction. */
     private void startShockwave(Player caster, TrustManager trust, Location origin) {
         World world = origin.getWorld();
-        world.spawnParticle(Particle.EXPLOSION, origin, 3, 0.5, 0.2, 0.5, 0.0);
+        EarthParticles.shockwaveImpact(world, origin);
         world.playSound(origin, Sound.ENTITY_GENERIC_EXPLODE, 1.6f, 0.6f);
         world.playSound(origin, Sound.ENTITY_WARDEN_SONIC_BOOM, 0.8f, 1.4f);
 
@@ -242,7 +240,7 @@ public class ShockwaveAbility extends BaseAbility {
             d.setTransformation(resting);
         });
 
-        w.spawnParticle(Particle.BLOCK, spawn.clone().add(0.5, 0.1, 0.5), 4, 0.4, 0.1, 0.4, 0.0, data, true);
+        EarthParticles.shockwaveRipple(w, spawn, data);
 
         // Interpolation only animates if the transformation changes after the
         // entity has been sent to clients, so the rise starts a tick later.

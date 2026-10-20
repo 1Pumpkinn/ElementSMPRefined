@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.water;
 
+import net.rose.elementSMPRefined.particles.WaterParticles;
 import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
@@ -9,7 +10,6 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -146,18 +146,7 @@ public class WaterGeyserAbility extends BaseAbility implements Listener {
                 ? location.clone().add(direction.clone().multiply(0.6)).add(0, 0.9, 0)
                 : location.clone().add(0, 0.9, 0);
 
-        sprayOrigin.getWorld().spawnParticle(
-                Particle.SPLASH, sprayOrigin, 25,
-                0.3, 0.3, 0.3, 0.15, null, true
-        );
-        sprayOrigin.getWorld().spawnParticle(
-                Particle.BUBBLE_POP, sprayOrigin, 15,
-                0.3, 0.2, 0.3, 0.1, null, true
-        );
-        sprayOrigin.getWorld().spawnParticle(
-                Particle.BUBBLE, sprayOrigin, 20,
-                0.4, 0.2, 0.4, 0.02, null, true
-        );
+        WaterParticles.geyserSpray(sprayOrigin);
     }
 
     /**
@@ -195,7 +184,7 @@ public class WaterGeyserAbility extends BaseAbility implements Listener {
      * needed. {@code waterBlocks} drives the plume height ({@code 5 * waterBlocks} blocks tall).
      */
     private void eruptGeyser(Location origin) {
-        origin.getWorld().spawnParticle(Particle.GEYSER, origin, 0, 0, 0, 0, new Particle.Geyser(GEYSER_WATER_BLOCKS));
+        WaterParticles.geyserEruption(origin, GEYSER_WATER_BLOCKS);
     }
 
     /**
@@ -213,8 +202,7 @@ public class WaterGeyserAbility extends BaseAbility implements Listener {
                     return;
                 }
 
-                player.getWorld().spawnParticle(Particle.SPLASH, player.getLocation(), 6, 0.25, 0.25, 0.25, 0.02, null, true);
-                player.getWorld().spawnParticle(Particle.BUBBLE, player.getLocation(), 4, 0.2, 0.2, 0.2, 0.01, null, true);
+                WaterParticles.geyserTrail(player.getLocation());
 
                 ticks++;
             }

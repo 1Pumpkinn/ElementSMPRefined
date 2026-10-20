@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.earth;
 
+import net.rose.elementSMPRefined.particles.EarthParticles;
 import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -96,7 +97,7 @@ public class EarthTunnelAbility extends BaseAbility {
             }
             breakTunnel(mineLocation, player);
 
-            player.getWorld().spawnParticle(Particle.BLOCK, mineLocation, 10, 0.5, 0.5, 0.5, 0.1, Material.STONE.createBlockData(), true);
+            EarthParticles.tunnelDebris(mineLocation);
         }, 0L, 2L);
 
         return true;

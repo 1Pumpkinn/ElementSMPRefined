@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
+import net.rose.elementSMPRefined.particles.StormParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -86,8 +87,6 @@ public class LightningSpearAbility extends BaseAbility {
      */
     private static final boolean HOLD_WHEN_TICK_FROZEN = true;
 
-    private static final Particle.DustOptions CORE_DUST = new Particle.DustOptions(Color.fromRGB(255, 244, 150), 1.3f);
-    private static final Particle.DustOptions EDGE_DUST = new Particle.DustOptions(Color.fromRGB(250, 236, 160), 1.0f);
 
     private final ElementSMPRefined plugin;
 
@@ -154,7 +153,7 @@ public class LightningSpearAbility extends BaseAbility {
 
                 if (travelled >= RANGE) {
                     // Ran out of range - fizzle out instead of vanishing silently.
-                    world.spawnParticle(Particle.ELECTRIC_SPARK, position, 25, 0.4, 0.4, 0.4, 0.3, null, true);
+                    StormParticles.spearFizzle(world, position);
                     world.playSound(position, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, FIZZLE_VOLUME, 1.8f);
                     cancel();
                 }
@@ -190,21 +189,20 @@ public class LightningSpearAbility extends BaseAbility {
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
         // Glowing tip.
-        world.spawnParticle(Particle.END_ROD, head, 2, 0.05, 0.05, 0.05, 0.0, null, true);
-        world.spawnParticle(Particle.DUST, head, 2, 0.1, 0.1, 0.1, 0.0, EDGE_DUST, true);
+        StormParticles.spearTip(world, head);
 
         // Thin energy trail behind the tail so the fast spear still leaves a streak.
         Location tail = head.clone().subtract(direction.clone().multiply(SPEAR_LENGTH));
         for (double d = 0; d <= SPEAR_LENGTH; d += 0.75) {
             Location p = tail.clone().subtract(direction.clone().multiply(d));
-            world.spawnParticle(Particle.DUST, p, 1, 0.03, 0.03, 0.03, 0.0, CORE_DUST, true);
+            StormParticles.spearTrail(world, p);
         }
 
         // Loose arcs of electricity crackling around the shaft.
         for (int i = 0; i < 3; i++) {
             double along = random.nextDouble() * SPEAR_LENGTH;
             Location p = head.clone().subtract(direction.clone().multiply(along));
-            world.spawnParticle(Particle.ELECTRIC_SPARK, p, 1, 0.35, 0.35, 0.35, 0.15, null, true);
+            StormParticles.spearArc(world, p);
         }
     }
 
@@ -231,7 +229,7 @@ public class LightningSpearAbility extends BaseAbility {
             TrueDamage.of(SHOCK_DAMAGE).attacker(caster).ability(getName()).type(DamageType.LIGHTNING_BOLT)
                     .ignoreIFrames(false).apply(nearby);
             shock(caster, nearby);
-            world.spawnParticle(Particle.ELECTRIC_SPARK, nearby.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.3, null, true);
+            StormParticles.spearAreaShock(nearby.getLocation());
         }
     }
 
@@ -242,7 +240,7 @@ public class LightningSpearAbility extends BaseAbility {
         } else {
             target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, MOB_SLOW_TICKS, 4, false, false));
         }
-        target.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, target.getLocation().add(0, 1, 0), 20, 0.3, 0.6, 0.3, 0.4, null, true);
+        StormParticles.spearShock(target.getLocation());
     }
 
     @Override

@@ -1,11 +1,11 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
+import net.rose.elementSMPRefined.particles.FrostParticles;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
@@ -73,8 +73,6 @@ public final class IceSpikeVisual {
     /** Never scale to exactly zero - a degenerate transformation can render glitchy. */
     private static final float COLLAPSED = 0.05f;
 
-    private static final org.bukkit.block.data.BlockData PACKED_ICE = Material.PACKED_ICE.createBlockData();
-    private static final org.bukkit.block.data.BlockData ICE = Material.ICE.createBlockData();
 
     /** Every live spike, advanced by {@link #tickAll()}. */
     private static final List<Spike> ACTIVE = new ArrayList<>();
@@ -144,11 +142,7 @@ public final class IceSpikeVisual {
         ensureTicker(plugin);
 
         // One reusable Location for both particle bursts.
-        Location fx = new Location(world, base.getX(), base.getY() + 0.1, base.getZ());
-        world.spawnParticle(Particle.BLOCK, fx, 6, 0.3, 0.1, 0.3, 0.0,
-                PACKED_ICE, true);
-        fx.setY(base.getY() + 0.5);
-        world.spawnParticle(Particle.SNOWFLAKE, fx, 6, 0.3, 0.4, 0.3, 0.02, null, true);
+        FrostParticles.iceSpikeRise(world, base.getX(), base.getY(), base.getZ());
     }
 
     private static void ensureTicker(JavaPlugin plugin) {
@@ -173,8 +167,7 @@ public final class IceSpikeVisual {
             if (age >= REMOVE_AT) {
                 s.display.remove();
                 it.remove();
-                s.world.spawnParticle(Particle.BLOCK, new Location(s.world, s.baseX, s.baseY + 0.5, s.baseZ),
-                        10, 0.4, 0.5, 0.4, 0.0, ICE, true);
+                FrostParticles.iceSpikeShatter(s.world, s.baseX, s.baseY, s.baseZ);
             } else if (age >= SHRINK_AT) {
                 if (s.stage < 2) {
                     s.stage = 2;

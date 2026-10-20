@@ -197,7 +197,6 @@ public class GracePeriod implements Listener {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
-        // Only block a drop in hunger - still let hunger increase (e.g. eating).
         if (event.getFoodLevel() < player.getFoodLevel()) {
             event.setCancelled(true);
         }

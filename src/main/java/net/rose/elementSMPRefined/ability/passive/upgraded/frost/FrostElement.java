@@ -24,8 +24,8 @@ import java.util.List;
 public class FrostElement extends BaseElement {
     public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.FROST,
-                new FrostIceSpikesAbility(plugin, configManager),
-                new FrostIcicleBarrageAbility(plugin, configManager));
+                new FrostIcicleBarrageAbility(plugin, configManager),
+                new FrostIceSpikesAbility(plugin, configManager));
     }
 
     @Override

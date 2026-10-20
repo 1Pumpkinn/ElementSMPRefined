@@ -35,7 +35,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Ice Spike - Frost ability 1. The caster stays on the ground: a short wind-up where frost
+ * Ice Spike - Frost ability 2. The caster stays on the ground: a short wind-up where frost
  * gathers around their feet, then a stomp. The impact cracks the ground and rings of small ice
  * spikes burst up around the caster, sweeping around the circle like it is unzipping. Anything a
  * spike comes up under is hurt, thrown up and slowed.
@@ -87,7 +87,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
     private final Set<UUID> activeCasters = new HashSet<>();
 
     public FrostIceSpikesAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("frost_ice_spikes", ElementType.FROST, 1, 30, 1, configManager);
+        super("frost_ice_spikes", ElementType.FROST, 2, 30, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

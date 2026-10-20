@@ -47,7 +47,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Icicle Barrage - Frost ability 2, built the same way as Magma Beam: hold still (slowed) while the
+ * Icicle Barrage - Frost ability 1, built the same way as Magma Beam: hold still (slowed) while the
  * attack charges in front of you, then unleash it along your aim.
  * <p>
  * Charging: frost is pulled in towards a point just ahead of the caster and, one by one, icicles
@@ -127,7 +127,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public FrostIcicleBarrageAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("frost_icicle_barrage", ElementType.FROST, 2, 60, 2, configManager);
+        super("frost_icicle_barrage", ElementType.FROST, 1, 60, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

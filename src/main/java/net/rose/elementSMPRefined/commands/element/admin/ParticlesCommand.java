@@ -4,20 +4,24 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.rose.elementSMPRefined.particles.ParticlePreset;
+import net.rose.elementSMPRefined.particles.element.AbilityParticleDemos;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 /**
+ * /element particles <ability effect>
  * /element particles <preset> [size] [length] [width] [color] [particle]
- * Also accepts named form: /element particles <preset> size=2.5 color=red ...
+ * Ability effects play the real particles from the particles package (e.g. fire_starfall, water_dome).
+ * Presets also accept the named form: /element particles <preset> size=2.5 color=red ...
  * No permission gate beyond "must be a player" - see the note on
  * requiresAdmin-style gating in ElementCommand for why that's worth revisiting.
  */
@@ -46,6 +50,12 @@ public class ParticlesCommand implements ElementSubCommand {
             return true;
         }
 
+        Optional<String> abilityEffect = AbilityParticleDemos.play(args[1], player, plugin);
+        if (abilityEffect.isPresent()) {
+            player.sendMessage(Lang.particlesPlayingAbilityEffect(abilityEffect.get()));
+            return true;
+        }
+
         Optional<ParticlePreset> preset = ParticlePreset.fromName(args[1]);
         if (preset.isEmpty()) {
             sendPresetList(player);
@@ -61,7 +71,13 @@ public class ParticlesCommand implements ElementSubCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 2) {
-            return ParticlePreset.filterNames(args[1]);
+            List<String> names = new ArrayList<>(AbilityParticleDemos.filterNames(args[1]));
+            names.addAll(ParticlePreset.filterNames(args[1]));
+            return names;
+        }
+
+        if (AbilityParticleDemos.exists(args[1])) {
+            return Collections.emptyList();
         }
 
         if (args.length >= 3 && args.length <= 5) {
@@ -250,6 +266,8 @@ public class ParticlesCommand implements ElementSubCommand {
 
     private void sendPresetList(Player player) {
         player.sendMessage(Lang.PARTICLES_ELEMENT_PARTICLE_PRESETS);
+        player.sendMessage(Lang.particlesAbilityEffects(String.join(", ", AbilityParticleDemos.getNames())));
+        player.sendMessage(Lang.PARTICLES_USAGE_ABILITY_EFFECT);
         player.sendMessage(Lang.particlesAvailable(String.join(", ", ParticlePreset.getNames())));
         player.sendMessage(Lang.PARTICLES_USAGE_ELEMENT_PARTICLES_PRESET_SIZE);
         player.sendMessage(Lang.PARTICLES_ALSO_SUPPORTED_SIZE_2_5);

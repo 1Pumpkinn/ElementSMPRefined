@@ -25,7 +25,7 @@ public final class LavaParticles {
 
     private LavaParticles() {}
 
-    // ---- Eruption: warning phase ----
+    // Eruption: warning phase
 
     /** One point of a glowing crack creeping out from the centre. */
     public static void eruptionCrackPoint(World world, Location p) {
@@ -53,7 +53,7 @@ public final class LavaParticles {
         world.spawnParticle(Particle.BLOCK, center.clone().add(0, 0.15, 0), 6, radius * 0.4, 0.05, radius * 0.4, 0.0, MAGMA, true);
     }
 
-    // ---- Eruption: blast ----
+    // Eruption: blast
 
     /** The initial blast burst. */
     public static void eruptionBlast(World world, Location center, Location mid) {
@@ -127,7 +127,7 @@ public final class LavaParticles {
         world.spawnParticle(Particle.ASH, center.clone().add(0, 1.0, 0), 4, radius * 0.8, 1.0, radius * 0.8, 0.0, null, true);
     }
 
-    // ---- Magma beam ----
+    // Magma beam
 
     /** One spark gathering around the orb while charging. */
     public static void magmaChargeSpark(World world, Location loc) {

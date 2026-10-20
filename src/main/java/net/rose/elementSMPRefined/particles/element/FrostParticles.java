@@ -14,7 +14,7 @@ public final class FrostParticles {
 
     private FrostParticles() {}
 
-    // ---- Ice spikes ability ----
+    // Ice spikes ability
 
     /** Snowflake at one point of the stomp wind-up ring. */
     public static void iceSpikesWindup(World world, Location point) {
@@ -36,7 +36,7 @@ public final class FrostParticles {
         entityLocation.getWorld().spawnParticle(Particle.SNOWFLAKE, entityLocation.clone().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.05, null, true);
     }
 
-    // ---- Icicle barrage ability ----
+    // Icicle barrage ability
 
     /** Random sparks gathering around the orb while charging. */
     public static void barrageChargeSpark(World world, Location sparkLocation) {
@@ -75,7 +75,7 @@ public final class FrostParticles {
         world.spawnParticle(Particle.BLOCK, spot, 8, 0.2, 0.2, 0.2, 0.0, ICE_DATA, true);
     }
 
-    // ---- Ice visuals (display-entity models) ----
+    // Ice visuals (display-entity models)
 
     /** Ground burst when an icicle model segment spawns. */
     public static void icicleSpawn(World world, Location base) {

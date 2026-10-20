@@ -66,7 +66,7 @@ public class LightningSpearAbility extends BaseAbility {
     /** How long a hit mob is heavily slowed (ticks). */
     private static final int MOB_SLOW_TICKS = 30;
 
-    // ---- Sound volumes (1.0 = vanilla "normal"; lower = quieter and shorter range) ----
+    // Sound volumes (1.0 = vanilla "normal"; lower = quieter and shorter range)
     // The impact thunder/zap are played by the lightning entity itself on the client, so their
     // volume can't be set here (override entity.lightning_bolt.* in the resource pack if needed).
     /** Launch whoosh. */

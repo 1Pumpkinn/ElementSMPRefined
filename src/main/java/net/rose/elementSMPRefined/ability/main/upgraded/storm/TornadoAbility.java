@@ -54,7 +54,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class TornadoAbility extends BaseAbility {
 
-    // ---- Cast / lifetime ----
+    // Cast / lifetime
     private static final int COOLDOWN_SECONDS = 40;
     private static final int DURATION_TICKS = 8 * 20;
     /** Ticks to grow to full size / to shrink away at the end. */
@@ -65,7 +65,7 @@ public class TornadoAbility extends BaseAbility {
     /** How far down it searches for ground below where you aimed (blocks). */
     private static final double CAST_GROUND_SEARCH = 40.0;
 
-    // ---- Movement ----
+    // Movement
     /** Blocks per tick at full size (3.4 blocks/s - slower than a sprinting player). */
     private static final double SPEED = 0.17;
     /** Random wobble added to its heading every tick while wandering (radians, +/-). */
@@ -85,7 +85,7 @@ public class TornadoAbility extends BaseAbility {
     /** How often (ticks) it re-picks a player to chase. */
     private static final int RETARGET_INTERVAL = 5;
 
-    // ---- Suction ----
+    // Suction
     /** Sideways reach of the pull (blocks). */
     private static final double PULL_RADIUS = 9.0;
     private static final double PULL_SPEED_FAR = 0.20;    // blocks/tick at the edge of the pull...
@@ -93,7 +93,7 @@ public class TornadoAbility extends BaseAbility {
     private static final double PULL_SWIRL = 0.22;        // sideways drift while being pulled in (reads as a spiral)
     private static final double MAX_SPEED = 0.75;
 
-    // ---- Inside the funnel ----
+    // Inside the funnel
     /** Extra width on the funnel wall that still counts as "in it" (blocks). The base is thin, so this keeps it forgiving. */
     private static final double INSIDE_MARGIN = 0.8;
     private static final double ORBIT_SPEED = 0.45;       // how fast they're whipped round the axis
@@ -103,11 +103,11 @@ public class TornadoAbility extends BaseAbility {
     private static final double DAMAGE = 1.5;             // true damage per hit (0.75 hearts)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
 
-    // ---- Visuals ----
+    // Visuals
     private static final int SPIRAL_POINTS = 8;           // cloud particles per tick on the spiral up the funnel
     private static final int DEBRIS_POINTS = 4;           // block-crumb particles per tick flung around inside it
 
-    // ---- Wind loop sound ----
+    // Wind loop sound
     /** Wind loop sound. It's played in its own category so stopSound() can cancel it without touching real elytra sounds. */
     private static final Sound WIND_SOUND = Sound.ITEM_ELYTRA_FLYING;
     private static final SoundCategory WIND_CATEGORY = SoundCategory.AMBIENT;
@@ -449,9 +449,7 @@ public class TornadoAbility extends BaseAbility {
         return hit.getHitPosition().getY();
     }
 
-    // ------------------------------------------------------------------------------------------
     // Suction + damage
-    // ------------------------------------------------------------------------------------------
 
     private void suck(Tornado t, Player caster, double growth) {
         Location middle = t.pos.clone().add(0, TornadoVisual.HEIGHT / 2.0, 0);
@@ -564,9 +562,7 @@ public class TornadoAbility extends BaseAbility {
         return t.trust != null && t.trust.isTrusted(caster.getUniqueId(), other);
     }
 
-    // ------------------------------------------------------------------------------------------
     // Particles
-    // ------------------------------------------------------------------------------------------
 
     /**
      * Cloud spiralling up the outside of the funnel, ground debris flung around inside it, a dust
@@ -623,9 +619,7 @@ public class TornadoAbility extends BaseAbility {
         return below.getBlockData();
     }
 
-    // ------------------------------------------------------------------------------------------
     // Ending
-    // ------------------------------------------------------------------------------------------
 
     private void end(UUID casterId, boolean collapsed) {
         Tornado tornado = tornadoes.remove(casterId);

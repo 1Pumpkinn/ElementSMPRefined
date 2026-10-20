@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.water;
 
-import net.rose.elementSMPRefined.particles.WaterParticles;
+import net.rose.elementSMPRefined.particles.element.WaterParticles;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -8,7 +8,6 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
-import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

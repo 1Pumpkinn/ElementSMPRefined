@@ -1,7 +1,6 @@
 package net.rose.elementSMPRefined.particles.element;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.particles.*;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;

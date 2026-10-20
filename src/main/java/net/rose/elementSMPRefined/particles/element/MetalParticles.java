@@ -18,7 +18,7 @@ public final class MetalParticles {
         return Material.IRON_BLOCK.createBlockData();
     }
 
-    // ---- Metal shield ----
+    // Metal shield
 
     /** Iron chips and crits where a shield segment absorbs a hit. */
     public static void shieldHit(Location at, boolean abilityHit) {
@@ -34,7 +34,7 @@ public final class MetalParticles {
                 iron(), true);
     }
 
-    // ---- Magnetar ----
+    // Magnetar
 
     /** Iron burst when the magnetar core is placed. */
     public static void magnetarCast(Location centre) {

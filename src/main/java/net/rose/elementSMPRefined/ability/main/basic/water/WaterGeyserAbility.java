@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.water;
 
-import net.rose.elementSMPRefined.particles.WaterParticles;
+import net.rose.elementSMPRefined.particles.element.WaterParticles;
 import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;

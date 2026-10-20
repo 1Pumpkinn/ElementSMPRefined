@@ -14,7 +14,7 @@ public final class StormParticles {
 
     private StormParticles() {}
 
-    // ---- Lightning spear ----
+    // Lightning spear
 
     /** Sparks when the spear runs out of range and fizzles. */
     public static void spearFizzle(World world, Location position) {
@@ -47,7 +47,7 @@ public final class StormParticles {
         entityLocation.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, entityLocation.clone().add(0, 1, 0), 20, 0.3, 0.6, 0.3, 0.4, null, true);
     }
 
-    // ---- Tornado ----
+    // Tornado
 
     /** Crit sparks on an entity damaged by the tornado. */
     public static void tornadoDamage(World world, Location chest) {

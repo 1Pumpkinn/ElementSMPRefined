@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
-import net.rose.elementSMPRefined.particles.MetalParticles;
+import net.rose.elementSMPRefined.particles.element.MetalParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -15,7 +15,6 @@ import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;

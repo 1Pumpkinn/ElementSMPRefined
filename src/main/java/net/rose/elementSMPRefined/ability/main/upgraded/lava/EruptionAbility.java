@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
-import net.rose.elementSMPRefined.particles.LavaParticles;
+import net.rose.elementSMPRefined.particles.element.LavaParticles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -11,11 +11,9 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;

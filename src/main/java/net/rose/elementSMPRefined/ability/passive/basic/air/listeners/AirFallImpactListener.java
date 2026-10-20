@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.basic.air.listeners;
 
-import net.rose.elementSMPRefined.particles.AirParticles;
+import net.rose.elementSMPRefined.particles.element.AirParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;

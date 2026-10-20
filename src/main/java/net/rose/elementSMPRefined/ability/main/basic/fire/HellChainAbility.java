@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.fire;
 
-import net.rose.elementSMPRefined.particles.FireParticles;
+import net.rose.elementSMPRefined.particles.element.FireParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;

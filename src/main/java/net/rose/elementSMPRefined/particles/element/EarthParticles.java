@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.particles;
+package net.rose.elementSMPRefined.particles.element;
 
 import org.bukkit.Location;
 import org.bukkit.Material;

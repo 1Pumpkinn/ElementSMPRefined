@@ -1,18 +1,16 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
-import net.rose.elementSMPRefined.particles.MetalParticles;
+import net.rose.elementSMPRefined.particles.element.MetalParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.Entity;

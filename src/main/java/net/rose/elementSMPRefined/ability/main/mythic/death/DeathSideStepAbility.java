@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.mythic.death;
 
-import net.rose.elementSMPRefined.particles.DeathParticles;
+import net.rose.elementSMPRefined.particles.element.DeathParticles;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;

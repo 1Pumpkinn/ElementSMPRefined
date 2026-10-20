@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.earth;
 
-import net.rose.elementSMPRefined.particles.EarthParticles;
+import net.rose.elementSMPRefined.particles.element.EarthParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -12,7 +12,6 @@ import net.rose.elementSMPRefined.util.scan.GroundScan;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;

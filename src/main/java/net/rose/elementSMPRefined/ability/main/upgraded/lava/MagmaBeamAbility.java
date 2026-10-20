@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
-import net.rose.elementSMPRefined.particles.LavaParticles;
+import net.rose.elementSMPRefined.particles.element.LavaParticles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -14,7 +14,6 @@ import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;

@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.frost;
 
-import net.rose.elementSMPRefined.particles.FrostParticles;
+import net.rose.elementSMPRefined.particles.element.FrostParticles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -17,7 +17,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.World;

@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.earth;
 
-import net.rose.elementSMPRefined.particles.EarthParticles;
+import net.rose.elementSMPRefined.particles.element.EarthParticles;
 import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;

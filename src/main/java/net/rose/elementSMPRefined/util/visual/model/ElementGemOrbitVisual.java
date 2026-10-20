@@ -1,12 +1,11 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.particles.GemParticles;
+import net.rose.elementSMPRefined.particles.element.GemParticles;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;

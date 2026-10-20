@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.frost;
 
-import net.rose.elementSMPRefined.particles.FrostParticles;
+import net.rose.elementSMPRefined.particles.element.FrostParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -12,7 +12,6 @@ import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.model.IceSpikeVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;

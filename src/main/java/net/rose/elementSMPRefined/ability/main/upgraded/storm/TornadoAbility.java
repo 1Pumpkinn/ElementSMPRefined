@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
-import net.rose.elementSMPRefined.particles.StormParticles;
+import net.rose.elementSMPRefined.particles.element.StormParticles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -342,9 +342,6 @@ public class TornadoAbility extends BaseAbility {
         return Math.max(0.02, Math.min(in, out));
     }
 
-    // ------------------------------------------------------------------------------------------
-    // Movement
-    // ------------------------------------------------------------------------------------------
 
     /**
      * Decides where it's heading. Priority: back toward the caster if it strayed too far, then

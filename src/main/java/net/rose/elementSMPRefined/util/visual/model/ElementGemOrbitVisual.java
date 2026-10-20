@@ -1,12 +1,13 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.particles.element.GemParticles;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
@@ -166,18 +167,19 @@ public final class ElementGemOrbitVisual {
                 if (t >= 1.0) {
                     base.getWorld().playSound(target, Sound.BLOCK_AMETHYST_BLOCK_RESONATE,
                             SoundCategory.PLAYERS, 1.0f, 1.4f);
-                    GemParticles.survivorSettle(base.getWorld(), target);
+                    base.getWorld().spawnParticle(Particle.END_ROD, target, 14, 0.25, 0.25, 0.25, 0.02);
                     enter(Phase.HOLD);
                 }
             }
             case HOLD -> {
                 survivor.display().teleport(front(base, tracker.yaw(), tick));
                 if (tick % 4 == 0) {
-                    GemParticles.survivorGlint(base.getWorld(), survivor.display().getLocation());
+                    base.getWorld().spawnParticle(Particle.END_ROD, survivor.display().getLocation(),
+                            1, 0.2, 0.3, 0.2, 0.0);
                 }
                 if (phaseTick >= Constants.Animation.ORBIT_HOLD_TICKS) {
                     Location at = survivor.display().getLocation();
-                    GemParticles.survivorVanish(at.getWorld(), at);
+                    at.getWorld().spawnParticle(Particle.POOF, at, 12, 0.2, 0.2, 0.2, 0.05);
                     at.getWorld().playSound(at, Sound.ENTITY_ILLUSIONER_MIRROR_MOVE,
                             SoundCategory.PLAYERS, 0.6f, 1.6f);
                     remove();
@@ -237,7 +239,7 @@ public final class ElementGemOrbitVisual {
         gems.remove(gone);
 
         World w = at.getWorld();
-        GemParticles.gemEliminated(w, at);
+        w.spawnParticle(Particle.POOF, at, 8, 0.15, 0.15, 0.15, 0.03);
         // Pitch climbs as the ring thins out, so the eliminations build tension.
         float pitch = 0.8f + 0.12f * (initialCount - gems.size());
         w.playSound(at, Sound.BLOCK_AMETHYST_BLOCK_BREAK, SoundCategory.PLAYERS, 0.8f, Math.min(pitch, 2.0f));

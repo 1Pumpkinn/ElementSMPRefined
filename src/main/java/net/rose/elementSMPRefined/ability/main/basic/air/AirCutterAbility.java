@@ -1,6 +1,5 @@
 package net.rose.elementSMPRefined.ability.main.basic.air;
 
-import net.rose.elementSMPRefined.particles.element.AirParticles;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
@@ -101,7 +100,7 @@ public class AirCutterAbility extends BaseAbility {
 
                 blade.moveTo(slice);
                 // Faint wind trail behind the blade
-                AirParticles.cutterTrail(w, slice);
+                w.spawnParticle(Particle.CLOUD, slice, 2, 0.5, 0.05, 0.5, 0.0, null, true);
 
                 for (LivingEntity e : slice.getNearbyLivingEntities(hitboxWidth)) {
                     if (e.equals(player)) continue;
@@ -118,7 +117,7 @@ public class AirCutterAbility extends BaseAbility {
                     }
                     knockback.setY(KNOCKBACK_VERTICAL);
                     e.setVelocity(knockback);
-                    AirParticles.cutterHit(e.getLocation());
+                    e.getWorld().spawnParticle(Particle.SWEEP_ATTACK, e.getLocation().add(0, 1, 0), 1, 0, 0, 0, 0, null, true);
                 }
             }
         }.runTaskTimer(plugin, 0L, 1L);

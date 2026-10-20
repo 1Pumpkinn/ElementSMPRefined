@@ -391,6 +391,23 @@ public final class Lang {
         );
     }
 
+    public static Component particlesPlayingAbilityEffect(Object key) {
+        return Component.textOfChildren(
+                Component.text("Playing ability particles: ", NamedTextColor.GREEN),
+                Component.text(String.valueOf(key), NamedTextColor.AQUA)
+        );
+    }
+
+    public static Component particlesAbilityEffects(Object names) {
+        return Component.textOfChildren(
+                Component.text("Ability effects: ", NamedTextColor.YELLOW),
+                Component.text(String.valueOf(names), NamedTextColor.YELLOW)
+        );
+    }
+
+    public static final Component PARTICLES_USAGE_ABILITY_EFFECT =
+            Component.text("Usage: /element particles <ability effect>", NamedTextColor.GRAY);
+
     public static final Component PARTICLES_USAGE_ELEMENT_PARTICLES_PRESET_SIZE =
             Component.text("Usage: /element particles <preset> [size] [length] [width] [color] [particle]", NamedTextColor.GRAY);
 

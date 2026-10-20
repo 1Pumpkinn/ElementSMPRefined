@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
-import net.rose.elementSMPRefined.particles.StormParticles;
+import net.rose.elementSMPRefined.particles.element.StormParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -12,11 +12,9 @@ import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.damage.DamageType;

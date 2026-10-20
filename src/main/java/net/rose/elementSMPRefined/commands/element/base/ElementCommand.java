@@ -44,12 +44,17 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         return commands;
     }
 
+    /** "particle" is accepted as an alias for "particles". */
+    private static boolean isParticles(String arg) {
+        return arg.equalsIgnoreCase("particles") || arg.equalsIgnoreCase("particle");
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         // Particles is the one subcommand any player can use - it's a cosmetic
         // preview, not an admin action - so it's dispatched before the
         // permission gate below rather than being gated by it.
-        if (args.length > 0 && args[0].equalsIgnoreCase("particles")) {
+        if (args.length > 0 && isParticles(args[0])) {
             ElementSubCommand particles = subCommands.get("particles");
             if (particles != null) {
                 return particles.execute(sender, args);
@@ -89,7 +94,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         }
 
         // Same bypass as onCommand: particles tab-completes for everyone.
-        if (args[0].equalsIgnoreCase("particles")) {
+        if (isParticles(args[0])) {
             ElementSubCommand particles = subCommands.get("particles");
             return particles != null ? particles.tabComplete(sender, args) : Collections.emptyList();
         }

@@ -1,12 +1,12 @@
 package net.rose.elementSMPRefined.ability.passive.basic.air.listeners;
 
-import net.rose.elementSMPRefined.particles.element.AirParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -183,7 +183,7 @@ public class AirFallImpactListener implements Listener {
                     double y = 0.3 + (progress * 0.5);
 
                     Location particleLoc = location.clone().add(x, y, z);
-                    AirParticles.fallImpactCloud(world, particleLoc);
+                    world.spawnParticle(Particle.CLOUD, particleLoc, 1, 0, 0.1, 0, 0.02);
                 }
 
                 int smokeCount = (int) (15 * (1.0 - progress));
@@ -194,7 +194,7 @@ public class AirFallImpactListener implements Listener {
                     double y = 0.1 + (progress * 0.3);
 
                     Location particleLoc = location.clone().add(x, y, z);
-                    AirParticles.fallImpactSmoke(world, particleLoc);
+                    world.spawnParticle(Particle.SMOKE, particleLoc, 1, 0, 0.05, 0, 0.01);
                 }
 
                 tick++;

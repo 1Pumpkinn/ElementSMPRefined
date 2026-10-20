@@ -1,14 +1,15 @@
 package net.rose.elementSMPRefined.ability.main.mythic.life;
 
-import net.rose.elementSMPRefined.particles.element.LifeParticles;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -50,7 +51,7 @@ public class LifeRegenAbility extends BaseAbility {
                         particleLoc.add(0, 1, 0);
                     }
                     
-					LifeParticles.regenRingPoint(player.getWorld(), particleLoc);
+					player.getWorld().spawnParticle(Particle.DUST, particleLoc, 1, 0.1, 0.1, 0.1, 0, new Particle.DustOptions(org.bukkit.Color.RED, 1.0f), true);
                 }
                 tick++;
             }

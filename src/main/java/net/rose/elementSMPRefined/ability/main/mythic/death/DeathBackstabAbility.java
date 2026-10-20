@@ -1,6 +1,5 @@
 package net.rose.elementSMPRefined.ability.main.mythic.death;
 
-import net.rose.elementSMPRefined.particles.element.DeathParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -8,7 +7,9 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -40,6 +41,9 @@ public class DeathBackstabAbility extends BaseAbility {
     /** Whether the drained mana is credited back to the caster (true) or just removed from the target (false). */
     private static final boolean MANA_STEAL_GIVES_CASTER = true;
     /** Pure black dust, matching the vanish/reappear look used by DeathSideStepAbility. */
+    private static final Particle.DustOptions BLACK_DUST =
+            new Particle.DustOptions(Color.fromRGB(5, 5, 5), 1.4F);
+
     private final ElementSMPRefined plugin;
 
     public DeathBackstabAbility(JavaPlugin plugin, ConfigManager configManager) {
@@ -73,7 +77,8 @@ public class DeathBackstabAbility extends BaseAbility {
         world.playSound(behind, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.8f);
 
         Location hitLoc = target.getLocation().add(0, 1.1, 0);
-        DeathParticles.backstabHit(world, hitLoc);
+        world.spawnParticle(Particle.SWEEP_ATTACK, hitLoc, 1, 0, 0, 0, 0);
+        world.spawnParticle(Particle.CRIT, hitLoc, 20, 0.3, 0.4, 0.3, 0.2, null, true);
         world.playSound(hitLoc, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1f, 0.8f);
         world.playSound(hitLoc, Sound.ENTITY_WITHER_HURT, 0.5f, 1.6f);
 
@@ -179,7 +184,8 @@ public class DeathBackstabAbility extends BaseAbility {
     }
 
     private void spawnBurst(World world, Location center) {
-        DeathParticles.shadowBurst(world, center);
+        world.spawnParticle(Particle.DUST, center, 40, 0.35, 0.5, 0.35, 0, BLACK_DUST, true);
+        world.spawnParticle(Particle.SQUID_INK, center, 6, 0.3, 0.4, 0.3, 0.01, null, true);
     }
 
     @Override

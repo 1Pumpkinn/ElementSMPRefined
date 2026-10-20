@@ -1,16 +1,18 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
-import net.rose.elementSMPRefined.particles.element.MetalParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.Entity;
@@ -158,7 +160,9 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         Location at = shield.visual.popNearest(source != null ? source.getLocation() : null);
         if (at == null) at = victim.getLocation().add(0, 1.0, 0);
 
-        MetalParticles.shieldHit(at, abilityHit);
+        at.getWorld().spawnParticle(Particle.BLOCK, at, 20, 0.25, 0.35, 0.25, 0.1,
+                Material.IRON_BLOCK.createBlockData(), true);
+        at.getWorld().spawnParticle(Particle.CRIT, at, abilityHit ? 24 : 12, 0.3, 0.4, 0.3, 0.2, null, true);
         if (abilityHit) {
             at.getWorld().playSound(at, Sound.BLOCK_ANVIL_LAND, 0.7f, 1.7f);
         }
@@ -185,7 +189,8 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
             }
             case EXPIRED -> {
                 at.getWorld().playSound(at, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 0.8f, 0.8f);
-                MetalParticles.shieldExpire(at);
+                at.getWorld().spawnParticle(Particle.BLOCK, at, 20, 0.6, 0.5, 0.6, 0.05,
+                        Material.IRON_BLOCK.createBlockData(), true);
             }
             case REMOVED -> { /* quit / death / element change - nothing to show */ }
         }

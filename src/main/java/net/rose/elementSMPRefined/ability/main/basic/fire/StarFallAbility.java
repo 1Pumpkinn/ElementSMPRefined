@@ -1,6 +1,5 @@
 package net.rose.elementSMPRefined.ability.main.basic.fire;
 
-import net.rose.elementSMPRefined.particles.element.FireParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -13,6 +12,7 @@ import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.BlockDisplay;
@@ -59,6 +59,7 @@ public class StarFallAbility extends BaseAbility {
     private static final Color METEOR_GLOW = Color.fromRGB(204, 85, 0);
     private static final float TOTAL_SPIN = (float) Math.PI * 1.5f;
 
+    private static final Particle.DustOptions MARKER_DUST = new Particle.DustOptions(Color.fromRGB(255, 120, 20), 1.0f);
     private static final int MARKER_POINTS = 12;
     private static final int ZONE_POINTS = 24;
 
@@ -214,7 +215,9 @@ public class StarFallAbility extends BaseAbility {
     private static void explode(Player caster, TrustManager trust, Location impact) {
         World world = impact.getWorld();
 
-        FireParticles.starFallImpact(world, impact, IMPACT_RADIUS, METEOR_BLOCK);
+        world.spawnParticle(Particle.EXPLOSION, impact, 1, 0, 0, 0, 0, null, true);
+        world.spawnParticle(Particle.BLOCK, impact.clone().add(0, 0.3, 0), 12,
+                IMPACT_RADIUS / 4, 0.2, IMPACT_RADIUS / 4, 0.1, METEOR_BLOCK.createBlockData(), true);
         world.playSound(impact, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.4f);
         world.playSound(impact, Sound.ITEM_FIRECHARGE_USE, 1.0f, 0.9f);
 
@@ -255,7 +258,11 @@ public class StarFallAbility extends BaseAbility {
     }
 
     private static void drawRing(World world, Location center, double radius, int points) {
-        FireParticles.starFallMarkerRing(world, center, radius, points);
+        for (int i = 0; i < points; i++) {
+            double a = (Math.PI * 2 * i) / points;
+            Location p = center.clone().add(Math.cos(a) * radius, 0.15, Math.sin(a) * radius);
+            world.spawnParticle(Particle.DUST, p, 1, 0, 0, 0, 0, MARKER_DUST, true);
+        }
     }
 
     /** Display rotation pivots on the block's corner; offset by the rotated half-extent to tumble around the centre. */

@@ -1,6 +1,5 @@
 package net.rose.elementSMPRefined.ability.main.basic.fire;
 
-import net.rose.elementSMPRefined.particles.element.FireParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -12,6 +11,7 @@ import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
@@ -219,7 +219,7 @@ public class HellChainAbility extends BaseAbility {
                     target.setVelocity(new Vector(0, 0, 0));
                     target.setFireTicks(Math.max(target.getFireTicks(), BURN_FIRE_TICKS));
                     AbilityDamage.deal(target, getName(), () -> target.damage(IMPACT_DAMAGE, player));
-                    FireParticles.hellChainImpact(targetLoc);
+                    player.getWorld().spawnParticle(Particle.LAVA, targetLoc, 15, 0.3, 0.3, 0.3, 0.05);
                     player.getWorld().playSound(targetLoc, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
                     cancel();
                     return;
@@ -368,7 +368,8 @@ public class HellChainAbility extends BaseAbility {
 
                     player.setVelocity(player.getVelocity().multiply(0.2));
                     player.getWorld().playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
-                    FireParticles.hellChainHook(hookLocation, BURN_RADIUS);
+                    player.getWorld().spawnParticle(Particle.LAVA, hookLocation, 20,
+                            BURN_RADIUS / 2, 0.3, BURN_RADIUS / 2, 0.05);
                     burnNearby(player, hookLocation, trust);
                     cancel();
                     return;
@@ -442,7 +443,7 @@ public class HellChainAbility extends BaseAbility {
         player.setVelocity(boost);
         player.setFallDistance(0f);
         player.getWorld().playSound(at, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
-        FireParticles.hellChainMantle(at);
+        player.getWorld().spawnParticle(Particle.LAVA, at, 15, 0.4, 0.2, 0.4, 0.05);
         burnNearby(player, at, trust);
     }
 

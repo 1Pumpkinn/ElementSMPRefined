@@ -87,7 +87,7 @@ public class EarthVeinMinerListener implements Listener {
             }
         }
 
-        int maxBlocks = 15; // Maximum additional blocks to break per vein mine
+        int maxBlocks = 16; // Maximum additional blocks to break per vein mine
         int blocksBroken = 0;
 
         while (!queue.isEmpty() && blocksBroken < maxBlocks) {

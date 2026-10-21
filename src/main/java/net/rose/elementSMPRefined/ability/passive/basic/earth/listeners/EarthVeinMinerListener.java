@@ -66,20 +66,27 @@ public class EarthVeinMinerListener implements Listener {
         breakConnectedOres(block, player);
     }
 
+    /**
+     * Any ore counts as part of the vein (iron + gold, iron + deepslate iron, etc.),
+     * but only if the held tool is the correct one for it so no ore is destroyed without dropping.
+     */
+    private boolean isMineable(Block block, ItemStack tool) {
+        return ORES.contains(block.getType()) && block.isPreferredTool(tool);
+    }
+
     private void breakConnectedOres(Block startBlock, Player player) {
-        Material oreType = startBlock.getType();
         Set<Block> visited = new HashSet<>();
         Queue<Block> queue = new LinkedList<>();
         ItemStack tool = player.getInventory().getItemInMainHand();
-        
+
         // Start with adjacent blocks (don't include start block since it's already being broken)
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
                     if (x == 0 && y == 0 && z == 0) continue;
-                    
+
                     Block adjacent = startBlock.getRelative(x, y, z);
-                    if (adjacent.getType() == oreType) {
+                    if (isMineable(adjacent, tool)) {
                         queue.add(adjacent);
                         visited.add(adjacent);
                     }
@@ -103,9 +110,9 @@ public class EarthVeinMinerListener implements Listener {
                         if (x == 0 && y == 0 && z == 0) continue;
 
                         Block adjacent = current.getRelative(x, y, z);
-                        
+
                         if (visited.contains(adjacent)) continue;
-                        if (adjacent.getType() != oreType) continue;
+                        if (!isMineable(adjacent, tool)) continue;
 
                         visited.add(adjacent);
                         queue.add(adjacent);

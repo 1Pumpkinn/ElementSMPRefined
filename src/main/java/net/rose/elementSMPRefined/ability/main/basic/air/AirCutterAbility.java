@@ -13,6 +13,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 /**
@@ -78,6 +79,8 @@ public class AirCutterAbility extends BaseAbility {
 
         new BukkitRunnable() {
             double travelled = 0;
+            /** Where the blade was last tick, so each step can be ray-traced for blocks. */
+            Location previous = origin.clone();
             final AirCutterVisual blade =
                     new AirCutterVisual(origin.clone().add(direction.clone().multiply(1.0)), direction, player);
 
@@ -97,6 +100,24 @@ public class AirCutterAbility extends BaseAbility {
 
                 travelled += 1.5;
                 Location slice = origin.clone().add(direction.clone().multiply(travelled));
+
+                // The blade moves 1.5 blocks a tick, so check the whole step for a solid block rather
+                // than just the end point (otherwise it skips straight through thin floors and walls).
+                Vector step = slice.toVector().subtract(previous.toVector());
+                double stepLength = step.length();
+                boolean blocked = false;
+                if (stepLength > 1.0E-4) {
+                    RayTraceResult wall = w.rayTraceBlocks(previous, step.clone().normalize(), stepLength,
+                            FluidCollisionMode.NEVER, true);
+                    if (wall != null) {
+                        blocked = true;
+                        // Stop just short of the surface so the blade doesn't visually sink into it.
+                        Vector stop = wall.getHitPosition().clone().subtract(step.clone().normalize().multiply(0.15));
+                        slice = stop.toLocation(w);
+                        w.spawnParticle(Particle.CLOUD, wall.getHitPosition().toLocation(w), 6, 0.2, 0.2, 0.2, 0.02, null, true);
+                    }
+                }
+                previous = slice.clone();
 
                 blade.moveTo(slice);
                 // Faint wind trail behind the blade
@@ -118,6 +139,10 @@ public class AirCutterAbility extends BaseAbility {
                     knockback.setY(KNOCKBACK_VERTICAL);
                     e.setVelocity(knockback);
                     e.getWorld().spawnParticle(Particle.SWEEP_ATTACK, e.getLocation().add(0, 1, 0), 1, 0, 0, 0, 0, null, true);
+                }
+
+                if (blocked) {
+                    cancel();
                 }
             }
         }.runTaskTimer(plugin, 0L, 1L);

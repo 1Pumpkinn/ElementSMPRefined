@@ -451,6 +451,6 @@ public class MetalMagnetarAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Plant an Mangetar core that pulls players and mobs in and crushes them once inside";
+        return "Places a core that pulls in nearby players and mobs and hurts them once they are inside it.";
     }
 }

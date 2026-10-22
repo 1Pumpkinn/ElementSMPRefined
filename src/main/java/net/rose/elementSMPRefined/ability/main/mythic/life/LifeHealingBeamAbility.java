@@ -77,6 +77,6 @@ public class LifeHealingBeamAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Project a beam of healing energy that restores health to trusted allies.";
+        return "Fire a beam that heals you or any trusted player it points at.";
     }
 }

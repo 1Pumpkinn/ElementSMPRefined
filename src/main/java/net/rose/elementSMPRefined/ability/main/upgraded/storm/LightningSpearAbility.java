@@ -248,7 +248,6 @@ public class LightningSpearAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Hurl a fast spear of lightning. It strikes the first enemy or block in its path, "
-                + "damaging and shocking whatever it hits in a burst of lightning.";
+        return "Throws a lightning spear that damages and shocks what it hits and anything near it.";
     }
 }

@@ -155,6 +155,6 @@ public class AirCutterAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Fire three razor-sharp blades of wind in a fan that slice through enemies in a line, dealing damage and knocking them back.";
+        return "Fires three blades of air that damage and knock back enemies.";
     }
 }

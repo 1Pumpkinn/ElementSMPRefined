@@ -112,6 +112,6 @@ public class DeathSideStepAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Blink a short distance forward, vanishing in shadow. (25 mana)";
+        return "Teleport forward a short distance.";
     }
 }

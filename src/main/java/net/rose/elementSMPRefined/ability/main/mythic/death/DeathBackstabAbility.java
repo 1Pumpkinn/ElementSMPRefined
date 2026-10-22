@@ -195,7 +195,6 @@ public class DeathBackstabAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        String manaVerb = MANA_STEAL_GIVES_CASTER ? "stealing" : "draining";
-        return ChatColor.GRAY + "Look at a living entity within 8 blocks to blink behind them, dealing 4 hearts of true damage and instantly " + manaVerb + " " + MANA_STEAL_AMOUNT + " mana if they're a player. (60 mana)";
+        return "Teleport behind the enemy you're looking at.";
     }
 }

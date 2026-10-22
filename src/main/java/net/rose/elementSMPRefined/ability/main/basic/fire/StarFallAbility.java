@@ -347,6 +347,6 @@ public class StarFallAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Call down a barrage of meteors on the area you're looking at";
+        return "Rains meteors on the area you're looking at, damaging and burning enemies.";
     }
 }

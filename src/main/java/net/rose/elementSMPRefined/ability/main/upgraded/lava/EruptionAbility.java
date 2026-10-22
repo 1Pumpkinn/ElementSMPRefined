@@ -512,6 +512,6 @@ public class EruptionAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Look at an enemy to crack the ground beneath them. After a short warning it erupts, damaging, igniting and launching everything standing in the blast. Move out of the particles and you are safe.";
+        return "Look at an entity to crack the ground under them. After a short delay it erupts, damaging, burning and launching anyone still in the area.";
     }
 }

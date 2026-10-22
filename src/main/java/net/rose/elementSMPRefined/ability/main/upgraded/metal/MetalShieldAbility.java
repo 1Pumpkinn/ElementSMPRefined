@@ -234,7 +234,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return "Surround yourself with " + SHIELD_COUNT + " orbiting metal shields. Each absorbs a hit,"
-                + " but a damaging ability shatters all of them.";
+        return "Orbiting shields each block one hit. A damaging ability breaks all of them.";
     }
 }

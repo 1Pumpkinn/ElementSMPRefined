@@ -463,7 +463,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Raises a large dome of water that follows you for 10 seconds and blocks players, mobs and projectiles";
+        return "Raises a dome of water around you that follows you and blocks players, mobs and projectiles.";
     }
 
     private static class DomeState {

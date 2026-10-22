@@ -259,6 +259,6 @@ public class MagmaBeamAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Charge a ball of magma, then fire a beam that follows your aim and burns everything it crosses. You are slowed while charging and firing.";
+        return "Charge up, then fire a beam that follows your aim and burns what it hits. You're slowed while casting it.";
     }
 }

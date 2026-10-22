@@ -333,6 +333,6 @@ public class ShockwaveAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Leap into the air and slam down, sending a ring of rippling earth in every direction that launches everything it passes under.";
+        return "Jump up and slam down, sending a shockwave out that damages and launches enemies.";
     }
 }

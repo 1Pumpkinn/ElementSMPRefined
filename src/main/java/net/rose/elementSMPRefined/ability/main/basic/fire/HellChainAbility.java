@@ -521,8 +521,6 @@ public class HellChainAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Launch a fiery chain at whatever you're looking at - drag enemies in directly, "
-                + "hook the ground near them to pull yourself there, or scale a wall face outright, "
-                + "scorching anything nearby on arrival. Press again mid-chain to let go.";
+        return "Shoots a chain at an entity you are looking at It pulls the entity to you, or pulls you to a block. Sets nearby enemies on fire Use again to stop mid-chain.";
     }
 }

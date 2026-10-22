@@ -42,8 +42,7 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 0) {
-            player.sendMessage(Component.text("Usage: /elements <element>")
-                    .color(NamedTextColor.YELLOW));
+            listElements(player);
             return true;
         }
 
@@ -51,60 +50,53 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private void listElements(Player player) {
+        List<String> names = new ArrayList<>();
+        for (ElementType type : elementManager.getElementRegistry().getAllTypes()) {
+            names.add(type.name().toLowerCase());
+        }
+        player.sendMessage(Component.text("Elements: " + String.join(", ", names), NamedTextColor.GRAY));
+        player.sendMessage(Component.text("Use /elements <element> to see its passives and abilities.", NamedTextColor.GRAY));
+    }
+
     private void showElementDetails(Player player, String elementName) {
         ElementType type;
         try {
             type = ElementType.valueOf(elementName.toUpperCase());
         } catch (IllegalArgumentException e) {
-            player.sendMessage(Component.text("\u274C Unknown element: " + elementName)
-                    .color(NamedTextColor.RED));
-            player.sendMessage(Component.text("Use /elements <element>")
-                    .color(NamedTextColor.GRAY));
+            player.sendMessage(Component.text("Unknown element: " + elementName, NamedTextColor.RED));
             return;
         }
 
         Element element = elementManager.get(type);
         if (element == null) {
-            player.sendMessage(Component.text("\u274C No information available for " + type.name())
-                    .color(NamedTextColor.RED));
+            player.sendMessage(Component.text("No information available for " + capitalize(type.name()), NamedTextColor.RED));
             return;
         }
 
         player.sendMessage(Component.empty());
-        player.sendMessage(Component.text("\u2726 " + type.name() + " ELEMENT \u2726")
-                .color(NamedTextColor.GOLD)
+        player.sendMessage(Component.text(capitalize(type.name()), NamedTextColor.GOLD)
                 .decorate(TextDecoration.BOLD));
-        player.sendMessage(Component.empty());
 
         if (!element.getPassiveBenefits().isEmpty()) {
-            player.sendMessage(Component.text("\u2B50 Passive Benefits:")
-                    .color(NamedTextColor.GOLD)
-                    .decorate(TextDecoration.BOLD));
-            for (String upside : element.getPassiveBenefits()) {
-                player.sendMessage(Component.text("  \u2022 " + upside)
-                        .color(NamedTextColor.GREEN));
+            player.sendMessage(Component.text("Passives", NamedTextColor.YELLOW));
+            for (String passive : element.getPassiveBenefits()) {
+                player.sendMessage(Component.text("- " + passive, NamedTextColor.GRAY));
             }
-            player.sendMessage(Component.empty());
         }
 
-        player.sendMessage(Component.text("\u26A1 Abilities:")
-                .color(NamedTextColor.GOLD)
-                .decorate(TextDecoration.BOLD));
+        sendAbility(player, 1, element.getAbility1Name(), element.getAbility1Description());
+        sendAbility(player, 2, element.getAbility2Name(), element.getAbility2Description());
+    }
 
-        player.sendMessage(Component.text("  \u2460 " + strip(element.getAbility1Name()))
-                .color(NamedTextColor.AQUA)
-                .decorate(TextDecoration.BOLD));
-        player.sendMessage(Component.text("     " + strip(element.getAbility1Description()))
-                .color(NamedTextColor.GRAY));
+    private void sendAbility(Player player, int slot, String name, String description) {
+        player.sendMessage(Component.text("Ability " + slot + ": ", NamedTextColor.YELLOW)
+                .append(Component.text(strip(name), NamedTextColor.WHITE)));
+        player.sendMessage(Component.text(strip(description), NamedTextColor.GRAY));
+    }
 
-        player.sendMessage(Component.text("  \u2461 " + strip(element.getAbility2Name()))
-                .color(NamedTextColor.LIGHT_PURPLE)
-                .decorate(TextDecoration.BOLD));
-
-        player.sendMessage(Component.text("     " + strip(element.getAbility2Description()))
-                .color(NamedTextColor.GRAY));
-
-        player.sendMessage(Component.empty());
+    private static String capitalize(String name) {
+        return name.charAt(0) + name.substring(1).toLowerCase();
     }
 
     /**

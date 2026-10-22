@@ -236,6 +236,6 @@ public class WaterGeyserAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Erupt a geyser beneath you launching you up, then a second geyser at the apex boosts you forward in the direction you're facing.";
+        return "A geyser launches you up, then a second one at the top pushes you forward.";
     }
 }

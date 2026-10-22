@@ -562,6 +562,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Charge a ring of icicles, then fire them one after another at whatever you are looking at. They damage, slow and freeze what they hit. You are slowed while charging and firing.";
+        return "Charge a ring of icicles, then fire them at what you're looking at They damage and slow enemies. You're slowed while casting it.";
     }
 }

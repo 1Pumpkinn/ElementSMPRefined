@@ -288,6 +288,6 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return ChatColor.GRAY + "Cast Ice Spikes after a short wind-up rings of ice spikes cast around you that damage, launch and slow entities.";
+        return "Ice spikes burst out in rings around you, damaging, launching and slowing enemies.";
     }
 }

@@ -80,6 +80,6 @@ public class AirDashAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Dash forward with incredible speed, pushing away any enemies in your path.";
+        return "Dash forward and push away enemies near you.";
     }
 }

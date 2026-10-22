@@ -73,6 +73,6 @@ public class LifeRegenAbility extends BaseAbility {
     }
 
     public String getDescription() {
-        return "Grant regeneration to yourself and trusted allies within 5 blocks.";
+        return "Gives Regeneration to you and trusted players nearby.";
     }
 }

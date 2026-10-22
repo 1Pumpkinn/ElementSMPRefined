@@ -663,7 +663,6 @@ public class TornadoAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Summon a tornado that roams the area, sucking in nearby players and mobs "
-                + "and damaging everything caught inside it.";
+        return "Summons a tornado that pulls in nearby players and mobs, lifts them and damages them.";
     }
 }

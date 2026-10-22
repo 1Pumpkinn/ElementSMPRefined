@@ -166,6 +166,6 @@ public class EarthTunnelAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Create a tunnel through earth and stone by looking in the direction you want to dig. Press again to cancel.";
+        return "Digs a tunnel where you're looking. Use your held pickaxe's if you want to apply Fortune and Silk Touch. Use again to stop tunneling.";
     }
 }

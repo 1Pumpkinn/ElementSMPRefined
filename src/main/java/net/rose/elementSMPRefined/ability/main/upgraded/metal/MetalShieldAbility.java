@@ -33,14 +33,14 @@ import java.util.UUID;
 
 /**
  * Metal element ability 1: surrounds the caster with {@value #SHIELD_COUNT} orbiting Metal
- * Shields ({@link MetalShieldVisual}). Each shield absorbs one hit, popping the shield closest
- * to the attacker:
+ * Shields ({@link MetalShieldVisual}):
  * <ul>
- *   <li>melee and projectile hits can use up any shield, and</li>
- *   <li>at most {@value #ABILITY_HITS} of the shields can be spent on a damaging ability (anything
- *       dealt through {@link net.rose.elementSMPRefined.util.damage.TrueDamage} or flagged with
- *       {@link AbilityDamage}); after that, ability damage goes straight through. Non-damage
- *       abilities (pulls, dashes...) never use a shield.</li>
+ *   <li>each melee or projectile hit is absorbed by one shield, popping the shield closest to
+ *       the attacker, and</li>
+ *   <li>a damaging ability (anything dealt through
+ *       {@link net.rose.elementSMPRefined.util.damage.TrueDamage} or flagged with
+ *       {@link AbilityDamage}) is absorbed too, but shatters <b>all</b> remaining shields at
+ *       once. Non-damage abilities (pulls, dashes...) never touch a shield.</li>
  * </ul>
  * An absorbed hit is cancelled outright - no damage, no knockback. The effect ends when the last
  * shield pops, or fades on its own after {@value #DURATION_TICKS} ticks. Environmental damage
@@ -55,7 +55,6 @@ import java.util.UUID;
 public class MetalShieldAbility extends BaseAbility implements Listener {
 
     private static final int SHIELD_COUNT = 3;
-    private static final int ABILITY_HITS = 1;
     private static final int DURATION_TICKS = 15 * 20; // 15 seconds if it's never broken
     private static final int COOLDOWN_SECONDS = 45;
 
@@ -63,7 +62,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
 
     private static final class Shield {
         final MetalShieldVisual visual;
-        int abilityHitsLeft = ABILITY_HITS;
         BukkitRunnable task;
 
         Shield(MetalShieldVisual visual) {
@@ -135,8 +133,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
 
         // Ability damage is checked first - a TrueDamage hit can show up as an entity attack too.
         if (AbilityDamage.isAbilityDamage(victim)) {
-            if (shield.abilityHitsLeft <= 0) return;
-            shield.abilityHitsLeft--;
             AbilityDamage.markBlocked(victim);
             absorb(victim, shield, event, source, true);
             return;
@@ -153,16 +149,25 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
                 || cause == DamageCause.PROJECTILE;
     }
 
-    /** Cancels the hit and pops the shield nearest the attacker. */
+    /**
+     * Cancels the hit and pops the shield nearest the attacker. An ability hit shatters every
+     * remaining shield instead of just one.
+     */
     private void absorb(Player victim, Shield shield, EntityDamageEvent event, Entity source, boolean abilityHit) {
         event.setCancelled(true);
 
-        Location at = shield.visual.popNearest(source != null ? source.getLocation() : null);
+        Location from = source != null ? source.getLocation() : null;
+        int toPop = abilityHit ? shield.visual.count() : 1;
+
+        Location at = null;
+        for (int i = 0; i < toPop && shield.visual.count() > 0; i++) {
+            Location popped = shield.visual.popNearest(from);
+            if (popped == null) popped = victim.getLocation().add(0, 1.0, 0);
+            at = popped;
+            popEffects(popped, abilityHit);
+        }
         if (at == null) at = victim.getLocation().add(0, 1.0, 0);
 
-        at.getWorld().spawnParticle(Particle.BLOCK, at, 20, 0.25, 0.35, 0.25, 0.1,
-                Material.IRON_BLOCK.createBlockData(), true);
-        at.getWorld().spawnParticle(Particle.CRIT, at, abilityHit ? 24 : 12, 0.3, 0.4, 0.3, 0.2, null, true);
         if (abilityHit) {
             at.getWorld().playSound(at, Sound.BLOCK_ANVIL_LAND, 0.7f, 1.7f);
         }
@@ -171,6 +176,12 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         if (shield.visual.count() <= 0) {
             end(victim, EndReason.BROKEN);
         }
+    }
+
+    private void popEffects(Location at, boolean abilityHit) {
+        at.getWorld().spawnParticle(Particle.BLOCK, at, 20, 0.25, 0.35, 0.25, 0.1,
+                Material.IRON_BLOCK.createBlockData(), true);
+        at.getWorld().spawnParticle(Particle.CRIT, at, abilityHit ? 24 : 12, 0.3, 0.4, 0.3, 0.2, null, true);
     }
 
 
@@ -224,6 +235,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     @Override
     public String getDescription() {
         return "Surround yourself with " + SHIELD_COUNT + " orbiting metal shields. Each absorbs a hit,"
-                + " and " + ABILITY_HITS + " can absorb a damaging ability.";
+                + " but a damaging ability shatters all of them.";
     }
 }

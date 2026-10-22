@@ -25,8 +25,8 @@ import java.util.Map;
  * with no furnace or fuel needed. This is the base passive, active from
  * Upgrade I.
  *
- * Fortune still multiplies the output. Silk Touch bypasses smelting
- * entirely and drops the raw block as normal. Players can switch the
+ * Fortune still multiplies the output (vanilla loot table). Silk Touch bypasses
+ * smelting entirely and drops the raw block as normal. Players can switch the
  * whole passive off/on with /autosmelt.
  */
 public class FireSmeltListener implements Listener {
@@ -74,13 +74,13 @@ public class FireSmeltListener implements Listener {
 
         ItemStack tool = player.getInventory().getItemInMainHand();
 
-        // Silk Touch keeps the raw block/ore as-is - no smelting
-        if (tool.containsEnchantment(Enchantment.SILK_TOUCH)) {
+        // Silk Touch keeps the raw block/ore as-is - no smelting at all
+        if (tool.getEnchantmentLevel(Enchantment.SILK_TOUCH) > 0) {
             return;
         }
 
-        // Vanilla drops for this block (fortune already applied)
-        List<ItemStack> drops = List.copyOf(block.getDrops(tool));
+        // Vanilla loot table with the real tool, so Fortune is applied by the game
+        List<ItemStack> drops = List.copyOf(block.getDrops(tool, player));
         if (drops.isEmpty()) {
             return;
         }

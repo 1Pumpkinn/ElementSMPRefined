@@ -94,11 +94,7 @@ public abstract class BaseElement implements Element {
     }
 
     protected boolean checkCooldown(Player player, CooldownManager cooldownManager, String abilityId) {
-        if (!cooldownManager.isReady(player, abilityId)) {
-            player.sendMessage(Lang.baseElementAbilityOnCooldown(cooldownManager.getRemainingSeconds(player, abilityId)));
-            return false;
-        }
-        return true;
+        return cooldownManager.isReady(player, abilityId);
     }
 
     /**

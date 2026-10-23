@@ -600,10 +600,6 @@ public final class Lang {
     public static final Component GRACE_CMD_INVALID_NUMBER =
             Component.text("Duration and hunger protection must be positive whole numbers of seconds.", NamedTextColor.RED);
 
-    public static Component baseElementAbilityOnCooldown(long seconds) {
-        return Component.textOfChildren();
-    }
-
 
     // Shown by CooldownActionBarTask once a second while at least one of the
     // player's two abilities is on cooldown; ability names are truncated to a

@@ -2,7 +2,10 @@
 -dontoptimize
 -dontpreverify
 -dontnote **
--keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,Exceptions
+# Keep the stack map frames javac already generated. Without this, -dontpreverify
+# strips them and the JVM rejects the jar with VerifyError. Safe here because
+# -dontoptimize / -dontshrink mean the bytecode itself is not rewritten.
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,Exceptions,StackMapTable
 
 # Main plugin class (referenced by plugin.yml / paper-plugin.yml)
 -keep class net.rose.elementSMPRefined.ElementSMPRefined { *; }

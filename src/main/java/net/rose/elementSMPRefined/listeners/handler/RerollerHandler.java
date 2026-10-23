@@ -185,7 +185,6 @@ public class RerollerHandler implements Listener {
                 if (!assigned && visual.hasRevealed()) {
                     assigned = true;
                     elementManager.assignBasicElement(player, targetElement);
-                    player.sendMessage(Component.text("Your element has been rerolled!").color(NamedTextColor.GREEN));
                 }
 
                 // Whole animation finished (survivor has burst) - release the lock.

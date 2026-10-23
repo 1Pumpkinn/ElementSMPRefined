@@ -187,8 +187,6 @@ public class AdvancedRerollerHandler implements Listener {
         player.showTitle(title);
         elementManager.applyUpsides(player);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
-
-        player.sendMessage(Component.text("Your element has been rerolled").color(NamedTextColor.GREEN));
     }
 
     private void clearOldElementEffects(Player player, PlayerData playerData) {

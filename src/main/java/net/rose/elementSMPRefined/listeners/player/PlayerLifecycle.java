@@ -154,7 +154,6 @@ public class PlayerLifecycle implements Listener {
                     cancel();
                     try {
                         elementManager.assignBasicElement(player, targetElement);
-                        player.sendMessage(Component.text("Your element has been rolled!").color(NamedTextColor.GREEN));
                     } finally {
                         elementManager.endRolling(player);
                     }

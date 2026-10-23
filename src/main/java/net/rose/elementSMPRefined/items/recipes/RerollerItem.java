@@ -13,9 +13,13 @@ public final class RerollerItem {
 
     public static final String KEY = "element_reroller";
 
+    /** Resource-pack item model (assets/elementsmp/items/element_reroller.json). */
+    private static final NamespacedKey MODEL = NamespacedKey.fromString("elementsmp:element_reroller");
+
     public static ItemStack make(JavaPlugin plugin) {
         return ItemBuilder.of(Material.HEART_OF_THE_SEA)
                 .name("&dElement Reroller")
+                .itemModel(MODEL)
                 .lore(
                         "&7Allows you to change your element",
                         "&eRight-click to randomly reroll your element"

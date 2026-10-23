@@ -38,13 +38,6 @@ Requires JDK 25.
 ./gradlew runServer    # local Paper test server
 ```
 
-## Resource pack
-
-Ability models (tornado, magma beam, air cutter, metal shield, magnetar, icicles, chains) and
-element gems live in `src/main/resources/elementsmprefined/assets`. The plugin does not send the
-pack to players: zip the contents of `elementsmprefined/` (so `assets/` is at the zip root), host
-it, and point `resource-pack` in `server.properties` at it.
-
 ## Adding an element
 
 Copy `util/example/ExampleElement` and `ExampleAbility`, add a value to `ElementType`, and register

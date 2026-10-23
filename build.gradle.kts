@@ -1,10 +1,3 @@
-import proguard.gradle.ProGuardTask
-
-buildscript {
-    repositories { mavenCentral() }
-    dependencies { classpath("com.guardsquare:proguard-gradle:7.8.1") }
-}
-
 plugins {
     java
     id("com.gradleup.shadow") version "9.2.2"
@@ -21,25 +14,18 @@ java {
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.viaversion.com")
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:26.2.build.134-stable")
 
-    // Add shaded dependencies here, e.g.:
-    // implementation("com.zaxxer:HikariCP:5.1.0")
-}
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-// Full runtime view of compileOnly deps (Paper + all its transitive libs) for ProGuard
-val proguardLibs: Configuration by configurations.creating {
-    isCanBeConsumed = false
-    isCanBeResolved = true
-    extendsFrom(configurations.compileOnly.get())
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
-    }
+
+    compileOnly("com.viaversion:viaversion-api:[5.0.0,6.0.0)")
 }
 
 tasks {
@@ -54,6 +40,9 @@ tasks {
         filesMatching(listOf("plugin.yml", "paper-plugin.yml")) {
             expand(props)
         }
+    }
+    test {
+        useJUnitPlatform()
     }
 
     runServer {
@@ -72,40 +61,5 @@ tasks {
 
     build {
         dependsOn(shadowJar)
-    }
-
-    register<ProGuardTask>("obfuscate") {
-        group = "build"
-        dependsOn(shadowJar)
-
-        verbose()
-
-        injars(shadowJar.flatMap { it.archiveFile })
-        outjars(layout.buildDirectory.file("libs/${project.name}-${project.version}-obf.jar"))
-
-        // JDK classes (Gradle must run on a full JDK 25, not a JRE)
-        val jmods = "${System.getProperty("java.home")}/jmods"
-        listOf(
-            "java.base",
-            "java.logging",
-            "java.sql",
-            "java.desktop",
-            "java.xml",
-            "java.net.http",
-            "java.management",
-            "java.naming",
-            "java.prefs",
-            "java.compiler"
-        ).forEach {
-            libraryjars(
-                mapOf("jarfilter" to "!**.jar", "filter" to "!module-info.class"),
-                "$jmods/$it.jmod"
-            )
-        }
-
-        // Paper API, Bukkit, Adventure and every transitive compileOnly dependency
-        libraryjars(proguardLibs)
-
-        configuration("proguard-rules.pro")
     }
 }

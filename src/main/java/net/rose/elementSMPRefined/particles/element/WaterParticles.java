@@ -1,8 +1,10 @@
 package net.rose.elementSMPRefined.particles.element;
 
+import net.rose.elementSMPRefined.util.compat.ClientCompat;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 /** Particle effects for the Water element. */
 public final class WaterParticles {
@@ -47,9 +49,22 @@ public final class WaterParticles {
                 0.4, 0.2, 0.4, 0.02, null, true);
     }
 
-    /** Vanilla geyser plume; {@code waterBlocks} drives its height. */
+    /**
+     * Vanilla geyser plume; {@code waterBlocks} drives its height. {@code Particle.GEYSER} is
+     * 26.2-only and crashes older clients joining via ViaBackwards, so it's sent per-viewer:
+     * native clients get the real plume, translated clients get a splash/bubble fallback.
+     */
     public static void geyserEruption(Location origin, int waterBlocks) {
-        origin.getWorld().spawnParticle(Particle.GEYSER, origin, 0, 0, 0, 0, new Particle.Geyser(waterBlocks));
+        Particle.Geyser data = new Particle.Geyser(waterBlocks);
+        for (Player viewer : origin.getNearbyPlayers(64)) {
+            if (ClientCompat.supportsNewParticles(viewer)) {
+                viewer.spawnParticle(Particle.GEYSER, origin, 0, 0, 0, 0, data);
+            } else {
+                Location base = origin.clone().add(0, 1, 0);
+                viewer.spawnParticle(Particle.SPLASH, base, 80, 0.3, 1.5, 0.3, 0.3);
+                viewer.spawnParticle(Particle.BUBBLE_POP, base, 40, 0.3, 1.2, 0.3, 0.2);
+            }
+        }
     }
 
     /** Per-tick trail behind the player riding the geyser. */

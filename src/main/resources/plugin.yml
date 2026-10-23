@@ -5,6 +5,7 @@ author: PumpkinDev
 contributors: [SantaEevee Magnet108]
 api-version: '26.2'
 load: STARTUP
+softdepend: [ViaVersion]
 
 commands:
   trust:

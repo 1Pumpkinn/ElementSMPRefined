@@ -39,6 +39,8 @@ public final class AirCutterVisual {
 
     /** The model is ~0.9 blocks wide; this makes it read at a distance and match the hitbox. */
     private static final float SCALE = 2.0f;
+    /** How far (in blocks) the model is drawn below its real position. Visual only - hit detection is unaffected. */
+    private static final float DROP = 0.1f;
     /**
      * World direction the model's apex (the bulging, sharp front edge - model -Z) points at
      * with an unrotated ItemDisplay. If the blade ever flies backwards in game, flip this
@@ -73,7 +75,7 @@ public final class AirCutterVisual {
         // Orientation lives entirely in the transformation (entity yaw/pitch stay 0), same as
         // ChainVisual - a display's own rotation would stack with it.
         Transformation transformation = new Transformation(
-                new Vector3f(),
+                new Vector3f(0f, -DROP, 0f),
                 new Quaternionf().rotationTo(MODEL_FORWARD, dir),
                 new Vector3f(SCALE),
                 new Quaternionf());

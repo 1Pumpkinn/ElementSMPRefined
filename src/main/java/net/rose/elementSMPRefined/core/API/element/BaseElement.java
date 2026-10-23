@@ -94,6 +94,7 @@ public abstract class BaseElement implements Element {
     }
 
     protected boolean checkCooldown(Player player, CooldownManager cooldownManager, String abilityId) {
+        // No chat message on cooldown - the action bar HUD already shows remaining time.
         return cooldownManager.isReady(player, abilityId);
     }
 

@@ -35,6 +35,8 @@ public class AirCutterAbility extends BaseAbility {
     private static final double KNOCKBACK_HORIZONTAL = 0.6;
     /** Small lift so targets slide instead of scraping along the ground. */
     private static final double KNOCKBACK_VERTICAL = 0.2;
+    /** Blocks the blade travels before its particles start, so they don't clutter the caster's view. The model is unaffected. */
+    private static final double PARTICLE_START_DISTANCE = 4.5;
 
     private final ElementSMPRefined plugin;
 
@@ -114,14 +116,18 @@ public class AirCutterAbility extends BaseAbility {
                         // Stop just short of the surface so the blade doesn't visually sink into it.
                         Vector stop = wall.getHitPosition().clone().subtract(step.clone().normalize().multiply(0.15));
                         slice = stop.toLocation(w);
-                        w.spawnParticle(Particle.CLOUD, wall.getHitPosition().toLocation(w), 6, 0.2, 0.2, 0.2, 0.02, null, true);
+                        if (travelled >= PARTICLE_START_DISTANCE) {
+                            w.spawnParticle(Particle.CLOUD, wall.getHitPosition().toLocation(w), 2, 0.1, 0.1, 0.1, 0.01, null, true);
+                        }
                     }
                 }
                 previous = slice.clone();
 
                 blade.moveTo(slice);
-                // Faint wind trail behind the blade
-                w.spawnParticle(Particle.CLOUD, slice, 2, 0.5, 0.05, 0.5, 0.0, null, true);
+                // Minimal wind trail, only once the blade is well clear of the caster
+                if (travelled >= PARTICLE_START_DISTANCE) {
+                    w.spawnParticle(Particle.CLOUD, slice, 1, 0.1, 0.05, 0.1, 0.0, null, true);
+                }
 
                 for (LivingEntity e : slice.getNearbyLivingEntities(hitboxWidth)) {
                     if (e.equals(player)) continue;

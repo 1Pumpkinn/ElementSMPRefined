@@ -3,7 +3,6 @@ package net.rose.elementSMPRefined.util.visual.model;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Display;

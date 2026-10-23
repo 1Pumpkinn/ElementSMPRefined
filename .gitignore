@@ -19,3 +19,6 @@ hs_err_pid*
 
 # Common working directory
 run
+
+# javac argument dumps (IDE/annotation-processing debug output)
+javac.*.args

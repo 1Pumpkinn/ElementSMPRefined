@@ -77,9 +77,9 @@ public class ConfigCommand implements ElementSubCommand {
         String key = args[2];
         boolean reset = configManager.resetToDefault(key);
         if (reset) {
-            sender.sendMessage(Lang.configReset2(key, configManager.getDefaultValue(key)));
+            sender.sendMessage(Lang.configKeyReset(key, configManager.getDefaultValue(key)));
         } else {
-            sender.sendMessage(Lang.configNoDefaultValueExists2(key));
+            sender.sendMessage(Lang.configNoDefaultValue(key));
         }
     }
 

@@ -1,5 +1,5 @@
 name: ElementSMPRefined
-version: '1.0-SNAPSHOT'
+version: '${version}'
 main: net.rose.elementSMPRefined.ElementSMPRefined
 author: PumpkinDev
 contributors: [SantaEevee Magnet108]

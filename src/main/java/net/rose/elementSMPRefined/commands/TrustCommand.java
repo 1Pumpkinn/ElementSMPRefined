@@ -64,7 +64,7 @@ public class TrustCommand implements CommandExecutor, TabCompleter {
                 if (displayNames.isEmpty() && unknownUUIDs.isEmpty()) {
                     p.sendMessage(Lang.TRUST_TRUSTED);
                 } else {
-                    p.sendMessage(Lang.trustTrusted2(String.join(", ", displayNames)));
+                    p.sendMessage(Lang.trustTrustedList(String.join(", ", displayNames)));
                     if (!unknownUUIDs.isEmpty()) {
                         p.sendMessage(Lang.trustUnknownPlayers(String.join(", ", unknownUUIDs)));
                         p.sendMessage(Lang.TRUST_USE_TRUST_REMOVE_UUID_CLEAN);

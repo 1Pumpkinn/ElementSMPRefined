@@ -57,7 +57,7 @@ public final class Lang {
                     Component.text("(none)", NamedTextColor.WHITE)
             );
 
-    public static Component trustTrusted2(Object displayNames) {
+    public static Component trustTrustedList(Object displayNames) {
         return Component.textOfChildren(
                 Component.text("Trusted: ", NamedTextColor.AQUA),
                 Component.text(String.valueOf(displayNames), NamedTextColor.WHITE)
@@ -186,17 +186,17 @@ public final class Lang {
     public static final Component CONFIG_CONFIGURATION_RESET_DEFAULT_VALUES =
             Component.text("Configuration reset to default values!", NamedTextColor.GREEN);
 
-    public static Component configReset2(Object key, Object key2) {
+    public static Component configKeyReset(Object key, Object defaultValue) {
         return Component.textOfChildren(
                 Component.text("Reset ", NamedTextColor.GREEN),
                 Component.text(String.valueOf(key), NamedTextColor.GREEN),
                 Component.text(" to default (", NamedTextColor.GREEN),
-                Component.text(String.valueOf(key2), NamedTextColor.GREEN),
+                Component.text(String.valueOf(defaultValue), NamedTextColor.GREEN),
                 Component.text(").", NamedTextColor.GREEN)
         );
     }
 
-    public static Component configNoDefaultValueExists2(Object key) {
+    public static Component configNoDefaultValue(Object key) {
         return Component.textOfChildren(
                 Component.text("No default value exists for '", NamedTextColor.RED),
                 Component.text(String.valueOf(key), NamedTextColor.RED),

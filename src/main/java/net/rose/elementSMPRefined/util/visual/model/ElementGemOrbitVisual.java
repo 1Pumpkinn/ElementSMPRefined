@@ -5,7 +5,6 @@ import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;

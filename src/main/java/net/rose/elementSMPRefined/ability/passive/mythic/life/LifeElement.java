@@ -1,6 +1,8 @@
 package net.rose.elementSMPRefined.ability.passive.mythic.life;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.mythic.life.LifeHealingBeamAbility;
@@ -23,6 +25,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LifeElement extends BaseElement {
+
+    /** Crops within this many blocks horizontally of the player are grown. */
+    private static final int CROP_AURA_RADIUS = 5;
+    /** Crops within this many blocks vertically of the player are grown. */
+    private static final int CROP_AURA_HEIGHT = 1;
+    private static final long CROP_AURA_INTERVAL_TICKS = 40L; // every 2 seconds
 
     private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
 
@@ -56,19 +64,31 @@ public class LifeElement extends BaseElement {
                     return;
                 }
 
-                int radius = 5;
-
-                for (int dx = -radius; dx <= radius; dx++) {
-                    for (int dz = -radius; dz <= radius; dz++) {
-                        for (int dy = -1; dy <= 1; dy++) {
-                            Block block = player.getLocation().clone().add(dx, dy, dz).getBlock();
-                            growIfCrop(block);
-                        }
-                    }
+                if (player.isDead()) {
+                    return;
                 }
-            }, 0L, 40L); // Every 2 seconds
+
+                growCropsAround(player);
+
+            }, 0L, CROP_AURA_INTERVAL_TICKS);
 
             passiveTasks.put(player.getUniqueId(), task);
+        }
+    }
+
+    private void growCropsAround(Player player) {
+        Location origin = player.getLocation();
+        World world = origin.getWorld();
+        int ox = origin.getBlockX();
+        int oy = origin.getBlockY();
+        int oz = origin.getBlockZ();
+
+        for (int dx = -CROP_AURA_RADIUS; dx <= CROP_AURA_RADIUS; dx++) {
+            for (int dz = -CROP_AURA_RADIUS; dz <= CROP_AURA_RADIUS; dz++) {
+                for (int dy = -CROP_AURA_HEIGHT; dy <= CROP_AURA_HEIGHT; dy++) {
+                    growIfCrop(world.getBlockAt(ox + dx, oy + dy, oz + dz));
+                }
+            }
         }
     }
 

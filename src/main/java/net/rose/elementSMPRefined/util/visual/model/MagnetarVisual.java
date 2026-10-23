@@ -2,7 +2,6 @@ package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;

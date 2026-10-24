@@ -75,9 +75,9 @@ public class AirCutterAbility extends BaseAbility {
                               java.util.Set<java.util.UUID> hitEntities) {
         World w = origin.getWorld();
 
-        double range = 20.0;
+        double range = 25.0;
         double hitboxWidth = 1.1;
-        double damage = 6.0;
+        double damage = 8.0;
 
         new BukkitRunnable() {
             double travelled = 0;

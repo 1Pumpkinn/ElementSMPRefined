@@ -63,7 +63,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
     private static final int MAX_DURATION_TICKS = 200; // 10 seconds
     private static final double DOME_RADIUS = 5.0;
     private static final double SHELL_THICKNESS = 1.2;  // blocks, measured radially
-    private static final double PUSH_STRENGTH = 0.7;    // blocks/tick shoved at intruders
+    private static final double PUSH_STRENGTH = 0.4;    // blocks/tick shoved at intruders
     private static final int REFRESH_INTERVAL_TICKS = 20; // re-send the shell so late joiners / reverted blocks see it
     private static final double VIEW_DISTANCE = DOME_RADIUS + 80.0;
     private static final BlockData WATER_DATA = Bukkit.createBlockData(Material.WATER);

@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -51,7 +52,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *       hostile can walk in or stand in it.</li>
  *   <li>Projectiles from non-allies are destroyed the moment they enter the dome.</li>
  *   <li>Any entity damage (melee, explosions, projectiles) dealt to the caster or a trusted
- *       player while they're inside the dome is cancelled.</li>
+ *       player while they're inside the dome is cancelled - except damage from element
+ *       abilities ({@link AbilityDamage}), which still goes through.</li>
  * </ul>
  * Non-entity damage (fall, fire, drowning, void, ...) is deliberately NOT blocked
  * <p>
@@ -379,6 +381,10 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
     public void onDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player victim)) return;
         if (domes.isEmpty()) return;
+
+        // Element abilities (TrueDamage / AbilityDamage) still hurt people inside the dome;
+        // only plain player attacks, mobs and projectiles are blocked.
+        if (AbilityDamage.isAbilityDamage(victim)) return;
 
         for (DomeState state : domes.values()) {
             if (!state.center.getWorld().equals(victim.getWorld())) continue;

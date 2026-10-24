@@ -32,7 +32,7 @@ import org.bukkit.util.Vector;
 public class WaterGeyserAbility extends BaseAbility implements Listener {
 
     private static final double VERTICAL_POWER = 1.80;        // first geyser's pure upward burst
-    private static final double HORIZONTAL_BOOST_POWER = 1.75; // second geyser's forward kick at the apex
+    private static final double HORIZONTAL_BOOST_POWER = 1.0;  // second geyser's forward kick at the apex
     private static final double APEX_VELOCITY_THRESHOLD = 0.05; // vertical speed under which we consider the ascent "stalled"
     private static final int APEX_CHECK_MAX_TICKS = 20;         // safety cap if the apex never registers (e.g. water/lily pads messing with velocity)
     private static final int TRAIL_TICKS = 14;

@@ -18,12 +18,14 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
@@ -57,6 +59,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double PULL_SPEED_NEAR = 0.80;     // ...and right next to the core
     private static final double MAX_SPEED = 0.9;
     private static final double CAPTURE_RADIUS = 1.3;       // "fully in" the core
+    private static final double HOLD_SPEED = 0.6;           // max blocks/tick used to settle a captured entity onto the core's centre
 
     private static final double DAMAGE = 1.0;               // per hit while captured (half a heart)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
@@ -221,7 +224,9 @@ public class MetalMagnetarAbility extends BaseAbility {
 
             if (distance <= CAPTURE_RADIUS) {
                 capture(core, caster, target, toCore);
-            } else {
+            } else if (!isInCobweb(target)) {
+                // A cobweb zeroes the client's movement every tick, so velocity pushes on a webbed
+                // entity just rubber-band it. The web simply holds it against the pull instead.
                 pull(target, toCore, fieldDistance);
             }
         }
@@ -232,16 +237,17 @@ public class MetalMagnetarAbility extends BaseAbility {
         }
     }
 
-    /** Drags the target toward the core, harder the closer they are. */
-    private void pull(LivingEntity target, Vector toCore, double distance) {
-        double closeness = 1.0 - Math.min(1.0, distance / PULL_RADIUS);
+    /** Drags the target straight at the core, harder the closer they are, easing in so they never overshoot it. */
+    private void pull(LivingEntity target, Vector toCore, double fieldDistance) {
+        double closeness = 1.0 - Math.min(1.0, fieldDistance / PULL_RADIUS);
         double speed = PULL_SPEED_FAR + (PULL_SPEED_NEAR - PULL_SPEED_FAR) * closeness;
 
-        // Keep a little of their own momentum so it feels like a current, not a rail.
-        Vector velocity = target.getVelocity().multiply(0.4).add(toCore.normalize().multiply(speed));
-        if (velocity.length() > MAX_SPEED) {
-            velocity.normalize().multiply(MAX_SPEED);
-        }
+        // No carried-over momentum: any sideways speed they had would be kept every tick and turn the
+        // pull into an orbit that flings them past the core. Aim directly at the centre, and never
+        // move further in one tick than the distance that's left.
+        double remaining = toCore.length();
+        Vector velocity = toCore.clone().normalize().multiply(Math.min(Math.min(speed, MAX_SPEED), remaining));
+
         // Lift off the floor, otherwise ground friction stalls the pull.
         if (target.isOnGround() && velocity.getY() < 0.1) {
             velocity.setY(0.1);
@@ -263,7 +269,31 @@ public class MetalMagnetarAbility extends BaseAbility {
         }
 
         // Set after the damage: its knockback would otherwise shove them out of the core.
-        target.setVelocity(toCore.multiply(0.4));
+        // Steer by the exact remaining offset (not a fraction of it) so they settle on the centre
+        // instead of drifting around it; a webbed target is left alone, see tick().
+        if (!isInCobweb(target)) {
+            Vector hold = toCore.clone();
+            if (hold.length() > HOLD_SPEED) {
+                hold.normalize().multiply(HOLD_SPEED);
+            }
+            target.setVelocity(hold);
+        }
+        target.setFallDistance(0f);
+    }
+
+    /** True if any part of the target's body is inside a cobweb block. */
+    private static boolean isInCobweb(LivingEntity target) {
+        BoundingBox box = target.getBoundingBox();
+        World world = target.getWorld();
+        for (int x = (int) Math.floor(box.getMinX()); x <= (int) Math.floor(box.getMaxX()); x++) {
+            for (int y = (int) Math.floor(box.getMinY()); y <= (int) Math.floor(box.getMaxY()); y++) {
+                for (int z = (int) Math.floor(box.getMinZ()); z <= (int) Math.floor(box.getMaxZ()); z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (block.getType() == Material.COBWEB) return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean isValidTarget(Core core, Player caster, LivingEntity target) {

@@ -64,7 +64,6 @@ public class ListenerInitializer {
 
         this.gracePeriod = new GracePeriod(plugin, plugin.getConfigManager(), plugin.getTaskScheduler());
         pluginManager.registerEvents(gracePeriod, plugin);
-        gracePeriod.autoStartIfConfigured();
 
         // Also refreshes a player's action bar immediately on AbilityActivateEvent -
         // see CooldownActionBarTask's class doc for why that's needed alongside its

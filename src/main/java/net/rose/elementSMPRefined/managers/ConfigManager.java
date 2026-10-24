@@ -25,8 +25,6 @@ public class ConfigManager {
     private static final boolean DEFAULT_NETHER_DISABLED = Constants.Dimension.DEFAULT_NETHER_DISABLED;
     private static final boolean DEFAULT_END_DISABLED = Constants.Dimension.DEFAULT_END_DISABLED;
     private static final int DEFAULT_GRACE_PERIOD_DURATION_SECONDS = Constants.GracePeriod.DEFAULT_DURATION_SECONDS;
-    private static final int DEFAULT_GRACE_PERIOD_HUNGER_PROTECTION_SECONDS = Constants.GracePeriod.DEFAULT_HUNGER_PROTECTION_SECONDS;
-    private static final boolean DEFAULT_GRACE_PERIOD_AUTO_START = Constants.GracePeriod.DEFAULT_AUTO_START;
 
     private final JavaPlugin plugin;
     private FileConfiguration config;
@@ -198,25 +196,11 @@ public class ConfigManager {
         plugin.saveConfig();
     }
 
-    // Grace period settings - these are just the defaults/config-driven
-    // fallback; the grace period itself is started/stopped via the /grace
-    // command (see GraceCommand), not automatically, unless auto_start is on.
-    public boolean isGracePeriodAutoStart() {
-        return getBooleanSafe("grace_period.auto_start", DEFAULT_GRACE_PERIOD_AUTO_START);
-    }
-
+    // Grace period settings - config-driven defaults; the grace period itself
+    // is only ever started/stopped via the /grace command (see GraceCommand).
     /** Default total length of the grace period, in seconds, used when /grace start is run with no argument. */
     public int getGracePeriodDurationSeconds() {
         return getIntSafe("grace_period.duration_seconds", DEFAULT_GRACE_PERIOD_DURATION_SECONDS);
-    }
-
-    /**
-     * Default hunger-protection window, in seconds, used when /grace start is run with no argument.
-     * Clamped to the total duration so a misconfigured value can't outlast the grace period itself.
-     */
-    public int getGracePeriodHungerProtectionSeconds() {
-        int hungerSeconds = getIntSafe("grace_period.hunger_protection_seconds", DEFAULT_GRACE_PERIOD_HUNGER_PROTECTION_SECONDS);
-        return Math.min(hungerSeconds, getGracePeriodDurationSeconds());
     }
 
     // Extra dimension options - how the block behaves, not just whether it's on.
@@ -246,33 +230,18 @@ public class ConfigManager {
         return getBooleanSafe("dimensions.admin_bypass", Constants.Dimension.DEFAULT_ADMIN_BYPASS);
     }
 
-    // Extra grace period options.
-    public boolean isGracePeriodPvpProtection() {
-        return getBooleanSafe("grace_period.pvp_protection", Constants.GracePeriod.DEFAULT_PVP_PROTECTION);
-    }
-
-    public boolean isGracePeriodHungerProtection() {
-        return getBooleanSafe("grace_period.hunger_protection", Constants.GracePeriod.DEFAULT_HUNGER_PROTECTION);
-    }
-
-    public boolean isGracePeriodBroadcastStart() {
-        return getBooleanSafe("grace_period.broadcast_start", Constants.GracePeriod.DEFAULT_BROADCAST_START);
-    }
-
-    public boolean isGracePeriodBroadcastEnd() {
-        return getBooleanSafe("grace_period.broadcast_end", Constants.GracePeriod.DEFAULT_BROADCAST_END);
-    }
-
-    public boolean isGracePeriodBossBarEnabled() {
-        return getBooleanSafe("grace_period.boss_bar.enabled", Constants.GracePeriod.DEFAULT_BOSS_BAR_ENABLED);
-    }
-
     public BossBar.Color getGracePeriodBossBarColor() {
         return getEnumSafe("grace_period.boss_bar.color", BossBar.Color.class, Constants.GracePeriod.DEFAULT_BOSS_BAR_COLOR);
     }
 
-    public BossBar.Overlay getGracePeriodBossBarStyle() {
-        return getEnumSafe("grace_period.boss_bar.style", BossBar.Overlay.class, Constants.GracePeriod.DEFAULT_BOSS_BAR_STYLE);
+    /** Whether the Nether is automatically disabled when a grace period starts. */
+    public boolean isGracePeriodDisableNetherOnStart() {
+        return getBooleanSafe("grace_period.on_start.disable_nether", Constants.GracePeriod.DEFAULT_DISABLE_NETHER_ON_START);
+    }
+
+    /** Whether the End is automatically disabled when a grace period starts. */
+    public boolean isGracePeriodDisableEndOnStart() {
+        return getBooleanSafe("grace_period.on_start.disable_end", Constants.GracePeriod.DEFAULT_DISABLE_END_ON_START);
     }
 
     /** Whether the Nether is automatically re-enabled when the grace period runs out on its own. */

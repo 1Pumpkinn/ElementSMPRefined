@@ -636,30 +636,15 @@ public final class Lang {
         );
     }
 
-    /** {@code hungerWindow} is null when hunger protection is off for this run. */
-    public static Component gracePeriodStarted(String duration, boolean pvpProtected, String hungerWindow) {
-        Component message = Component.text("The grace period has started! (" + duration + ")", NamedTextColor.GREEN);
-        if (pvpProtected) {
-            message = message.append(Component.text(" PvP is disabled while it's active.", NamedTextColor.GREEN));
-        }
-        if (hungerWindow != null) {
-            message = message.append(Component.text(" You are kept fed for the first " + hungerWindow + ".", NamedTextColor.GREEN));
-        }
-        return message;
-    }
-
-    public static Component gracePeriodEnded(boolean pvpWasProtected) {
-        return pvpWasProtected
-                ? Component.text("The grace period has ended. PvP is now enabled!", NamedTextColor.RED)
-                : Component.text("The grace period has ended.", NamedTextColor.RED);
-    }
+    public static final Component GRACE_PERIOD_ENDED =
+            Component.text("The grace period has ended. PvP is now enabled!", NamedTextColor.RED);
 
     public static final Component GRACE_PERIOD_PVP_DISABLED =
             Component.text("PvP is disabled during the grace period!", NamedTextColor.RED);
 
 
     public static final Component GRACE_CMD_USAGE =
-            Component.text("Usage: /grace <start [time] [hunger_time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>", NamedTextColor.YELLOW);
+            Component.text("Usage: /grace <start [time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>", NamedTextColor.YELLOW);
 
     public static final Component GRACE_CMD_ALREADY_ACTIVE =
             Component.text("A grace period is already active! Use /grace stop first.", NamedTextColor.RED);
@@ -719,14 +704,11 @@ public final class Lang {
     }
 
 
-    public static Component graceCmdStatus(String timeLeft, boolean pvpProtected, boolean hungerProtectedNow) {
-        Component message = Component.textOfChildren(
+    public static Component graceCmdStatus(String timeLeft) {
+        return Component.textOfChildren(
                 Component.text("Grace period active - ", NamedTextColor.GREEN),
                 Component.text(timeLeft, NamedTextColor.YELLOW),
-                Component.text(" remaining.", NamedTextColor.GREEN)
+                Component.text(" remaining. PvP is disabled.", NamedTextColor.GREEN)
         );
-        message = message.append(Component.text(" PvP protection: " + (pvpProtected ? "on" : "off") + ".", NamedTextColor.GRAY));
-        message = message.append(Component.text(" Hunger protection: " + (hungerProtectedNow ? "active" : "off") + ".", NamedTextColor.GRAY));
-        return message;
     }
 }

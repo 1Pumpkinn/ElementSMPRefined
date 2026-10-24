@@ -23,30 +23,19 @@ dimensions:
   admin_bypass: false
 
 # Grace Period Settings
-# The grace period is started/stopped with /grace start|stop, it does not
-# start automatically unless auto_start is true. duration_seconds and
-# hunger_protection_seconds below are just the defaults used when
-# /grace start is run without explicit arguments.
+# The grace period is started/stopped with /grace start|stop and never starts
+# automatically. PvP is always disabled while it is active.
+# duration_seconds is the default used when /grace start is run without a time.
 grace_period:
-  auto_start: false
   duration_seconds: 600
-  # How long at the start of the grace period players are kept fed, using the
-  # Saturation effect (removed again when this window or the grace period ends; 0 = none)
-  hunger_protection_seconds: 300
-  # Block player-vs-player damage while the grace period is active
-  pvp_protection: true
-  # Keep players fed for the first hunger_protection_seconds
-  hunger_protection: true
-  # Chat announcements when the grace period starts / ends
-  broadcast_start: true
-  broadcast_end: true
   # Countdown boss bar (applies the next time a grace period starts)
   boss_bar:
-    enabled: true
     # PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
     color: GREEN
-    # PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12, NOTCHED_20
-    style: PROGRESS
+  # Dimensions to automatically disable when the grace period starts
+  on_start:
+    disable_nether: false
+    disable_end: false
   # Dimensions to automatically re-enable when the grace period runs out by
   # itself (not when it's stopped early with /grace stop)
   on_end:

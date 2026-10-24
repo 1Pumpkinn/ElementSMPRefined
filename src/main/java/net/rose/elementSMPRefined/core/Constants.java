@@ -49,15 +49,9 @@ public final class Constants {
 
     public static final class GracePeriod {
         public static final int DEFAULT_DURATION_SECONDS = 600;
-        public static final int DEFAULT_HUNGER_PROTECTION_SECONDS = 300;
-        public static final boolean DEFAULT_AUTO_START = false;
-        public static final boolean DEFAULT_PVP_PROTECTION = true;
-        public static final boolean DEFAULT_HUNGER_PROTECTION = true;
-        public static final boolean DEFAULT_BROADCAST_START = true;
-        public static final boolean DEFAULT_BROADCAST_END = true;
-        public static final boolean DEFAULT_BOSS_BAR_ENABLED = true;
         public static final String DEFAULT_BOSS_BAR_COLOR = "GREEN";
-        public static final String DEFAULT_BOSS_BAR_STYLE = "PROGRESS";
+        public static final boolean DEFAULT_DISABLE_NETHER_ON_START = false;
+        public static final boolean DEFAULT_DISABLE_END_ON_START = false;
         public static final boolean DEFAULT_ENABLE_NETHER_ON_END = false;
         public static final boolean DEFAULT_ENABLE_END_ON_END = false;
 

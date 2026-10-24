@@ -18,9 +18,9 @@ import java.util.List;
 
 /**
  * <pre>
- * /grace start [time] [hunger_time]    start (times default to config.yml)
+ * /grace start [time]                  start (time defaults to config.yml)
  * /grace stop                          end it early
- * /grace status                        time left + what's protected
+ * /grace status                        time left
  * /grace extend &lt;time&gt;                 add time to the running grace period
  * /grace shorten &lt;time&gt;                remove time from the running grace period
  * /grace settings                      show every option and its current value
@@ -29,7 +29,7 @@ import java.util.List;
  * Times take plain seconds or units: {@code 90}, {@code 10m}, {@code 1h30m}.
  * <p>
  * Thin command wrapper around {@link GracePeriod}, which does all the actual
- * work (boss bar, PvP/hunger protection, ticking). Fetched fresh from
+ * work (boss bar, PvP protection, ticking). Fetched fresh from
  * {@link net.rose.elementSMPRefined.core.initializers.ListenerInitializer}
  * on every invocation rather than cached at construction time, since
  * commands are registered before {@code GracePeriod} is created during
@@ -39,18 +39,12 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS =
             List.of("start", "stop", "status", "extend", "shorten", "settings", "set");
 
-    /** Everything {@code /grace set} can change. Protection flags apply immediately; boss bar options apply to the next start. */
+    /** Everything {@code /grace set} can change. The boss bar colour applies to the next start. */
     private static final List<ConfigOption> OPTIONS = List.of(
             ConfigOption.duration("duration", "grace_period.duration_seconds"),
-            ConfigOption.durationOrZero("hunger_time", "grace_period.hunger_protection_seconds"),
-            ConfigOption.bool("pvp", "grace_period.pvp_protection"),
-            ConfigOption.bool("hunger", "grace_period.hunger_protection"),
-            ConfigOption.bool("auto_start", "grace_period.auto_start"),
-            ConfigOption.bool("announce_start", "grace_period.broadcast_start"),
-            ConfigOption.bool("announce_end", "grace_period.broadcast_end"),
-            ConfigOption.bool("bossbar", "grace_period.boss_bar.enabled"),
             ConfigOption.choice("bossbar_color", "grace_period.boss_bar.color", BossBar.Color.values()),
-            ConfigOption.choice("bossbar_style", "grace_period.boss_bar.style", BossBar.Overlay.values()),
+            ConfigOption.bool("disable_nether_on_start", "grace_period.on_start.disable_nether"),
+            ConfigOption.bool("disable_end_on_start", "grace_period.on_start.disable_end"),
             ConfigOption.bool("open_nether_on_end", "grace_period.on_end.enable_nether"),
             ConfigOption.bool("open_end_on_end", "grace_period.on_end.enable_end")
     );
@@ -96,7 +90,6 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
     private void handleStart(CommandSender sender, GracePeriod gracePeriod, String[] args) {
         ConfigManager config = plugin.getConfigManager();
         int durationSeconds = config.getGracePeriodDurationSeconds();
-        int hungerProtectionSeconds = config.getGracePeriodHungerProtectionSeconds();
 
         if (args.length >= 2) {
             Integer parsedDuration = ParseUtil.parseSeconds(args[1], false);
@@ -105,21 +98,9 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             durationSeconds = parsedDuration;
-            // Re-derive the default hunger protection window against the
-            // custom duration, in case only duration was overridden.
-            hungerProtectionSeconds = Math.min(hungerProtectionSeconds, durationSeconds);
         }
 
-        if (args.length >= 3) {
-            Integer parsedHunger = ParseUtil.parseSeconds(args[2], true);
-            if (parsedHunger == null) {
-                sender.sendMessage(Lang.GRACE_CMD_INVALID_NUMBER);
-                return;
-            }
-            hungerProtectionSeconds = parsedHunger;
-        }
-
-        boolean started = gracePeriod.start(durationSeconds, hungerProtectionSeconds);
+        boolean started = gracePeriod.start(durationSeconds);
         if (!started) {
             sender.sendMessage(Lang.GRACE_CMD_ALREADY_ACTIVE);
         }
@@ -137,11 +118,7 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Lang.GRACE_CMD_NOT_ACTIVE);
             return;
         }
-        sender.sendMessage(Lang.graceCmdStatus(
-                ParseUtil.formatClock(gracePeriod.getRemainingSeconds()),
-                gracePeriod.isPvpDisabled(),
-                gracePeriod.isHungerProtected()
-        ));
+        sender.sendMessage(Lang.graceCmdStatus(ParseUtil.formatClock(gracePeriod.getRemainingSeconds())));
     }
 
     private void handleAdjust(CommandSender sender, GracePeriod gracePeriod, String[] args, int sign, String verb) {
@@ -211,9 +188,6 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 3) {
-            if (sub.equals("start")) {
-                return CommandSupport.filterStartingWith(List.of("0", "1m", "5m", "10m"), args[2]);
-            }
             if (sub.equals("set")) {
                 ConfigOption option = ConfigOption.find(OPTIONS, args[1]);
                 if (option != null) {

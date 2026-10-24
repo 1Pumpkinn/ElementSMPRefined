@@ -44,7 +44,7 @@ commands:
 
   grace:
     description: Start, stop, extend or configure the server grace period
-    usage: /grace <start [time] [hunger_time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>
+    usage: /grace <start [time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>
     permission: element.admin
 
   dimension:

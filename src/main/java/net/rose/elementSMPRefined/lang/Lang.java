@@ -547,27 +547,85 @@ public final class Lang {
 
 
     public static final Component DIMENSION_CMD_USAGE =
-            Component.text("Usage: /dimension <enable|disable|status> <nether|end|all>", NamedTextColor.YELLOW);
+            Component.text("Usage: /dimension <enable|disable|toggle> <nether|end|all> [time]  |  status  |  settings  |  set <option> <value>", NamedTextColor.YELLOW);
 
     public static final Component DIMENSION_CMD_INVALID_TARGET =
             Component.text("Invalid dimension! Use: nether, end, or all", NamedTextColor.RED);
 
+    public static final Component DIMENSION_CMD_INVALID_TIME =
+            Component.text("Invalid time! Use seconds or units, e.g. 90, 10m, 1h30m.", NamedTextColor.RED);
+
     public static Component dimensionCmdToggled(String name, boolean disabled) {
         return Component.textOfChildren(
                 Component.text(name + " travel is now ", NamedTextColor.GREEN),
-                disabled
-                        ? Component.text("DISABLED", NamedTextColor.RED)
-                        : Component.text("ENABLED", NamedTextColor.GREEN)
+                stateWord(disabled)
         );
     }
 
-    public static Component dimensionCmdStatus(boolean netherDisabled, boolean endDisabled) {
+    /** Toggle that will flip back by itself after {@code duration}. */
+    public static Component dimensionCmdToggledTimed(String name, boolean disabled, String duration) {
         return Component.textOfChildren(
-                Component.text("Nether: ", NamedTextColor.YELLOW),
-                netherDisabled ? Component.text("DISABLED", NamedTextColor.RED) : Component.text("ENABLED", NamedTextColor.GREEN),
-                Component.text("  End: ", NamedTextColor.YELLOW),
-                endDisabled ? Component.text("DISABLED", NamedTextColor.RED) : Component.text("ENABLED", NamedTextColor.GREEN)
+                dimensionCmdToggled(name, disabled),
+                Component.text(" for " + duration + ".", NamedTextColor.GREEN)
         );
+    }
+
+    /** Broadcast when a timed toggle runs out and the dimension flips back. */
+    public static Component dimensionTimerEnded(String name, boolean disabled) {
+        return Component.textOfChildren(
+                Component.text("The timer ran out - " + name + " travel is now ", NamedTextColor.YELLOW),
+                stateWord(disabled)
+        );
+    }
+
+    /** One line of /dimension status; {@code timeLeft} is null when no timed toggle is pending. */
+    public static Component dimensionStatusLine(String name, boolean disabled, String timeLeft) {
+        Component line = Component.textOfChildren(
+                Component.text(name + ": ", NamedTextColor.YELLOW),
+                stateWord(disabled)
+        );
+        if (timeLeft != null) {
+            line = line.append(Component.text(" (flips in " + timeLeft + ")", NamedTextColor.GRAY));
+        }
+        return line;
+    }
+
+    private static Component stateWord(boolean disabled) {
+        return disabled
+                ? Component.text("DISABLED", NamedTextColor.RED)
+                : Component.text("ENABLED", NamedTextColor.GREEN);
+    }
+
+    // Shared by /grace and /dimension "set" and "settings".
+    public static Component settingsHeader(String title) {
+        return Component.text("--- " + title + " ---", NamedTextColor.GOLD);
+    }
+
+    public static Component settingLine(String name, String value) {
+        return Component.textOfChildren(
+                Component.text(name + ": ", NamedTextColor.YELLOW),
+                Component.text(value, NamedTextColor.WHITE)
+        );
+    }
+
+    public static Component optionSet(String name, String value) {
+        return Component.textOfChildren(
+                Component.text(name + " set to ", NamedTextColor.GREEN),
+                Component.text(value, NamedTextColor.YELLOW),
+                Component.text(".", NamedTextColor.GREEN)
+        );
+    }
+
+    public static Component optionUnknown(String name, String valid) {
+        return Component.text("Unknown option '" + name + "'. Options: " + valid, NamedTextColor.RED);
+    }
+
+    public static Component optionInvalidValue(String name, String expected) {
+        return Component.text("Invalid value for " + name + ". Expected " + expected + ".", NamedTextColor.RED);
+    }
+
+    public static Component optionUsage(String command) {
+        return Component.text("Usage: /" + command + " set <option> <value>  (see /" + command + " settings)", NamedTextColor.YELLOW);
     }
 
 
@@ -578,18 +636,30 @@ public final class Lang {
         );
     }
 
-    public static final Component GRACE_PERIOD_STARTED =
-            Component.text("The grace period has started! PvP is disabled while it's active.", NamedTextColor.GREEN);
+    /** {@code hungerWindow} is null when hunger protection is off for this run. */
+    public static Component gracePeriodStarted(String duration, boolean pvpProtected, String hungerWindow) {
+        Component message = Component.text("The grace period has started! (" + duration + ")", NamedTextColor.GREEN);
+        if (pvpProtected) {
+            message = message.append(Component.text(" PvP is disabled while it's active.", NamedTextColor.GREEN));
+        }
+        if (hungerWindow != null) {
+            message = message.append(Component.text(" You are kept fed for the first " + hungerWindow + ".", NamedTextColor.GREEN));
+        }
+        return message;
+    }
 
-    public static final Component GRACE_PERIOD_ENDED =
-            Component.text("The grace period has ended. PvP is now enabled!", NamedTextColor.RED);
+    public static Component gracePeriodEnded(boolean pvpWasProtected) {
+        return pvpWasProtected
+                ? Component.text("The grace period has ended. PvP is now enabled!", NamedTextColor.RED)
+                : Component.text("The grace period has ended.", NamedTextColor.RED);
+    }
 
     public static final Component GRACE_PERIOD_PVP_DISABLED =
             Component.text("PvP is disabled during the grace period!", NamedTextColor.RED);
 
 
     public static final Component GRACE_CMD_USAGE =
-            Component.text("Usage: /grace <start|stop|status> [duration_seconds] [hunger_protection_seconds]", NamedTextColor.YELLOW);
+            Component.text("Usage: /grace <start [time] [hunger_time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>", NamedTextColor.YELLOW);
 
     public static final Component GRACE_CMD_ALREADY_ACTIVE =
             Component.text("A grace period is already active! Use /grace stop first.", NamedTextColor.RED);
@@ -598,7 +668,18 @@ public final class Lang {
             Component.text("There is no grace period active.", NamedTextColor.RED);
 
     public static final Component GRACE_CMD_INVALID_NUMBER =
-            Component.text("Duration and hunger protection must be positive whole numbers of seconds.", NamedTextColor.RED);
+            Component.text("Invalid time! Use seconds or units, e.g. 90, 10m, 1h30m (hunger time can be 0).", NamedTextColor.RED);
+
+    public static final Component GRACE_CMD_SHORTEN_TOO_FAR =
+            Component.text("That would end the grace period - use /grace stop instead.", NamedTextColor.RED);
+
+    public static Component graceCmdAdjusted(String change, String timeLeft) {
+        return Component.textOfChildren(
+                Component.text("Grace period " + change + ". ", NamedTextColor.GREEN),
+                Component.text(timeLeft, NamedTextColor.YELLOW),
+                Component.text(" remaining.", NamedTextColor.GREEN)
+        );
+    }
 
 
     // Shown by CooldownActionBarTask once a second while at least one of the
@@ -638,11 +719,14 @@ public final class Lang {
     }
 
 
-    public static Component graceCmdStatus(String timeLeft) {
-        return Component.textOfChildren(
+    public static Component graceCmdStatus(String timeLeft, boolean pvpProtected, boolean hungerProtectedNow) {
+        Component message = Component.textOfChildren(
                 Component.text("Grace period active - ", NamedTextColor.GREEN),
                 Component.text(timeLeft, NamedTextColor.YELLOW),
                 Component.text(" remaining.", NamedTextColor.GREEN)
         );
+        message = message.append(Component.text(" PvP protection: " + (pvpProtected ? "on" : "off") + ".", NamedTextColor.GRAY));
+        message = message.append(Component.text(" Hunger protection: " + (hungerProtectedNow ? "active" : "off") + ".", NamedTextColor.GRAY));
+        return message;
     }
 }

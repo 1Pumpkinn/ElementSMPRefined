@@ -1,7 +1,6 @@
 package net.rose.elementSMPRefined.util.server;
 
 import net.rose.elementSMPRefined.commands.server.DimensionCommand;
-import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.Material;
@@ -23,6 +22,11 @@ import java.util.UUID;
  * Cancels Nether/End portal travel, with each dimension toggled independently
  * via {@link ConfigManager#isNetherDisabled()} / {@link ConfigManager#isEndDisabled()}
  * (runtime-toggleable with /dimension, see {@link DimensionCommand}).
+ * <p>
+ * How the block behaves is configurable too (config.yml {@code dimensions.*},
+ * or {@code /dimension set}): whether players are warned and how often,
+ * whether they're pushed back, whether non-player entities are blocked, and
+ * whether {@code element.admin} players bypass it.
  * <p>
  * Two events are handled because Bukkit fires a different one depending on
  * what enters the portal:
@@ -61,15 +65,27 @@ public class DimensionDisable implements Listener {
             return;
         }
 
+        Player player = event.getPlayer();
+        if (configManager.isDimensionAdminBypass() && player.hasPermission("element.admin")) {
+            return;
+        }
+
         event.setCancelled(true);
 
-        Player player = event.getPlayer();
-        pushOutOfPortal(player);
-        warnDimensionDisabled(player);
+        if (configManager.isDimensionPushbackEnabled()) {
+            pushOutOfPortal(player);
+        }
+        if (configManager.isDimensionWarnPlayers()) {
+            warnDimensionDisabled(player);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityPortal(EntityPortalEvent event) {
+        if (!configManager.isDimensionBlockEntities()) {
+            return;
+        }
+
         Material portalBlock = event.getFrom().getBlock().getType();
         Dimension target = fromBlock(portalBlock);
 
@@ -125,14 +141,15 @@ public class DimensionDisable implements Listener {
                 .multiply(-1)
                 .setY(0.2)
                 .normalize()
-                .multiply(Constants.Dimension.PORTAL_PUSHBACK_STRENGTH);
+                .multiply(configManager.getDimensionPushbackStrength());
         player.setVelocity(pushback);
     }
 
     private void warnDimensionDisabled(Player player) {
         long now = System.currentTimeMillis();
+        long cooldownMs = configManager.getDimensionWarningCooldownSeconds() * 1000L;
         Long lastWarned = warningCooldowns.get(player.getUniqueId());
-        if (lastWarned != null && now - lastWarned < Constants.Warnings.COOLDOWN_MS) {
+        if (lastWarned != null && now - lastWarned < cooldownMs) {
             return;
         }
         warningCooldowns.put(player.getUniqueId(), now);

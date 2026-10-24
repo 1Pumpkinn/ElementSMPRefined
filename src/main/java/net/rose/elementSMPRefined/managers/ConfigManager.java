@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.managers;
 
+import net.kyori.adventure.bossbar.BossBar;
 import net.rose.elementSMPRefined.core.Constants;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -128,6 +129,37 @@ public class ConfigManager {
         }
     }
 
+    private double getDoubleSafe(String path, double fallback) {
+        try {
+            return config.getDouble(path, fallback);
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Error reading " + path + " from config, using default value " + fallback, e);
+            return fallback;
+        }
+    }
+
+    private <E extends Enum<E>> E getEnumSafe(String path, Class<E> type, String fallback) {
+        String raw = config.getString(path, fallback);
+        try {
+            return Enum.valueOf(type, raw.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Invalid value '" + raw + "' for " + path + " in config, using default value " + fallback);
+            return Enum.valueOf(type, fallback);
+        }
+    }
+
+    /** Current value at a dotted path (falling back to the shipped default), for display in command output. */
+    public Object getValue(String path) {
+        Object value = config.get(path);
+        return value != null ? value : getDefaultValue(path);
+    }
+
+    /** Sets any dotted config path and persists it immediately. */
+    public void setValue(String path, Object value) {
+        config.set(path, value);
+        plugin.saveConfig();
+    }
+
     private boolean getBooleanSafe(String path, boolean fallback) {
         try {
             return config.getBoolean(path, fallback);
@@ -185,5 +217,71 @@ public class ConfigManager {
     public int getGracePeriodHungerProtectionSeconds() {
         int hungerSeconds = getIntSafe("grace_period.hunger_protection_seconds", DEFAULT_GRACE_PERIOD_HUNGER_PROTECTION_SECONDS);
         return Math.min(hungerSeconds, getGracePeriodDurationSeconds());
+    }
+
+    // Extra dimension options - how the block behaves, not just whether it's on.
+    public boolean isDimensionWarnPlayers() {
+        return getBooleanSafe("dimensions.warn_players", Constants.Dimension.DEFAULT_WARN_PLAYERS);
+    }
+
+    public int getDimensionWarningCooldownSeconds() {
+        return Math.max(0, getIntSafe("dimensions.warning_cooldown_seconds", Constants.Dimension.DEFAULT_WARNING_COOLDOWN_SECONDS));
+    }
+
+    public boolean isDimensionPushbackEnabled() {
+        return getBooleanSafe("dimensions.pushback_enabled", Constants.Dimension.DEFAULT_PUSHBACK_ENABLED);
+    }
+
+    public double getDimensionPushbackStrength() {
+        return Math.max(0.0, getDoubleSafe("dimensions.pushback_strength", Constants.Dimension.PORTAL_PUSHBACK_STRENGTH));
+    }
+
+    /** Whether non-player entities (boats, pearls, items...) are also blocked from using disabled portals. */
+    public boolean isDimensionBlockEntities() {
+        return getBooleanSafe("dimensions.block_entities", Constants.Dimension.DEFAULT_BLOCK_ENTITIES);
+    }
+
+    /** Whether players with element.admin can still use disabled portals. */
+    public boolean isDimensionAdminBypass() {
+        return getBooleanSafe("dimensions.admin_bypass", Constants.Dimension.DEFAULT_ADMIN_BYPASS);
+    }
+
+    // Extra grace period options.
+    public boolean isGracePeriodPvpProtection() {
+        return getBooleanSafe("grace_period.pvp_protection", Constants.GracePeriod.DEFAULT_PVP_PROTECTION);
+    }
+
+    public boolean isGracePeriodHungerProtection() {
+        return getBooleanSafe("grace_period.hunger_protection", Constants.GracePeriod.DEFAULT_HUNGER_PROTECTION);
+    }
+
+    public boolean isGracePeriodBroadcastStart() {
+        return getBooleanSafe("grace_period.broadcast_start", Constants.GracePeriod.DEFAULT_BROADCAST_START);
+    }
+
+    public boolean isGracePeriodBroadcastEnd() {
+        return getBooleanSafe("grace_period.broadcast_end", Constants.GracePeriod.DEFAULT_BROADCAST_END);
+    }
+
+    public boolean isGracePeriodBossBarEnabled() {
+        return getBooleanSafe("grace_period.boss_bar.enabled", Constants.GracePeriod.DEFAULT_BOSS_BAR_ENABLED);
+    }
+
+    public BossBar.Color getGracePeriodBossBarColor() {
+        return getEnumSafe("grace_period.boss_bar.color", BossBar.Color.class, Constants.GracePeriod.DEFAULT_BOSS_BAR_COLOR);
+    }
+
+    public BossBar.Overlay getGracePeriodBossBarStyle() {
+        return getEnumSafe("grace_period.boss_bar.style", BossBar.Overlay.class, Constants.GracePeriod.DEFAULT_BOSS_BAR_STYLE);
+    }
+
+    /** Whether the Nether is automatically re-enabled when the grace period runs out on its own. */
+    public boolean isGracePeriodEnableNetherOnEnd() {
+        return getBooleanSafe("grace_period.on_end.enable_nether", Constants.GracePeriod.DEFAULT_ENABLE_NETHER_ON_END);
+    }
+
+    /** Whether the End is automatically re-enabled when the grace period runs out on its own. */
+    public boolean isGracePeriodEnableEndOnEnd() {
+        return getBooleanSafe("grace_period.on_end.enable_end", Constants.GracePeriod.DEFAULT_ENABLE_END_ON_END);
     }
 }

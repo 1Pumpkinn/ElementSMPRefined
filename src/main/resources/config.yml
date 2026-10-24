@@ -1,9 +1,26 @@
 # Element SMP Configuration
+#
+# Almost everything here can also be changed in-game without editing this file:
+#   /grace set <option> <value>       /grace settings
+#   /dimension set <option> <value>   /dimension settings
+# Times accept plain seconds (90) or units: 30s, 10m, 1h30m, 2d.
+
 # Dimension Settings
 dimensions:
   # When true the dimension will not allow anyone to enter
   nether_disabled: true
   end_disabled: true
+  # Tell players "Dimension is disabled." when they hit a blocked portal
+  warn_players: true
+  # Minimum seconds between those messages per player (0 = every time)
+  warning_cooldown_seconds: 3
+  # Shove players back out of a blocked portal so they don't re-trigger it
+  pushback_enabled: true
+  pushback_strength: 0.6
+  # Also block boats, minecarts, ender pearls, items etc. from using blocked portals
+  block_entities: true
+  # Let players with element.admin use blocked portals anyway
+  admin_bypass: false
 
 # Grace Period Settings
 # The grace period is started/stopped with /grace start|stop, it does not
@@ -13,4 +30,25 @@ dimensions:
 grace_period:
   auto_start: false
   duration_seconds: 600
+  # How long at the start of the grace period players are kept fed, using the
+  # Saturation effect (removed again when this window or the grace period ends; 0 = none)
   hunger_protection_seconds: 300
+  # Block player-vs-player damage while the grace period is active
+  pvp_protection: true
+  # Keep players fed for the first hunger_protection_seconds
+  hunger_protection: true
+  # Chat announcements when the grace period starts / ends
+  broadcast_start: true
+  broadcast_end: true
+  # Countdown boss bar (applies the next time a grace period starts)
+  boss_bar:
+    enabled: true
+    # PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+    color: GREEN
+    # PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12, NOTCHED_20
+    style: PROGRESS
+  # Dimensions to automatically re-enable when the grace period runs out by
+  # itself (not when it's stopped early with /grace stop)
+  on_end:
+    enable_nether: false
+    enable_end: false

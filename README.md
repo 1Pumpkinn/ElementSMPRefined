@@ -24,8 +24,8 @@ needs Upgrade I and ability 2 needs Upgrade II, and rerollers change a player's 
 | `/autosmelt [on\|off]` | Toggle Fire/Lava auto smelt | |
 | `/element <set\|data\|debug\|config\|particles>` | Admin tools | `element.admin` |
 | `/util` | Get upgraders and rerollers | `element.admin` |
-| `/grace <start\|stop\|status>` | Server grace period | `element.admin` |
-| `/dimension <enable\|disable\|status> <nether\|end\|all>` | Toggle portal travel | `element.admin` |
+| `/grace <start\|stop\|status\|extend\|shorten\|settings\|set>` | Server grace period (times like `10m`, `1h30m`; `/grace settings` lists every option) | `element.admin` |
+| `/dimension <enable\|disable\|toggle\|status\|settings\|set> <nether\|end\|all> [time]` | Toggle portal travel, optionally for a set time | `element.admin` |
 
 ## Building
 
@@ -33,7 +33,6 @@ Requires JDK 25.
 
 ```
 ./gradlew build        # build/libs/ElementSMPRefined-<version>-shaded.jar
-./gradlew obfuscate    # also writes the ProGuard-obfuscated *-obf.jar (use for releases)
 ./gradlew test         # unit tests
 ./gradlew runServer    # local Paper test server
 ```

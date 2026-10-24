@@ -43,17 +43,16 @@ commands:
     aliases: [ smelt ]
 
   grace:
-    description: Start, stop, or check the server grace period
-    usage: /grace <start|stop|status> [duration_seconds] [hunger_protection_seconds]
+    description: Start, stop, extend or configure the server grace period
+    usage: /grace <start [time] [hunger_time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>
     permission: element.admin
 
   dimension:
-    description: Enable or disable Nether/End portal travel
-    usage: /dimension <enable|disable|status> <nether|end|all>
+    description: Enable, disable (optionally for a set time) or configure Nether/End portal travel
+    usage: /dimension <enable|disable|toggle> <nether|end|all> [time] | status | settings | set <option> <value>
     permission: element.admin
 
 permissions:
   element.admin:
     description: Allows use of element admin commands
     default: op
-

@@ -1,7 +1,5 @@
 package net.rose.elementSMPRefined.ability.main.mythic.life;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -16,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -23,10 +22,12 @@ import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -80,6 +81,19 @@ public class LifeTotemAbility extends BaseAbility {
     private static final int HITS_TO_BREAK = 5;          // critical hits needed to destroy it
     private static final float HITBOX_WIDTH = PLANTED_SCALE * 1.0f;
     private static final float HITBOX_HEIGHT = PLANTED_SCALE * (24.4f / 16f);
+
+    // Health bar (flat coloured blocks that always face the viewer)
+    private static final double BAR_OFFSET = 0.3;        // gap between the totem's top and its health bar
+    private static final float BAR_WIDTH = 1.3f;
+    private static final float BAR_HEIGHT = 0.11f;
+    private static final float BAR_BORDER = 0.035f;
+    private static final float BAR_GAP = 0.03f;          // between segments
+    private static final float BAR_DEPTH = 0.08f;        // segments are thicker than the backing so they always sit in front
+    private static final BlockData BAR_BACK = Material.BLACK_CONCRETE.createBlockData();
+    private static final BlockData BAR_EMPTY = Material.GRAY_CONCRETE.createBlockData();
+    private static final BlockData BAR_GREEN = Material.LIME_CONCRETE.createBlockData(); // brighter than lime concrete; swap here to retint
+    private static final BlockData BAR_YELLOW = Material.YELLOW_CONCRETE.createBlockData();
+    private static final BlockData BAR_RED = Material.RED_CONCRETE.createBlockData();
 
     // Aura
     private static final double RADIUS = Constants.Distance.LIFE_REGEN_RADIUS;
@@ -221,6 +235,8 @@ public class LifeTotemAbility extends BaseAbility {
         private int plantedAge = 0;  // ticks since it stuck into the ground
         private int ringStart = -100;
 
+        private BlockDisplay barBack;                              // dark backing of the health bar
+        private final List<BlockDisplay> barSegments = new ArrayList<>(); // one per hit left
         private Interaction hitbox;  // invisible entity players actually hit
         private int hits = 0;        // critical hits taken so far
 
@@ -316,6 +332,8 @@ public class LifeTotemAbility extends BaseAbility {
             });
             BY_HITBOX.put(hitbox.getUniqueId(), this);
 
+            spawnBar(spot.clone().add(0, HITBOX_HEIGHT + BAR_OFFSET, 0));
+
             Block under = world.getBlockAt(spot.getBlockX(), (int) Math.floor(spot.getY() - 0.1), spot.getBlockZ());
             world.spawnParticle(Particle.BLOCK, spot.clone().add(0, 0.1, 0), 18, 0.35, 0.1, 0.35, 0.0,
                     under.getBlockData(), true);
@@ -405,11 +423,11 @@ public class LifeTotemAbility extends BaseAbility {
 
             if (!crit) {
                 world.playSound(centre, Sound.ITEM_SHIELD_BLOCK, SoundCategory.PLAYERS, 0.8f, 1.4f);
-                attacker.sendActionBar(Component.text("Only critical hits can break the totem", NamedTextColor.RED));
                 return;
             }
 
             hits++;
+            updateBar();
             world.spawnParticle(Particle.CRIT, centre, 20, 0.4, 0.6, 0.4, 0.3, null, true);
             world.playSound(centre, Sound.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.PLAYERS, 1.0f, 0.9f);
 
@@ -428,13 +446,63 @@ public class LifeTotemAbility extends BaseAbility {
             world.playSound(centre, Sound.BLOCK_STONE_BREAK, SoundCategory.PLAYERS, 1.5f, 0.6f);
             world.playSound(centre, Sound.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.0f, 1.2f);
 
-            Player owner = Bukkit.getPlayer(ownerId);
-            if (owner != null) {
-            }
             finish();
         }
 
+        /** Dark backing plus one block per hit; all billboarded so the bar always faces the viewer. */
+        private void spawnBar(Location at) {
+            float segW = (BAR_WIDTH - BAR_GAP * (HITS_TO_BREAK - 1)) / HITS_TO_BREAK;
+
+            barBack = spawnBarPiece(at, BAR_BACK,
+                    BAR_WIDTH + BAR_BORDER * 2, BAR_HEIGHT + BAR_BORDER * 2, 0.01f, 0f);
+
+            for (int i = 0; i < HITS_TO_BREAK; i++) {
+                float centreX = -BAR_WIDTH / 2f + segW / 2f + i * (segW + BAR_GAP);
+                barSegments.add(spawnBarPiece(at, BAR_GREEN, segW, BAR_HEIGHT, BAR_DEPTH, centreX));
+            }
+        }
+
+        /** One flat box centred on {@code at}, shifted {@code centreX} sideways in the viewer's frame. */
+        private BlockDisplay spawnBarPiece(Location at, BlockData data, float w, float h, float d, float centreX) {
+            return world.spawn(at, BlockDisplay.class, e -> {
+                e.setBlock(data);
+                e.setBillboard(Display.Billboard.CENTER);
+                e.setBrightness(new Display.Brightness(15, 15)); // flat colour, no shading
+                e.setTransformation(new Transformation(
+                        new Vector3f(centreX - w / 2f, -h / 2f, -d / 2f),
+                        new Quaternionf(),
+                        new Vector3f(w, h, d),
+                        new Quaternionf()));
+                e.setPersistent(false);
+                e.setInvulnerable(true);
+            });
+        }
+
+        /** Green -> yellow -> red as it weakens; lost segments go grey. */
+        private void updateBar() {
+            int left = Math.max(0, HITS_TO_BREAK - hits);
+            double ratio = (double) left / HITS_TO_BREAK;
+            BlockData fill = ratio > 0.6 ? BAR_GREEN : ratio > 0.3 ? BAR_YELLOW : BAR_RED;
+
+            for (int i = 0; i < barSegments.size(); i++) {
+                BlockDisplay seg = barSegments.get(i);
+                if (seg.isValid()) seg.setBlock(i < left ? fill : BAR_EMPTY);
+            }
+        }
+
+        private void removeBar() {
+            if (barBack != null) {
+                if (barBack.isValid()) barBack.remove();
+                barBack = null;
+            }
+            for (BlockDisplay seg : barSegments) {
+                if (seg.isValid()) seg.remove();
+            }
+            barSegments.clear();
+        }
+
         private void removeHitbox() {
+            removeBar();
             if (hitbox == null) return;
             BY_HITBOX.remove(hitbox.getUniqueId());
             if (hitbox.isValid()) hitbox.remove();

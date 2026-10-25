@@ -1,5 +1,7 @@
 package net.rose.elementSMPRefined.ability.main.mythic.life;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -22,6 +24,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -36,7 +40,9 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -70,6 +76,11 @@ public class LifeTotemAbility extends BaseAbility {
     private static final int DURATION_TICKS = 200;       // 10 seconds standing
     private static final float COLLAPSED = 0.05f;        // never scale to exactly zero
 
+    // Breaking
+    private static final int HITS_TO_BREAK = 5;          // critical hits needed to destroy it
+    private static final float HITBOX_WIDTH = PLANTED_SCALE * 1.0f;
+    private static final float HITBOX_HEIGHT = PLANTED_SCALE * (24.4f / 16f);
+
     // Aura
     private static final double RADIUS = Constants.Distance.LIFE_REGEN_RADIUS;
     private static final int PULSE_EVERY_TICKS = 20;
@@ -80,6 +91,11 @@ public class LifeTotemAbility extends BaseAbility {
 
     /** Every live totem, so plugin disable can clear them. */
     private static final List<Totem> ACTIVE = new ArrayList<>();
+
+    /** Hitbox entity UUID -> its totem, so attacks can be routed to the right one. */
+    private static final Map<UUID, Totem> BY_HITBOX = new HashMap<>();
+    /** Attacker UUID -> game tick of their last handled hit, so two events for one swing count once. */
+    private static final Map<UUID, Integer> LAST_HIT_TICK = new HashMap<>();
 
     private final ElementSMPRefined plugin;
 
@@ -119,12 +135,44 @@ public class LifeTotemAbility extends BaseAbility {
         return true;
     }
 
+    /**
+     * Routes a player's attack at an entity to the totem it belongs to, if any.
+     * Called from {@code LifeTotemListener} for every attack.
+     *
+     * @return true if {@code target} is a totem's hitbox, meaning the attack event must be cancelled
+     */
+    public static boolean handleAttack(Player attacker, Entity target) {
+        Totem totem = BY_HITBOX.get(target.getUniqueId());
+        if (totem == null) return false;
+
+        int tick = Bukkit.getCurrentTick();
+        Integer last = LAST_HIT_TICK.put(attacker.getUniqueId(), tick);
+        if (last != null && last == tick) return true; // same swing, already handled
+
+        totem.onHit(attacker, isCrit(attacker));
+        return true;
+    }
+
+    /** Vanilla critical-hit conditions: falling, airborne, not sprinting, and a (nearly) full swing. */
+    private static boolean isCrit(Player p) {
+        return p.getFallDistance() > 0f
+                && !p.isOnGround()
+                && !p.isClimbing()
+                && !p.isInWater()
+                && !p.isSprinting()
+                && !p.isInsideVehicle()
+                && !p.hasPotionEffect(PotionEffectType.BLINDNESS)
+                && p.getAttackCooldown() >= 0.9f;
+    }
+
     /** Safety net for plugin disable - removes every totem still on screen. */
     public static void removeAll() {
         for (Totem t : new ArrayList<>(ACTIVE)) {
             t.cancelAndRemove();
         }
         ACTIVE.clear();
+        BY_HITBOX.clear();
+        LAST_HIT_TICK.clear();
     }
 
     // ---- poses ---------------------------------------------------------------------------------
@@ -172,6 +220,9 @@ public class LifeTotemAbility extends BaseAbility {
         private Location base;       // where the totem's base touches the ground
         private int plantedAge = 0;  // ticks since it stuck into the ground
         private int ringStart = -100;
+
+        private Interaction hitbox;  // invisible entity players actually hit
+        private int hits = 0;        // critical hits taken so far
 
         Totem(World world, ItemDisplay display, Vector pos, Vector vel, UUID ownerId, TrustManager trust, float yawDegrees) {
             this.world = world;
@@ -256,6 +307,15 @@ public class LifeTotemAbility extends BaseAbility {
             display.setInterpolationDuration(0);
             display.setTransformation(plantedPose(yaw, COLLAPSED));
 
+            hitbox = world.spawn(spot, Interaction.class, i -> {
+                i.setInteractionWidth(HITBOX_WIDTH);
+                i.setInteractionHeight(HITBOX_HEIGHT);
+                i.setResponsive(true);
+                i.setPersistent(false);
+                i.setInvulnerable(true);
+            });
+            BY_HITBOX.put(hitbox.getUniqueId(), this);
+
             Block under = world.getBlockAt(spot.getBlockX(), (int) Math.floor(spot.getY() - 0.1), spot.getBlockZ());
             world.spawnParticle(Particle.BLOCK, spot.clone().add(0, 0.1, 0), 18, 0.35, 0.1, 0.35, 0.0,
                     under.getBlockData(), true);
@@ -287,7 +347,13 @@ public class LifeTotemAbility extends BaseAbility {
                 ambient();
             }
 
+            if (hitbox != null && !hitbox.isValid()) { // hitbox got removed out from under us
+                finish();
+                return;
+            }
+
             if (t == DURATION_TICKS) {
+                removeHitbox(); // expiring: no longer breakable while it sinks
                 display.setInterpolationDelay(0);
                 display.setInterpolationDuration(SHRINK_TICKS);
                 display.setTransformation(plantedPose(yaw, COLLAPSED));
@@ -327,6 +393,54 @@ public class LifeTotemAbility extends BaseAbility {
             LifeParticles.totemRingPoint(world, base.clone().add(Math.cos(a) * RADIUS, 0.15, Math.sin(a) * RADIUS));
         }
 
+        /**
+         * An attack on this totem's hitbox. The owner and trusted players can never hurt it; anyone else
+         * only counts critical hits, and {@link #HITS_TO_BREAK} of them destroy it.
+         */
+        void onHit(Player attacker, boolean crit) {
+            UUID id = attacker.getUniqueId();
+            if (id.equals(ownerId) || (trust != null && trust.isTrusted(ownerId, id))) return;
+
+            Location centre = base.clone().add(0, HITBOX_HEIGHT * 0.5, 0);
+
+            if (!crit) {
+                world.playSound(centre, Sound.ITEM_SHIELD_BLOCK, SoundCategory.PLAYERS, 0.8f, 1.4f);
+                attacker.sendActionBar(Component.text("Only critical hits can break the totem", NamedTextColor.RED));
+                return;
+            }
+
+            hits++;
+            world.spawnParticle(Particle.CRIT, centre, 20, 0.4, 0.6, 0.4, 0.3, null, true);
+            world.playSound(centre, Sound.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.PLAYERS, 1.0f, 0.9f);
+
+            if (hits >= HITS_TO_BREAK) {
+                breakTotem(attacker);
+            } else {
+                world.playSound(centre, Sound.BLOCK_STONE_BREAK, SoundCategory.PLAYERS, 1.0f, 0.8f);
+            }
+        }
+
+        private void breakTotem(Player breaker) {
+            Location centre = base.clone().add(0, HITBOX_HEIGHT * 0.5, 0);
+            Block under = world.getBlockAt(base.getBlockX(), (int) Math.floor(base.getY() - 0.1), base.getBlockZ());
+            world.spawnParticle(Particle.BLOCK, centre, 40, 0.5, 0.9, 0.5, 0.0, under.getBlockData(), true);
+            world.spawnParticle(Particle.HAPPY_VILLAGER, centre, 15, 0.5, 0.8, 0.5, 0.0, null, true);
+            world.playSound(centre, Sound.BLOCK_STONE_BREAK, SoundCategory.PLAYERS, 1.5f, 0.6f);
+            world.playSound(centre, Sound.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.0f, 1.2f);
+
+            Player owner = Bukkit.getPlayer(ownerId);
+            if (owner != null) {
+            }
+            finish();
+        }
+
+        private void removeHitbox() {
+            if (hitbox == null) return;
+            BY_HITBOX.remove(hitbox.getUniqueId());
+            if (hitbox.isValid()) hitbox.remove();
+            hitbox = null;
+        }
+
         /** Thrown into the void / never found ground: just disappears. */
         private void fizzle() {
             world.spawnParticle(Particle.SMOKE, pos.toLocation(world), 8, 0.2, 0.2, 0.2, 0.02, null, true);
@@ -340,6 +454,7 @@ public class LifeTotemAbility extends BaseAbility {
 
         void cancelAndRemove() {
             if (!isCancelled()) cancel();
+            removeHitbox();
             if (display.isValid()) display.remove();
         }
     }

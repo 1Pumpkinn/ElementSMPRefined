@@ -99,6 +99,7 @@ public class ListenerInitializer {
     private void registerCoreElementListeners() {
         this.airFallImpactListener = new AirFallImpactListener(plugin.getElementManager());
         pluginManager.registerEvents(airFallImpactListener, plugin);
+        pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.LifeTotemListener(), plugin);
         pluginManager.registerEvents(new AirWindBurstListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
 
         var airElement = plugin.getElementManager().get(ElementType.AIR);

@@ -139,7 +139,7 @@ public class LightningSpearAbility extends BaseAbility {
                     spear.moveTo(impact);
                     drawSpear(world, impact, direction);
                     Entity hitEntity = hit.getHitEntity();
-                    explode(context, impact, hitEntity instanceof LivingEntity living ? living : null);
+                    explode(context, impact, hitEntity instanceof LivingEntity living ? living : null, direction);
                     cancel();
                     return;
                 }
@@ -205,7 +205,7 @@ public class LightningSpearAbility extends BaseAbility {
     }
 
     /** Impact: real lightning strike, then the direct hit's damage + shock and the shock burst. */
-    private void explode(ElementContext context, Location impact, LivingEntity directHit) {
+    private void explode(ElementContext context, Location impact, LivingEntity directHit, Vector direction) {
         Player caster = context.getPlayer();
         World world = impact.getWorld();
 
@@ -215,9 +215,13 @@ public class LightningSpearAbility extends BaseAbility {
         world.strikeLightningEffect(impact);
 
         if (directHit != null) {
-            TrueDamage.of(DIRECT_DAMAGE).attacker(caster).ability(getName()).type(DamageType.LIGHTNING_BOLT)
-                    .ignoreIFrames(false).apply(directHit);
-            shock(caster, directHit);
+            // A raised shield stops the spear itself: no damage and no shock for the one holding it up.
+            // (The burst below is an area effect, so it isn't blockable.)
+            boolean landed = TrueDamage.of(DIRECT_DAMAGE).attacker(caster).ability(getName()).type(DamageType.LIGHTNING_BOLT)
+                    .ignoreIFrames(false).blockableByShield(direction).apply(directHit);
+            if (landed) {
+                shock(caster, directHit);
+            }
         }
 
         for (LivingEntity nearby : impact.getNearbyLivingEntities(SHOCK_RADIUS)) {

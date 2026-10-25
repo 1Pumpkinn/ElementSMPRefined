@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,7 @@ import java.util.UUID;
  *   TrueDamage.apply(target, 4.0, attacker);             // with attacker (knockback + kill credit)
  *   TrueDamage.of(4.0).attacker(p).ignoreIFrames(false).bypassAbsorption(true).apply(target);
  *   TrueDamage.of(4.0).attacker(p).ability(getName()).apply(target);   // death message names the ability
+ *   TrueDamage.of(4.0).attacker(p).blockableByShield(direction).apply(target); // projectile ability: a raised shield stops it
  */
 public final class TrueDamage implements Listener {
 
@@ -74,6 +76,7 @@ public final class TrueDamage implements Listener {
         private boolean ignoreIFrames = true;
         private boolean bypassAbsorption = false;
         private String abilityName = null;
+        private Vector shieldDirection = null;
 
         private Builder(double amount) {
             this.amount = amount;
@@ -112,7 +115,18 @@ public final class TrueDamage implements Listener {
             return this;
         }
 
-        /** Applies the damage. Returns false if skipped (invalid/dead/creative/etc). */
+        /**
+         * Marks this as a projectile-style hit that a normal raised shield can stop. {@code travelDirection}
+         * is the way the attack is moving (attacker -> victim). If the victim blocks it, no damage is dealt,
+         * the shield loses durability (see {@link ShieldBlocking}) and {@link #apply} returns false - so
+         * callers should skip on-hit effects (burning, slowing, knockback...) when it does.
+         */
+        public Builder blockableByShield(Vector travelDirection) {
+            this.shieldDirection = travelDirection;
+            return this;
+        }
+
+        /** Applies the damage. Returns false if skipped (invalid/dead/creative/shield-blocked/etc). */
         public boolean apply(LivingEntity target) {
             if (target == null || target.isDead() || !target.isValid()) return false;
             if (amount <= 0) return false;
@@ -125,6 +139,11 @@ public final class TrueDamage implements Listener {
 
             UUID id = target.getUniqueId();
             if (PENDING.containsKey(id)) return false; // prevent re-entrancy / recursion
+
+            if (shieldDirection != null && target instanceof Player victim
+                    && ShieldBlocking.tryBlock(victim, shieldDirection, amount)) {
+                return false;
+            }
 
             if (ignoreIFrames) {
                 target.setNoDamageTicks(0);

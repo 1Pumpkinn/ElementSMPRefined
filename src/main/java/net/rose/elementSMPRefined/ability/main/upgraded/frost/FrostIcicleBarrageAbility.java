@@ -405,7 +405,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
             if (hit != null) {
                 if (hit.getHitEntity() instanceof LivingEntity target) {
-                    hitEntity(target, hit.getHitPosition());
+                    hitEntity(target, hit.getHitPosition(), direction);
                     remove(ic);
                     return true;
                 }
@@ -468,11 +468,15 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             world.playSound(puff, Sound.BLOCK_GLASS_HIT, 0.8f, 1.3f);
         }
 
-        private void hitEntity(LivingEntity target, Vector at) {
-            TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).apply(target);
+        private void hitEntity(LivingEntity target, Vector at, Vector direction) {
+            // A raised shield stops the icicle: no damage, no freeze/slow, and the shield takes the wear.
+            boolean landed = TrueDamage.of(DAMAGE).attacker(caster).ability(getName())
+                    .blockableByShield(direction).apply(target);
 
-            target.setFreezeTicks(Math.min(target.getMaxFreezeTicks() + 40, target.getFreezeTicks() + FREEZE_PER_HIT));
-            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, SLOW_TICKS, SLOW_AMPLIFIER, false, true, true));
+            if (landed) {
+                target.setFreezeTicks(Math.min(target.getMaxFreezeTicks() + 40, target.getFreezeTicks() + FREEZE_PER_HIT));
+                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, SLOW_TICKS, SLOW_AMPLIFIER, false, true, true));
+            }
 
             Location spot = new Location(world, at.getX(), at.getY(), at.getZ());
             world.spawnParticle(Particle.SNOWFLAKE, spot, 14, 0.25, 0.25, 0.25, 0.05, null, true);

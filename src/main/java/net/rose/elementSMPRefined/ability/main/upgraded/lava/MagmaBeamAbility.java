@@ -246,8 +246,12 @@ public class MagmaBeamAbility extends BaseAbility {
             if (!grown.contains(from) && grown.rayTrace(from, dir, reach) == null) continue;
             hit.add(e.getUniqueId());
 
-            TrueDamage.of(DAMAGE_PER_PULSE).attacker(player).ability(getName()).ignoreIFrames(true).apply(e);
-            e.setFireTicks(BURN_TICKS);
+            // A raised shield stops the pulse: no damage, no burning, and the shield takes the wear.
+            boolean landed = TrueDamage.of(DAMAGE_PER_PULSE).attacker(player).ability(getName()).ignoreIFrames(true)
+                    .blockableByShield(dir).apply(e);
+            if (landed) {
+                e.setFireTicks(BURN_TICKS);
+            }
             w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 8, 0.3, 0.4, 0.3, 0.03, null, true);
         }
     }

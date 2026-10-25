@@ -135,7 +135,10 @@ public class AirCutterAbility extends BaseAbility {
                     if (hitEntities.contains(e.getUniqueId())) continue;
 
                     hitEntities.add(e.getUniqueId());
-                    TrueDamage.of(damage).attacker(player).ability(getName()).ignoreIFrames(false).apply(e);
+                    // A raised shield stops the blade: no damage, no knockback, and the shield takes the wear.
+                    boolean landed = TrueDamage.of(damage).attacker(player).ability(getName()).ignoreIFrames(false)
+                            .blockableByShield(direction).apply(e);
+                    if (!landed) continue;
 
                     // Horizontal only, and SET rather than added onto existing velocity.
                     Vector knockback = new Vector(direction.getX(), 0, direction.getZ());

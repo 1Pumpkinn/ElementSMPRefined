@@ -38,7 +38,7 @@ public final class AirCutterVisual {
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:air_cutter"));
 
     /** The model is ~0.9 blocks wide; this makes it read at a distance and match the hitbox. */
-    private static final float SCALE = 2.0f;
+    private static final float SCALE = 3.0f;
     /** How far (in blocks) the model is drawn below its real position. Visual only - hit detection is unaffected. */
     private static final float DROP = 0.1f;
     /**
@@ -47,6 +47,12 @@ public final class AirCutterVisual {
      * to (0, 0, -1).
      */
     private static final Vector3f MODEL_FORWARD = new Vector3f(0f, 0f, 1f);
+    /**
+     * Extra roll, in degrees, around the flight direction. The model itself is authored flat
+     * (lying in the XZ plane), so 0 keeps the blade level like "---". Only change this if the
+     * blade shows up on its side in game (try 90 or -90).
+     */
+    private static final float ROLL_DEGREES = 0f;
 
     /**
      * Most extra interpolation ticks a high-ping caster gets. Kept low: the blade moves 1.5 blocks
@@ -74,9 +80,26 @@ public final class AirCutterVisual {
 
         // Orientation lives entirely in the transformation (entity yaw/pitch stay 0), same as
         // ChainVisual - a display's own rotation would stack with it.
+        // Yaw (left/right) and pitch (up/down) are applied separately instead of one shortest-arc
+        // rotation, so the blade tips up/down with the aim but never rolls onto its side.
+        Vector3f flatDir = new Vector3f(dir.x, 0f, dir.z);
+        if (flatDir.lengthSquared() < 1.0E-6f) {
+            flatDir.set(MODEL_FORWARD);
+        }
+        flatDir.normalize();
+
+        Quaternionf yaw = new Quaternionf().rotationTo(MODEL_FORWARD, flatDir);
+        float pitch = (float) Math.asin(Math.max(-1f, Math.min(1f, dir.y)));
+        // Horizontal axis pointing to the blade's side; tipping around it can't add any roll.
+        Vector3f side = new Vector3f(0f, 1f, 0f).cross(flatDir).normalize();
+        Quaternionf orientation = new Quaternionf().rotateAxis(-pitch, side).mul(yaw);
+        if (ROLL_DEGREES != 0f) {
+            orientation = new Quaternionf().rotateAxis((float) Math.toRadians(ROLL_DEGREES), dir).mul(orientation);
+        }
+
         Transformation transformation = new Transformation(
                 new Vector3f(0f, -DROP, 0f),
-                new Quaternionf().rotationTo(MODEL_FORWARD, dir),
+                orientation,
                 new Vector3f(SCALE),
                 new Quaternionf());
 

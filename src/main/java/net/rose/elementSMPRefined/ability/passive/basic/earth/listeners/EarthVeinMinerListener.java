@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.basic.earth.listeners;
 
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.GameMode;
@@ -16,7 +17,7 @@ import java.util.*;
 
 /**
  * Earth Vein Miner - Breaks connected ore blocks when mining ores
- * Passive ability for Earth element (also inherited by Metal, which is upgraded from Earth)
+ * Second passive of the Earth element (unlocks at Upgrade II) (also inherited by Metal, which is upgraded from Earth)
  */
 public class EarthVeinMinerListener implements Listener {
     private final ElementManager elementManager;
@@ -51,6 +52,11 @@ public class EarthVeinMinerListener implements Listener {
         var playerData = elementManager.data(player.getUniqueId());
         ElementType current = playerData.getCurrentElement();
         if (current != ElementType.EARTH && current != ElementType.METAL) {
+            return;
+        }
+
+        // Second passive: unlocks at Upgrade II
+        if (playerData.getUpgradeLevel(current) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) {
             return;
         }
 

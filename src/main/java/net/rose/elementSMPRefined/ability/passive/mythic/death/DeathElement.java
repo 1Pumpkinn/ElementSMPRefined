@@ -37,8 +37,8 @@ public class DeathElement extends BaseElement implements ListenerProvider {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passive 1: Invisibility at night (handled by DeathNightInvisibilityListener)
-        // Passive 2: Chance to apply Wither on hit (handled by DeathWitherOnHitListener)
+        // Passive 1 (start): Invisibility at night (handled by DeathNightInvisibilityListener)
+        // Passive 2 (Upgrade II): Chance to apply Wither on hit (handled by DeathWitherOnHitListener)
         // Neither passive is a standing potion effect applied here.
     }
 
@@ -59,7 +59,6 @@ public class DeathElement extends BaseElement implements ListenerProvider {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Invisible at night",
-                "Chance to apply Wither for 5s on hit"
-        );
+                "35% chance to apply Wither for 5s on hit (Upgrade II)");
     }
 }

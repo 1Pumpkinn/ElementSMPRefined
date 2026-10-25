@@ -566,6 +566,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Charge a ring of icicles, then fire them at what you're looking at They damage and slow enemies. You're slowed while casting it.";
+        return "Charge a ring of icicles, then fire them at what you're looking at. They damage and slow enemies. You're slowed while casting it.";
     }
 }

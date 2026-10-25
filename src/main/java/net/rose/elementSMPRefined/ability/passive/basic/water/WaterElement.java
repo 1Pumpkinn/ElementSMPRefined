@@ -36,9 +36,8 @@ public class WaterElement extends BaseElement implements ListenerProvider {
         // Passive 1: Breath of the Nautilus DO NOT CHANGE THIS EFFECT IT'S BREATH OF THE NATULIST
         player.addPotionEffect(new PotionEffect(PotionEffectType.BREATH_OF_THE_NAUTILUS, PotionEffect.INFINITE_DURATION, 0, true, false));
 
-        if (upgradeLevel >= 2) {
-            // WaterInvisibilityListener
-        }
+        // Passive 2 (Upgrade II): in-water invisibility, handled by WaterInvisibilityListener,
+        // which checks the level.
     }
 
     @Override
@@ -56,7 +55,6 @@ public class WaterElement extends BaseElement implements ListenerProvider {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Breath of the Nautilus",
-                "True invisibility while still in water"
-        );
+                "True Invis while staying still in Water (Upgrade II)");
     }
 }

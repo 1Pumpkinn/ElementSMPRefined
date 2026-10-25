@@ -57,7 +57,7 @@ public class LifeElement extends BaseElement {
         }
 
         // Upside 2: crop growth aura (upgrade level 2+)
-        if (upgradeLevel >= 2) {
+        if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
             BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
                 if (!player.isOnline()) {
                     cancelPassiveTask(player);
@@ -134,9 +134,8 @@ public class LifeElement extends BaseElement {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "15 hearts total",
+                "15 hearts",
                 "Regeneration I",
-                "Crops grow faster (Upgrade II)"
-        );
+                "Crops within 5 blocks grow fully every 2s (Upgrade II)");
     }
 }

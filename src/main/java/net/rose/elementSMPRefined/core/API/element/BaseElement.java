@@ -25,6 +25,12 @@ import java.util.function.Predicate;
  * template to copy when adding a new element.
  */
 public abstract class BaseElement implements Element {
+    /**
+     * Upgrade level at which an element's second passive unlocks. The first passive is
+     * active from the start (level 0).
+     */
+    public static final int PASSIVE_2_UPGRADE_LEVEL = 2;
+
     protected final ElementSMPRefined plugin;
     private final ElementType type;
     protected final Ability ability1;

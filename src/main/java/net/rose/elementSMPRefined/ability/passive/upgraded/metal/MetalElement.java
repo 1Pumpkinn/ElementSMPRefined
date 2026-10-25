@@ -22,8 +22,8 @@ import java.util.List;
  * Metal - upgraded from Earth.
  *
  * Passive 1: Hero of the Village (inherited from Earth)
- * Passive 2: Vein Miner (inherited from Earth, see EarthVeinMinerListener)
- * Passive 3: Attack speed +50% at 4 hearts or below (MetalLowHealthAttackSpeedListener)
+ * Passive 2 (Upgrade II): Vein Miner (inherited from Earth, see EarthVeinMinerListener)
+ * Passive 3 (Upgrade II): Attack speed +80% at 4 hearts or below (MetalLowHealthAttackSpeedListener)
  */
 public class MetalElement extends BaseElement implements ListenerProvider {
 
@@ -69,9 +69,8 @@ public class MetalElement extends BaseElement implements ListenerProvider {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Hero of The Village",
-                "Vein Miner",
-                "+50% attack speed at 4 hearts and below"
-        );
+                "Hero of the Village",
+                "Vein Miner (Upgrade II)",
+                "+80% attack speed at 4 hearts and below (Upgrade II)");
     }
 }

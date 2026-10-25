@@ -21,9 +21,9 @@ import java.util.Map;
  * Fire Element Passive: Auto Smelt (also inherited by Lava)
  *
  * When mining ores, Fire and Lava element players automatically smelt the drops -
- * raw ore becomes ingots (and ancient debris becomes netherite scrap)
- * with no furnace or fuel needed. This is the base passive, active from
- * Upgrade I.
+ * raw ore becomes ingots
+ * with no furnace or fuel needed. This is the first passive, active from
+ * the start (no upgrade needed).
  *
  * Fortune still multiplies the output (vanilla loot table). Silk Touch bypasses
  * smelting entirely and drops the raw block as normal. Players can switch the
@@ -36,7 +36,6 @@ public class FireSmeltListener implements Listener {
         SMELT_RESULTS.put(Material.RAW_IRON, Material.IRON_INGOT);
         SMELT_RESULTS.put(Material.RAW_GOLD, Material.GOLD_INGOT);
         SMELT_RESULTS.put(Material.RAW_COPPER, Material.COPPER_INGOT);
-        // SMELT_RESULTS.put(Material.ANCIENT_DEBRIS, Material.NETHERITE_SCRAP);
     }
 
     private final ElementManager elementManager;

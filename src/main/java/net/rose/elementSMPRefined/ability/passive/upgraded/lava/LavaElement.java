@@ -22,8 +22,8 @@ import java.util.List;
  * Lava - upgraded from Fire.
  *
  * Passive 1: Auto smelt mined ores (inherited from Fire, see FireSmeltListener)
- * Passive 2: Permanent fire/lava immunity (inherited from Fire's Upgrade II perk)
- * Passive 3: +15% melee damage at 4 hearts or below (LavaLowHealthDamageListener)
+ * Passive 2 (Upgrade II): Permanent fire/lava immunity (inherited from Fire)
+ * Passive 3 (Upgrade II): +25% melee damage at 4 hearts or below (LavaIncreaseDamageListener)
  */
 public class LavaElement extends BaseElement implements ListenerProvider {
 
@@ -35,11 +35,16 @@ public class LavaElement extends BaseElement implements ListenerProvider {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passive 2: permanent fire/lava immunity, so the caster can't be hurt by their own eruption fire.
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 0, true, false));
+        // Passive 1 (start): auto smelt, handled by FireSmeltListener.
 
-        // Passive 1 (auto smelt) is handled by FireSmeltListener.
-        // Passive 3 (low health damage) is handled by LavaLowHealthDamageListener.
+        // Passive 2 (Upgrade II): permanent fire/lava immunity.
+        if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 0, true, false));
+        } else {
+            EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
+        }
+
+        // Passive 3 (Upgrade II): low health damage, handled by LavaIncreaseDamageListener.
     }
 
     @Override
@@ -63,8 +68,7 @@ public class LavaElement extends BaseElement implements ListenerProvider {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Auto smelt ores",
-                "Fire Resistance",
-                "+15% melee damage at 4 hearts and below"
-        );
+                "Fire Resistance (Upgrade II)",
+                "+25% melee damage at 4 hearts and below (Upgrade II)");
     }
 }

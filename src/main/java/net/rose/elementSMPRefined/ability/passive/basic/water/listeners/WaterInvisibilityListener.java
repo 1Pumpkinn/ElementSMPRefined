@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.basic.water.listeners;
 
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
@@ -20,7 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Water passive 2: standing still in water grants true invisibility from other players.
+ * Water passive 2 (unlocks at Upgrade II): standing still in water grants true invisibility from other players.
  * Frost inherits this passive from Water, so it applies to both elements.
  * This is implemented with Bukkit hide/show semantics so the player remains fully visible
  * to themselves while all other players cannot see their armor, held items, or body.
@@ -65,7 +66,11 @@ public class WaterInvisibilityListener implements Listener {
     /** Water and Frost (upgraded from Water) both get the in-water invisibility passive. */
     private boolean hasPassive(Player player) {
         ElementType type = elementManager.getPlayerElement(player);
-        return type == ElementType.WATER || type == ElementType.FROST;
+        if (type != ElementType.WATER && type != ElementType.FROST) return false;
+
+        // Second passive: unlocks at Upgrade II
+        var data = elementManager.data(player.getUniqueId());
+        return data != null && data.getUpgradeLevel(type) >= BaseElement.PASSIVE_2_UPGRADE_LEVEL;
     }
 
     private void tick(Player player) {

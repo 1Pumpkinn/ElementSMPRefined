@@ -18,7 +18,7 @@ import java.util.List;
  * Frost - upgraded from Water.
  *
  * Passive 1: Breath of the Nautilus (inherited from Water)
- * Passive 2: True invisibility while standing still in water (inherited from Water,
+ * Passive 2 (Upgrade II): True invisibility while standing still in water (inherited from Water,
  *            see WaterInvisibilityListener, which handles both Water and Frost)
  */
 public class FrostElement extends BaseElement {
@@ -52,8 +52,7 @@ public class FrostElement extends BaseElement {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Breath of the Nautilus",
-                "True invisibility while still in water",
-                "Passive 3 Coming Soon"
-        );
+                "True Invis while staying still in water (Upgrade II)",
+                "Speed while wearing leather boots (Speed II on ice at Upgrade II)");
     }
 }

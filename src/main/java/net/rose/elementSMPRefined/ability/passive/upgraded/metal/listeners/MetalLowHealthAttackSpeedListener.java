@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners;
 
+    import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
@@ -12,7 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Metal Element Passive 3: Frenzy
+ * Metal Element Passive 3: Frenzy (unlocks at Upgrade II)
  *
  * While a Metal player is at 4 hearts (8 HP) or below, their attack speed is
  * {@value #BONUS_PERCENT}% higher, so their weapon recharges faster between swings.
@@ -25,8 +26,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class MetalLowHealthAttackSpeedListener implements Listener {
 
     private static final double HEALTH_THRESHOLD = 8.0;   // 4 hearts
-    private static final double BONUS = 0.8;              // +50% attack speed
-    private static final int BONUS_PERCENT = 50;
+    private static final double BONUS = 0.8;              // +80% attack speed (keep MetalElement's info text in sync)
+    private static final int BONUS_PERCENT = 80;
     private static final long CHECK_INTERVAL_TICKS = 5L;
 
     private static final NamespacedKey MODIFIER_KEY =
@@ -65,7 +66,8 @@ public class MetalLowHealthAttackSpeedListener implements Listener {
         if (player.getHealth() > HEALTH_THRESHOLD) return false;
 
         var data = elementManager.data(player.getUniqueId());
-        return data != null && data.getCurrentElement() == ElementType.METAL;
+        return data != null && data.getCurrentElement() == ElementType.METAL
+                && data.getUpgradeLevel(ElementType.METAL) >= BaseElement.PASSIVE_2_UPGRADE_LEVEL;
     }
 
     private static AttributeModifier find(AttributeInstance attribute) {

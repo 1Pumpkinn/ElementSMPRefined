@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.mythic.death.listeners;
 
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
@@ -15,7 +16,7 @@ import org.bukkit.potion.PotionEffectType;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Death passive: hitting an entity has a chance to apply Wither for 5 seconds.
+ * Death passive 2 (unlocks at Upgrade II): hitting an entity has a chance to apply Wither for 5 seconds.
  * Does not apply to trusted/allied players.
  */
 public class DeathWitherOnHitListener implements Listener {
@@ -38,6 +39,9 @@ public class DeathWitherOnHitListener implements Listener {
 
         var playerData = elementManager.data(attacker.getUniqueId());
         if (playerData == null || playerData.getCurrentElement() != ElementType.DEATH) return;
+
+        // Second passive: unlocks at Upgrade II
+        if (playerData.getUpgradeLevel(ElementType.DEATH) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
 
         if (victim instanceof Player targetPlayer &&
                 trustManager.isTrusted(attacker.getUniqueId(), targetPlayer.getUniqueId())) {

@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.upgraded.lava.listeners;
 
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
@@ -13,7 +14,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
  * Lava Element Passive 3: Desperate Fury
  *
  * While a Lava player is at 4 hearts (8 HP) or below, their melee hits deal
- * 15% extra damage. Deliberately small - it rewards fighting on low health
+ * 25% extra damage. Unlocks at Upgrade II. It rewards fighting on low health
  * without turning a near-dead Lava player into a glass cannon.
  *
  * Does not affect trusted players or the attacker's own damage.
@@ -21,7 +22,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 public class LavaIncreaseDamageListener implements Listener {
 
     private static final double HEALTH_THRESHOLD = 8.0; // 4 hearts
-    private static final double DAMAGE_MULTIPLIER = 1.25; // +25%
+    private static final double DAMAGE_MULTIPLIER = 1.25; // +25% (keep LavaElement's info text in sync)
 
     private final ElementManager elementManager;
     private final TrustManager trustManager;
@@ -41,6 +42,7 @@ public class LavaIncreaseDamageListener implements Listener {
 
         var data = elementManager.data(attacker.getUniqueId());
         if (data == null || data.getCurrentElement() != ElementType.LAVA) return;
+        if (data.getUpgradeLevel(ElementType.LAVA) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
 
         if (event.getEntity() instanceof Player victim
                 && trustManager.isTrusted(attacker.getUniqueId(), victim.getUniqueId())) {

@@ -558,6 +558,6 @@ public class HellChainAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Shoots a chain at an entity you are looking at It pulls the entity to you, or pulls you to a block. Sets nearby enemies on fire Use again to stop mid-chain.";
+        return "Shoots a chain at an entity you are looking at. It pulls the entity to you, or pulls you to a block, and sets nearby enemies on fire. Use again to stop mid-chain.";
     }
 }

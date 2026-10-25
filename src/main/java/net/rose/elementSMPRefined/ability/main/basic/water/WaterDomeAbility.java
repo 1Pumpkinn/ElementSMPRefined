@@ -62,29 +62,48 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
 
     private static final int MAX_DURATION_TICKS = 200; // 10 seconds
     private static final double DOME_RADIUS = 5.0;
-    private static final double SHELL_THICKNESS = 1.2;  // blocks, measured radially
     private static final double PUSH_STRENGTH = 0.4;    // blocks/tick shoved at intruders
     private static final int REFRESH_INTERVAL_TICKS = 20; // re-send the shell so late joiners / reverted blocks see it
     private static final double VIEW_DISTANCE = DOME_RADIUS + 80.0;
+    // Plain source water. (level=8 "falling" water was tried for full-height cubes, but clients
+    // draw it with sloped, jagged faces between neighbours, which looks worse.)
     private static final BlockData WATER_DATA = Bukkit.createBlockData(Material.WATER);
 
     /** Block offsets (relative to the dome centre block) that make up the upper-hemisphere shell. */
     private static final List<int[]> SHELL_OFFSETS = buildShellOffsets();
 
+    /**
+     * The shell is exactly one block thick: a block belongs to it when it's inside the dome
+     * radius and at least one of its six face-neighbours is outside. (A radial thickness
+     * test used to make the shell two blocks thick along the axes, which left an extra layer
+     * of water on top of the dome and on the sides at the middle.)
+     */
     private static List<int[]> buildShellOffsets() {
         List<int[]> offsets = new ArrayList<>();
         int r = (int) Math.ceil(DOME_RADIUS);
         for (int dx = -r; dx <= r; dx++) {
             for (int dy = 0; dy <= r; dy++) { // dy >= 0: dome only, nothing under the floor
                 for (int dz = -r; dz <= r; dz++) {
-                    double d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                    if (d <= DOME_RADIUS && d >= DOME_RADIUS - SHELL_THICKNESS) {
+                    if (!insideDome(dx, dy, dz)) continue;
+                    if (!insideDome(dx + 1, dy, dz) || !insideDome(dx - 1, dy, dz)
+                            || !insideDome(dx, dy + 1, dz) || !insideDome(dx, dy - 1, dz)
+                            || !insideDome(dx, dy, dz + 1) || !insideDome(dx, dy, dz - 1)) {
                         offsets.add(new int[]{dx, dy, dz});
                     }
                 }
             }
         }
         return offsets;
+    }
+
+    /**
+     * Shell radius is half a block smaller than the barrier radius: with the full radius the
+     * axis points (top, and the four sides at the middle) were lone single blocks poking out
+     * of the curve. This way the top and sides are flat like the rest of the surface.
+     */
+    private static boolean insideDome(int dx, int dy, int dz) {
+        double r = DOME_RADIUS - 0.5;
+        return dx * dx + dy * dy + dz * dz <= r * r;
     }
 
     private final ElementSMPRefined plugin;

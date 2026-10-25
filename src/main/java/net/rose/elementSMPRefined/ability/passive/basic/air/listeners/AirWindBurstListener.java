@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.passive.basic.air.listeners;
 
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
@@ -16,6 +17,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 /**
@@ -32,7 +34,12 @@ import org.bukkit.util.Vector;
  * Skipped when the held item already has a real Wind Burst enchantment, so vanilla
  * handles it and the effect never doubles up.
  *
- * Also inherited by Storm (upgraded from Air).
+ * Unlocks at Upgrade II. Also inherited by Storm (upgraded from Air).
+ *
+ * Sounds: this passive plays no sound of its own, and the launch is deferred by one tick so
+ * it never interferes with vanilla hit / mace smash sounds. Resetting the fall distance
+ * inside the damage event used to stop vanilla from treating the hit as a smash attack,
+ * which silenced the mace.
  */
 public class AirWindBurstListener implements Listener {
 
@@ -44,10 +51,12 @@ public class AirWindBurstListener implements Listener {
     private static final double BURST_RADIUS = 3.5;
     private static final double BURST_STRENGTH = 0.6 * LEVEL_MULTIPLIER;
 
+    private final JavaPlugin plugin;
     private final ElementManager elementManager;
     private final TrustManager trustManager;
 
-    public AirWindBurstListener(ElementManager elementManager, TrustManager trustManager) {
+    public AirWindBurstListener(JavaPlugin plugin, ElementManager elementManager, TrustManager trustManager) {
+        this.plugin = plugin;
         this.elementManager = elementManager;
         this.trustManager = trustManager;
     }
@@ -68,6 +77,9 @@ public class AirWindBurstListener implements Listener {
         var data = elementManager.data(attacker.getUniqueId());
         if (data == null || !hasAirPassives(data.getCurrentElement())) return;
 
+        // Second passive: unlocks at Upgrade II
+        if (data.getUpgradeLevel(data.getCurrentElement()) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
+
         ItemStack weapon = attacker.getInventory().getItemInMainHand();
         if (weapon.getType().isAir()) return;
 
@@ -84,7 +96,11 @@ public class AirWindBurstListener implements Listener {
             return;
         }
 
-        burst(attacker, target);
+        // Let vanilla finish the hit (damage, hit sound, mace smash sound) before launching
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (!attacker.isOnline() || !target.isValid()) return;
+            burst(attacker, target);
+        });
     }
 
     private void burst(Player attacker, LivingEntity target) {
@@ -117,7 +133,6 @@ public class AirWindBurstListener implements Listener {
             push.setY(0.3);
             living.setVelocity(living.getVelocity().add(push));
         }
-
         world.spawnParticle(Particle.GUST_EMITTER_SMALL, center, 1);
         world.playSound(center, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1.0f, 1.0f);
     }

@@ -27,6 +27,8 @@ public class EarthElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
+        // Passive 1 (start): Hero of the Village. Passive 2 (Upgrade II), Vein Miner, is
+        // handled by EarthVeinMinerListener, which checks the level.
         player.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE, PotionEffect.INFINITE_DURATION, 0, true, false));
     }
 
@@ -52,8 +54,7 @@ public class EarthElement extends BaseElement {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Hero of The Village",
-                "Vein Miner"
-        );
+                "Hero of the Village",
+                "Vein Miner (Upgrade II)");
     }
 }

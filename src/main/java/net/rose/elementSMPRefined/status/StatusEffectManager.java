@@ -172,8 +172,6 @@ public class StatusEffectManager {
         });
 
         restorePotionEffects(player, playerEffects);
-
-        player.sendMessage(Component.text(data.displayName() + " applied for " + (actualDuration / 20.0) + " seconds", NamedTextColor.RED));
     }
 
     /**

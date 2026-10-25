@@ -5,6 +5,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
@@ -17,7 +18,10 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -34,6 +38,8 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,11 +69,14 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
     private static final int MAX_DURATION_TICKS = 200; // 10 seconds
     private static final double DOME_RADIUS = 5.0;
     private static final double PUSH_STRENGTH = 0.4;    // blocks/tick shoved at intruders
-    private static final int REFRESH_INTERVAL_TICKS = 20; // re-send the shell so late joiners / reverted blocks see it
-    private static final double VIEW_DISTANCE = DOME_RADIUS + 80.0;
-    // Plain source water. (level=8 "falling" water was tried for full-height cubes, but clients
-    // draw it with sloped, jagged faces between neighbours, which looks worse.)
-    private static final BlockData WATER_DATA = Bukkit.createBlockData(Material.WATER);
+    /**
+     * The shell is built from ItemDisplays wearing this resource-pack model: a full 16x16x16 cube
+     * with the vanilla animated water texture, tinted water-blue (see assets/elementsmp/items and
+     * models/item/water_cube.json). Real or fake water blocks can't be drawn as full cubes - clients
+     * shorten and slope them - but a model can.
+     */
+    private static final NamespacedKey CUBE_MODEL =
+            Objects.requireNonNull(NamespacedKey.fromString("elementsmp:water_cube"));
 
     /** Block offsets (relative to the dome centre block) that make up the upper-hemisphere shell. */
     private static final List<int[]> SHELL_OFFSETS = buildShellOffsets();
@@ -161,9 +170,6 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
                 followOwner(state, player);
                 enforceBarrier(state);
 
-                if (ticks % REFRESH_INTERVAL_TICKS == 0) {
-                    sendShell(state);
-                }
                 ticks++;
             }
         };
@@ -252,15 +258,6 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
         return (int) (key & 0xFFFL) - 2048;
     }
 
-    private static Location[] toLocations(World world, java.util.Collection<Long> keys) {
-        Location[] out = new Location[keys.size()];
-        int i = 0;
-        for (long key : keys) {
-            out[i++] = new Location(world, unpackX(key), unpackY(key), unpackZ(key));
-        }
-        return out;
-    }
-
     /**
      * Works out which blocks of the shell can actually hold water (air / replaceable only -
      * terrain is left alone) for the dome's current centre block.
@@ -307,82 +304,53 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
     }
 
     /**
-     * Moves the shell to the dome's current centre block: new water goes up where the dome
-     * now is, and blocks it just left are put back to their real state - only the difference
-     * is sent, not the whole shell. The difference and the real block data are worked out once,
-     * not once per viewer.
+     * Moves the shell to the dome's current centre block: cubes appear where the dome now is and
+     * the ones it just left are removed - only the difference is touched, not the whole shell.
      */
     private void updateShell(DomeState state) {
         Set<Long> next = computeShell(state);
-        Set<Long> old = state.shellBlocks;
         World world = state.center.getWorld();
 
-        List<Long> added = new ArrayList<>();
+        for (java.util.Iterator<Map.Entry<Long, ItemDisplay>> it = state.cubes.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Long, ItemDisplay> entry = it.next();
+            if (!next.contains(entry.getKey())) {
+                entry.getValue().remove();
+                it.remove();
+            }
+        }
         for (long key : next) {
-            if (!old.contains(key)) added.add(key);
-        }
-        List<Long> removed = new ArrayList<>();
-        for (long key : old) {
-            if (!next.contains(key)) removed.add(key);
+            ItemDisplay existing = state.cubes.get(key);
+            if (existing != null && existing.isValid()) continue;
+            state.cubes.put(key, spawnCube(world, unpackX(key), unpackY(key), unpackZ(key)));
         }
 
-        if (!added.isEmpty() || !removed.isEmpty()) {
-            Location[] addLocs = toLocations(world, added);
-            Location[] removeLocs = toLocations(world, removed);
-            BlockData[] removeData = new BlockData[removeLocs.length];
-            for (int i = 0; i < removeLocs.length; i++) {
-                removeData[i] = removeLocs[i].getBlock().getBlockData();
-            }
-
-            double maxSq = VIEW_DISTANCE * VIEW_DISTANCE;
-            for (Player viewer : world.getPlayers()) {
-                if (viewer.getLocation().distanceSquared(state.center) > maxSq) continue;
-
-                for (Location loc : addLocs) {
-                    viewer.sendBlockChange(loc, WATER_DATA);
-                }
-                for (int i = 0; i < removeLocs.length; i++) {
-                    viewer.sendBlockChange(removeLocs[i], removeData[i]);
-                }
-            }
-        }
-
-        state.shellBlocks = next;
-        state.shellLocations = toLocations(world, next);
         state.shellX = state.center.getBlockX();
         state.shellY = state.center.getBlockY();
         state.shellZ = state.center.getBlockZ();
     }
 
-    /** Shows the water shell to every nearby player as client-side block changes. */
-    private void sendShell(DomeState state) {
-        World world = state.center.getWorld();
-        double maxSq = VIEW_DISTANCE * VIEW_DISTANCE;
-
-        for (Player viewer : world.getPlayers()) {
-            if (viewer.getLocation().distanceSquared(state.center) > maxSq) continue;
-            for (Location loc : state.shellLocations) {
-                viewer.sendBlockChange(loc, WATER_DATA);
-            }
-        }
+    /** One full water-textured cube, centred on the given block. */
+    private static ItemDisplay spawnCube(World world, int x, int y, int z) {
+        Location centre = new Location(world, x + 0.5, y + 0.5, z + 0.5);
+        // The base material is irrelevant - the item_model component replaces its model entirely.
+        var modelItem = ModelItems.of(CUBE_MODEL);
+        return world.spawn(centre, ItemDisplay.class, d -> {
+            d.setItemStack(modelItem);
+            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+            d.setBillboard(Display.Billboard.FIXED);
+            d.setBrightness(new Display.Brightness(15, 15));
+            d.setViewRange(2.0f);
+            d.setPersistent(false);
+            d.setInvulnerable(true);
+        });
     }
 
-    /** Puts the real blocks back on every client that might have been shown the shell. */
-    private void restoreShell(DomeState state) {
-        World world = state.center.getWorld();
-        Location[] locations = state.shellLocations;
-        BlockData[] real = new BlockData[locations.length];
-        for (int i = 0; i < locations.length; i++) {
-            real[i] = locations[i].getBlock().getBlockData();
+    /** Removes every cube of a dome. */
+    private void removeCubes(DomeState state) {
+        for (ItemDisplay cube : state.cubes.values()) {
+            cube.remove();
         }
-
-        for (Player viewer : world.getPlayers()) {
-            for (int i = 0; i < locations.length; i++) {
-                viewer.sendBlockChange(locations[i], real[i]);
-            }
-        }
-        state.shellBlocks.clear();
-        state.shellLocations = new Location[0];
+        state.cubes.clear();
     }
 
     /** Entities the dome lets through (and protects): the caster, their trusted players, and their tamed pets. */
@@ -428,7 +396,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
         if (state.task != null) {
             state.task.cancel();
         }
-        restoreShell(state);
+        removeCubes(state);
 
         World world = state.center.getWorld();
         Location mid = state.center.clone().add(0, DOME_RADIUS / 2, 0);
@@ -495,8 +463,7 @@ public class WaterDomeAbility extends BaseAbility implements Listener {
         final UUID owner;
         Location center; // follows the caster
         final TrustManager trust;
-        Set<Long> shellBlocks = new HashSet<>();      // packed block positions, see pack()
-        Location[] shellLocations = new Location[0];  // the same blocks as Locations, built once per shell move
+        final Map<Long, ItemDisplay> cubes = new HashMap<>(); // packed block position (see pack()) -> its cube
         int shellX = Integer.MIN_VALUE, shellY = Integer.MIN_VALUE, shellZ = Integer.MIN_VALUE; // centre block the shell was last built for
         BukkitTask task;
 

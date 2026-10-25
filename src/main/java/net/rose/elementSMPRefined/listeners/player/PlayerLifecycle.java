@@ -231,9 +231,6 @@ public class PlayerLifecycle implements Listener {
         if (frostPassiveListener != null) {
             frostPassiveListener.onPlayerQuit(playerUuid);
         }
-        if (airFallImpactListener != null) {
-            airFallImpactListener.cleanupPlayer(playerUuid);
-        }
         if (metalMagnetarAbility != null) {
             metalMagnetarAbility.onPlayerQuit(playerUuid);
         }

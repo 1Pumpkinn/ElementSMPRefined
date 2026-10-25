@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.AirElement;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
+import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirWindBurstListener;
 import net.rose.elementSMPRefined.ability.passive.basic.earth.listeners.EarthVeinMinerListener;
 import net.rose.elementSMPRefined.ability.passive.basic.fire.listeners.FireSmeltListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostPassiveListener;
@@ -96,8 +97,9 @@ public class ListenerInitializer {
      * (e.g., listeners that need special setup or cross-references)
      */
     private void registerCoreElementListeners() {
-        this.airFallImpactListener = new AirFallImpactListener(plugin, plugin.getElementManager());
+        this.airFallImpactListener = new AirFallImpactListener(plugin.getElementManager());
         pluginManager.registerEvents(airFallImpactListener, plugin);
+        pluginManager.registerEvents(new AirWindBurstListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
 
         var airElement = plugin.getElementManager().get(ElementType.AIR);
         if (airElement instanceof AirElement airElementImpl) {

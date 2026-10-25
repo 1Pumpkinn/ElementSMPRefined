@@ -17,8 +17,8 @@ import java.util.List;
  * Ability 1: Lightning Spear (fast lightning projectile that shocks what it hits)
  * Ability 2: Tornado (a roaming funnel that sucks in and damages everything near it)
  * Passive 1: No fall damage (inherited from Air, see AirFallImpactListener)
- * Passive 2: The further you fall, the further nearby entities get knocked back on landing
- *            (inherited from Air, see AirFallImpactListener)
+ * Passive 2: Wind Burst on any weapon, not a real enchantment
+ *            (inherited from Air, see AirWindBurstListener)
  * Passive 3: Coming soon
  */
 public class StormElement extends BaseElement {
@@ -31,7 +31,7 @@ public class StormElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passives 1 and 2 (no fall damage, fall impact knockback) are handled by AirFallImpactListener.
+        // Passives 1 and 2 are handled by AirFallImpactListener (no fall damage) and AirWindBurstListener (Wind Burst).
         // Passive 3 is coming soon.
     }
 
@@ -44,7 +44,7 @@ public class StormElement extends BaseElement {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "No fall damage",
-                "The further you fall the further nearby entities are knocked back when landing",
+                "Wind Burst: your weapons launch you upward and burst enemies away on a falling smash attack",
                 "Coming soon");
     }
 }

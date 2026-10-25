@@ -28,8 +28,8 @@ public class AirElement extends BaseElement {
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
         // Passive 1: No fall damage (handled in AirFallImpactListener)
-        // Passive 2: The further you fall, the further nearby entities get
-        // knocked back on landing (handled in AirFallImpactListener)
+        // Passive 2: Wind Burst - built-in smash-attack burst on any weapon,
+        // not a real enchantment (handled in AirWindBurstListener)
     }
 
     @Override
@@ -41,6 +41,6 @@ public class AirElement extends BaseElement {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "No fall damage",
-                "The further you fall the further nearby entities are knocked back when landing");
+                "Wind Burst: your weapons launch you upward and burst enemies away on a falling smash attack");
     }
 }

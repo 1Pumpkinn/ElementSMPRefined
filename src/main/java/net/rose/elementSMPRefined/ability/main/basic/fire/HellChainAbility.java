@@ -1,5 +1,7 @@
 package net.rose.elementSMPRefined.ability.main.basic.fire;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -41,9 +43,21 @@ import org.bukkit.util.Vector;
  * Replaces the old Fire ability1, {@code FireGeyserAbility} (now deprecated).
  */
 public class HellChainAbility extends BaseAbility {
-    private static final double RANGE = 45.0;
+    private static final double RANGE = 35.0;
     private static final double RAY_SIZE = 0.4;
     private static final int MAX_TICKS = 50; // safety cap so a chain can never get "stuck" running forever
+    // The flat 50-tick cap is too short for a long hook: the grapple tops out at 1 block/tick, so a 45 block
+    // hook needs 46+ ticks even with perfect progress, and any lag/ramp-up pushes it past the cap and the pull
+    // just stops partway. The cap now grows with the hook distance (still bounded, so nothing runs forever).
+    private static final int MAX_TICKS_CAP = 120;
+    private static final double SLOWEST_EXPECTED_SPEED = 0.6; // blocks/tick the cap assumes the pull manages on average
+    private static final int EXTRA_TICKS = 20;                // slack for ramp-up, lag and arcing over obstacles
+
+    /** Flip to true to log why every chain ended (arrived / timed out / snagged / cancelled) in the console. */
+    private static final boolean DEBUG = false;
+
+    private static final Component NOTHING_IN_RANGE = Component.text(
+            "Hell's Chain: nothing to hook within " + (int) RANGE + " blocks.", NamedTextColor.RED);
 
     // Caster-grapple mode (hook lands on terrain)
     private static final double PULL_STRENGTH = 0.5;
@@ -141,6 +155,8 @@ public class HellChainAbility extends BaseAbility {
         );
 
         if (result == null) {
+            // Silent failures made "the ray missed" look the same as "the pull stopped early".
+            player.sendActionBar(NOTHING_IN_RANGE);
             return false;
         }
 
@@ -171,6 +187,7 @@ public class HellChainAbility extends BaseAbility {
         // Horizontal vector caster -> target at cast time; used to detect the target passing the caster.
         final Vector startOffset = target.getLocation().toVector()
                 .subtract(player.getLocation().toVector()).setY(0);
+        final int maxTicks = maxTicksFor(player.getLocation().distance(target.getLocation()));
 
         new BukkitRunnable() {
             final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
@@ -196,7 +213,7 @@ public class HellChainAbility extends BaseAbility {
                     cancel();
                     return;
                 }
-                if (ticks >= MAX_TICKS) {
+                if (ticks >= maxTicks) {
                     // Timed out - kill leftover momentum so the target doesn't keep flying.
                     target.setVelocity(new Vector(0, 0, 0));
                     cancel();
@@ -267,6 +284,7 @@ public class HellChainAbility extends BaseAbility {
 
         final boolean startedOnGround = player.isOnGround();
         final int latencyTicks = pingTicks(player);
+        final int maxTicks = maxTicksFor(player.getEyeLocation().distance(hookLocation));
 
         new BukkitRunnable() {
             final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
@@ -288,13 +306,17 @@ public class HellChainAbility extends BaseAbility {
 
             @Override
             public void run() {
-                if (!player.isOnline() || ticks >= MAX_TICKS) {
+                if (!player.isOnline() || ticks >= maxTicks) {
+                    if (player.isOnline()) {
+                        debug(player, "timed out", ticks, player.getEyeLocation().distance(hookLocation));
+                    }
                     cancel();
                     return;
                 }
                 if (!isActiveFor(player)) {
                     // Cancelled mid-grapple (pressed again, or element changed) - drop the chain,
                     // keeping a little momentum so it doesn't feel like hitting a wall.
+                    debug(player, "cancelled (pressed again / element changed)", ticks, player.getEyeLocation().distance(hookLocation));
                     player.setVelocity(player.getVelocity().multiply(0.3));
                     cancel();
                     return;
@@ -326,6 +348,7 @@ public class HellChainAbility extends BaseAbility {
                     } else if (climbTicks >= latencyTicks) {
                         climbStuckTicks++;
                         if (climbStuckTicks >= MAX_CONSECUTIVE_BLOCKED_TICKS + latencyTicks) {
+                            debug(player, "snagged while climbing", ticks, currentLoc.distance(hookLocation));
                             player.setVelocity(player.getVelocity().multiply(0.2));
                             cancel();
                             return;
@@ -366,6 +389,7 @@ public class HellChainAbility extends BaseAbility {
                         return;
                     }
 
+                    debug(player, "arrived", ticks, distance);
                     player.setVelocity(player.getVelocity().multiply(0.2));
                     player.getWorld().playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
                     player.getWorld().spawnParticle(Particle.LAVA, hookLocation, 20,
@@ -386,6 +410,7 @@ public class HellChainAbility extends BaseAbility {
                 } else if (ticks >= latencyTicks) {
                     approachStuckTicks++;
                     if (approachStuckTicks >= MAX_CONSECUTIVE_BLOCKED_TICKS + latencyTicks) {
+                        debug(player, "snagged on terrain (no progress toward hook)", ticks, distance);
                         player.setVelocity(player.getVelocity().multiply(0.3));
                         cancel();
                         return;
@@ -423,6 +448,18 @@ public class HellChainAbility extends BaseAbility {
                 ticks++;
             }
         }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    /** How long a chain may run for a hook this far away: at least MAX_TICKS, growing with distance, never past MAX_TICKS_CAP. */
+    private static int maxTicksFor(double distance) {
+        int needed = (int) Math.ceil(distance / SLOWEST_EXPECTED_SPEED) + EXTRA_TICKS;
+        return Math.min(MAX_TICKS_CAP, Math.max(MAX_TICKS, needed));
+    }
+
+    private void debug(Player player, String reason, int ticks, double distance) {
+        if (!DEBUG) return;
+        plugin.getLogger().info("[HellChain] " + player.getName() + ": " + reason
+                + " (tick " + ticks + ", " + String.format("%.1f", distance) + " blocks from hook)");
     }
 
     /** Caster's ping converted to server ticks, capped so a huge spike can't disable snag detection. */

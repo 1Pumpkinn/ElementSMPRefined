@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.listeners.player;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
-import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
+import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostPassiveListener;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
@@ -42,7 +42,7 @@ public class PlayerLifecycle implements Listener {
     private final DisarmManager disarmManager;
     private final TaskScheduler scheduler;
     private final FrostPassiveListener frostPassiveListener;
-    private final AirFallImpactListener airFallImpactListener;
+    private final AirAntiFallDmgListener airAntiFallDmgListener;
     private final MetalMagnetarAbility metalMagnetarAbility;
     private final Random random = new Random();
 
@@ -50,7 +50,7 @@ public class PlayerLifecycle implements Listener {
                            CooldownManager cooldownManager, EffectService effectService,
                            DisarmManager disarmManager,
                            FrostPassiveListener frostPassiveListener,
-                           AirFallImpactListener airFallImpactListener,
+                           AirAntiFallDmgListener airAntiFallDmgListener,
                            MetalMagnetarAbility metalMagnetarAbility) {
         this.plugin = plugin;
         this.elementManager = elementManager;
@@ -58,7 +58,7 @@ public class PlayerLifecycle implements Listener {
         this.disarmManager = disarmManager;
         this.scheduler = plugin.getTaskScheduler();
         this.frostPassiveListener = frostPassiveListener;
-        this.airFallImpactListener = airFallImpactListener;
+        this.airAntiFallDmgListener = airAntiFallDmgListener;
         this.metalMagnetarAbility = metalMagnetarAbility;
     }
 

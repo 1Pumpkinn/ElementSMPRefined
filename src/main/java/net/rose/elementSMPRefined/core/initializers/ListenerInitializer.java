@@ -5,7 +5,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.AirElement;
-import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
+import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirWindBurstListener;
 import net.rose.elementSMPRefined.ability.passive.basic.earth.listeners.EarthVeinMinerListener;
 import net.rose.elementSMPRefined.ability.passive.basic.fire.listeners.FireSmeltListener;
@@ -35,7 +35,7 @@ public class ListenerInitializer {
     private final PluginManager pluginManager;
 
     private PlayerLifecycle playerLifecycleListener;
-    private AirFallImpactListener airFallImpactListener;
+    private AirAntiFallDmgListener airAntiFallDmgListener;
     private FrostPassiveListener frostPassiveListener;
     private MetalMagnetarAbility metalMagnetarAbility;
     private GracePeriod gracePeriod;
@@ -97,14 +97,14 @@ public class ListenerInitializer {
      * (e.g., listeners that need special setup or cross-references)
      */
     private void registerCoreElementListeners() {
-        this.airFallImpactListener = new AirFallImpactListener(plugin.getElementManager());
-        pluginManager.registerEvents(airFallImpactListener, plugin);
+        this.airAntiFallDmgListener = new AirAntiFallDmgListener(plugin.getElementManager());
+        pluginManager.registerEvents(airAntiFallDmgListener, plugin);
         pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.LifeTotemListener(), plugin);
         pluginManager.registerEvents(new AirWindBurstListener(plugin.getElementManager(), plugin.getTrustManager()), plugin);
 
         var airElement = plugin.getElementManager().get(ElementType.AIR);
         if (airElement instanceof AirElement airElementImpl) {
-            airElementImpl.setFallImpactListener(airFallImpactListener);
+            airElementImpl.setFallImpactListener(airAntiFallDmgListener);
         }
 
         this.frostPassiveListener = new FrostPassiveListener(plugin, plugin.getElementManager());
@@ -129,7 +129,7 @@ public class ListenerInitializer {
                 plugin.getEffectService(),
                 plugin.getDisarmManager(),
                 frostPassiveListener,
-                airFallImpactListener,
+                airAntiFallDmgListener,
                 metalMagnetarAbility
         );
         pluginManager.registerEvents(playerLifecycleListener, plugin);

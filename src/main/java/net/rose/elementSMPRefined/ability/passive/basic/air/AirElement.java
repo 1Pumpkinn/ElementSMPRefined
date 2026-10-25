@@ -4,7 +4,7 @@ import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.basic.air.AirDashAbility;
 import net.rose.elementSMPRefined.ability.main.basic.air.AirCutterAbility;
-import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirFallImpactListener;
+import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -13,7 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.List;
 
 public class AirElement extends BaseElement {
-    private AirFallImpactListener fallImpactListener;
+    private AirAntiFallDmgListener fallImpactListener;
 
     public AirElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.AIR,
@@ -21,7 +21,7 @@ public class AirElement extends BaseElement {
                 new AirCutterAbility(plugin, configManager));
     }
 
-    public void setFallImpactListener(AirFallImpactListener listener) {
+    public void setFallImpactListener(AirAntiFallDmgListener listener) {
         this.fallImpactListener = listener;
     }
 

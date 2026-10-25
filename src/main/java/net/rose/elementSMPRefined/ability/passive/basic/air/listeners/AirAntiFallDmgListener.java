@@ -13,10 +13,10 @@ import org.bukkit.event.entity.EntityDamageEvent;
  * Also inherited by Storm (upgraded from Air).
  * (Passive 2, Wind Burst, lives in {@link AirWindBurstListener}.)
  */
-public class AirFallImpactListener implements Listener {
+public class AirAntiFallDmgListener implements Listener {
     private final ElementManager elementManager;
 
-    public AirFallImpactListener(ElementManager elementManager) {
+    public AirAntiFallDmgListener(ElementManager elementManager) {
         this.elementManager = elementManager;
     }
 

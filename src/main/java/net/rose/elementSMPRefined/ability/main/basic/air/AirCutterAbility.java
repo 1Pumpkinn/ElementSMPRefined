@@ -60,14 +60,36 @@ public class AirCutterAbility extends BaseAbility {
         // instead of once per blade with the knockback stacking up to 3x.
         final java.util.Set<java.util.UUID> hitEntities = new java.util.HashSet<>();
 
+        // The fan is spread around an axis perpendicular to the aim, not the world Y axis. Rotating
+        // around Y collapses all blades onto the same line when looking straight up or down.
+        Vector fanAxis = fanAxis(player, aim);
+
         for (int i = 0; i < CUTTER_COUNT; i++) {
             // Offsets are centred on the aim: for 3 blades that's -15deg, 0deg, +15deg.
             double offset = (i - (CUTTER_COUNT - 1) / 2.0) * SPREAD_DEGREES;
-            Vector direction = aim.clone().rotateAroundY(Math.toRadians(offset)).normalize();
+            Vector direction = aim.clone().rotateAroundAxis(fanAxis, Math.toRadians(offset)).normalize();
             launchCutter(player, trust, origin, direction, hitEntities);
         }
 
         return true;
+    }
+
+    /**
+     * The axis the blades fan out around: the aim's "up" vector (perpendicular to both the aim and
+     * the player's right side). For a level aim this is exactly world Y, so the spread looks the same
+     * as before. Looking straight up/down the aim is parallel to world Y, so the player's facing is
+     * used to pick a stable right side and the blades split left/right instead of stacking.
+     */
+    private static Vector fanAxis(Player player, Vector aim) {
+        Vector up = new Vector(0, 1, 0);
+        Vector right = aim.clone().crossProduct(up);
+        if (right.lengthSquared() < 1.0E-6) {
+            double yaw = Math.toRadians(player.getLocation().getYaw());
+            Vector facing = new Vector(-Math.sin(yaw), 0, Math.cos(yaw));
+            right = facing.crossProduct(up);
+        }
+        right.normalize();
+        return right.clone().crossProduct(aim).normalize();
     }
 
     /** Launches a single blade along {@code direction}; hits are tracked per cast via {@code hitEntities}. */

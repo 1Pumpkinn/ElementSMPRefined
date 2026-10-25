@@ -30,7 +30,9 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -39,8 +41,9 @@ import java.util.concurrent.ThreadLocalRandom;
  * looking. For {@value #DURATION_TICKS} ticks it drags every nearby living entity - players and
  * mobs alike, except the caster, anyone they trust, their tamed pets and armor stands - toward
  * it, pulling harder the closer they get. Anything that ends up fully inside the core
- * ({@value #CAPTURE_RADIUS} blocks from its centre) is pinned there and takes true damage every
- * {@value #DAMAGE_INTERVAL_TICKS} ticks until the core collapses or it breaks free.
+ * ({@value #CAPTURE_RADIUS} blocks from its centre) is captured: it glides onto the centre, is
+ * held there (snapped back if it ever drifts more than {@value #LEASH} blocks away) and takes true
+ * damage every {@value #DAMAGE_INTERVAL_TICKS} ticks until the core collapses - it can't break free.
  * <p>
  * Damage goes through {@link TrueDamage}, so a Metal Shield counts it as a damaging ability.
  */
@@ -59,7 +62,12 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double PULL_SPEED_NEAR = 0.80;     // ...and right next to the core
     private static final double MAX_SPEED = 0.9;
     private static final double CAPTURE_RADIUS = 1.3;       // "fully in" the core
-    private static final double HOLD_SPEED = 0.6;           // max blocks/tick used to settle a captured entity onto the core's centre
+    private static final double APPROACH_FLOOR = 0.12;      // the pull eases off near the core: speed <= FLOOR + EASE * distance left,
+    private static final double APPROACH_EASE = 0.30;       // so they arrive slowly instead of shooting through the core (client lag turns that into an orbit)
+    private static final double SETTLE_GAIN = 0.25;         // captured: close this fraction of the remaining offset per tick (gentle, so lag can't make it oscillate)
+    private static final double SETTLE_MAX_SPEED = 0.5;     // blocks/tick cap while settling onto the centre
+    private static final double LEASH = 0.6;                // captured entities further than this from the centre are snapped back onto it
+    private static final int SETTLE_TICKS = 8;              // grace after capture before the leash applies, so they glide in rather than teleport in
 
     private static final double DAMAGE = 1.0;               // per hit while captured (half a heart)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
@@ -127,6 +135,8 @@ public class MetalMagnetarAbility extends BaseAbility {
         final double radiusV;
         /** Tick at which each captured player may next be hit. */
         final Map<UUID, Integer> nextHit = new HashMap<>();
+        /** Everyone currently held by the core -> the tick they were captured. Once in, they stay in until it collapses. */
+        final Map<UUID, Integer> captured = new HashMap<>();
         int ticks = 0;
         BukkitRunnable task;
 
@@ -208,28 +218,46 @@ public class MetalMagnetarAbility extends BaseAbility {
 
     private void tick(Core core, Player caster) {
         World world = core.centre.getWorld();
+        Set<UUID> held = new HashSet<>();
 
         for (LivingEntity target : world.getNearbyLivingEntities(core.centre, core.radiusH, core.radiusV, core.radiusH)) {
             if (!isValidTarget(core, caster, target)) continue;
 
+            UUID id = target.getUniqueId();
             Vector toCore = core.centre.toVector().subtract(target.getBoundingBox().getCenter());
             double distance = toCore.length();
 
-            // Distance measured in the (possibly stretched) pull field, rescaled so PULL_RADIUS is its edge.
-            double fx = toCore.getX() / core.radiusH;
-            double fy = toCore.getY() / core.radiusV;
-            double fz = toCore.getZ() / core.radiusH;
-            double fieldDistance = Math.sqrt(fx * fx + fy * fy + fz * fz) * PULL_RADIUS;
-            if (fieldDistance > PULL_RADIUS) continue;
+            // Already captured: stays captured whatever the field shape or distance (no ping-pong across the
+            // capture edge, which is what made players orbit the core or bounce up and down through it).
+            Integer capturedAt = core.captured.get(id);
 
-            if (distance <= CAPTURE_RADIUS) {
-                capture(core, caster, target, toCore);
-            } else if (!isInCobweb(target)) {
-                // A cobweb zeroes the client's movement every tick, so velocity pushes on a webbed
-                // entity just rubber-band it. The web simply holds it against the pull instead.
-                pull(target, toCore, fieldDistance);
+            if (capturedAt == null) {
+                // Distance measured in the (possibly stretched) pull field, rescaled so PULL_RADIUS is its edge.
+                double fx = toCore.getX() / core.radiusH;
+                double fy = toCore.getY() / core.radiusV;
+                double fz = toCore.getZ() / core.radiusH;
+                double fieldDistance = Math.sqrt(fx * fx + fy * fy + fz * fz) * PULL_RADIUS;
+                if (fieldDistance > PULL_RADIUS) continue;
+
+                if (distance > CAPTURE_RADIUS) {
+                    if (!isInCobweb(target)) {
+                        // A cobweb zeroes the client's movement every tick, so velocity pushes on a webbed
+                        // entity just rubber-band it. The web simply holds it against the pull instead.
+                        pull(target, toCore, fieldDistance);
+                    }
+                    continue;
+                }
+
+                capturedAt = core.ticks;
+                core.captured.put(id, capturedAt);
             }
+
+            held.add(id);
+            capture(core, caster, target, toCore, capturedAt);
         }
+
+        // Anyone who died, logged off, switched to creative, or was teleported out of range is let go.
+        core.captured.keySet().retainAll(held);
 
         spawnSuctionParticles(core);
         if (core.ticks % 20 == 0) {
@@ -243,10 +271,13 @@ public class MetalMagnetarAbility extends BaseAbility {
         double speed = PULL_SPEED_FAR + (PULL_SPEED_NEAR - PULL_SPEED_FAR) * closeness;
 
         // No carried-over momentum: any sideways speed they had would be kept every tick and turn the
-        // pull into an orbit that flings them past the core. Aim directly at the centre, and never
-        // move further in one tick than the distance that's left.
+        // pull into an orbit that flings them past the core. Aim directly at the centre, ease off as the
+        // core gets close (the client is a few ticks behind the server, so a fast arrival overshoots and
+        // gets yanked back), and never move further in one tick than the distance that's left.
         double remaining = toCore.length();
-        Vector velocity = toCore.clone().normalize().multiply(Math.min(Math.min(speed, MAX_SPEED), remaining));
+        double eased = APPROACH_FLOOR + remaining * APPROACH_EASE;
+        double step = Math.min(Math.min(speed, MAX_SPEED), Math.min(eased, remaining));
+        Vector velocity = toCore.clone().normalize().multiply(step);
 
         // Lift off the floor, otherwise ground friction stalls the pull.
         if (target.isOnGround() && velocity.getY() < 0.1) {
@@ -255,8 +286,8 @@ public class MetalMagnetarAbility extends BaseAbility {
         target.setVelocity(velocity);
     }
 
-    /** The target is fully inside the core: hold them at its centre and crush them on a timer. */
-    private void capture(Core core, Player caster, LivingEntity target, Vector toCore) {
+    /** The target is inside the core: hold them on its centre and crush them on a timer until the core collapses. */
+    private void capture(Core core, Player caster, LivingEntity target, Vector toCore, int capturedAt) {
         UUID id = target.getUniqueId();
 
         if (core.ticks >= core.nextHit.getOrDefault(id, 0)) {
@@ -268,17 +299,41 @@ public class MetalMagnetarAbility extends BaseAbility {
             at.getWorld().playSound(at, Sound.ENTITY_IRON_GOLEM_DAMAGE, 0.8f, 0.8f);
         }
 
-        // Set after the damage: its knockback would otherwise shove them out of the core.
-        // Steer by the exact remaining offset (not a fraction of it) so they settle on the centre
-        // instead of drifting around it; a webbed target is left alone, see tick().
-        if (!isInCobweb(target)) {
-            Vector hold = toCore.clone();
-            if (hold.length() > HOLD_SPEED) {
-                hold.normalize().multiply(HOLD_SPEED);
+        // Everything below is set after the damage: its knockback would otherwise shove them out of the core.
+        boolean settled = core.ticks - capturedAt >= SETTLE_TICKS;
+        // Walking, knockback or a bounce pushed them off the centre? Put them straight back.
+        boolean snapped = settled && toCore.length() > LEASH && snapToCore(target, toCore);
+        if (!snapped && !isInCobweb(target)) {
+            // Gentle spring onto the centre. A fraction of the offset (not the whole thing) so the client's lag
+            // can't turn it into overshoot -> orbit; the leash above is the hard guarantee that they stay.
+            Vector hold = toCore.clone().multiply(SETTLE_GAIN);
+            if (hold.lengthSquared() > SETTLE_MAX_SPEED * SETTLE_MAX_SPEED) {
+                hold.normalize().multiply(SETTLE_MAX_SPEED);
             }
             target.setVelocity(hold);
         }
         target.setFallDistance(0f);
+    }
+
+    /**
+     * Moves the target so the centre of its body sits exactly on the core's centre and kills its momentum.
+     * Refused (false) if that spot is inside solid blocks, so a core hugging a wall can't suffocate anyone.
+     */
+    private static boolean snapToCore(LivingEntity target, Vector toCore) {
+        BoundingBox moved = target.getBoundingBox().clone().shift(toCore);
+        World world = target.getWorld();
+        final double eps = 1.0E-6;
+        for (int x = (int) Math.floor(moved.getMinX() + eps); x <= (int) Math.floor(moved.getMaxX() - eps); x++) {
+            for (int y = (int) Math.floor(moved.getMinY() + eps); y <= (int) Math.floor(moved.getMaxY() - eps); y++) {
+                for (int z = (int) Math.floor(moved.getMinZ() + eps); z <= (int) Math.floor(moved.getMaxZ() - eps); z++) {
+                    if (!world.getBlockAt(x, y, z).isPassable()) return false;
+                }
+            }
+        }
+
+        if (!target.teleport(target.getLocation().add(toCore))) return false;
+        target.setVelocity(new Vector());
+        return true;
     }
 
     /** True if any part of the target's body is inside a cobweb block. */
@@ -481,6 +536,6 @@ public class MetalMagnetarAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Places a core that pulls in nearby players and mobs and hurts them once they are inside it.";
+        return "Places a core that pulls in nearby players and mobs, then holds them inside it and hurts them until it collapses.";
     }
 }

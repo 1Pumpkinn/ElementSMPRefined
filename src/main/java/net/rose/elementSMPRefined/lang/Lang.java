@@ -653,7 +653,7 @@ public final class Lang {
             Component.text("There is no grace period active.", NamedTextColor.RED);
 
     public static final Component GRACE_CMD_INVALID_NUMBER =
-            Component.text("Invalid time! Use seconds or units, e.g. 90, 10m, 1h30m (hunger time can be 0).", NamedTextColor.RED);
+            Component.text("Invalid time! Use seconds or units, e.g. 90, 10m, 1h30m.", NamedTextColor.RED);
 
     public static final Component GRACE_CMD_SHORTEN_TOO_FAR =
             Component.text("That would end the grace period - use /grace stop instead.", NamedTextColor.RED);

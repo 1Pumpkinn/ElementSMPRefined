@@ -156,7 +156,7 @@ public class HellChainAbility extends BaseAbility {
 
         if (result == null) {
             // Silent failures made "the ray missed" look the same as "the pull stopped early".
-            player.sendActionBar(NOTHING_IN_RANGE);
+            //player.sendActionBar(NOTHING_IN_RANGE);
             return false;
         }
 

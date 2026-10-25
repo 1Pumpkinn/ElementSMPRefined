@@ -10,7 +10,14 @@ public final class LifeParticles {
 
     private static final Particle.DustOptions RED_DUST = new Particle.DustOptions(Color.RED, 1.0f);
 
+    private static final Particle.DustOptions GREEN_DUST = new Particle.DustOptions(Color.fromRGB(90, 255, 130), 1.0f);
+
     private LifeParticles() {}
+
+    /** One point of the pulse ring / aura edge around the Totem of Life. */
+    public static void totemRingPoint(World world, Location loc) {
+        world.spawnParticle(Particle.DUST, loc, 1, 0.05, 0.05, 0.05, 0, GREEN_DUST, true);
+    }
 
     /** One point of the regeneration ring around the caster. */
     public static void regenRingPoint(World world, Location loc) {

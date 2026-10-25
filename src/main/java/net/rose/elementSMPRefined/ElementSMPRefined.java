@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined;
 import net.rose.elementSMPRefined.ability.main.basic.fire.StarFallAbility;
 import net.rose.elementSMPRefined.ability.main.upgraded.lava.EruptionAbility;
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
+import net.rose.elementSMPRefined.ability.main.mythic.life.LifeTotemAbility;
 import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
 import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
@@ -41,6 +42,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         IceSpikeVisual.removeAll();
         FrostIcicleBarrageAbility.removeAll();
         EruptionAbility.removeAll();
+        LifeTotemAbility.removeAll();
         getLogger().info("ElementSMPRefined disabled successfully!");
     }
 }

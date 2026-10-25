@@ -6,7 +6,7 @@ import org.bukkit.World;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.mythic.life.LifeHealingBeamAbility;
-import net.rose.elementSMPRefined.ability.main.mythic.life.LifeRegenAbility;
+import net.rose.elementSMPRefined.ability.main.mythic.life.LifeTotemAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
@@ -36,7 +36,7 @@ public class LifeElement extends BaseElement {
 
     public LifeElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.LIFE,
-                new LifeRegenAbility(plugin, configManager),
+                new LifeTotemAbility(plugin, configManager),
                 new LifeHealingBeamAbility(plugin, configManager));
     }
 

@@ -3,7 +3,6 @@ package net.rose.elementSMPRefined.ability.passive.basic.air.listeners;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
-import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -122,6 +121,5 @@ public class AirWindBurstListener implements Listener {
         world.spawnParticle(Particle.GUST_EMITTER_LARGE, center, 1);
         world.spawnParticle(Particle.CLOUD, center, 25, 0.5, 0.3, 0.5, 0.1);
         world.playSound(center, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1.0f, 1.0f);
-        SoundUtils.playTo(attacker, SoundUtils.Element.AIR);
     }
 }

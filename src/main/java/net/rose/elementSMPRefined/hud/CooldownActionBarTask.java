@@ -110,7 +110,8 @@ public class CooldownActionBarTask implements Listener {
         String ability1Name = names[0];
         String ability2Name = names[1];
 
-        Component bar = Lang.cooldownActionBar(ability1Name, remaining1, ability2Name, remaining2);
+        Component bar = Lang.cooldownActionBar(ability1Name, remaining1, ability2Name, remaining2,
+                pd.getCurrentElementUpgradeLevel());
         player.sendActionBar(bar);
     }
 }

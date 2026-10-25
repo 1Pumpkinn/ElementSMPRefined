@@ -1,7 +1,9 @@
 package net.rose.elementSMPRefined.lang;
 
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 /**
@@ -673,27 +675,39 @@ public final class Lang {
     // the bar off-screen or make it flicker as it re-renders each tick.
     private static final int COOLDOWN_BAR_NAME_MAX_LENGTH = 14;
 
+    /** Upgrade level an element needs before its second ability can be used. */
+    private static final int ABILITY2_REQUIRED_UPGRADE = 2;
+
+    /** Font {@code assets/elementsmp/font/icons.json} in the resource pack - holds the lock glyph. */
+    private static final Key ICON_FONT = Key.key("elementsmp", "icons");
+    private static final String LOCK_GLYPH = "\uE000";
+
     public static Component cooldownActionBar(String ability1Name, long ability1RemainingSeconds,
-                                              String ability2Name, long ability2RemainingSeconds) {
+                                              String ability2Name, long ability2RemainingSeconds,
+                                              int upgradeLevel) {
         return Component.textOfChildren(
-                cooldownBarSegment(ability1Name, ability1RemainingSeconds),
+                cooldownBarSegment(ability1Name, ability1RemainingSeconds, false),
                 Component.text("   ", NamedTextColor.DARK_GRAY),
-                cooldownBarSegment(ability2Name, ability2RemainingSeconds)
+                cooldownBarSegment(ability2Name, ability2RemainingSeconds, upgradeLevel < ABILITY2_REQUIRED_UPGRADE)
         );
     }
 
-    private static Component cooldownBarSegment(String abilityName, long remainingSeconds) {
+    private static Component cooldownBarSegment(String abilityName, long remainingSeconds, boolean locked) {
         String label = truncateAbilityName(abilityName);
-        if (remainingSeconds <= 0) {
-            return Component.textOfChildren(
-                    Component.text(label + " ", NamedTextColor.GRAY),
-                    Component.text("Ready", NamedTextColor.GREEN)
-            );
+        // Unlocked: the usual grey. Locked (upgrade not reached yet): dark grey and struck through, with a red lock.
+        Component name = locked
+                ? Component.text(label, NamedTextColor.DARK_GRAY).decoration(TextDecoration.STRIKETHROUGH, true)
+                : Component.text(label, NamedTextColor.GRAY);
+        Component gap = Component.text(" ");
+
+        if (locked) {
+            return Component.textOfChildren(name, gap,
+                    Component.text(LOCK_GLYPH, NamedTextColor.RED).font(ICON_FONT));
         }
-        return Component.textOfChildren(
-                Component.text(label + " ", NamedTextColor.GRAY),
-                Component.text(remainingSeconds + "s", NamedTextColor.RED)
-        );
+        if (remainingSeconds <= 0) {
+            return Component.textOfChildren(name, gap, Component.text("Ready", NamedTextColor.GREEN));
+        }
+        return Component.textOfChildren(name, gap, Component.text(remainingSeconds + "s", NamedTextColor.RED));
     }
 
     private static String truncateAbilityName(String abilityName) {

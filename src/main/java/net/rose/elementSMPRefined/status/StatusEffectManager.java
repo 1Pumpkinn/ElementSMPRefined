@@ -200,6 +200,23 @@ public class StatusEffectManager {
         return playerEffects != null && playerEffects.containsKey(type);
     }
 
+    /**
+     * Ends one status effect early and strips the potion side it applied, keeping any potion
+     * another still-active effect needs.
+     */
+    public void removeEffect(Player player, StatusEffectType type) {
+        UUID uuid = player.getUniqueId();
+        Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects.get(uuid);
+        if (playerEffects == null || playerEffects.remove(type) == null) {
+            return;
+        }
+        removePotionEffects(player, type);
+        restorePotionEffects(player, playerEffects);
+        if (playerEffects.isEmpty()) {
+            activeEffects.remove(uuid);
+        }
+    }
+
     public int getRemainingDuration(Player player, StatusEffectType type) {
         UUID uuid = player.getUniqueId();
         Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects.get(uuid);

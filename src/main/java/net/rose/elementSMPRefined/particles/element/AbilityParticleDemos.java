@@ -46,7 +46,7 @@ public final class AbilityParticleDemos {
         register("fire_starfall", AbilityParticleDemos::fireStarFall);
         register("fire_hellchain", AbilityParticleDemos::fireHellChain);
         // Water
-        register("water_tether", AbilityParticleDemos::waterTether);
+        register("krakens_grasp", AbilityParticleDemos::waterTether);
         register("water_dash", AbilityParticleDemos::waterDash);
         // Death
         register("death_backstab", AbilityParticleDemos::deathBackstab);
@@ -239,11 +239,8 @@ public final class AbilityParticleDemos {
     private static void waterTether(Player player, ElementSMPRefined plugin) {
         Location target = front(player, 6);
         WaterParticles.tetherGrab(target);
-        repeat(plugin, player, 30, tick -> {
-            Location from = player.getLocation().add(0, 1.2, 0);
-            WaterParticles.tetherRope(from, target.clone().add(0, 1, 0), tick > 15, tick);
-        });
-        later(plugin, 20L, () -> WaterParticles.tetherYank(target.clone().add(0, 1, 0)));
+        WaterParticles.tentacleErupt(target.clone().add(1, 0, 0));
+        WaterParticles.tentacleErupt(target.clone().add(-1, 0, 0));
         later(plugin, 35L, () -> WaterParticles.tetherRelease(target.clone().add(0, 1, 0)));
     }
 

@@ -1,7 +1,6 @@
 package net.rose.elementSMPRefined.particles.element;
 
 import net.rose.elementSMPRefined.util.compat.ClientCompat;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -13,53 +12,18 @@ public final class WaterParticles {
 
     private WaterParticles() {}
 
-    private static final Particle.DustOptions ROPE_DUST =
-            new Particle.DustOptions(Color.fromRGB(70, 165, 255), 1.1f);
-
-    /** Burst of water where the tentacle erupts around the target. */
+    /** Burst of water where the tentacles erupt around the target. */
     public static void tetherGrab(Location at) {
         World world = at.getWorld();
         world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.2, 0), 50, 0.5, 0.2, 0.5, 0.2, null, true);
         world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.8, 0), 20, 0.4, 0.6, 0.4, 0.05, null, true);
     }
 
-    /**
-     * The link between caster and target: a water-blue rope that sways while slack and runs
-     * straight when the tentacle is yanking. {@code time} (ticks) drives the sway.
-     */
-    public static void tetherRope(Location from, Location to, boolean taut, int time) {
-        World world = from.getWorld();
-        Vector line = to.toVector().subtract(from.toVector());
-        double length = line.length();
-        if (length < 0.5) return;
-        Vector dir = line.clone().multiply(1.0 / length);
-
-        // Two vectors perpendicular to the rope to sway along.
-        Vector side = dir.clone().crossProduct(new Vector(0, 1, 0));
-        if (side.lengthSquared() < 0.0001) side = new Vector(1, 0, 0);
-        side.normalize();
-        Vector up = side.clone().crossProduct(dir).normalize();
-
-        double step = 0.5;
-        for (double d = 0; d <= length; d += step) {
-            double fade = Math.sin(Math.PI * (d / length)); // anchored at both ends
-            double amp = taut ? 0.0 : 0.25 * fade;
-            double phase = d * 1.4 - time * 0.5;
-            Location p = from.clone().add(dir.clone().multiply(d))
-                    .add(side.clone().multiply(Math.sin(phase) * amp))
-                    .add(up.clone().multiply(Math.cos(phase) * amp));
-            world.spawnParticle(Particle.DUST, p, 1, 0, 0, 0, 0, ROPE_DUST, true);
-            if (((int) (d / step) + time) % 6 == 0) {
-                world.spawnParticle(Particle.BUBBLE_POP, p, 1, 0.05, 0.05, 0.05, 0.0, null, true);
-            }
-        }
-    }
-
-    /** Spray on a target being yanked back to the leash. */
-    public static void tetherYank(Location body) {
-        World world = body.getWorld();
-        world.spawnParticle(Particle.SPLASH, body, 25, 0.3, 0.4, 0.3, 0.2, null, true);
-        world.spawnParticle(Particle.BUBBLE, body, 10, 0.3, 0.4, 0.3, 0.05, null, true);
+    /** Small splash where one tentacle breaks the ground. */
+    public static void tentacleErupt(Location at) {
+        World world = at.getWorld();
+        world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.1, 0), 14, 0.2, 0.1, 0.2, 0.15, null, true);
+        world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.4, 0), 6, 0.15, 0.3, 0.15, 0.03, null, true);
     }
 
     /** Bubbles when the tentacle lets go. */

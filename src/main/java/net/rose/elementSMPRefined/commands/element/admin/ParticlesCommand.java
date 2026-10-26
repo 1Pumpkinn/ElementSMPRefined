@@ -20,7 +20,7 @@ import java.util.Optional;
 /**
  * /element particles <ability effect>
  * /element particles <preset> [size] [length] [width] [color] [particle]
- * Ability effects play the real particles from the particles package (e.g. fire_starfall, water_tether).
+ * Ability effects play the real particles from the particles package (e.g. fire_starfall, krakens_grasp).
  * Presets also accept the named form: /element particles <preset> size=2.5 color=red ...
  * No permission gate beyond "must be a player" - see the note on
  * requiresAdmin-style gating in ElementCommand for why that's worth revisiting.

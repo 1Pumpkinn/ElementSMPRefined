@@ -40,8 +40,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class FrostFreezeListener implements Listener {
 
-    private static final double CHANCE = 0.01; // 1% (keep FrostElement's info text in sync)
-    private static final int CHANCE_PERCENT = 1;
+    private static final double CHANCE = 0.05; // 5% (keep FrostElement's info text in sync)
+    private static final int CHANCE_PERCENT = 5;
     private static final int FREEZE_TICKS = 40; // 2 seconds
 
     /** Mobs whose AI this passive switched off, so plugin disable can switch it back on. */
@@ -66,7 +66,7 @@ public class FrostFreezeListener implements Listener {
         if (!(event.getEntity() instanceof LivingEntity target) || target.equals(attacker)) return;
         if (target instanceof ArmorStand) return;
 
-        // Roll first - it fails 99% of the time, so this keeps every other hit on the server cheap.
+        // Roll first - it fails 95% of the time, so this keeps every other hit on the server cheap.
         if (ThreadLocalRandom.current().nextDouble() >= CHANCE) return;
 
         var data = elementManager.data(attacker.getUniqueId());

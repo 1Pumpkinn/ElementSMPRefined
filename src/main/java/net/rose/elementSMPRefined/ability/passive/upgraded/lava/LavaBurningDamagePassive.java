@@ -21,7 +21,7 @@ import org.bukkit.entity.Player;
  */
 public class LavaBurningDamagePassive {
 
-    private static final double ATTACK_DAMAGE_BONUS = 0.1; // keep LavaElement's info text in sync
+    private static final double ATTACK_DAMAGE_BONUS = 1; // keep LavaElement's info text in sync
     private static final long CHECK_INTERVAL_TICKS = 5L;
 
     private static final NamespacedKey MODIFIER_KEY =

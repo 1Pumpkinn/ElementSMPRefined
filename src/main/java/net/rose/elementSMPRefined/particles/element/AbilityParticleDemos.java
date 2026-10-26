@@ -46,8 +46,8 @@ public final class AbilityParticleDemos {
         register("fire_starfall", AbilityParticleDemos::fireStarFall);
         register("fire_hellchain", AbilityParticleDemos::fireHellChain);
         // Water
-        register("water_dome", AbilityParticleDemos::waterDome);
-        register("water_geyser", AbilityParticleDemos::waterGeyser);
+        register("water_tether", AbilityParticleDemos::waterTether);
+        register("water_dash", AbilityParticleDemos::waterDash);
         // Death
         register("death_backstab", AbilityParticleDemos::deathBackstab);
         register("death_sidestep", AbilityParticleDemos::deathSideStep);
@@ -236,23 +236,24 @@ public final class AbilityParticleDemos {
     }
 
 
-    private static void waterDome(Player player, ElementSMPRefined plugin) {
-        World world = player.getWorld();
-        Location center = player.getLocation();
-        double domeRadius = 6.0;
-
-        WaterParticles.domeCast(world, center, domeRadius);
-        later(plugin, 10L, () -> WaterParticles.domeProjectileBlocked(world, front(player, 3).add(0, 1.5, 0)));
-        later(plugin, 20L, () -> WaterParticles.domePush(world, front(player, 2).add(0, 1, 0)));
-        later(plugin, 30L, () -> WaterParticles.domeHitBlocked(front(player, 1)));
-        later(plugin, 45L, () -> WaterParticles.domeBreak(world, center.clone().add(0, domeRadius / 2, 0), domeRadius));
+    private static void waterTether(Player player, ElementSMPRefined plugin) {
+        Location target = front(player, 6);
+        WaterParticles.tetherGrab(target);
+        repeat(plugin, player, 30, tick -> {
+            Location from = player.getLocation().add(0, 1.2, 0);
+            WaterParticles.tetherRope(from, target.clone().add(0, 1, 0), tick > 15, tick);
+        });
+        later(plugin, 20L, () -> WaterParticles.tetherYank(target.clone().add(0, 1, 0)));
+        later(plugin, 35L, () -> WaterParticles.tetherRelease(target.clone().add(0, 1, 0)));
     }
 
-    private static void waterGeyser(Player player, ElementSMPRefined plugin) {
-        Location origin = front(player, 3);
-        WaterParticles.geyserSpray(origin.clone().add(0, 0.9, 0));
-        WaterParticles.geyserEruption(origin, 2);
-        repeat(plugin, player, 12, tick -> WaterParticles.geyserTrail(player.getLocation()));
+    private static void waterDash(Player player, ElementSMPRefined plugin) {
+        WaterParticles.surgeBurst(player.getLocation());
+        Vector heading = player.getLocation().getDirection().setY(0);
+        if (heading.lengthSquared() < 1.0E-4) heading = new Vector(0, 0, 1);
+        final Vector dir = heading.normalize();
+        repeat(plugin, player, 14, tick -> WaterParticles.surgeWake(player.getLocation(), dir));
+        later(plugin, 15L, () -> WaterParticles.surgeEnd(player.getLocation().add(0, 0.5, 0)));
     }
 
 

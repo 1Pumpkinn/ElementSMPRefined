@@ -1,10 +1,11 @@
 package net.rose.elementSMPRefined.ability.passive.basic.water;
 
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
-import net.rose.elementSMPRefined.ability.main.basic.water.WaterDomeAbility;
-import net.rose.elementSMPRefined.ability.main.basic.water.WaterGeyserAbility;
+import net.rose.elementSMPRefined.ability.main.basic.water.WaterTetherAbility;
+import net.rose.elementSMPRefined.ability.main.basic.water.WaterDashAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.water.listeners.WaterInvisibilityListener;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
@@ -21,8 +22,14 @@ public class WaterElement extends BaseElement implements ListenerProvider {
 
     public WaterElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.WATER,
-                new WaterGeyserAbility(plugin, configManager),
-                new WaterDomeAbility(plugin, configManager));
+                new WaterDashAbility(plugin, configManager),
+                new WaterTetherAbility(plugin, configManager));
+    }
+
+    /** Pressing ability 2 again while the tether is out lets go (no cooldown check). */
+    @Override
+    protected boolean canCancelAbility2(ElementContext context) {
+        return ability2.isActiveFor(context.getPlayer());
     }
 
     @Override

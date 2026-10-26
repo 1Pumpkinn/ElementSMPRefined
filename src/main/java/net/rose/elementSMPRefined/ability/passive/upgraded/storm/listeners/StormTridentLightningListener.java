@@ -11,6 +11,7 @@ import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -26,8 +27,9 @@ import java.util.UUID;
  * When a Storm player throws a trident, it calls down a real lightning bolt where it lands - on the
  * block or entity it hits - with or without a thunderstorm and without needing Channeling.
  *
- * The thrower is credited for the strike. The thrower and anyone they trust are protected from it
- * (no damage and no ignition), so standing next to your own trident is safe.
+ * The bolt never causes fire: it doesn't light blocks and doesn't set anyone alight. The thrower is
+ * credited for the strike, and the thrower and anyone they trust take no damage from it, so standing
+ * next to your own trident is safe.
  */
 public class StormTridentLightningListener implements Listener {
 
@@ -75,11 +77,19 @@ public class StormTridentLightningListener implements Listener {
         }
     }
 
-    /** ...and aren't set on fire by it either (that's a separate event from the damage). */
+    /** Our bolts never set entities on fire (that's a separate event from the damage). */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onStrikeIgnite(EntityCombustByEntityEvent event) {
-        if (!(event.getCombuster() instanceof LightningStrike strike)) return;
-        if (isProtected(strike, event.getEntity().getUniqueId())) {
+    public void onStrikeIgniteEntity(EntityCombustByEntityEvent event) {
+        if (event.getCombuster() instanceof LightningStrike strike && strikes.containsKey(strike.getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** ...and never light blocks on fire. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onStrikeIgniteBlock(BlockIgniteEvent event) {
+        if (event.getCause() != BlockIgniteEvent.IgniteCause.LIGHTNING) return;
+        if (event.getIgnitingEntity() instanceof LightningStrike strike && strikes.containsKey(strike.getUniqueId())) {
             event.setCancelled(true);
         }
     }

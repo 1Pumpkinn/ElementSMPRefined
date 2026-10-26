@@ -73,8 +73,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final int DAMAGE_INTERVAL_TICKS = 10;
 
     // Magnetar visuals: a glowing core wrapped in dipole magnetic field loops (they bunch together at the two
-    // poles and balloon out around the equator), twin jets shooting out of the poles along the magnetic
-    // axis, and a few faint streams of sparks curling in from the pull field so the suction still reads.
+    // poles and balloon out around the equator), and a few faint streams of sparks curling in from the pull field so the suction still reads.
     // The whole field is tilted off vertical and its axis slowly sweeps around, like a pulsar's beam.
     private static final double[] LOOP_RADIUS = {2.0, 3.1, 4.4}; // how far each loop bulges out at the equator (blocks)
     private static final int LOOPS_PER_SHELL = 6;               // field lines spread evenly around the axis
@@ -84,9 +83,6 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double FIELD_INNER = 0.8;              // loops start just outside the core model
     private static final double AXIS_TILT = Math.toRadians(25); // magnetic axis tilt off vertical
     private static final double AXIS_PRECESSION = 0.04;         // radians/tick the tilted axis sweeps around
-    private static final int JET_POINTS = 4;                    // per jet per tick
-    private static final double JET_LENGTH = 7.0;
-    private static final double JET_FLOW = 0.08;                // fraction of the jet travelled outward per tick
     private static final int SHIMMER_POINTS = 4;                // sparks crawling over the core's surface per tick
     private static final double SHIMMER_RADIUS = 0.7;
 
@@ -98,9 +94,9 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double STREAM_FLOW = 0.03;         // fraction of the stream that flows inward per tick
     private static final double FIELD_SPIN = 0.03;          // radians/tick the whole stream field turns about the vertical axis
 
-    /** Field line colours: deep blue out at the equator, hot white-cyan where the lines pinch together at the poles. */
+    /** Field line colours: deep blue out at the equator, lighter blue where the lines pinch together at the poles. */
     private static final int[] EQUATOR_RGB = {35, 85, 255};
-    private static final int[] POLE_RGB = {215, 248, 255};
+    private static final int[] POLE_RGB = {90, 150, 255};
 
     /** Stream directions (spread evenly over a sphere) and a perpendicular pair for each, for the swirl. */
     private static final Vector[] STREAM_DIR = new Vector[STREAMS];
@@ -374,7 +370,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     }
 
     /**
-     * Draws the core as a magnetar: dipole field loops, polar jets, a shimmering surface and (faintly)
+     * Draws the core as a magnetar: dipole field loops, a shimmering surface and (faintly)
      * the inward streams that show where the pull is coming from.
      */
     private void spawnSuctionParticles(Core core) {
@@ -383,7 +379,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         double loopSpin = core.ticks * LOOP_SPIN;
 
         spawnFieldLoops(core, world, loopSpin, precession);
-        spawnJets(core, world, precession);
         spawnShimmer(core, world);
         spawnInflow(core, world);
     }
@@ -419,27 +414,6 @@ public class MetalMagnetarAbility extends BaseAbility {
                             fieldColor(Math.abs(Math.cos(theta))), 0.7f);
                     world.spawnParticle(Particle.DUST, core.centre.clone().add(offset), 1, 0, 0, 0, 0, dust);
                 }
-            }
-        }
-    }
-
-    /** Thin beams of light blasting out of both magnetic poles, widening very slightly with distance. */
-    private void spawnJets(Core core, World world, double precession) {
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        Vector axis = orient(new Vector(0, 1, 0), 0, precession);
-        double flow = (core.ticks * JET_FLOW) % 1.0;
-
-        for (int sign = -1; sign <= 1; sign += 2) {
-            for (int i = 0; i < JET_POINTS; i++) {
-                double f = ((double) i / JET_POINTS + flow) % 1.0;
-                double distance = FIELD_INNER + f * (JET_LENGTH - FIELD_INNER);
-                double spread = 0.02 + distance * 0.025;
-
-                Vector offset = axis.clone().multiply(sign * distance).add(new Vector(
-                        random.nextDouble(-spread, spread),
-                        random.nextDouble(-spread, spread),
-                        random.nextDouble(-spread, spread)));
-                world.spawnParticle(Particle.END_ROD, core.centre.clone().add(offset), 1, 0, 0, 0, 0);
             }
         }
     }
@@ -488,7 +462,7 @@ public class MetalMagnetarAbility extends BaseAbility {
 
     /** {@code polar} is 1 right at a pole and 0 on the equator. */
     private static Color fieldColor(double polar) {
-        double k = polar * polar; // keep most of the loop blue, only the pinched ends go white-hot
+        double k = polar * polar; // keep most of the loop blue, the pinched ends just brighten to a lighter blue
         return Color.fromRGB(
                 (int) (EQUATOR_RGB[0] + (POLE_RGB[0] - EQUATOR_RGB[0]) * k),
                 (int) (EQUATOR_RGB[1] + (POLE_RGB[1] - EQUATOR_RGB[1]) * k),

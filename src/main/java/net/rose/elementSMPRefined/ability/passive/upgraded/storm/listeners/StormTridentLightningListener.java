@@ -5,6 +5,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Trident;
@@ -74,7 +75,23 @@ public class StormTridentLightningListener implements Listener {
         if (!(event.getDamager() instanceof LightningStrike strike)) return;
         if (isProtected(strike, event.getEntity().getUniqueId())) {
             event.setCancelled(true);
+            return;
         }
+        extinguishAfterStrike(strike, event.getEntity());
+    }
+
+    /**
+     * Vanilla bumps the victim's fire ticks by 1 before the ignite event fires, so a victim can still
+     * flicker alight even with the combust event cancelled. Put that out a tick later unless they were
+     * already burning before the bolt landed.
+     */
+    private void extinguishAfterStrike(LightningStrike strike, Entity victim) {
+        if (!strikes.containsKey(strike.getUniqueId())) return;
+        boolean wasBurning = victim.getFireTicks() > 1;
+        if (wasBurning) return;
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (victim.isValid() && victim.getFireTicks() > 0) victim.setFireTicks(0);
+        });
     }
 
     /** Our bolts never set entities on fire (that's a separate event from the damage). */

@@ -20,7 +20,7 @@ import java.util.List;
  *
  * Passive 1: Auto smelt mined ores (inherited from Fire, see FireSmeltListener)
  * Passive 2 (Upgrade II): Permanent fire/lava immunity (inherited from Fire)
- * Passive 3 (Upgrade II): +0.1 attack damage while on fire or in lava (LavaBurningDamagePassive)
+ * Passive 3 (Upgrade II): +1 attack damage while on fire or in lava (LavaBurningDamagePassive)
  */
 public class LavaElement extends BaseElement {
 
@@ -44,7 +44,7 @@ public class LavaElement extends BaseElement {
             EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
         }
 
-        // Passive 3 (Upgrade II): +0.1 attack damage while burning / in lava, handled by LavaBurningDamagePassive.
+        // Passive 3 (Upgrade II): +1 attack damage while burning / in lava, handled by LavaBurningDamagePassive.
     }
 
     @Override
@@ -64,6 +64,6 @@ public class LavaElement extends BaseElement {
         return List.of(
                 "Auto smelt ores",
                 "Fire Resistance (Upgrade II)",
-                "+0.1 attack damage while on fire or in lava (Upgrade II)");
+                "+1 attack damage while on fire or in lava (Upgrade II)");
     }
 }

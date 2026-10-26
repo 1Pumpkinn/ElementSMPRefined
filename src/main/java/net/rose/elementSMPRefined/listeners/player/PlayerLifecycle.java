@@ -4,7 +4,6 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
-import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostPassiveListener;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
@@ -41,7 +40,6 @@ public class PlayerLifecycle implements Listener {
     private final EffectService effectService;
     private final DisarmManager disarmManager;
     private final TaskScheduler scheduler;
-    private final FrostPassiveListener frostPassiveListener;
     private final AirAntiFallDmgListener airAntiFallDmgListener;
     private final MetalMagnetarAbility metalMagnetarAbility;
     private final Random random = new Random();
@@ -49,7 +47,6 @@ public class PlayerLifecycle implements Listener {
     public PlayerLifecycle(ElementSMPRefined plugin, ElementManager elementManager,
                            CooldownManager cooldownManager, EffectService effectService,
                            DisarmManager disarmManager,
-                           FrostPassiveListener frostPassiveListener,
                            AirAntiFallDmgListener airAntiFallDmgListener,
                            MetalMagnetarAbility metalMagnetarAbility) {
         this.plugin = plugin;
@@ -57,7 +54,6 @@ public class PlayerLifecycle implements Listener {
         this.effectService = effectService;
         this.disarmManager = disarmManager;
         this.scheduler = plugin.getTaskScheduler();
-        this.frostPassiveListener = frostPassiveListener;
         this.airAntiFallDmgListener = airAntiFallDmgListener;
         this.metalMagnetarAbility = metalMagnetarAbility;
     }
@@ -228,9 +224,6 @@ public class PlayerLifecycle implements Listener {
         plugin.getDataStore().invalidateCache(playerUuid);
         // Same cache-growth issue as DataStore above, applied to the trusted-set cache.
         plugin.getTrustManager().onPlayerQuit(playerUuid);
-        if (frostPassiveListener != null) {
-            frostPassiveListener.onPlayerQuit(playerUuid);
-        }
         if (metalMagnetarAbility != null) {
             metalMagnetarAbility.onPlayerQuit(playerUuid);
         }

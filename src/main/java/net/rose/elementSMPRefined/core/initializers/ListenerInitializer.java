@@ -9,7 +9,6 @@ import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFal
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirWindBurstListener;
 import net.rose.elementSMPRefined.ability.passive.basic.earth.listeners.EarthVeinMinerListener;
 import net.rose.elementSMPRefined.ability.passive.basic.fire.listeners.FireSmeltListener;
-import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostPassiveListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners.MetalChainStunListener;
 import net.rose.elementSMPRefined.listeners.handler.AdvancedRerollerHandler;
@@ -36,7 +35,6 @@ public class ListenerInitializer {
 
     private PlayerLifecycle playerLifecycleListener;
     private AirAntiFallDmgListener airAntiFallDmgListener;
-    private FrostPassiveListener frostPassiveListener;
     private MetalMagnetarAbility metalMagnetarAbility;
     private GracePeriod gracePeriod;
 
@@ -107,9 +105,6 @@ public class ListenerInitializer {
             airElementImpl.setFallImpactListener(airAntiFallDmgListener);
         }
 
-        this.frostPassiveListener = new FrostPassiveListener(plugin, plugin.getElementManager());
-        pluginManager.registerEvents(frostPassiveListener, plugin);
-
         pluginManager.registerEvents(new EarthVeinMinerListener(plugin.getElementManager()), plugin);
 
         var metalElement = plugin.getElementManager().get(ElementType.METAL);
@@ -128,7 +123,6 @@ public class ListenerInitializer {
                 plugin.getCooldownManager(),
                 plugin.getEffectService(),
                 plugin.getDisarmManager(),
-                frostPassiveListener,
                 airAntiFallDmgListener,
                 metalMagnetarAbility
         );
@@ -136,9 +130,6 @@ public class ListenerInitializer {
     }
 
     public void cleanup() {
-        if (frostPassiveListener != null) {
-            frostPassiveListener.cleanup();
-        }
         if (gracePeriod != null) {
             gracePeriod.cleanup();
         }

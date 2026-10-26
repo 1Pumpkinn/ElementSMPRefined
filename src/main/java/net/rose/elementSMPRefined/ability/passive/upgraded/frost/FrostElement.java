@@ -65,7 +65,6 @@ public class FrostElement extends BaseElement implements ListenerProvider {
         return List.of(
                 "Breath of the Nautilus",
                 "True Invis while staying still in water (Upgrade II)",
-                "Speed while wearing leather boots (Speed II on ice at Upgrade II)",
                 "1% chance on hit to freeze the target in ice for 2 seconds (Upgrade II)");
     }
 }

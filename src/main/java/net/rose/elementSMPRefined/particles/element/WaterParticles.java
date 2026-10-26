@@ -13,7 +13,7 @@ public final class WaterParticles {
     private WaterParticles() {}
 
     /** Burst of water where the tentacles erupt around the target. */
-    public static void tetherGrab(Location at) {
+    public static void graspBurst(Location at) {
         World world = at.getWorld();
         world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.2, 0), 50, 0.5, 0.2, 0.5, 0.2, null, true);
         world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.8, 0), 20, 0.4, 0.6, 0.4, 0.05, null, true);
@@ -27,7 +27,7 @@ public final class WaterParticles {
     }
 
     /** Bubbles when the tentacle lets go. */
-    public static void tetherRelease(Location body) {
+    public static void graspRelease(Location body) {
         body.getWorld().spawnParticle(Particle.BUBBLE_POP, body, 40, 0.5, 0.7, 0.5, 0.15, null, true);
         body.getWorld().spawnParticle(Particle.SPLASH, body, 30, 0.5, 0.5, 0.5, 0.2, null, true);
     }

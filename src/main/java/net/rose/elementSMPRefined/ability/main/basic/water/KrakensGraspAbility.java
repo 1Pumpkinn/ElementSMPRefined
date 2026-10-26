@@ -88,7 +88,7 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:water_tentacle"));
 
     private final ElementSMPRefined plugin;
-    private final Map<UUID, TetherState> tethers = new ConcurrentHashMap<>();
+    private final Map<UUID, GraspState> grasps = new ConcurrentHashMap<>();
 
     public KrakensGraspAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("krakens_grasp", ElementType.WATER, 2, 25, 2, configManager);
@@ -100,10 +100,10 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
 
-        // Pressed again while the tether is out: let go. (WaterElement lets this through without a
+        // Pressed again while the grasp is out: let go. (WaterElement lets this through without a
         // cooldown check; the cooldown from the original cast keeps running.)
         if (isActiveFor(player)) {
-            endTether(player.getUniqueId(), true);
+            endGrasp(player.getUniqueId(), true);
             return true;
         }
 
@@ -125,9 +125,9 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
         world.playSound(player.getLocation(), Sound.ENTITY_FISHING_BOBBER_SPLASH, 1.0f, 0.8f);
         world.playSound(target.getLocation(), Sound.BLOCK_BUBBLE_COLUMN_WHIRLPOOL_INSIDE, 1.2f, 0.9f);
         world.playSound(target.getLocation(), Sound.ENTITY_PLAYER_SPLASH, 1.2f, 0.7f);
-        WaterParticles.tetherGrab(target.getLocation());
+        WaterParticles.graspBurst(target.getLocation());
 
-        TetherState state = new TetherState(player, target, target.getLocation().clone());
+        GraspState state = new GraspState(player, target, target.getLocation().clone());
         state.tentacles.addAll(layoutTentacles(player, target));
         for (Tentacle tentacle : state.tentacles) {
             tentacle.display = spawnTentacle(tentacle, false);
@@ -135,14 +135,14 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
         }
         grabTarget(state);
 
-        tethers.put(player.getUniqueId(), state);
+        grasps.put(player.getUniqueId(), state);
         super.setActive(player, true);
 
         state.task = new BukkitRunnable() {
             @Override
             public void run() {
                 if (!tick(state)) {
-                    endTether(player.getUniqueId(), true);
+                    endGrasp(player.getUniqueId(), true);
                 }
             }
         }.runTaskTimer(plugin, 1L, 1L);
@@ -150,8 +150,8 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
         return true;
     }
 
-    /** One tick of the tether. Returns false when it should end. */
-    private boolean tick(TetherState state) {
+    /** One tick of the grasp. Returns false when it should end. */
+    private boolean tick(GraspState state) {
         Player caster = state.caster;
         LivingEntity target = state.target;
 
@@ -169,7 +169,7 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
     // ---- holding the target ----
 
     /** Starts the hold: players get ROOT, mobs lose their AI. */
-    private void grabTarget(TetherState state) {
+    private void grabTarget(GraspState state) {
         LivingEntity target = state.target;
         if (target instanceof Player tp) {
             applyRoot(state, tp);
@@ -180,7 +180,7 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
     }
 
     /** Keeps the hold in place every tick. */
-    private void holdTarget(TetherState state) {
+    private void holdTarget(GraspState state) {
         LivingEntity target = state.target;
 
         if (target instanceof Player tp) {
@@ -209,12 +209,12 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
         target.setVelocity(new Vector(0, Math.min(0, velocity.getY()), 0));
     }
 
-    private void applyRoot(TetherState state, Player target) {
+    private void applyRoot(GraspState state, Player target) {
         int remaining = Math.max(1, DURATION_TICKS - state.ticks) + 5;
         plugin.getStatusEffectManager().applyEffect(state.caster, target, StatusEffectType.ROOT, remaining, 1);
     }
 
-    private void releaseTarget(TetherState state) {
+    private void releaseTarget(GraspState state) {
         LivingEntity target = state.target;
         if (target instanceof Player tp) {
             if (tp.isOnline()) {
@@ -330,7 +330,7 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
         });
     }
 
-    private void updateTentacles(TetherState state) {
+    private void updateTentacles(GraspState state) {
         for (Tentacle tentacle : state.tentacles) {
             ItemDisplay display = tentacle.display;
             if (display == null || !display.isValid()) {
@@ -359,8 +359,8 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
 
     // ---- lifecycle ----
 
-    private void endTether(UUID casterId, boolean effects) {
-        TetherState state = tethers.remove(casterId);
+    private void endGrasp(UUID casterId, boolean effects) {
+        GraspState state = grasps.remove(casterId);
         if (state == null) return;
         if (state.task != null) state.task.cancel();
         for (Tentacle tentacle : state.tentacles) {
@@ -372,7 +372,7 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
         if (effects && state.target.isValid()) {
             Location at = state.target.getLocation();
             at.getWorld().playSound(at, Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 1.0f, 1.0f);
-            WaterParticles.tetherRelease(at.clone().add(0, state.target.getHeight() / 2.0, 0));
+            WaterParticles.graspRelease(at.clone().add(0, state.target.getHeight() / 2.0, 0));
         }
     }
 
@@ -383,8 +383,8 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
         } else {
             // BaseElement.clearEffects (element change, death) deactivates through here: tear the
             // tentacles down instead of just dropping the flag.
-            if (tethers.containsKey(player.getUniqueId())) {
-                endTether(player.getUniqueId(), false);
+            if (grasps.containsKey(player.getUniqueId())) {
+                endGrasp(player.getUniqueId(), false);
             } else {
                 super.setActive(player, false);
             }
@@ -426,7 +426,7 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
         }
     }
 
-    private static class TetherState {
+    private static class GraspState {
         final Player caster;
         final LivingEntity target;
         final Location frozenAt;    // where the target was grabbed
@@ -435,7 +435,7 @@ public class KrakensGraspAbility extends BaseAbility implements Listener {
         org.bukkit.scheduler.BukkitTask task;
         int ticks = 0;
 
-        TetherState(Player caster, LivingEntity target, Location frozenAt) {
+        GraspState(Player caster, LivingEntity target, Location frozenAt) {
             this.caster = caster;
             this.target = target;
             this.frozenAt = frozenAt;

@@ -1,0 +1,92 @@
+package net.rose.elementSMPRefined.ability.passive.upgraded.storm.listeners;
+
+import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.managers.ElementManager;
+import net.rose.elementSMPRefined.managers.TrustManager;
+import org.bukkit.Location;
+import org.bukkit.entity.LightningStrike;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Trident;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityCombustByEntityEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * Storm Element Passive 3: Thunder Throw (unlocks at Upgrade II)
+ *
+ * When a Storm player throws a trident, it calls down a real lightning bolt where it lands - on the
+ * block or entity it hits - with or without a thunderstorm and without needing Channeling.
+ *
+ * The thrower is credited for the strike. The thrower and anyone they trust are protected from it
+ * (no damage and no ignition), so standing next to your own trident is safe.
+ */
+public class StormTridentLightningListener implements Listener {
+
+    /** How long a strike stays on the protection list - lightning is gone well inside this (ticks). */
+    private static final long TRACK_TICKS = 40L;
+
+    private final JavaPlugin plugin;
+    private final ElementManager elementManager;
+    private final TrustManager trustManager;
+    /** Strikes this passive created -> the player who threw the trident. */
+    private final Map<UUID, UUID> strikes = new HashMap<>();
+
+    public StormTridentLightningListener(JavaPlugin plugin, ElementManager elementManager, TrustManager trustManager) {
+        this.plugin = plugin;
+        this.elementManager = elementManager;
+        this.trustManager = trustManager;
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onTridentHit(ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof Trident trident)) return;
+        if (!(trident.getShooter() instanceof Player thrower)) return;
+
+        var data = elementManager.data(thrower.getUniqueId());
+        if (data == null || data.getCurrentElement() != ElementType.STORM) return;
+        if (data.getUpgradeLevel(ElementType.STORM) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
+
+        Location at = event.getHitEntity() != null ? event.getHitEntity().getLocation() : trident.getLocation();
+        if (at.getWorld() == null) return;
+
+        LightningStrike strike = at.getWorld().strikeLightning(at);
+        strike.setCausingPlayer(thrower);
+
+        UUID strikeId = strike.getUniqueId();
+        strikes.put(strikeId, thrower.getUniqueId());
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> strikes.remove(strikeId), TRACK_TICKS);
+    }
+
+    /** The thrower and their trusted players take no damage from the bolt. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onStrikeDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof LightningStrike strike)) return;
+        if (isProtected(strike, event.getEntity().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** ...and aren't set on fire by it either (that's a separate event from the damage). */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onStrikeIgnite(EntityCombustByEntityEvent event) {
+        if (!(event.getCombuster() instanceof LightningStrike strike)) return;
+        if (isProtected(strike, event.getEntity().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    private boolean isProtected(LightningStrike strike, UUID victimId) {
+        UUID thrower = strikes.get(strike.getUniqueId());
+        if (thrower == null) return false; // not one of ours
+        return thrower.equals(victimId) || trustManager.isTrusted(thrower, victimId);
+    }
+}

@@ -1,17 +1,13 @@
 package net.rose.elementSMPRefined.ability.passive.upgraded.metal;
 
-import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners.MetalLowHealthAttackSpeedListener;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalShieldAbility;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -23,9 +19,9 @@ import java.util.List;
  *
  * Passive 1: Hero of the Village (inherited from Earth)
  * Passive 2 (Upgrade II): Vein Miner (inherited from Earth, see EarthVeinMinerListener)
- * Passive 3 (Upgrade II): Attack speed +80% at 4 hearts or below (MetalLowHealthAttackSpeedListener)
+ * Passive 3 (Upgrade II): Haste I
  */
-public class MetalElement extends BaseElement implements ListenerProvider {
+public class MetalElement extends BaseElement {
 
     public MetalElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.METAL,
@@ -43,22 +39,20 @@ public class MetalElement extends BaseElement implements ListenerProvider {
         player.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE, PotionEffect.INFINITE_DURATION, 0, true, false));
 
         // Passive 2 (Vein Miner) is handled by EarthVeinMinerListener.
-        // Passive 3 (faster attacks at low health) is handled by MetalLowHealthAttackSpeedListener.
+
+        // Passive 3 (Upgrade II): Haste I.
+        if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, PotionEffect.INFINITE_DURATION, 0, true, false));
+        } else {
+            EffectService.removeElementPotionEffect(player, PotionEffectType.HASTE);
+        }
     }
 
     @Override
     public void clearEffects(Player player) {
         super.clearEffects(player);
         EffectService.removeElementPotionEffect(player, PotionEffectType.HERO_OF_THE_VILLAGE);
-        MetalLowHealthAttackSpeedListener.clear(player);
-        // Metal used to give permanent Haste - clear any left over from before that passive was removed.
         EffectService.removeElementPotionEffect(player, PotionEffectType.HASTE);
-    }
-
-    @Override
-    public List<Listener> getListeners(JavaPlugin plugin) {
-        ElementSMPRefined main = (ElementSMPRefined) plugin;
-        return List.of(new MetalLowHealthAttackSpeedListener(plugin, main.getElementManager()));
     }
 
     @Override
@@ -71,6 +65,6 @@ public class MetalElement extends BaseElement implements ListenerProvider {
         return List.of(
                 "Hero of the Village",
                 "Vein Miner (Upgrade II)",
-                "+80% attack speed at 4 hearts and below (Upgrade II)");
+                "Haste I (Upgrade II)");
     }
 }

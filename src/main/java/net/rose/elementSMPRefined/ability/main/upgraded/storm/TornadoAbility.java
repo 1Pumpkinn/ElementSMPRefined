@@ -1,6 +1,5 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
-import net.rose.elementSMPRefined.particles.element.StormParticles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -15,13 +14,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -49,7 +45,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * lifted, spun round its axis and takes true damage every {@value #DAMAGE_INTERVAL_TICKS} ticks.
  * <p>
  * The funnel is the {@code elementsmp:tornado_funnel} resource-pack model drawn by
- * {@link TornadoVisual}; the debris, dust and crackle around it are particles. Damage goes through
+ * {@link TornadoVisual}; there are no particles. Damage goes through
  * {@link TrueDamage}, so a Metal Shield counts it as a damaging ability.
  */
 public class TornadoAbility extends BaseAbility {
@@ -102,10 +98,6 @@ public class TornadoAbility extends BaseAbility {
     private static final double LIFT_MAX = 5.5;
     private static final double DAMAGE = 1.5;             // true damage per hit (0.75 hearts)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
-
-    // Visuals
-    private static final int SPIRAL_POINTS = 8;           // cloud particles per tick on the spiral up the funnel
-    private static final int DEBRIS_POINTS = 4;           // block-crumb particles per tick flung around inside it
 
     // Wind loop sound
     /** Wind loop sound. It's played in its own category so stopSound() can cancel it without touching real elytra sounds. */
@@ -237,8 +229,6 @@ public class TornadoAbility extends BaseAbility {
         t.visual.update(t.ticks, growth);
 
         suck(t, caster, growth);
-
-        spawnParticles(t, growth);
 
         // Wind loop, handled per player so it can be cut off the moment someone leaves range.
         if (t.ticks % WIND_INTERVAL_TICKS == 0) {
@@ -515,7 +505,6 @@ public class TornadoAbility extends BaseAbility {
             TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).ignoreIFrames(true).apply(target);
 
             Location chest = target.getLocation().add(0, 1.0, 0);
-            StormParticles.tornadoDamage(t.world, chest);
             t.world.playSound(chest, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.6f, 1.2f);
         }
 
@@ -562,63 +551,6 @@ public class TornadoAbility extends BaseAbility {
         return t.trust != null && t.trust.isTrusted(caster.getUniqueId(), other);
     }
 
-    // Particles
-
-    /**
-     * Cloud spiralling up the outside of the funnel, ground debris flung around inside it, a dust
-     * ring at the base and the odd crackle of lightning - the model is the body, this is the mess
-     * around it.
-     */
-    private void spawnParticles(Tornado t, double growth) {
-        World world = t.world;
-        Location pos = t.pos;
-        double height = TornadoVisual.HEIGHT * growth;
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-
-        // Spiral of cloud winding up the outside of the funnel.
-        for (int i = 0; i < SPIRAL_POINTS; i++) {
-            double f = ((double) i / SPIRAL_POINTS + t.ticks * 0.035) % 1.0;
-            double angle = f * Math.PI * 6 + t.ticks * 0.5;
-            double radius = TornadoVisual.radiusAt(f) * growth * 1.1 + 0.2;
-            StormParticles.tornadoSpiral(world,
-                    pos.getX() + Math.cos(angle) * radius, pos.getY() + f * height, pos.getZ() + Math.sin(angle) * radius);
-        }
-
-        // Crumbs of whatever it's standing on, thrown around inside.
-        BlockData ground = groundData(t);
-        for (int i = 0; i < DEBRIS_POINTS; i++) {
-            double f = random.nextDouble();
-            double angle = random.nextDouble() * Math.PI * 2;
-            double radius = TornadoVisual.radiusAt(f) * growth * (0.3 + random.nextDouble() * 0.65);
-            StormParticles.tornadoDebris(world,
-                    pos.getX() + Math.cos(angle) * radius, pos.getY() + f * height, pos.getZ() + Math.sin(angle) * radius, ground);
-        }
-
-        // Dust kicked up at the base.
-        StormParticles.tornadoBase(world, pos.getX(), pos.getY(), pos.getZ(), growth);
-
-        // Occasional lightning crackle inside the funnel (it's a Storm tornado).
-        if (random.nextInt(18) == 0) {
-            double f = 0.2 + random.nextDouble() * 0.8;
-            double angle = random.nextDouble() * Math.PI * 2;
-            double radius = TornadoVisual.radiusAt(f) * growth * 0.7;
-            Location spark = new Location(world,
-                    pos.getX() + Math.cos(angle) * radius, pos.getY() + f * height, pos.getZ() + Math.sin(angle) * radius);
-            StormParticles.tornadoCrackle(world, spark);
-        }
-    }
-
-    /** The block under the tornado, for the debris; plain dirt if it's over air or water. */
-    private static BlockData groundData(Tornado t) {
-        Block below = t.world.getBlockAt(
-                (int) Math.floor(t.pos.getX()), (int) Math.floor(t.pos.getY() - 0.1), (int) Math.floor(t.pos.getZ()));
-        Material type = below.getType();
-        if (type.isAir() || !type.isSolid()) {
-            return Material.DIRT.createBlockData();
-        }
-        return below.getBlockData();
-    }
-
     // Ending
 
     private void end(UUID casterId, boolean collapsed) {
@@ -643,7 +575,6 @@ public class TornadoAbility extends BaseAbility {
             World world = tornado.world;
             Location at = tornado.pos.clone().add(0, 1.0, 0);
             world.playSound(at, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.6f, 0.7f);
-            StormParticles.tornadoCollapse(world, at);
         }
     }
 

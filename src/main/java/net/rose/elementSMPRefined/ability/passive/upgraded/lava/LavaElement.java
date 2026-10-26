@@ -3,15 +3,12 @@ package net.rose.elementSMPRefined.ability.passive.upgraded.lava;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.ability.main.upgraded.lava.EruptionAbility;
 import net.rose.elementSMPRefined.ability.main.upgraded.lava.MagmaBeamAbility;
-import net.rose.elementSMPRefined.ability.passive.upgraded.lava.listeners.LavaIncreaseDamageListener;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -23,14 +20,17 @@ import java.util.List;
  *
  * Passive 1: Auto smelt mined ores (inherited from Fire, see FireSmeltListener)
  * Passive 2 (Upgrade II): Permanent fire/lava immunity (inherited from Fire)
- * Passive 3 (Upgrade II): +25% melee damage at 4 hearts or below (LavaIncreaseDamageListener)
+ * Passive 3 (Upgrade II): +0.1 attack damage while on fire or in lava (LavaBurningDamagePassive)
  */
-public class LavaElement extends BaseElement implements ListenerProvider {
+public class LavaElement extends BaseElement {
+
+    private final LavaBurningDamagePassive burningDamage;
 
     public LavaElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.LAVA,
                 new EruptionAbility(plugin, configManager),
                 new MagmaBeamAbility(plugin, configManager));
+        this.burningDamage = new LavaBurningDamagePassive((ElementSMPRefined) plugin);
     }
 
     @Override
@@ -44,19 +44,14 @@ public class LavaElement extends BaseElement implements ListenerProvider {
             EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
         }
 
-        // Passive 3 (Upgrade II): low health damage, handled by LavaIncreaseDamageListener.
+        // Passive 3 (Upgrade II): +0.1 attack damage while burning / in lava, handled by LavaBurningDamagePassive.
     }
 
     @Override
     public void clearEffects(Player player) {
         super.clearEffects(player);
         EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
-    }
-
-    @Override
-    public List<Listener> getListeners(JavaPlugin plugin) {
-        ElementSMPRefined main = (ElementSMPRefined) plugin;
-        return List.of(new LavaIncreaseDamageListener(main.getElementManager(), main.getTrustManager()));
+        burningDamage.clear(player);
     }
 
     @Override
@@ -69,6 +64,6 @@ public class LavaElement extends BaseElement implements ListenerProvider {
         return List.of(
                 "Auto smelt ores",
                 "Fire Resistance (Upgrade II)",
-                "+25% melee damage at 4 hearts and below (Upgrade II)");
+                "+0.1 attack damage while on fire or in lava (Upgrade II)");
     }
 }

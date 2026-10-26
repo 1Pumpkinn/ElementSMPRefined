@@ -65,7 +65,6 @@ public final class AbilityParticleDemos {
         register("metal_magnetar", AbilityParticleDemos::metalMagnetar);
         // Storm
         register("storm_spear", AbilityParticleDemos::stormSpear);
-        register("storm_tornado", AbilityParticleDemos::stormTornado);
         // Reroll gem ring
         register("gem_orbit", AbilityParticleDemos::gemOrbit);
     }
@@ -605,47 +604,6 @@ public final class AbilityParticleDemos {
             StormParticles.spearAreaShock(end.clone().add(1.5, -1, 0));
         });
     }
-
-    private static void stormTornado(Player player, ElementSMPRefined plugin) {
-        World world = player.getWorld();
-        Location pos = front(player, 5);
-        BlockData ground = Material.DIRT.createBlockData();
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        double height = 6.0;
-        int duration = 50;
-
-        repeat(plugin, player, duration, tick -> {
-            double growth = Math.min(1.0, (tick + 1) / 15.0);
-            double h = height * growth;
-            for (int i = 0; i < 28; i++) {
-                double f = ((double) i / 28 + tick * 0.035) % 1.0;
-                double angle = f * Math.PI * 6 + tick * 0.5;
-                double radius = (0.5 + f * 2.0) * growth * 1.1 + 0.2;
-                StormParticles.tornadoSpiral(world,
-                        pos.getX() + Math.cos(angle) * radius, pos.getY() + f * h, pos.getZ() + Math.sin(angle) * radius);
-            }
-            for (int i = 0; i < 6; i++) {
-                double f = random.nextDouble();
-                double angle = random.nextDouble() * Math.PI * 2;
-                double radius = (0.5 + f * 2.0) * growth * (0.3 + random.nextDouble() * 0.65);
-                StormParticles.tornadoDebris(world,
-                        pos.getX() + Math.cos(angle) * radius, pos.getY() + f * h, pos.getZ() + Math.sin(angle) * radius, ground);
-            }
-            StormParticles.tornadoBase(world, pos.getX(), pos.getY(), pos.getZ(), growth);
-            if (random.nextInt(6) == 0) {
-                double f = 0.2 + random.nextDouble() * 0.8;
-                double angle = random.nextDouble() * Math.PI * 2;
-                double radius = (0.5 + f * 2.0) * growth * 0.7;
-                StormParticles.tornadoCrackle(world, new Location(world,
-                        pos.getX() + Math.cos(angle) * radius, pos.getY() + f * h, pos.getZ() + Math.sin(angle) * radius));
-            }
-            if (tick % 10 == 0) {
-                StormParticles.tornadoDamage(world, pos.clone().add(1, 1, 0));
-            }
-        });
-        later(plugin, duration + 2L, () -> StormParticles.tornadoCollapse(world, pos.clone().add(0, 1.0, 0)));
-    }
-
 
     private static void gemOrbit(Player player, ElementSMPRefined plugin) {
         World world = player.getWorld();

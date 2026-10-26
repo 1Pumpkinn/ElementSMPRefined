@@ -37,7 +37,8 @@ import org.bukkit.util.Vector;
  *     ground next to someone still burns them without a direct hit. If it
  *     landed on a vertical wall face instead, the caster scales the wall
  *     once they reach it, climbing until they clear the top, then mantles
- *     onto the ledge with the same scorch effect.</li>
+ *     onto the ledge with the same scorch effect. The climb only goes as high as the
+ *     hooked point (plus a ledge's worth), and ends if the caster comes off the wall.</li>
  * </ul>
  * <p>
  * Replaces the old Fire ability1, {@code FireGeyserAbility} (now deprecated).
@@ -105,6 +106,16 @@ public class HellChainAbility extends BaseAbility {
     private static final double CLIMB_STICK_STRENGTH = 0.12; // small push into the wall each tick so the caster stays pressed against it instead of drifting off mid-climb
     private static final double MANTLE_FORWARD_VELOCITY = 0.45; // boost onto the ledge once the top of the wall is cleared
     private static final double MANTLE_UPWARD_VELOCITY = 0.25;
+    // Wall-climb limits. The climb used to run until the TOP of the wall (or the tick cap), no matter
+    // where the hook landed, so hooking the base of any tall wall (e.g. aiming steeply down at it) and
+    // then pressing/strafing against it let the caster crawl all the way up. It now only goes as far as
+    // the point that was hooked, and it lets go if the caster stops touching the wall.
+    /** How far (blocks) the caster's eyes may rise above the top of the hooked block - enough to vault that ledge, no more. */
+    private static final double CLIMB_LEDGE_ALLOWANCE = 1.5;
+    /** How far (blocks) into the wall, at lower-chest height, still counts as "touching" it. */
+    private static final double WALL_CONTACT_DISTANCE = 0.8;
+    /** Climb ticks given to settle against the wall (the stick-to-wall push needs a moment) before contact is enforced. */
+    private static final int CLIMB_CONTACT_GRACE_TICKS = 6;
 
     // Entity-drag mode (hook lands directly on a living entity)
     private static final double DRAG_MAX_SPEED = 0.8;
@@ -285,6 +296,8 @@ public class HellChainAbility extends BaseAbility {
         final boolean startedOnGround = player.isOnGround();
         final int latencyTicks = pingTicks(player);
         final int maxTicks = maxTicksFor(player.getEyeLocation().distance(hookLocation));
+        // Highest the caster's eyes may get while climbing: the top of the hooked block plus a ledge's worth.
+        final double climbCeilingY = Math.floor(hookLocation.getY()) + 1.0 + CLIMB_LEDGE_ALLOWANCE;
 
         new BukkitRunnable() {
             final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
@@ -325,11 +338,33 @@ public class HellChainAbility extends BaseAbility {
                 Location currentLoc = player.getEyeLocation();
 
                 if (climbing) {
+                    // Came off the wall (strafing / backing away, knocked off...): let go instead of
+                    // rising through open air. Skipped for the first few ticks while the stick-to-wall
+                    // push settles them against it (longer on high ping).
+                    if (climbTicks >= CLIMB_CONTACT_GRACE_TICKS + latencyTicks && !touchingWall(currentLoc, intoWall)) {
+                        debug(player, "came off the wall while climbing", ticks, currentLoc.distance(hookLocation));
+                        player.setVelocity(player.getVelocity().multiply(0.3));
+                        cancel();
+                        return;
+                    }
+
                     Location aheadHead = currentLoc.clone().add(intoWall.clone().multiply(WALL_CHECK_DISTANCE));
                     if (!aheadHead.getBlock().getType().isSolid()) {
                         // Cleared the top of the wall - vault onto the ledge instead of just
                         // stopping mid-climb.
                         mantleOntoLedge(player, currentLoc, intoWall, trust);
+                        cancel();
+                        return;
+                    }
+
+                    // Reached the hooked point and the wall keeps going: stop here. Without this cap
+                    // the caster kept climbing to the top of ANY wall, whatever they aimed at.
+                    if (currentLoc.getY() >= climbCeilingY) {
+                        debug(player, "reached hooked height", ticks, currentLoc.distance(hookLocation));
+                        player.setVelocity(player.getVelocity().multiply(0.2));
+                        player.setFallDistance(0f);
+                        player.getWorld().playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
+                        burnNearby(player, currentLoc, trust);
                         cancel();
                         return;
                     }
@@ -466,6 +501,16 @@ public class HellChainAbility extends BaseAbility {
     private int pingTicks(Player player) {
         int ping = Math.max(0, player.getPing());
         return Math.min(MAX_PING_TICKS, (int) Math.ceil(ping / MS_PER_TICK));
+    }
+
+    /**
+     * Whether the caster is still against the wall they hooked: a solid block {@link #WALL_CONTACT_DISTANCE}
+     * into the wall at lower-chest height. Deliberately NOT checked at eye height - that block going
+     * clear is how the top of the wall is detected, and the lower body is still against the ledge then.
+     */
+    private boolean touchingWall(Location eye, Vector intoWall) {
+        Location lowerChest = eye.clone().subtract(0, 0.9, 0).add(intoWall.clone().multiply(WALL_CONTACT_DISTANCE));
+        return lowerChest.getBlock().getType().isSolid();
     }
 
     private boolean isWallFace(BlockFace face) {

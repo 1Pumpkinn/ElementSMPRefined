@@ -1,8 +1,6 @@
 package net.rose.elementSMPRefined.listeners.status;
 
 import net.rose.elementSMPRefined.status.DisarmManager;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,9 +17,6 @@ import org.bukkit.inventory.EquipmentSlot;
  * actions and is purely cosmetic for melee - the actual attack block has to happen here.
  */
 public class DisarmListener implements Listener {
-    private static final Component WEAPON_DISARMED = Component.text(
-            "That weapon is disarmed and can't be used!", NamedTextColor.RED);
-
     private final DisarmManager disarmManager;
 
     public DisarmListener(DisarmManager disarmManager) {
@@ -37,7 +32,6 @@ public class DisarmListener implements Listener {
 
         if (isDisarmed(player, handMaterial)) {
             event.setCancelled(true);
-            player.sendActionBar(WEAPON_DISARMED);
         }
     }
 
@@ -51,7 +45,6 @@ public class DisarmListener implements Listener {
 
         if (isDisarmed(player, handMaterial)) {
             event.setCancelled(true);
-            player.sendActionBar(WEAPON_DISARMED);
         }
     }
 

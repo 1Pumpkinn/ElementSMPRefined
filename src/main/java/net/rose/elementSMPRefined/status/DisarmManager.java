@@ -1,7 +1,5 @@
 package net.rose.elementSMPRefined.status;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -68,7 +66,6 @@ public class DisarmManager {
     public void applyAbilityDisarm(Player player, int durationTicks) {
         long expiry = System.currentTimeMillis() + (durationTicks * 50L);
         abilityDisarmExpiry.merge(player.getUniqueId(), expiry, Math::max);
-        player.sendActionBar(Component.text("Your abilities have been disarmed!", NamedTextColor.RED));
     }
 
     public boolean isAbilityDisarmed(Player player) {
@@ -101,8 +98,6 @@ public class DisarmManager {
 
         Material chosen = owned.get(ThreadLocalRandom.current().nextInt(owned.size()));
         lockMaterial(weaponDisarm, player, chosen, durationTicks);
-        player.sendActionBar(Component.text(
-                "Your " + prettyName(chosen) + " has been disarmed!", NamedTextColor.RED));
         return chosen;
     }
 
@@ -158,8 +153,6 @@ public class DisarmManager {
         }
 
         lockMaterial(mainHandDisarm, player, material, durationTicks);
-        player.sendActionBar(Component.text(
-                "Your " + prettyName(material) + " has been disarmed!", NamedTextColor.RED));
         return material;
     }
 
@@ -182,11 +175,6 @@ public class DisarmManager {
             return false;
         }
         return lock.material() == material;
-    }
-
-    private String prettyName(Material material) {
-        String name = material.name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
-        return name.substring(0, 1).toUpperCase(java.util.Locale.ROOT) + name.substring(1);
     }
 
     /**

@@ -3,7 +3,6 @@ package net.rose.elementSMPRefined.listeners.status;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
-import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,17 +22,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
  */
 public class StatusEffectListener implements Listener {
     
-    private static final Component FULLY_STUNNED_MOVE_LOOK = Component.text("You are fully stunned and cannot move or look!");
-    private static final Component PARTIALLY_STUNNED_MOVE_LOOK = Component.text("You are partially stunned and cannot move or look!");
-    private static final Component FULLY_STUNNED_MOVE = Component.text("You are fully stunned and cannot move!");
-    private static final Component PARTIALLY_STUNNED_MOVE = Component.text("You are partially stunned and cannot move!");
-    private static final Component STUNNED_MOVE = Component.text("You are stunned and cannot move!");
-    private static final Component ROOTED_MOVE = Component.text("You are rooted and cannot move!");
-    private static final Component FROZEN_MOVE = Component.text("You are frozen and cannot move!");
-    private static final Component FULLY_STUNNED_INTERACT = Component.text("You are fully stunned and cannot interact!");
-    private static final Component SILENCED_INTERACT = Component.text("You are silenced and cannot interact!");
-    private static final Component FULLY_STUNNED_BREAK = Component.text("You are fully stunned and cannot break blocks!");
-    private static final Component FULLY_STUNNED_PLACE = Component.text("You are fully stunned and cannot place blocks!");
 
     private final StatusEffectManager statusEffectManager;
 
@@ -69,8 +57,6 @@ public class StatusEffectListener implements Listener {
             if (event.getFrom().getYaw() != event.getTo().getYaw() ||
                 event.getFrom().getPitch() != event.getTo().getPitch()) {
                 event.setCancelled(true);
-                Component message = isFullyStunned ? FULLY_STUNNED_MOVE_LOOK : PARTIALLY_STUNNED_MOVE_LOOK;
-                player.sendActionBar(message);
                 return;
             }
         }
@@ -79,11 +65,6 @@ public class StatusEffectListener implements Listener {
             event.getFrom().getY() != event.getTo().getY() ||
             event.getFrom().getZ() != event.getTo().getZ()) {
             event.setCancelled(true);
-            Component message = isFullyStunned ? FULLY_STUNNED_MOVE :
-                            isPartiallyStunned ? PARTIALLY_STUNNED_MOVE :
-                            isStunned ? STUNNED_MOVE :
-                            isRooted ? ROOTED_MOVE : FROZEN_MOVE;
-            player.sendActionBar(message);
         }
     }
 
@@ -98,10 +79,8 @@ public class StatusEffectListener implements Listener {
         
         if (statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)) {
             event.setCancelled(true);
-            player.sendActionBar(FULLY_STUNNED_INTERACT);
         } else if (statusEffectManager.isSilenced(player)) {
             event.setCancelled(true);
-            player.sendActionBar(SILENCED_INTERACT);
         }
     }
 
@@ -115,7 +94,6 @@ public class StatusEffectListener implements Listener {
 
         if (statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)) {
             event.setCancelled(true);
-            player.sendActionBar(FULLY_STUNNED_BREAK);
         }
     }
 
@@ -129,7 +107,6 @@ public class StatusEffectListener implements Listener {
 
         if (statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)) {
             event.setCancelled(true);
-            player.sendActionBar(FULLY_STUNNED_PLACE);
         }
     }
 }

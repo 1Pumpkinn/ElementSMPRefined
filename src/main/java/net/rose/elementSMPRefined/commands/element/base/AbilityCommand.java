@@ -22,11 +22,6 @@ import org.bukkit.entity.Player;
  * itself; a player with no element simply does nothing.
  */
 public class AbilityCommand implements CommandExecutor {
-    private static final Component ABILITY_DISARMED = Component.text(
-            "You are disarmed and cannot use abilities!", NamedTextColor.RED);
-    private static final Component ABILITY_BLOCKED = Component.text(
-            "You are silenced or stunned and cannot use abilities!", NamedTextColor.RED);
-
     private final ElementManager elements;
     private final DisarmManager disarmManager;
     private final StatusEffectManager statusEffectManager;
@@ -46,14 +41,12 @@ public class AbilityCommand implements CommandExecutor {
         }
 
         if (disarmManager.isAbilityDisarmed(player)) {
-            player.sendActionBar(ABILITY_DISARMED);
             return true;
         }
 
         // Abilities are cast by command, not PlayerInteractEvent, so StatusEffectListener never sees them.
         if (statusEffectManager.isSilenced(player)
                 || statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)) {
-            player.sendActionBar(ABILITY_BLOCKED);
             return true;
         }
 

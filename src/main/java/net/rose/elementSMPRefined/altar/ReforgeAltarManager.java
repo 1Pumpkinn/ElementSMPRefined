@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.HeightMap;
@@ -34,6 +33,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,6 +102,8 @@ public final class ReforgeAltarManager {
     private List<String> snapshot = new ArrayList<>();
     /** Every block the active altar placed (structure + ground fill): "dx,dy,dz|blockdata" - persisted so it can be re-placed. */
     private List<String> placedBlocks = new ArrayList<>();
+    /** Mythic-element players (Life, Death, ...) get a random recipe, rolled once per altar and remembered here. */
+    private final Map<UUID, ForgeRecipe> randomRecipes = new HashMap<>();
     /** Whether the saved altar has been checked against the world since startup. */
     private boolean verified;
     private volatile Altar active;
@@ -445,6 +447,7 @@ public final class ReforgeAltarManager {
 
         snapshot = saved;
         placedBlocks = placedEntries;
+        randomRecipes.clear();
         active = new Altar(world.getName(), ox, oy, oz);
         verified = true;
         spawning = false;
@@ -526,6 +529,7 @@ public final class ReforgeAltarManager {
         active = null;
         snapshot = new ArrayList<>();
         placedBlocks = new ArrayList<>();
+        randomRecipes.clear();
         saveState();
         removeDisplays();
 
@@ -660,15 +664,38 @@ public final class ReforgeAltarManager {
         updateDisplayVisibility(world, a);
     }
 
+    /**
+     * The recipe this player has to hand in - used for both their text display
+     * and the actual hand-in, so the two can never disagree:
+     * <ul>
+     *   <li>basic element (Fire, Earth, Water, Air): the recipe for the element it upgrades into</li>
+     *   <li>upgraded element (Lava, Metal, Frost, Storm): the recipe of the basic element it came from
+     *       (Lava shows the Fire recipe, and so on)</li>
+     *   <li>anything else (Life, Death, ...): a random recipe, rolled once per altar</li>
+     * </ul>
+     * Empty only if the player has no element yet.
+     */
+    public Optional<ForgeRecipe> recipeFor(Player player) {
+        var element = ((ElementSMPRefined) plugin).getElementManager().getPlayerElement(player);
+        if (element == null) return Optional.empty();
+
+        Optional<ForgeRecipe> own = ForgeRecipe.forBase(element);
+        if (own.isPresent()) return own;
+        Optional<ForgeRecipe> upgraded = ForgeRecipe.forTarget(element);
+        if (upgraded.isPresent()) return upgraded;
+
+        ForgeRecipe[] all = ForgeRecipe.values();
+        return Optional.of(randomRecipes.computeIfAbsent(player.getUniqueId(), id -> all[random.nextInt(all.length)]));
+    }
+
     /** Each nearby player sees only the recipe display for their own element. */
     private void updateDisplayVisibility(World world, Altar a) {
-        ElementManager elements = ((ElementSMPRefined) plugin).getElementManager();
         Location center = new Location(world, a.lodestoneX() + 0.5, a.lodestoneY(), a.lodestoneZ() + 0.5);
 
         for (Player player : world.getPlayers()) {
             if (player.getLocation().distanceSquared(center) > DISPLAY_RANGE_SQ) continue;
 
-            ForgeRecipe wanted = ForgeRecipe.forBase(elements.getPlayerElement(player)).orElse(null);
+            ForgeRecipe wanted = recipeFor(player).orElse(null);
             for (ForgeRecipe recipe : ForgeRecipe.values()) {
                 UUID id = displayIds.get(recipe);
                 Entity display = id == null ? null : Bukkit.getEntity(id);

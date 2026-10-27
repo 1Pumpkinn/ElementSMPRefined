@@ -53,6 +53,14 @@ public enum ForgeRecipe {
 
     public List<Ingredient> ingredients() { return ingredients; }
 
+    /** The recipe that produces {@code element} (e.g. LAVA for a Lava player); empty for basic/mythic elements. */
+    public static Optional<ForgeRecipe> forTarget(ElementType element) {
+        for (ForgeRecipe recipe : values()) {
+            if (recipe.target == element) return Optional.of(recipe);
+        }
+        return Optional.empty();
+    }
+
     /** What a Forged Upgrader does to a player holding {@code element}; empty if it can't be forged. */
     public static Optional<ForgeRecipe> forBase(ElementType element) {
         for (ForgeRecipe recipe : values()) {

@@ -5,7 +5,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.altar.ReforgeAltarManager;
-import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Location;
@@ -67,17 +66,10 @@ public class ReforgeAltarListener implements Listener {
 
         if (!altar.hasActiveAltar()) return;
 
-        // The recipe depends on the player's own element.
-        ElementType element = plugin.getElementManager().getPlayerElement(player);
-        if (element == null) {
-            player.sendMessage(Lang.UPGRADER_NO_ELEMENT_YET);
-            return;
-        }
-        Optional<ForgeRecipe> forge = ForgeRecipe.forBase(element);
+        // The recipe depends on the player's own element (same lookup as their text display).
+        Optional<ForgeRecipe> forge = altar.recipeFor(player);
         if (forge.isEmpty()) {
-            player.sendMessage(Component.text(
-                    "The altar can only reforge Fire, Earth, Water and Air - your element can't be reforged.",
-                    NamedTextColor.RED));
+            player.sendMessage(Lang.UPGRADER_NO_ELEMENT_YET);
             return;
         }
         ForgeRecipe recipe = forge.get();

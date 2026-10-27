@@ -364,7 +364,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             ic.display.setInterpolationDuration(LAUNCH_GROW_TICKS);
             ic.display.setTransformation(pose(ic.velocity, 1.0f));
 
-            caster.swingMainHand();
             world.spawnParticle(Particle.CLOUD, ic.pos, 3, 0.15, 0.15, 0.15, 0.04, null, true);
             world.spawnParticle(Particle.BLOCK, ic.pos, 4, 0.15, 0.15, 0.15, 0.0, PACKED_ICE_DATA, true);
             world.playSound(ic.pos, Sound.BLOCK_GLASS_BREAK, 1.2f, 0.9f);

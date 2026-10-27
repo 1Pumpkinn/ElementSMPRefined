@@ -138,7 +138,6 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
                 cancel();
                 activeCasters.remove(casterId);
-                caster.swingMainHand();
                 startSpikes(caster, trust, feet);
             }
         }.runTaskTimer(plugin, 0L, 1L);

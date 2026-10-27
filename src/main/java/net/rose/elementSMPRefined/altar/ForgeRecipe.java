@@ -7,11 +7,12 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * One Reforge Altar recipe. Each altar rolls one of these when it spawns and
- * asks for that recipe's two ingredient stacks. The Forged Upgrader it hands
- * out is universal - what it does to a player depends on the element they
- * hold when they use it (see {@link #forBase(ElementType)}), not on which
- * recipe the altar happened to roll.
+ * One Reforge Altar recipe, tied to the basic element it reforges. The altar
+ * asks each player for the recipe of THEIR element (Fire -> Lava recipe, Water
+ * -> Frost recipe, Air -> Storm recipe, Earth -> Metal recipe), so two players
+ * at the same altar see - and must hand in - different ingredients. The
+ * Forged Upgrader it hands out then does the matching reforge
+ * (see {@link #forBase(ElementType)}).
  */
 public enum ForgeRecipe {
     FROST(ElementType.WATER, ElementType.FROST,

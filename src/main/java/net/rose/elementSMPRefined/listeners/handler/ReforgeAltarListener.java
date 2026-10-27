@@ -2,9 +2,12 @@ package net.rose.elementSMPRefined.listeners.handler;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.altar.ReforgeAltarManager;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
+import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -25,20 +28,20 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Right-click hand-in on the altar's lodestone, plus everything that keeps
  * that lodestone indestructible (the rest of the structure is fair game).
  */
 public class ReforgeAltarListener implements Listener {
-    private final JavaPlugin plugin;
+    private final ElementSMPRefined plugin;
     private final ReforgeAltarManager altar;
 
-    public ReforgeAltarListener(JavaPlugin plugin, ReforgeAltarManager altar) {
+    public ReforgeAltarListener(ElementSMPRefined plugin, ReforgeAltarManager altar) {
         this.plugin = plugin;
         this.altar = altar;
     }
@@ -62,12 +65,26 @@ public class ReforgeAltarListener implements Listener {
         // Fires once per hand - only act on the main-hand pass.
         if (event.getHand() != EquipmentSlot.HAND) return;
 
-        ReforgeAltarManager.Altar active = altar.getActiveAltar();
-        if (active == null) return;
+        if (!altar.hasActiveAltar()) return;
+
+        // The recipe depends on the player's own element.
+        ElementType element = plugin.getElementManager().getPlayerElement(player);
+        if (element == null) {
+            player.sendMessage(Lang.UPGRADER_NO_ELEMENT_YET);
+            return;
+        }
+        Optional<ForgeRecipe> forge = ForgeRecipe.forBase(element);
+        if (forge.isEmpty()) {
+            player.sendMessage(Component.text(
+                    "The altar can only reforge Fire, Earth, Water and Air - your element can't be reforged.",
+                    NamedTextColor.RED));
+            return;
+        }
+        ForgeRecipe recipe = forge.get();
 
         PlayerInventory inv = player.getInventory();
         List<String> missing = new ArrayList<>();
-        for (ForgeRecipe.Ingredient ing : active.recipe().ingredients()) {
+        for (ForgeRecipe.Ingredient ing : recipe.ingredients()) {
             int have = count(inv, ing.material());
             if (have < ing.amount()) {
                 missing.add((ing.amount() - have) + "x " + ing.name());
@@ -83,7 +100,7 @@ public class ReforgeAltarListener implements Listener {
         // Re-check the altar still exists (another player may have beaten us to it this tick).
         if (!altar.hasActiveAltar()) return;
 
-        for (ForgeRecipe.Ingredient ing : active.recipe().ingredients()) {
+        for (ForgeRecipe.Ingredient ing : recipe.ingredients()) {
             take(inv, ing.material(), ing.amount());
         }
 

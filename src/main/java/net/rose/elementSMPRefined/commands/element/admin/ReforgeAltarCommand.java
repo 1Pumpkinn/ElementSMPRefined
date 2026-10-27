@@ -86,7 +86,7 @@ public class ReforgeAltarCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Component.text("No active altar.", NamedTextColor.YELLOW));
         } else {
             sender.sendMessage(Component.text("Active altar at " + active.lodestoneX() + ", " + active.lodestoneY() + ", "
-                    + active.lodestoneZ() + " in " + active.worldName() + " (recipe: " + active.recipe().name() + ")", NamedTextColor.GOLD));
+                    + active.lodestoneZ() + " in " + active.worldName(), NamedTextColor.GOLD));
         }
         long msLeft = altar.getNextSpawnAtMillis() - System.currentTimeMillis();
         if (altar.getNextSpawnAtMillis() <= 0) {

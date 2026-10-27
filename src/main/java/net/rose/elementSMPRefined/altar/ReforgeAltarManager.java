@@ -3,6 +3,8 @@ package net.rose.elementSMPRefined.altar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.HeightMap;
@@ -17,7 +19,9 @@ import org.bukkit.structure.Palette;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Display;
+import org.bukkit.block.Biome;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -27,6 +31,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,9 +48,15 @@ import java.util.logging.Level;
  * the floating recipe text above the lodestone, and removing the structure
  * again - restoring the snapshot - once someone turns the ingredients in.
  * <p>
- * Only one altar exists at a time. State (next spawn time, the active altar,
- * its recipe, and the original blocks it replaced) is persisted to
- * {@code reforge_altar.yml}, so it survives restarts.
+ * Only one altar exists at a time, and its recipe depends on who is looking:
+ * each player sees (and must hand in) the recipe for their own element, via
+ * per-player text displays. Air under the floor is filled in with the local
+ * ground block so the altar never floats.
+ * <p>
+ * State (next spawn time, the altar's position, every block it placed, and the
+ * original blocks it replaced) is persisted to {@code reforge_altar.yml}, so it
+ * survives restarts - and if the structure is missing after a restart it is
+ * re-placed from the saved blocks.
  * The world is stored by name and resolved lazily because this plugin loads at
  * STARTUP, before any world exists.
  */
@@ -62,9 +75,13 @@ public final class ReforgeAltarManager {
     private static final long RETRY_AFTER_FAILED_SPAWN_MS = 5 * 60 * 1000L;
     private static final long HOUR_MS = 60 * 60 * 1000L;
     private static final double DISPLAY_HEIGHT = 1.9;
+    /** Players within this many blocks of the altar get their own recipe display shown. */
+    private static final double DISPLAY_RANGE_SQ = 128.0 * 128.0;
+    /** Never fill more than this many blocks under the floor (only reachable via /reforgealtar here). */
+    private static final int MAX_FILL_DEPTH = 16;
 
     /** The altar currently in the world. Immutable; replaced, never edited. */
-    public record Altar(String worldName, int originX, int originY, int originZ, ForgeRecipe recipe) {
+    public record Altar(String worldName, int originX, int originY, int originZ) {
         public int lodestoneX() { return originX + LODESTONE_X; }
         public int lodestoneY() { return originY + LODESTONE_Y; }
         public int lodestoneZ() { return originZ + LODESTONE_Z; }
@@ -83,10 +100,15 @@ public final class ReforgeAltarManager {
     private final Set<Integer> floorColumns = new HashSet<>();
     /** Original blocks the active altar replaced: "dx,dy,dz|blockdata" - persisted in reforge_altar.yml. */
     private List<String> snapshot = new ArrayList<>();
+    /** Every block the active altar placed (structure + ground fill): "dx,dy,dz|blockdata" - persisted so it can be re-placed. */
+    private List<String> placedBlocks = new ArrayList<>();
+    /** Whether the saved altar has been checked against the world since startup. */
+    private boolean verified;
     private volatile Altar active;
     private boolean spawning;
     private long nextSpawnAtMillis;
-    private UUID displayId;
+    /** One text display per recipe, hidden by default and shown only to players with the matching element. */
+    private final Map<ForgeRecipe, UUID> displayIds = new EnumMap<>(ForgeRecipe.class);
     private BukkitTask tickTask;
 
     public ReforgeAltarManager(JavaPlugin plugin) {
@@ -136,7 +158,8 @@ public final class ReforgeAltarManager {
             tickTask.cancel();
             tickTask = null;
         }
-        removeDisplay();
+        saveState();
+        removeDisplays();
     }
 
     private boolean isEnabled() {
@@ -194,7 +217,8 @@ public final class ReforgeAltarManager {
             }
         }
 
-        maintainDisplay();
+        verifyAltarOnce();
+        maintainDisplays();
     }
 
     private void scheduleNextSpawn() {
@@ -226,8 +250,7 @@ public final class ReforgeAltarManager {
 
     /**
      * Spawns an altar whose origin corner is chosen so its lodestone sits at
-     * {@code lodestoneX/Z}, with the floor layer replacing the block at
-     * {@code floorY}. No site validation - for admin testing.
+     * {@code lodestoneX/Z}, with the floor layer at {@code floorY}. No site validation - for admin testing.
      */
     public boolean spawnAt(World world, int lodestoneX, int floorY, int lodestoneZ) {
         if (altarStructure == null || active != null || spawning) return false;
@@ -235,7 +258,7 @@ public final class ReforgeAltarManager {
         int ox = lodestoneX - LODESTONE_X;
         int oz = lodestoneZ - LODESTONE_Z;
         loadFootprint(world, ox, oz).whenComplete((v, err) -> onMain(() -> {
-            if (err != null || !place(world, ox, floorY, oz, randomRecipe())) {
+            if (err != null || !place(world, ox, floorY, oz)) {
                 spawning = false;
             }
         }));
@@ -277,7 +300,7 @@ public final class ReforgeAltarManager {
                 tryRandomSite(world, attempt + 1);
                 return;
             }
-            if (!place(world, ox, floorY, oz, randomRecipe())) {
+            if (!place(world, ox, floorY, oz)) {
                 spawning = false;
                 nextSpawnAtMillis = System.currentTimeMillis() + RETRY_AFTER_FAILED_SPAWN_MS;
                 saveState();
@@ -306,13 +329,13 @@ public final class ReforgeAltarManager {
     /**
      * Checks every column under the floor disc (not a coarse sample) and returns
      * the Y the floor should sit at - one block ABOVE the highest ground under it,
-     * so it rests on the ground instead of digging in. Returns null if any part of
-     * the floor would hang more than {@code max_floor_gap} blocks above the ground
-     * (so it can never end up floating over a hole, held up by a single point), if
-     * the ground is liquid, or if there are trees / liquid inside the volume.
+     * so it rests on the ground instead of digging in. Any air left between the
+     * floor and the ground is filled in by place(); this returns null if a gap
+     * would be deeper than {@code max_floor_gap} blocks (too big a hole to fill),
+     * if the ground is liquid, or if there are trees / liquid inside the volume.
      */
     private Integer evaluateSite(World world, int ox, int oz) {
-        int maxGap = Math.max(0, cfg().getInt("reforge_altar.max_floor_gap", 1));
+        int maxGap = Math.max(0, cfg().getInt("reforge_altar.max_floor_gap", 4));
 
         int[] heights = new int[floorColumns.size()];
         int max = Integer.MIN_VALUE;
@@ -349,27 +372,63 @@ public final class ReforgeAltarManager {
 
     /**
      * Places the altar's non-air blocks (air is skipped, so nothing around it
-     * is carved away), recording every block it replaces so completeAltar()
-     * can put it all back exactly. Small plants inside the disc are cleared
-     * too (and restored later) so grass doesn't poke through the floor.
+     * is carved away) and fills any air under the floor disc with the local
+     * ground block (grass / sand / red sand / snow ... depending on the biome),
+     * so it never floats. Every block it replaces is recorded so
+     * completeAltar() can put it all back exactly, and every block it places is
+     * recorded so the altar can be re-placed after a restart. Small plants
+     * inside the disc are cleared too (and restored later).
      */
-    private boolean place(World world, int ox, int oy, int oz, ForgeRecipe recipe) {
+    private boolean place(World world, int ox, int oy, int oz) {
         if (pieces.isEmpty()) {
             plugin.getLogger().severe("Reforge Altar: structure has no blocks, not spawning.");
             return false;
         }
 
+        // Ground heights under the floor - read BEFORE placing, since placing changes the heightmap.
+        Map<Integer, Integer> ground = new HashMap<>();
+        for (int col : floorColumns) {
+            int x = ox + col / SIZE_Z;
+            int z = oz + col % SIZE_Z;
+            ground.put(col, world.getHighestBlockYAt(x, z, HeightMap.MOTION_BLOCKING_NO_LEAVES));
+        }
+
         List<String> saved = new ArrayList<>();
+        List<String> placedEntries = new ArrayList<>();
         Set<Integer> placed = new HashSet<>();
 
+        // 1. Fill air under the floor with the local ground block.
+        for (Map.Entry<Integer, Integer> e : ground.entrySet()) {
+            int dx = e.getKey() / SIZE_Z;
+            int dz = e.getKey() % SIZE_Z;
+            int x = ox + dx;
+            int z = oz + dz;
+            int groundY = e.getValue();
+            int top = oy - 1;
+            int bottom = Math.max(groundY + 1, top - MAX_FILL_DEPTH + 1);
+            if (bottom > top) continue;
+
+            Material surface = groundMaterial(world, x, groundY, z);
+            Material deep = isGrassy(surface) ? Material.DIRT : surface;
+            for (int y = bottom; y <= top; y++) {
+                Block block = world.getBlockAt(x, y, z);
+                saved.add(entry(dx, y - oy, dz, block.getBlockData()));
+                BlockData fill = (y == top ? surface : deep).createBlockData();
+                block.setBlockData(fill, false);
+                placedEntries.add(entry(dx, y - oy, dz, fill));
+            }
+        }
+
+        // 2. The structure itself.
         for (Piece p : pieces) {
             Block block = world.getBlockAt(ox + p.dx(), oy + p.dy(), oz + p.dz());
             saved.add(entry(p.dx(), p.dy(), p.dz(), block.getBlockData()));
+            placedEntries.add(entry(p.dx(), p.dy(), p.dz(), p.data()));
             placed.add(index(p.dx(), p.dy(), p.dz()));
             block.setBlockData(p.data(), false);
         }
 
-        // Clear grass/flowers/snow layers above the floor disc so they don't clip through it.
+        // 3. Clear grass/flowers/snow layers above the floor disc so they don't clip through it.
         for (int col : floorColumns) {
             int dx = col / SIZE_Z;
             int dz = col % SIZE_Z;
@@ -385,15 +444,46 @@ public final class ReforgeAltarManager {
         }
 
         snapshot = saved;
-        active = new Altar(world.getName(), ox, oy, oz, recipe);
+        placedBlocks = placedEntries;
+        active = new Altar(world.getName(), ox, oy, oz);
+        verified = true;
         spawning = false;
-        scheduleNextSpawn(); // also saves state (incl. the new active altar + snapshot)
-        spawnDisplay();
+        scheduleNextSpawn(); // also saves state (altar position + snapshot + placed blocks)
+        spawnDisplays();
 
         plugin.getLogger().info("Reforge Altar spawned at " + active.lodestoneX() + ", " + active.lodestoneY()
-                + ", " + active.lodestoneZ() + " in " + world.getName() + " (" + recipe.name() + ").");
+                + ", " + active.lodestoneZ() + " in " + world.getName() + ".");
         announce();
         return true;
+    }
+
+    /** The block to fill with: the ground's own top block, or the biome's default if that's unusable. */
+    private Material groundMaterial(World world, int x, int y, int z) {
+        Material top = world.getBlockAt(x, y, z).getType();
+        if (top.isBlock() && top.isSolid()
+                && !Tag.LEAVES.isTagged(top) && !Tag.LOGS.isTagged(top)
+                && !top.name().endsWith("ICE") && top != Material.LODESTONE) {
+            return top;
+        }
+        return biomeDefault(world.getBiome(x, y, z));
+    }
+
+    private static Material biomeDefault(Biome biome) {
+        String key = biome.getKey().getKey();
+        if (key.contains("badlands")) return Material.RED_SAND;
+        if (key.contains("desert") || key.contains("beach")) return Material.SAND;
+        if (key.contains("mushroom")) return Material.MYCELIUM;
+        if (key.contains("snowy") || key.contains("frozen") || key.contains("ice")
+                || key.contains("grove") || key.contains("slopes") || key.contains("peaks")) return Material.SNOW_BLOCK;
+        if (key.contains("stony")) return Material.STONE;
+        return Material.GRASS_BLOCK;
+    }
+
+    /** Surface-only blocks - below the top of a fill column these become plain dirt. */
+    private static boolean isGrassy(Material m) {
+        return m == Material.GRASS_BLOCK || m == Material.PODZOL || m == Material.MYCELIUM
+                || m == Material.DIRT_PATH || m == Material.FARMLAND || m == Material.MOSS_BLOCK
+                || m == Material.ROOTED_DIRT;
     }
 
     private static int index(int dx, int dy, int dz) {
@@ -416,11 +506,6 @@ public final class ReforgeAltarManager {
         Bukkit.broadcast(msg.append(Component.text("!", NamedTextColor.GOLD)));
     }
 
-    private ForgeRecipe randomRecipe() {
-        ForgeRecipe[] all = ForgeRecipe.values();
-        return all[random.nextInt(all.length)];
-    }
-
     // ------------------------------------------------------------------
     // Completion / removal
     // ------------------------------------------------------------------
@@ -440,8 +525,9 @@ public final class ReforgeAltarManager {
         // Clear first so a second click can't double-claim while the restore is pending.
         active = null;
         snapshot = new ArrayList<>();
+        placedBlocks = new ArrayList<>();
         saveState();
-        removeDisplay();
+        removeDisplays();
 
         World world = Bukkit.getWorld(a.worldName());
         if (world == null) return true;
@@ -456,6 +542,12 @@ public final class ReforgeAltarManager {
             world.getBlockAt(a.lodestoneX(), a.lodestoneY(), a.lodestoneZ()).setType(Material.AIR, false);
             return;
         }
+        applyEntries(world, a, entries);
+    }
+
+    /** Sets every "dx,dy,dz|blockdata" entry, relative to the altar's origin corner. Returns how many were applied. */
+    private int applyEntries(World world, Altar a, List<String> entries) {
+        int applied = 0;
         for (String line : entries) {
             try {
                 int bar = line.indexOf('|');
@@ -464,10 +556,39 @@ public final class ReforgeAltarManager {
                 world.getBlockAt(a.originX() + Integer.parseInt(pos[0]),
                         a.originY() + Integer.parseInt(pos[1]),
                         a.originZ() + Integer.parseInt(pos[2])).setBlockData(data, false);
+                applied++;
             } catch (RuntimeException e) {
-                plugin.getLogger().log(Level.WARNING, "Reforge Altar: bad snapshot entry '" + line + "'", e);
+                plugin.getLogger().log(Level.WARNING, "Reforge Altar: bad saved block entry '" + line + "'", e);
             }
         }
+        return applied;
+    }
+
+    /**
+     * After a restart, checks once that the saved altar is actually still in the
+     * world (its lodestone is there). If the structure is gone - chunk reset,
+     * world rollback - it is re-placed from the saved block list.
+     */
+    private void verifyAltarOnce() {
+        if (verified) return;
+        Altar a = active;
+        if (a == null) {
+            verified = true;
+            return;
+        }
+        World world = Bukkit.getWorld(a.worldName());
+        if (world == null || !world.isChunkLoaded(a.lodestoneX() >> 4, a.lodestoneZ() >> 4)) return;
+        verified = true;
+
+        if (world.getBlockAt(a.lodestoneX(), a.lodestoneY(), a.lodestoneZ()).getType() == Material.LODESTONE) return;
+        if (placedBlocks.isEmpty()) {
+            plugin.getLogger().warning("Reforge Altar: saved altar is missing from the world and has no saved blocks to re-place.");
+            return;
+        }
+        loadFootprint(world, a.originX(), a.originZ()).whenComplete((v, err) -> onMain(() -> {
+            int n = applyEntries(world, a, placedBlocks);
+            plugin.getLogger().info("Reforge Altar: structure was missing after restart, re-placed " + n + " blocks.");
+        }));
     }
 
     // ------------------------------------------------------------------
@@ -483,14 +604,20 @@ public final class ReforgeAltarManager {
         return Component.join(net.kyori.adventure.text.JoinConfiguration.newlines(), lines);
     }
 
-    private void spawnDisplay() {
+    private void spawnDisplays() {
+        for (ForgeRecipe recipe : ForgeRecipe.values()) {
+            spawnDisplay(recipe);
+        }
+    }
+
+    private void spawnDisplay(ForgeRecipe recipe) {
         Altar a = active;
         if (a == null) return;
         World world = Bukkit.getWorld(a.worldName());
         if (world == null) return;
 
         Location loc = new Location(world, a.lodestoneX() + 0.5, a.lodestoneY() + DISPLAY_HEIGHT, a.lodestoneZ() + 0.5);
-        Component text = buildDisplayText(a.recipe());
+        Component text = buildDisplayText(recipe);
         TextDisplay display = world.spawn(loc, TextDisplay.class, td -> {
             td.text(text);
             td.setBillboard(Display.Billboard.CENTER);
@@ -498,37 +625,64 @@ public final class ReforgeAltarManager {
             td.setShadowed(true);
             td.setSeeThrough(false);
             td.setBackgroundColor(Color.fromARGB(110, 0, 0, 0));
-            // Not persistent: it's re-created by maintainDisplay() whenever the
-            // chunk is loaded without one, so it can never be orphaned or duplicated.
+            // Hidden from everyone until updateDisplayVisibility() shows it to a
+            // player whose element uses this recipe.
+            td.setVisibleByDefault(false);
+            // Not persistent: re-created by maintainDisplays() whenever the chunk is
+            // loaded without one, so it can never be orphaned or duplicated.
             td.setPersistent(false);
         });
-        displayId = display.getUniqueId();
+        displayIds.put(recipe, display.getUniqueId());
     }
 
-    private void removeDisplay() {
-        if (displayId != null) {
-            Entity e = Bukkit.getEntity(displayId);
+    private void removeDisplays() {
+        for (UUID id : displayIds.values()) {
+            Entity e = Bukkit.getEntity(id);
             if (e != null) e.remove();
-            displayId = null;
         }
+        displayIds.clear();
     }
 
-    /** Re-creates the floating text if the altar's chunk is loaded and the display is missing. */
-    private void maintainDisplay() {
+    /** Re-creates any missing display while the altar's chunk is loaded, then updates who sees which. */
+    private void maintainDisplays() {
         Altar a = active;
         if (a == null) return;
         World world = Bukkit.getWorld(a.worldName());
         if (world == null) return;
 
-        int cx = a.lodestoneX() >> 4;
-        int cz = a.lodestoneZ() >> 4;
-        if (!world.isChunkLoaded(cx, cz)) return;
+        if (!world.isChunkLoaded(a.lodestoneX() >> 4, a.lodestoneZ() >> 4)) return;
 
-        if (displayId != null) {
-            Entity e = Bukkit.getEntity(displayId);
-            if (e != null && e.isValid()) return;
+        for (ForgeRecipe recipe : ForgeRecipe.values()) {
+            UUID id = displayIds.get(recipe);
+            Entity e = id == null ? null : Bukkit.getEntity(id);
+            if (e == null || !e.isValid()) spawnDisplay(recipe);
         }
-        spawnDisplay();
+        updateDisplayVisibility(world, a);
+    }
+
+    /** Each nearby player sees only the recipe display for their own element. */
+    private void updateDisplayVisibility(World world, Altar a) {
+        ElementManager elements = ((ElementSMPRefined) plugin).getElementManager();
+        Location center = new Location(world, a.lodestoneX() + 0.5, a.lodestoneY(), a.lodestoneZ() + 0.5);
+
+        for (Player player : world.getPlayers()) {
+            if (player.getLocation().distanceSquared(center) > DISPLAY_RANGE_SQ) continue;
+
+            ForgeRecipe wanted = ForgeRecipe.forBase(elements.getPlayerElement(player)).orElse(null);
+            for (ForgeRecipe recipe : ForgeRecipe.values()) {
+                UUID id = displayIds.get(recipe);
+                Entity display = id == null ? null : Bukkit.getEntity(id);
+                if (display == null) continue;
+
+                boolean shouldSee = recipe == wanted;
+                boolean sees = player.canSee(display);
+                if (shouldSee && !sees) {
+                    player.showEntity(plugin, display);
+                } else if (!shouldSee && sees) {
+                    player.hideEntity(plugin, display);
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -563,16 +717,11 @@ public final class ReforgeAltarManager {
         nextSpawnAtMillis = yaml.getLong("next_spawn_at", 0L);
 
         String worldName = yaml.getString("altar.world");
-        String recipeName = yaml.getString("altar.recipe");
-        if (worldName == null || recipeName == null) return;
-        try {
-            active = new Altar(worldName,
-                    yaml.getInt("altar.x"), yaml.getInt("altar.y"), yaml.getInt("altar.z"),
-                    ForgeRecipe.valueOf(recipeName));
-            snapshot = new ArrayList<>(yaml.getStringList("altar.snapshot"));
-        } catch (IllegalArgumentException e) {
-            plugin.getLogger().warning("Reforge Altar: unknown recipe '" + recipeName + "' in saved state, dropping the altar record.");
-        }
+        if (worldName == null) return;
+        active = new Altar(worldName, yaml.getInt("altar.x"), yaml.getInt("altar.y"), yaml.getInt("altar.z"));
+        snapshot = new ArrayList<>(yaml.getStringList("altar.snapshot"));
+        placedBlocks = new ArrayList<>(yaml.getStringList("altar.placed"));
+        verified = false;
     }
 
     private void saveState() {
@@ -584,8 +733,8 @@ public final class ReforgeAltarManager {
             yaml.set("altar.x", a.originX());
             yaml.set("altar.y", a.originY());
             yaml.set("altar.z", a.originZ());
-            yaml.set("altar.recipe", a.recipe().name());
             yaml.set("altar.snapshot", snapshot);
+            yaml.set("altar.placed", placedBlocks);
         }
         try {
             plugin.getDataFolder().mkdirs();

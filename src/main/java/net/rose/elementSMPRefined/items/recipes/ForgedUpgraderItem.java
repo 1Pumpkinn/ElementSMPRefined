@@ -16,17 +16,11 @@ public final class ForgedUpgraderItem {
     private ForgedUpgraderItem() {}
 
     public static ItemStack make(JavaPlugin plugin) {
-        return ItemBuilder.of(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE)
+        return ItemBuilder.of(Material.ENDER_EYE)
                 .name("&6&lForged Upgrader")
                 .lore(
-                        "&7Reforges your basic element",
-                        "&7into its advanced form",
-                        "",
-                        "&cFire &7-> &6Lava   &aEarth &7-> &8Metal",
-                        "&bWater &7-> &3Frost   &fAir &7-> &eStorm",
-                        "",
-                        "&eRight-click to use"
-                )
+                        "&7Forges your basic element",
+                        "&7into its advanced stage")
                 .data(ItemKeys.forgedUpgrader(plugin), (byte) 1)
                 .build();
     }

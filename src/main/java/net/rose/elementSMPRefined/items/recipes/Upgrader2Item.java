@@ -16,7 +16,7 @@ public final class Upgrader2Item {
     public static ItemStack make(JavaPlugin plugin) {
         return ItemBuilder.of(Material.ECHO_SHARD)
                 .name("&bUpgrader II")
-                .lore("Use by crafting to unlock", "Ability 2 + Upside 2 for your element")
+                .lore("Unlocks Ability 2 and Passive 2")
                 .data(ItemKeys.upgraderLevel(plugin), 2)
                 .build();
     }

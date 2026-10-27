@@ -20,9 +20,7 @@ public final class RerollerItem {
         return ItemBuilder.of(Material.HEART_OF_THE_SEA)
                 .name("&dElement Reroller")
                 .itemModel(MODEL)
-                .lore(
-                        "&7Allows you to change your element",
-                        "&eRight-click to randomly reroll your element"
+                .lore("&eRight-click to randomly reroll your element"
                 )
                 .data(ItemKeys.reroller(plugin), (byte) 1)
                 .build();

@@ -673,7 +673,7 @@ public final class Lang {
     // player's two abilities is on cooldown; ability names are truncated to a
     // fixed prefix length so a long ability name can't push the other side of
     // the bar off-screen or make it flicker as it re-renders each tick.
-    private static final int COOLDOWN_BAR_NAME_MAX_LENGTH = 14;
+    private static final int COOLDOWN_BAR_NAME_MAX_LENGTH = 16;
 
     /** Upgrade level an element needs before its second ability can be used. */
     private static final int ABILITY2_REQUIRED_UPGRADE = 2;

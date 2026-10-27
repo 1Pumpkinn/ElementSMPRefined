@@ -8,7 +8,6 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,7 +28,9 @@ import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -52,12 +53,19 @@ import java.util.UUID;
  * <p>The displays are spawned in the air block <em>above</em> the ground block
  * (not inside it). A display inside a solid block samples that block's light
  * level, which is zero, and renders pitch black.</p>
+ *
+ * <p>Performance: a whole cast is driven by ONE repeating task. Every display goes
+ * through the same fixed raise -> settle -> remove timeline, so instead of scheduling
+ * three delayed tasks per block, each phase is a FIFO queue that is drained from the
+ * front once per tick (blocks always come due in the order they were spawned).</p>
  */
 public class ShockwaveAbility extends BaseAbility {
 
     private static final double JUMP_VELOCITY = 1.1;   // ~6-7 blocks of hop
     private static final double SLAM_SPEED = 1.5;      // downward velocity while slamming
-    private static final int MIN_RISE_TICKS = 4;       // don't check for the apex before this
+    private static final int MIN_RISE_TICKS = 8;       // don't check for the apex before this (the real apex is ~tick 12)
+    private static final double APEX_DROP = 0.15;      // must have fallen this far below the highest point to count as the apex
+    private static final int APEX_STALL_TICKS = 4;     // ...or sat at the highest point this long (ceiling bonk)
     private static final int MAX_RISE_TICKS = 25;      // force the slam if they never peak (ceiling, etc.)
     private static final int SLAM_TIMEOUT_TICKS = 100; // force the impact if they never land (void, water)
 
@@ -72,17 +80,35 @@ public class ShockwaveAbility extends BaseAbility {
     private static final double HIT_RADIUS_XZ = 1.5;
     private static final double HIT_RADIUS_Y = 3.0;
 
+    // Per-block animation, in ticks. Interpolation is linear, so a slightly longer settle reads smoother.
     private static final int RISE_TICKS = 2;
     private static final int HOLD_TICKS = 1;
-    private static final int FALL_TICKS = 3;
+    private static final int FALL_TICKS = 4;
     private static final double RISE_HEIGHT = 1.0;     // how far each block heaves up, in blocks
     private static final float CUBE_SCALE = 0.98f;     // slightly under 1 so the copy doesn't z-fight the real block
+
+    // Ticks after spawning at which each phase starts. The raise waits one tick because
+    // interpolation only animates if the transformation changes after clients have the entity.
+    private static final int RAISE_AT = 1;
+    private static final int FALL_AT = RAISE_AT + RISE_TICKS + HOLD_TICKS;
+    private static final int REMOVE_AT = FALL_AT + FALL_TICKS + 2;
+
+    /** Fraction of the normal render distance the copies are visible from (0.5 = ~32 blocks). Smaller = less network traffic. */
+    private static final float VIEW_RANGE = 0.5f;
+    /** Dust particles are only spawned on every other column (checkerboard) - half the packets, same look. */
+    private static final int DUST_COUNT = 3;
 
     private static final int SCAN_UP = 2;
     private static final int SCAN_DOWN = 4;
 
+    /** Every block rests in the same pose, so it is built once. */
+    private static final Transformation RESTING = placed(-0.5f, new Quaternionf());
+
     private final ElementSMPRefined plugin;
     private final Set<UUID> activeCasters = new HashSet<>();
+
+    /** A live copy of a ground block: its display, the pose it heaves to, and the cast tick it was spawned on. */
+    private record WaveBlock(BlockDisplay display, Transformation raised, int born) {}
 
     public ShockwaveAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("earth_shockwave", ElementType.EARTH, 2, 60, 2, configManager);
@@ -110,7 +136,8 @@ public class ShockwaveAbility extends BaseAbility {
 
         new BukkitRunnable() {
             int ticks = 0;
-            double lastY = start.getY();
+            double maxY = start.getY();
+            int ticksSinceMax = 0;
             boolean slamming = false;
 
             @Override
@@ -128,9 +155,20 @@ public class ShockwaveAbility extends BaseAbility {
                 if (!slamming) {
                     // Player#getVelocity isn't reliable for players (the client simulates its
                     // own movement), so detect the apex from the actual Y position instead.
+                    // The server only sees a new position when the client sends one, so a single
+                    // tick with an unchanged Y (lag, packet jitter) must NOT count as the apex -
+                    // that used to slam the caster down after ~3 blocks. Only a real drop below
+                    // the highest point, or a sustained stall (ceiling), ends the rise.
                     double y = caster.getLocation().getY();
-                    boolean peaked = ticks > MIN_RISE_TICKS && (y <= lastY + 1.0E-3 || ticks >= MAX_RISE_TICKS);
-                    lastY = y;
+                    if (y > maxY + 1.0E-3) {
+                        maxY = y;
+                        ticksSinceMax = 0;
+                    } else {
+                        ticksSinceMax++;
+                    }
+                    boolean peaked = ticks >= MAX_RISE_TICKS
+                            || (ticks >= MIN_RISE_TICKS
+                            && (y < maxY - APEX_DROP || ticksSinceMax >= APEX_STALL_TICKS));
                     if (!peaked) return;
 
                     slamming = true;
@@ -171,17 +209,33 @@ public class ShockwaveAbility extends BaseAbility {
         final Map<Long, Block> groundByColumn = new HashMap<>();
         final int startY = origin.getBlockY();
 
+        // One queue per phase. Every block spends the same time in each phase, so each queue is
+        // already sorted by due time and only ever needs its front checked.
+        final Deque<WaveBlock> toRaise = new ArrayDeque<>();
+        final Deque<WaveBlock> toFall = new ArrayDeque<>();
+        final Deque<WaveBlock> toRemove = new ArrayDeque<>();
+
         new BukkitRunnable() {
             double radius = START_RADIUS;
+            int now = 0;
 
             @Override
             public void run() {
+                now++;
+                advanceBlocks(now, toRaise, toFall, toRemove);
+
                 if (radius > MAX_RANGE) {
-                    cancel();
+                    // Ring is finished; stay alive only until the last display has settled and been removed.
+                    if (toRaise.isEmpty() && toFall.isEmpty() && toRemove.isEmpty()) cancel();
                     return;
                 }
 
                 int points = Math.max(8, (int) Math.ceil((2 * Math.PI * radius) / ARC_SPACING));
+
+                // Taller near the centre, tapering off toward the edge of the wave. The pose is the
+                // same for the whole ring step, so it is built once per tick instead of once per block.
+                double falloff = 1.0 - (radius / MAX_RANGE) * 0.4;
+                final Transformation raised = placed(-0.5f + (float) (RISE_HEIGHT * falloff), new Quaternionf());
 
                 // Fetched once per tick, and only if a point actually finds ground.
                 List<LivingEntity> candidates = null;
@@ -204,9 +258,7 @@ public class ShockwaveAbility extends BaseAbility {
                     if (ground == null) continue;
 
                     if (raisedColumns.add(columnKey(ground))) {
-                        // Taller near the centre, tapering off toward the edge of the wave.
-                        double falloff = 1.0 - (radius / MAX_RANGE) * 0.4;
-                        raiseBlock(ground, falloff);
+                        toRaise.add(new WaveBlock(spawnBlock(ground), raised, now));
                     }
 
                     if (candidates == null) candidates = collectCandidates(caster, trust, origin, radius, alreadyHit);
@@ -215,54 +267,70 @@ public class ShockwaveAbility extends BaseAbility {
                     }
                 }
 
-                world.playSound(origin.clone().add(radius, 0, 0), Sound.BLOCK_STONE_BREAK, 0.5f, 0.7f);
+                if ((now & 1) == 0) {
+                    world.playSound(origin.clone().add(radius, 0, 0), Sound.BLOCK_STONE_BREAK, 0.5f, 0.7f);
+                }
                 radius += STEP_PER_TICK;
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    /** Heaves a copy of the block up out of the ground, holds it, then settles it back down. */
-    private void raiseBlock(Block ground, double falloff) {
+    /**
+     * Moves every display that has come due on to its next phase. Later phases are handled first
+     * so a block is never pushed through two phases in the same tick.
+     */
+    private static void advanceBlocks(int now, Deque<WaveBlock> toRaise, Deque<WaveBlock> toFall,
+                                      Deque<WaveBlock> toRemove) {
+        WaveBlock b;
+
+        while ((b = toRemove.peekFirst()) != null && now >= b.born() + REMOVE_AT) {
+            toRemove.pollFirst();
+            if (b.display().isValid()) b.display().remove();
+        }
+
+        while ((b = toFall.peekFirst()) != null && now >= b.born() + FALL_AT) {
+            toFall.pollFirst();
+            if (b.display().isValid()) {
+                b.display().setInterpolationDelay(0);
+                b.display().setInterpolationDuration(FALL_TICKS);
+                b.display().setTransformation(RESTING);
+            }
+            toRemove.addLast(b);
+        }
+
+        while ((b = toRaise.peekFirst()) != null && now >= b.born() + RAISE_AT) {
+            toRaise.pollFirst();
+            if (b.display().isValid()) {
+                b.display().setInterpolationDelay(0);
+                b.display().setInterpolationDuration(RISE_TICKS);
+                b.display().setTransformation(b.raised());
+            }
+            toFall.addLast(b);
+        }
+    }
+
+    /** Spawns the resting copy of a ground block, just above the real one, plus a little dust. */
+    private BlockDisplay spawnBlock(Block ground) {
         World w = ground.getWorld();
         BlockData data = ground.getBlockData();
 
         // Spawned in the air block above the ground so it's lit normally. Its resting
         // pose sits exactly over the real block (translation -1 on Y).
-        Location spawn = ground.getLocation().add(0, 1, 0);
-
-        float rise = (float) (RISE_HEIGHT * falloff);
-
-        // Straight up and down, no rotation: flat cubes keep the ground looking like ground.
-        Transformation resting = placed(-0.5f, new Quaternionf());
-        Transformation raised = placed(-0.5f + rise, new Quaternionf());
+        Location spawn = new Location(w, ground.getX(), ground.getY() + 1, ground.getZ());
 
         BlockDisplay display = w.spawn(spawn, BlockDisplay.class, d -> {
             d.setBlock(data);
             d.setPersistent(false);
-            d.setTransformation(resting);
+            d.setViewRange(VIEW_RANGE);
+            d.setTransformation(RESTING);
         });
 
-        w.spawnParticle(Particle.BLOCK, spawn.clone().add(0.5, 0.1, 0.5), 4, 0.4, 0.1, 0.4, 0.0, data, true);
-
-        // Interpolation only animates if the transformation changes after the
-        // entity has been sent to clients, so the rise starts a tick later.
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!display.isValid()) return;
-            display.setInterpolationDelay(0);
-            display.setInterpolationDuration(RISE_TICKS);
-            display.setTransformation(raised);
-        }, 1L);
-
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!display.isValid()) return;
-            display.setInterpolationDelay(0);
-            display.setInterpolationDuration(FALL_TICKS);
-            display.setTransformation(resting);
-        }, 1L + RISE_TICKS + HOLD_TICKS);
-
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (display.isValid()) display.remove();
-        }, 1L + RISE_TICKS + HOLD_TICKS + FALL_TICKS + 2L);
+        // Checkerboard: dust on every other column only.
+        if (((ground.getX() + ground.getZ()) & 1) == 0) {
+            w.spawnParticle(Particle.BLOCK, spawn.getX() + 0.5, spawn.getY() + 0.1, spawn.getZ() + 0.5,
+                    DUST_COUNT, 0.4, 0.1, 0.4, 0.0, data, true);
+        }
+        return display;
     }
 
     /**

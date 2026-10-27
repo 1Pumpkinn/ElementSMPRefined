@@ -58,8 +58,13 @@ public class MagmaBeamAbility extends BaseAbility {
     /** Blocks between particle samples along the beam. Bigger = fewer particles. */
     private static final double HELIX_STEP = 2.0;
     private static final double SHEATH_STEP = 3.0;
-    /** Flame sparks pulled towards the orb each tick while charging. */
-    private static final int CHARGE_SPARKS = 2;
+    /** A flame spark is pulled towards the orb every this many ticks while charging (kept sparse so the caster can see). */
+    private static final int CHARGE_SPARK_INTERVAL = 3;
+    /** Lava pop on the orb every this many ticks while charging. */
+    private static final int CHARGE_LAVA_INTERVAL = 10;
+    /** Flames in the one-off burst at the muzzle the moment the beam fires. */
+    private static final int MUZZLE_FLAMES = 30;
+    private static final int MUZZLE_LAVA = 4;
 
     private static final Component ALREADY_CHARGING =
             Component.text("Magma Beam is already charging!", NamedTextColor.RED);
@@ -123,6 +128,9 @@ public class MagmaBeamAbility extends BaseAbility {
                         World w = player.getWorld();
                         w.playSound(start, Sound.ENTITY_BLAZE_SHOOT, 1.6f, 0.6f);
                         w.playSound(start, Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.4f);
+                        // One-off burst at the muzzle as the shot is released.
+                        w.spawnParticle(Particle.FLAME, start, MUZZLE_FLAMES, 0.3, 0.3, 0.3, 0.12, null, true);
+                        w.spawnParticle(Particle.LAVA, start, MUZZLE_LAVA, 0.3, 0.3, 0.3, 0.0, null, true);
                     }
                     fire(player, trust, visual, eye, start, dir, tick - CHARGE_TICKS, roll);
                     if (tick >= CHARGE_TICKS + BEAM_TICKS) {
@@ -146,12 +154,16 @@ public class MagmaBeamAbility extends BaseAbility {
 
         visual.update(orb.clone().subtract(dir.clone().multiply(0.2)), dir, 0.4 + 0.8 * progress, (float) (0.4 + 1.0 * progress), roll);
 
+        // Charge is deliberately quiet - the orb model carries it. The big particle show
+        // happens once, when the beam fires (see the muzzle burst in run()).
         double radius = 2.6 * (1.0 - progress) + 0.3;
-        for (int i = 0; i < CHARGE_SPARKS; i++) {
+        if (tick % CHARGE_SPARK_INTERVAL == 0) {
             Vector offset = Vector.getRandom().subtract(new Vector(0.5, 0.5, 0.5)).normalize().multiply(radius);
             w.spawnParticle(Particle.FLAME, orb.clone().add(offset), 1, 0, 0, 0, 0.0, null, true);
         }
-        w.spawnParticle(Particle.LAVA, orb, 1, 0.2, 0.2, 0.2, 0.0, null, true);
+        if (tick % CHARGE_LAVA_INTERVAL == 0) {
+            w.spawnParticle(Particle.LAVA, orb, 1, 0.2, 0.2, 0.2, 0.0, null, true);
+        }
 
         if (tick % 5 == 0) {
             w.playSound(orb, Sound.ITEM_FIRECHARGE_USE, 0.8f, 0.6f + (float) progress);

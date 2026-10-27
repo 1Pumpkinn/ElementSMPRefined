@@ -19,8 +19,10 @@ import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Tameable;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -530,8 +532,22 @@ public class TornadoAbility extends BaseAbility {
     }
 
     private boolean canAffect(Tornado t, Player caster, LivingEntity target) {
-        if (target.equals(caster) || !target.isValid() || target.isDead()) return false;
+        // The caster is never touched, matched by UUID so a stale/re-created Player object can't slip through.
+        if (target.getUniqueId().equals(caster.getUniqueId())) return false;
+        if (!target.isValid() || target.isDead()) return false;
         if (target instanceof ArmorStand) return false;
+
+        // Anything the caster is riding or carrying (horse, pig, a mob on their shoulders...) would drag
+        // the caster along with it, so it is off limits too.
+        if (isCasterAttached(caster, target)) return false;
+
+        // Caster-owned projectiles (arrows, wind charges, tridents...) are not living entities and are
+        // never scanned, but never treat one as a target even if one is ever passed in.
+        if (target instanceof Projectile projectile
+                && projectile.getShooter() instanceof Player shooter
+                && (shooter.getUniqueId().equals(caster.getUniqueId()) || isTrusted(t, caster, shooter.getUniqueId()))) {
+            return false;
+        }
 
         if (target instanceof Player player) {
             GameMode mode = player.getGameMode();
@@ -539,12 +555,30 @@ public class TornadoAbility extends BaseAbility {
             return !isTrusted(t, caster, player.getUniqueId());
         }
 
-        // Mobs are fair game, but leave the caster's (and their trusted friends') tamed pets alone.
+        // Mobs are fair game, but not mounts carrying the caster / a trusted player, and not the
+        // caster's (or their trusted friends') tamed pets.
+        for (Entity passenger : target.getPassengers()) {
+            if (passenger instanceof Player rider
+                    && (rider.getUniqueId().equals(caster.getUniqueId()) || isTrusted(t, caster, rider.getUniqueId()))) {
+                return false;
+            }
+        }
         if (target instanceof Tameable pet && pet.getOwnerUniqueId() != null) {
             UUID owner = pet.getOwnerUniqueId();
             return !owner.equals(caster.getUniqueId()) && !isTrusted(t, caster, owner);
         }
         return true;
+    }
+
+    /** True if the target is the caster's vehicle or is riding / being carried by the caster. */
+    private static boolean isCasterAttached(Player caster, LivingEntity target) {
+        Entity vehicle = caster.getVehicle();
+        if (vehicle != null && vehicle.getUniqueId().equals(target.getUniqueId())) return true;
+        for (Entity passenger : caster.getPassengers()) {
+            if (passenger.getUniqueId().equals(target.getUniqueId())) return true;
+        }
+        Entity targetVehicle = target.getVehicle();
+        return targetVehicle != null && targetVehicle.getUniqueId().equals(caster.getUniqueId());
     }
 
     private boolean isTrusted(Tornado t, Player caster, UUID other) {

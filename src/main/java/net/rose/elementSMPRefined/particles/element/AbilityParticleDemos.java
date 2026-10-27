@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.particles.element;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.ability.main.basic.water.KrakenSlamAbility;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -46,7 +47,7 @@ public final class AbilityParticleDemos {
         register("fire_starfall", AbilityParticleDemos::fireStarFall);
         register("fire_hellchain", AbilityParticleDemos::fireHellChain);
         // Water
-        register("kraken_grasp", AbilityParticleDemos::krakenGrasp);
+        register("kraken_slam", AbilityParticleDemos::krakenSlam);
         register("water_dash", AbilityParticleDemos::waterDash);
         // Death
         register("death_backstab", AbilityParticleDemos::deathBackstab);
@@ -235,12 +236,13 @@ public final class AbilityParticleDemos {
     }
 
 
-    private static void krakenGrasp(Player player, ElementSMPRefined plugin) {
-        Location target = front(player, 6);
-        WaterParticles.graspBurst(target);
-        WaterParticles.tentacleErupt(target.clone().add(1, 0, 0));
-        WaterParticles.tentacleErupt(target.clone().add(-1, 0, 0));
-        later(plugin, 35L, () -> WaterParticles.graspRelease(target.clone().add(0, 1, 0)));
+    private static void krakenSlam(Player player, ElementSMPRefined plugin) {
+        Location impact = front(player, 8);
+        double radius = KrakenSlamAbility.HIT_RADIUS;
+        repeat(plugin, player, 20, tick -> {
+            if (tick % 2 == 0) WaterParticles.krakenSlamMarker(impact, radius, tick / 21.0);
+        });
+        later(plugin, 21L, () -> WaterParticles.krakenSlamImpact(impact, radius));
     }
 
     private static void waterDash(Player player, ElementSMPRefined plugin) {

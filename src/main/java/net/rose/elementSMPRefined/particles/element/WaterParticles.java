@@ -12,7 +12,7 @@ public final class WaterParticles {
 
     private WaterParticles() {}
 
-    /** Burst of water where the tentacles erupt around the target. */
+    /** Burst of water where the tentacle breaks the ground. */
     public static void graspBurst(Location at) {
         World world = at.getWorld();
         world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.2, 0), 50, 0.5, 0.2, 0.5, 0.2, null, true);
@@ -26,10 +26,48 @@ public final class WaterParticles {
         world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.4, 0), 6, 0.15, 0.3, 0.15, 0.03, null, true);
     }
 
-    /** Bubbles when the tentacle lets go. */
+    /** Bubbles as the tentacle sinks back into the ground. */
     public static void graspRelease(Location body) {
         body.getWorld().spawnParticle(Particle.BUBBLE_POP, body, 40, 0.5, 0.7, 0.5, 0.15, null, true);
         body.getWorld().spawnParticle(Particle.SPLASH, body, 30, 0.5, 0.5, 0.5, 0.2, null, true);
+    }
+
+    // ---- Kraken Slam ----
+
+    /**
+     * Ground marker for the slam: the outer ring is the hit area, the inner ring closes in on it as
+     * the tentacle gets closer ({@code progress} 0 -> 1).
+     */
+    public static void krakenSlamMarker(Location center, double radius, double progress) {
+        ring(center, radius, 28);
+        ring(center, Math.max(0.3, radius * Math.min(1.0, progress)), 16);
+    }
+
+    private static void ring(Location center, double radius, int points) {
+        World world = center.getWorld();
+        for (int i = 0; i < points; i++) {
+            double angle = 2 * Math.PI * i / points;
+            Location p = center.clone().add(Math.cos(angle) * radius, 0.15, Math.sin(angle) * radius);
+            world.spawnParticle(Particle.SPLASH, p, 2, 0.05, 0.02, 0.05, 0.02, null, true);
+            world.spawnParticle(Particle.BUBBLE_POP, p, 1, 0.02, 0.02, 0.02, 0.0, null, true);
+        }
+    }
+
+    /** The tentacle landing: a big splash at the centre and a ring of spray rolling out to the edge. */
+    public static void krakenSlamImpact(Location at, double radius) {
+        World world = at.getWorld();
+        world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.3, 0), 120,
+                radius * 0.35, 0.3, radius * 0.35, 0.4, null, true);
+        world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.6, 0), 60,
+                radius * 0.3, 0.6, radius * 0.3, 0.15, null, true);
+        for (double r = 1.0; r <= radius; r += 1.25) {
+            int points = (int) Math.max(12, r * 8);
+            for (int i = 0; i < points; i++) {
+                double angle = 2 * Math.PI * i / points;
+                Location p = at.clone().add(Math.cos(angle) * r, 0.2, Math.sin(angle) * r);
+                world.spawnParticle(Particle.SPLASH, p, 4, 0.1, 0.1, 0.1, 0.3, null, true);
+            }
+        }
     }
 
     /** Spray at the geyser launch point. */

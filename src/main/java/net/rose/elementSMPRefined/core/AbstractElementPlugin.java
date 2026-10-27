@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.core;
 
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.core.initializers.CommandInitializer;
+import net.rose.elementSMPRefined.altar.ReforgeAltarManager;
 import net.rose.elementSMPRefined.core.initializers.ListenerInitializer;
 import net.rose.elementSMPRefined.core.initializers.RecipeInitializer;
 import net.rose.elementSMPRefined.hud.CooldownActionBarTask;
@@ -37,6 +38,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected ValidationService validationService;
     protected CooldownActionBarTask cooldownActionBarTask;
 
+    protected ReforgeAltarManager reforgeAltarManager;
     protected TaskScheduler taskScheduler;
     protected MetadataHelper metadataHelper;
     protected  TrueDamage trueDamage;
@@ -112,6 +114,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.itemManager = new ItemManager(this);
         this.statusEffectManager = new StatusEffectManager(this);
         this.disarmManager = new DisarmManager(this);
+        this.reforgeAltarManager = new ReforgeAltarManager(this);
     }
 
     private void initializeServices() {
@@ -134,9 +137,13 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     private void startBackgroundTasks() {
         cooldownActionBarTask.start(taskScheduler);
+        reforgeAltarManager.start();
     }
 
     private void cleanup() {
+        if (reforgeAltarManager != null) {
+            reforgeAltarManager.stop();
+        }
         if (statusEffectManager != null) {
             statusEffectManager.cleanup();
         }
@@ -167,6 +174,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public DisarmManager getDisarmManager() { return disarmManager; }
     public EffectService getEffectService() { return effectService; }
     public CooldownActionBarTask getCooldownActionBarTask() { return cooldownActionBarTask; }
+    public ReforgeAltarManager getReforgeAltarManager() { return reforgeAltarManager; }
     public TaskScheduler getTaskScheduler() { return taskScheduler; }
     public MetadataHelper getMetadataHelper() { return metadataHelper; }
     public ListenerInitializer getListenerInitializer() { return listenerInitializer; }

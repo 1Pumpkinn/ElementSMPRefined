@@ -41,3 +41,27 @@ grace_period:
   on_end:
     enable_nether: false
     enable_end: false
+
+# Reforge Altar
+# Every min..max hours an altar spawns somewhere in the world with a lodestone in
+# the middle. Right-click the lodestone with the ingredients shown above it to get
+# a Forged Upgrader; the structure is then removed and the terrain it overwrote
+# is restored. Only one altar exists at a time. Test it with /reforgealtar.
+reforge_altar:
+  enabled: true
+  # World to spawn in (blank = first overworld)
+  world: ""
+  min_interval_hours: 6
+  max_interval_hours: 12
+  # Spawn distance from the world spawn, in blocks
+  min_radius: 300
+  max_radius: 3000
+  # Max air gap allowed between any part of the altar floor and the ground below it.
+  # 0-1 keeps it resting on the ground; higher lets it hover over dips.
+  # (The altar also never spawns in trees or water.)
+  max_floor_gap: 1
+  # Random sites to try (water / uneven ground are skipped) before retrying in 5 minutes
+  spawn_attempts: 25
+  # Broadcast when an altar appears, optionally with its coordinates
+  announce: true
+  announce_coordinates: true

@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbili
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
-import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
+import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
@@ -179,8 +179,8 @@ public class PlayerLifecycle implements Listener {
             player.sendMessage(Lang.lifecycleYourElementReroller((basicCount > 1 ? "s were" : " was")));
         }
         if (advancedCount > 0) {
-            giveItemStack(player, AdvancedRerollerItem.make(plugin), advancedCount);
-            player.sendMessage(Lang.lifecycleYourAdvancedReroller((advancedCount > 1 ? "s were" : " was")));
+            giveItemStack(player, ForgedUpgraderItem.make(plugin), advancedCount);
+            player.sendMessage(Lang.lifecycleYourForgedUpgrader((advancedCount > 1 ? "s were" : " was")));
         }
 
         plugin.getDataStore().save(pd);

@@ -9,7 +9,7 @@ public final class ItemKeys {
     public static final String KEY_UPGRADER_LEVEL = "upgrader_level";
 
     public static final String KEY_REROLLER = "element_reroller";
-    public static final String KEY_ADVANCED_REROLLER = "advanced_reroller";
+    public static final String KEY_FORGED_UPGRADER = "forged_upgrader";
 
     public static NamespacedKey namespaced(JavaPlugin plugin, String key) {
         return new NamespacedKey(plugin, key);
@@ -17,5 +17,5 @@ public final class ItemKeys {
 
     public static NamespacedKey upgraderLevel(JavaPlugin plugin) { return namespaced(plugin, KEY_UPGRADER_LEVEL); }
     public static NamespacedKey reroller(JavaPlugin plugin) { return namespaced(plugin, KEY_REROLLER); }
-    public static NamespacedKey advancedReroller(JavaPlugin plugin) { return namespaced(plugin, KEY_ADVANCED_REROLLER); }
+    public static NamespacedKey forgedUpgrader(JavaPlugin plugin) { return namespaced(plugin, KEY_FORGED_UPGRADER); }
 }

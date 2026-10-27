@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.commands.element.admin;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
+import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.items.recipes.Upgrader1Item;
 import net.rose.elementSMPRefined.items.recipes.Upgrader2Item;
@@ -40,16 +40,16 @@ public class UtilCommand implements CommandExecutor {
         ItemStack rerollerStack = RerollerItem.make(plugin);
         rerollerStack.setAmount(64);
 
-        ItemStack advancedRerollerStack = AdvancedRerollerItem.make(plugin);
-        advancedRerollerStack.setAmount(64);
+        ItemStack forgedUpgraderStack = ForgedUpgraderItem.make(plugin);
+        forgedUpgraderStack.setAmount(64);
 
-        player.getInventory().addItem(upgrader1Stack, upgrader2Stack, rerollerStack, advancedRerollerStack);
+        player.getInventory().addItem(upgrader1Stack, upgrader2Stack, rerollerStack, forgedUpgraderStack);
 
         player.sendMessage(Lang.UTIL_YOU_HAVE_BEEN_GIVEN_UTILITY);
         player.sendMessage(Lang.UTIL_64X_UPGRADER_I);
         player.sendMessage(Lang.UTIL_64X_UPGRADER_II);
         player.sendMessage(Lang.UTIL_64X_REROLLER);
-        player.sendMessage(Lang.UTIL_64X_ADVANCED_REROLLER);
+        player.sendMessage(Lang.UTIL_64X_FORGED_UPGRADER);
 
         return true;
     }

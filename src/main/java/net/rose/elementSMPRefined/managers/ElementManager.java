@@ -138,7 +138,7 @@ public class ElementManager {
 
     /**
      * Public entry point for handlers that run their own animation loop
-     * (e.g. {@code AdvancedRerollerHandler}) but still need to share the
+     * (e.g. {@code ForgedUpgraderHandler}) but still need to share the
      * same "is this player mid-reroll" lock as the basic reroller and the
      * element-selection GUI, so the three can't overlap on one player.
      */
@@ -166,7 +166,7 @@ public class ElementManager {
 
     /**
      * Same as {@link #queueRerollerRefund(Player)} but for the advanced
-     * reroller. Public because {@code AdvancedRerollerHandler} runs its own
+     * reroller. Public because {@code ForgedUpgraderHandler} runs its own
      * animation loop outside this class and needs to queue the refund
      * itself when a player logs off mid-roll.
      */

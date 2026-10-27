@@ -42,6 +42,12 @@ commands:
     usage: /autosmelt [on|off]
     aliases: [ smelt ]
 
+  reforgealtar:
+    description: Spawn, remove or inspect the Reforge Altar
+    usage: /reforgealtar <spawn|here|remove|status|tp>
+    aliases: [ altar ]
+    permission: element.admin
+
   grace:
     description: Start, stop, extend or configure the server grace period
     usage: /grace <start [time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>

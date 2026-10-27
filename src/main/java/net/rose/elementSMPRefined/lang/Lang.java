@@ -152,8 +152,8 @@ public final class Lang {
     public static final Component UTIL_64X_REROLLER =
             Component.text("• 64x Reroller", NamedTextColor.YELLOW);
 
-    public static final Component UTIL_64X_ADVANCED_REROLLER =
-            Component.text("• 64x Advanced Reroller", NamedTextColor.DARK_PURPLE);
+    public static final Component UTIL_64X_FORGED_UPGRADER =
+            Component.text("• 64x Forged Upgrader", NamedTextColor.DARK_PURPLE);
 
 
     public static final Component CONFIG_CONFIGURATION_RELOADED_SUCCESSFULLY =
@@ -501,9 +501,9 @@ public final class Lang {
         );
     }
 
-    public static Component lifecycleYourAdvancedReroller(Object was) {
+    public static Component lifecycleYourForgedUpgrader(Object was) {
         return Component.textOfChildren(
-                Component.text("Your Advanced Reroller", NamedTextColor.YELLOW),
+                Component.text("Your Forged Upgrader", NamedTextColor.YELLOW),
                 Component.text(String.valueOf(was), NamedTextColor.YELLOW),
                 Component.text(" refunded since your last reroll got interrupted.", NamedTextColor.YELLOW)
         );

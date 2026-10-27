@@ -1,7 +1,6 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.items.recipes.AdvancedRerollerItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.items.recipes.Upgrader1Item;
 import net.rose.elementSMPRefined.items.recipes.Upgrader2Item;
@@ -20,10 +19,6 @@ public class RecipeInitializer {
             Upgrader1Item.registerRecipe(plugin);
             Upgrader2Item.registerRecipe(plugin);
             RerollerItem.registerRecipe(plugin);
-
-            if (plugin.getConfigManager().isAdvancedRerollerRecipeEnabled()) {
-                AdvancedRerollerItem.registerRecipe(plugin);
-            }
         }, 1);
     }
 }

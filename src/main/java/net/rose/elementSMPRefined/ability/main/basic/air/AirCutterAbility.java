@@ -30,7 +30,7 @@ public class AirCutterAbility extends BaseAbility {
     /** Number of blades per cast. They fan out symmetrically around the player's aim. */
     private static final int CUTTER_COUNT = 3;
     /** Horizontal angle, in degrees, between neighbouring blades. */
-    private static final double SPREAD_DEGREES = 15.0;
+    private static final double SPREAD_DEGREES = 10.0;
     /** Horizontal knockback applied once per cast (was 1.4 and stacked once per blade). */
     private static final double KNOCKBACK_HORIZONTAL = 0.6;
     /** Small lift so targets slide instead of scraping along the ground. */
@@ -65,7 +65,7 @@ public class AirCutterAbility extends BaseAbility {
         Vector fanAxis = fanAxis(player, aim);
 
         for (int i = 0; i < CUTTER_COUNT; i++) {
-            // Offsets are centred on the aim: for 3 blades that's -15deg, 0deg, +15deg.
+            // Offsets are centred on the aim: for 3 blades that's -7deg, 0deg, +7deg.
             double offset = (i - (CUTTER_COUNT - 1) / 2.0) * SPREAD_DEGREES;
             Vector direction = aim.clone().rotateAroundAxis(fanAxis, Math.toRadians(offset)).normalize();
             launchCutter(player, trust, origin, direction, hitEntities);

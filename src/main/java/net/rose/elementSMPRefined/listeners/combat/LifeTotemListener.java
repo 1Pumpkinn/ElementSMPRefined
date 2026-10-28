@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 /**
  * Feeds player attacks on a Totem of Life's hitbox into {@link LifeTotemAbility}.
@@ -30,5 +31,11 @@ public class LifeTotemListener implements Listener {
                 && LifeTotemAbility.handleAttack(attacker, event.getEntity())) {
             event.setCancelled(true);
         }
+    }
+
+    /** Right-clicks that land on the hitbox (e.g. eating a golden apple while standing inside the totem). */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onInteract(PlayerInteractEntityEvent event) {
+        LifeTotemAbility.handleUse(event.getPlayer(), event.getRightClicked(), event.getHand());
     }
 }

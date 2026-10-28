@@ -40,10 +40,10 @@ import java.util.concurrent.ThreadLocalRandom;
  * Metal element ability 2: plants an Magnetar Core ({@link MagnetarVisual}) where the caster is
  * looking. For {@value #DURATION_TICKS} ticks it drags every nearby living entity - players and
  * mobs alike, except the caster, anyone they trust, their tamed pets and armor stands - toward
- * it, pulling harder the closer they get. Anything that ends up fully inside the core
- * ({@value #CAPTURE_RADIUS} blocks from its centre) is captured: it glides onto the centre, is
- * held there (snapped back if it ever drifts more than {@value #LEASH} blocks away) and takes true
- * damage every {@value #DAMAGE_INTERVAL_TICKS} ticks until the core collapses - it can't break free.
+ * it, pulling harder the closer they get. Anything that gets within {@value #CAPTURE_RADIUS} blocks
+ * of its centre is captured: it is swept onto a ring {@value #ORBIT_RADIUS} blocks from the centre and
+ * orbits the core there (snapped back onto the ring if it ever drifts more than {@value #LEASH} blocks
+ * off it), taking true damage every {@value #DAMAGE_INTERVAL_TICKS} ticks until the core collapses.
  * <p>
  * Damage goes through {@link TrueDamage}, so a Metal Shield counts it as a damaging ability.
  */
@@ -61,12 +61,14 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double PULL_SPEED_FAR = 0.30;      // blocks/tick at the edge of the field...
     private static final double PULL_SPEED_NEAR = 0.80;     // ...and right next to the core
     private static final double MAX_SPEED = 0.9;
-    private static final double CAPTURE_RADIUS = 1.3;       // "fully in" the core
+    private static final double ORBIT_RADIUS = 2.0;         // captured entities circle the core on a ring this wide (blocks)
+    private static final double ORBIT_SPEED = 0.3;          // blocks/tick along the ring
+    private static final double ORBIT_RADIAL_GAIN = 0.3;    // fraction of the radial / vertical error corrected per tick
+    private static final double CAPTURE_RADIUS = ORBIT_RADIUS + 0.5; // "in" the core: close enough to be swept onto the ring
     private static final double APPROACH_FLOOR = 0.12;      // the pull eases off near the core: speed <= FLOOR + EASE * distance left,
     private static final double APPROACH_EASE = 0.30;       // so they arrive slowly instead of shooting through the core (client lag turns that into an orbit)
-    private static final double SETTLE_GAIN = 0.25;         // captured: close this fraction of the remaining offset per tick (gentle, so lag can't make it oscillate)
-    private static final double SETTLE_MAX_SPEED = 0.5;     // blocks/tick cap while settling onto the centre
-    private static final double LEASH = 0.6;                // captured entities further than this from the centre are snapped back onto it
+    private static final double ORBIT_MAX_SPEED = 0.6;      // blocks/tick cap on the orbit velocity
+    private static final double LEASH = 1.5;                // captured entities further than this from their spot on the ring are snapped back onto it
     private static final int SETTLE_TICKS = 8;              // grace after capture before the leash applies, so they glide in rather than teleport in
 
     private static final double DAMAGE = 1.0;               // per hit while captured (half a heart)
@@ -282,7 +284,7 @@ public class MetalMagnetarAbility extends BaseAbility {
         target.setVelocity(velocity);
     }
 
-    /** The target is inside the core: hold them on its centre and crush them on a timer until the core collapses. */
+    /** The target is inside the core: swing them round it on a ring and crush them on a timer until the core collapses. */
     private void capture(Core core, Player caster, LivingEntity target, Vector toCore, int capturedAt) {
         UUID id = target.getUniqueId();
 
@@ -295,25 +297,36 @@ public class MetalMagnetarAbility extends BaseAbility {
             at.getWorld().playSound(at, Sound.ENTITY_IRON_GOLEM_DAMAGE, 0.8f, 0.8f);
         }
 
-        // Everything below is set after the damage: its knockback would otherwise shove them out of the core.
+        // Everything below is set after the damage: its knockback would otherwise shove them off the ring.
+        // The orbit is stateless: it is worked out from where they are right now, so lag can't desync it.
+        Vector offset = toCore.clone().multiply(-1);          // core -> target
+        double vertical = toCore.getY();                      // how far the core is above their body centre
+        offset.setY(0);
+        double radius = offset.length();
+        Vector outward = radius > 1.0E-4 ? offset.clone().multiply(1.0 / radius) : new Vector(1, 0, 0);
+
         boolean settled = core.ticks - capturedAt >= SETTLE_TICKS;
-        // Walking, knockback or a bounce pushed them off the centre? Put them straight back.
-        boolean snapped = settled && toCore.length() > LEASH && snapToCore(target, toCore);
+        // Walking, knockback or a bounce pushed them well off the ring? Put them straight back on it.
+        Vector toRing = outward.clone().multiply(ORBIT_RADIUS - radius).setY(vertical);
+        boolean snapped = settled && toRing.length() > LEASH && snapToCore(target, toRing);
+
         if (!snapped && !isInCobweb(target)) {
-            // Gentle spring onto the centre. A fraction of the offset (not the whole thing) so the client's lag
-            // can't turn it into overshoot -> orbit; the leash above is the hard guarantee that they stay.
-            Vector hold = toCore.clone().multiply(SETTLE_GAIN);
-            if (hold.lengthSquared() > SETTLE_MAX_SPEED * SETTLE_MAX_SPEED) {
-                hold.normalize().multiply(SETTLE_MAX_SPEED);
+            Vector tangent = new Vector(-outward.getZ(), 0, outward.getX()); // counter-clockwise seen from above
+            Vector velocity = tangent.multiply(ORBIT_SPEED)
+                    .add(outward.multiply((ORBIT_RADIUS - radius) * ORBIT_RADIAL_GAIN))
+                    .add(new Vector(0, vertical * ORBIT_RADIAL_GAIN, 0));
+            if (velocity.lengthSquared() > ORBIT_MAX_SPEED * ORBIT_MAX_SPEED) {
+                velocity.normalize().multiply(ORBIT_MAX_SPEED);
             }
-            target.setVelocity(hold);
+            target.setVelocity(velocity);
         }
         target.setFallDistance(0f);
     }
 
     /**
-     * Moves the target so the centre of its body sits exactly on the core's centre and kills its momentum.
-     * Refused (false) if that spot is inside solid blocks, so a core hugging a wall can't suffocate anyone.
+     * Moves the target by {@code toCore} (so the centre of its body lands on the spot that offset points at)
+     * and kills its momentum. Refused (false) if that spot is inside solid blocks, so a core hugging a wall
+     * can't suffocate anyone.
      */
     private static boolean snapToCore(LivingEntity target, Vector toCore) {
         BoundingBox moved = target.getBoundingBox().clone().shift(toCore);
@@ -510,6 +523,6 @@ public class MetalMagnetarAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Places a core that pulls in nearby players and mobs, then holds them inside it and hurts them until it collapses.";
+        return "Places a core that pulls in nearby players and mobs, then spins them around it in orbit and hurts them until it collapses.";
     }
 }

@@ -53,13 +53,13 @@ import org.bukkit.util.Vector;
 public class HellChainAbility extends BaseAbility {
     private static final double RANGE = 35.0;
     private static final double RAY_SIZE = 0.4;
-    private static final int MAX_TICKS = 50; // safety cap so a chain can never get "stuck" running forever
+    private static final int MAX_TICKS = 30; // safety cap so a chain can never get "stuck" running forever
     // The flat 50-tick cap is too short for a long hook: the grapple tops out at 1 block/tick, so a 45 block
     // hook needs 46+ ticks even with perfect progress, and any lag/ramp-up pushes it past the cap and the pull
     // just stops partway. The cap now grows with the hook distance (still bounded, so nothing runs forever).
-    private static final int MAX_TICKS_CAP = 120;
+    private static final int MAX_TICKS_CAP = 100;
     private static final double SLOWEST_EXPECTED_SPEED = 0.6; // blocks/tick the cap assumes the pull manages on average
-    private static final int EXTRA_TICKS = 20;                // slack for ramp-up, lag and arcing over obstacles
+    private static final int EXTRA_TICKS = 0;                 // slack (was 20; every chain now lasts 20 ticks less) for ramp-up, lag and arcing over obstacles
 
     /** Flip to true to log why every chain ended (arrived / timed out / snagged / cancelled) in the console. */
     private static final boolean DEBUG = false;

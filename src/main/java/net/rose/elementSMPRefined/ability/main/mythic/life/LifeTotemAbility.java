@@ -28,7 +28,12 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.GameMode;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -94,6 +99,13 @@ public class LifeTotemAbility extends BaseAbility {
     private static final BlockData BAR_GREEN = Material.LIME_CONCRETE.createBlockData(); // brighter than lime concrete; swap here to retint
     private static final BlockData BAR_YELLOW = Material.YELLOW_CONCRETE.createBlockData();
     private static final BlockData BAR_RED = Material.RED_CONCRETE.createBlockData();
+
+    // Players standing inside the hitbox
+    private static final double ATTACK_REACH = 3.0;      // vanilla melee reach, used to pick which occupant was swung at
+    private static final double OCCUPANT_AIM_MARGIN = 0.1; // forgiveness around an occupant's body, like vanilla's pick radius
+    /** Items that can still be eaten while standing inside a totem (the hitbox otherwise eats the right-click). */
+    private static final java.util.Set<Material> EATABLE_INSIDE =
+            java.util.EnumSet.of(Material.GOLDEN_APPLE, Material.ENCHANTED_GOLDEN_APPLE);
 
     // Aura
     private static final double RADIUS = Constants.Distance.LIFE_REGEN_RADIUS;
@@ -163,8 +175,36 @@ public class LifeTotemAbility extends BaseAbility {
         Integer last = LAST_HIT_TICK.put(attacker.getUniqueId(), tick);
         if (last != null && last == tick) return true; // same swing, already handled
 
+        // Someone (player or mob) is inside the totem and the attacker is actually aiming at them: the (much
+        // bigger) hitbox swallowed the swing, so hand it to them instead of the totem.
+        LivingEntity occupant = totem.occupantInSights(attacker);
+        if (occupant != null) {
+            attacker.attack(occupant);
+            return true;
+        }
+
         totem.onHit(attacker, isCrit(attacker));
         return true;
+    }
+
+    /**
+     * Right-click on a totem's hitbox by a player standing inside it. The client sends the click to the
+     * (invisible) hitbox instead of using the held item, so the item is started by hand here.
+     * Only {@link #EATABLE_INSIDE} items are handled.
+     */
+    public static void handleUse(Player player, Entity target, EquipmentSlot hand) {
+        Totem totem = BY_HITBOX.get(target.getUniqueId());
+        if (totem == null || !totem.contains(player)) return;
+        if (player.isHandRaised()) return; // already eating; the held button re-sends the click every tick
+
+        EquipmentSlot slot = hand;
+        if (!EATABLE_INSIDE.contains(player.getInventory().getItem(slot).getType())) {
+            // The client only tries the main hand when it consumed the click, so an off-hand gap is skipped too.
+            if (hand != EquipmentSlot.HAND || !player.getInventory().getItemInMainHand().getType().isAir()) return;
+            slot = EquipmentSlot.OFF_HAND;
+            if (!EATABLE_INSIDE.contains(player.getInventory().getItem(slot).getType())) return;
+        }
+        player.startUsingItem(slot);
     }
 
     /** Vanilla critical-hit conditions: falling, airborne, not sprinting, and a (nearly) full swing. */
@@ -409,6 +449,40 @@ public class LifeTotemAbility extends BaseAbility {
             world.spawnParticle(Particle.HAPPY_VILLAGER, base.clone().add(0, 1.8, 0), 2, 0.3, 0.3, 0.3, 0.0, null, true);
             double a = world.getGameTime() * 0.3;
             LifeParticles.totemRingPoint(world, base.clone().add(Math.cos(a) * RADIUS, 0.15, Math.sin(a) * RADIUS));
+        }
+
+        /** True if {@code p} is standing (at least partly) inside this totem's hitbox. */
+        boolean contains(Entity p) {
+            return hitbox != null && hitbox.isValid() && hitbox.getBoundingBox().overlaps(p.getBoundingBox());
+        }
+
+        /** The living entity (player or mob) inside this totem that {@code attacker} is aiming at (nearest within reach), or null. */
+        LivingEntity occupantInSights(Player attacker) {
+            if (hitbox == null || !hitbox.isValid()) return null;
+
+            Location eye = attacker.getEyeLocation();
+            Vector origin = eye.toVector();
+            Vector direction = eye.getDirection();
+
+            LivingEntity best = null;
+            double bestDistance = Double.MAX_VALUE;
+            for (Entity e : hitbox.getNearbyEntities(HITBOX_WIDTH, HITBOX_HEIGHT, HITBOX_WIDTH)) {
+                if (!(e instanceof LivingEntity p) || e instanceof ArmorStand || p.equals(attacker)
+                        || !p.isValid() || p.isDead()) continue;
+                if (p instanceof Player pl && pl.getGameMode() == GameMode.SPECTATOR) continue;
+                if (!contains(p)) continue;
+
+                BoundingBox body = p.getBoundingBox().clone().expand(OCCUPANT_AIM_MARGIN);
+                RayTraceResult ray = body.rayTrace(origin, direction, ATTACK_REACH);
+                if (ray == null || ray.getHitPosition() == null) continue;
+
+                double distance = ray.getHitPosition().distance(origin);
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    best = p;
+                }
+            }
+            return best;
         }
 
         /**

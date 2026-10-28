@@ -5,6 +5,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.PassiveToggle;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -75,6 +76,10 @@ public class AirWindBurstListener implements Listener {
         if (!(event.getDamager() instanceof Player attacker)) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
         if (attacker.equals(target)) return;
+
+        // Ability damage (Tornado, Magnetar, ...) is dealt with the caster as the attacker, so it looks
+        // like a melee hit. It is not one: never let it trigger Wind Burst.
+        if (AbilityDamage.isAbilityDamage(target)) return;
 
         var data = elementManager.data(attacker.getUniqueId());
         if (data == null || !hasAirPassives(data.getCurrentElement())) return;

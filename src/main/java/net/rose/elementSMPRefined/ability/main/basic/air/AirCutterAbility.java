@@ -56,7 +56,7 @@ public class AirCutterAbility extends BaseAbility {
 
         w.playSound(origin, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.2f, 1.4f);
 
-        // Shared across all blades of this cast so a target is only hit (and knocked back) once,
+        // Shared across all blades of this cast so a target is only knocked back once,
         // instead of once per blade with the knockback stacking up to 3x.
         final java.util.Set<java.util.UUID> hitEntities = new java.util.HashSet<>();
 
@@ -99,7 +99,10 @@ public class AirCutterAbility extends BaseAbility {
 
         double range = 25.0;
         double hitboxWidth = 1.1;
-        double damage = 8.0;
+        double damage = 2.0; // 1 heart of true damage per blade
+
+        // Targets this particular blade has already cut, so one blade never hits the same target twice.
+        final java.util.Set<java.util.UUID> bladeHit = new java.util.HashSet<>();
 
         new BukkitRunnable() {
             double travelled = 0;
@@ -154,13 +157,16 @@ public class AirCutterAbility extends BaseAbility {
                 for (LivingEntity e : slice.getNearbyLivingEntities(hitboxWidth)) {
                     if (e.equals(player)) continue;
                     if (e instanceof Player other && trust.isTrusted(player.getUniqueId(), other.getUniqueId())) continue;
-                    if (hitEntities.contains(e.getUniqueId())) continue;
+                    if (!bladeHit.add(e.getUniqueId())) continue;
 
-                    hitEntities.add(e.getUniqueId());
                     // A raised shield stops the blade: no damage, no knockback, and the shield takes the wear.
-                    boolean landed = TrueDamage.of(damage).attacker(player).ability(getName()).ignoreIFrames(false)
+                    // Every blade deals its own heart, so i-frames are ignored or blades 2 and 3 would be eaten by them.
+                    boolean landed = TrueDamage.of(damage).attacker(player).ability(getName()).ignoreIFrames(true)
                             .blockableByShield(direction).apply(e);
                     if (!landed) continue;
+
+                    // Knockback and the hit particle only happen once per cast, however many blades connect.
+                    if (!hitEntities.add(e.getUniqueId())) continue;
 
                     // Horizontal only, and SET rather than added onto existing velocity.
                     Vector knockback = new Vector(direction.getX(), 0, direction.getZ());

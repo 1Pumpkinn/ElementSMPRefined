@@ -100,7 +100,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private static final double ICICLE_HALF_LENGTH = ICICLE_LENGTH * 5.0 / 16.0;
 
     // Hit
-    private static final double DAMAGE = 4.0;               // per icicle (6 icicles = 12 if they all land)
+    private static final double DAMAGE = 2.0;               // 1 heart per icicle (6 icicles = 12 if they all land)
     private static final int SLOW_TICKS = 60;
     private static final int SLOW_AMPLIFIER = 1;            // Slowness II on the target
     private static final int FREEZE_PER_HIT = 60;           // ticks of powder-snow freeze added per icicle

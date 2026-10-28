@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -53,7 +54,10 @@ public class EruptionAbility extends BaseAbility {
     /** Warning time before the blast. The spot is locked when cast, so moving away dodges it. */
     private static final int WARNING_TICKS = 14;
     private static final double RADIUS = 6.0;
-    private static final double DAMAGE = 7.0;
+    /** True damage to the entity the caster aimed at (3 hearts). */
+    private static final double DAMAGE = 6.0;
+    /** True damage to anything else caught in the blast (1.5 hearts). */
+    private static final double SPLASH_DAMAGE = 3.0;
     private static final double LAUNCH_VELOCITY = 1.0;
     private static final int BURN_TICKS = 80;
 
@@ -83,7 +87,7 @@ public class EruptionAbility extends BaseAbility {
             return false; // failed cast stays free (no cooldown)
         }
 
-        startEruption(player, trust, groundBelow(target.getLocation()));
+        startEruption(player, trust, groundBelow(target.getLocation()), target.getUniqueId());
         return true;
     }
 
@@ -113,7 +117,7 @@ public class EruptionAbility extends BaseAbility {
         return ground;
     }
 
-    private void startEruption(Player caster, TrustManager trust, Location center) {
+    private void startEruption(Player caster, TrustManager trust, Location center, UUID mainTarget) {
         World world = center.getWorld();
         world.playSound(center, Sound.BLOCK_LAVA_AMBIENT, 1.5f, 0.7f);
         world.playSound(center, Sound.BLOCK_LAVA_POP, 1.2f, 0.6f);
@@ -133,7 +137,7 @@ public class EruptionAbility extends BaseAbility {
             @Override
             public void run() {
                 if (ticks >= WARNING_TICKS) {
-                    erupt(caster, trust, center);
+                    erupt(caster, trust, center, mainTarget);
                     cancel();
                     return;
                 }
@@ -180,7 +184,7 @@ public class EruptionAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    private void erupt(Player caster, TrustManager trust, Location center) {
+    private void erupt(Player caster, TrustManager trust, Location center, UUID mainTarget) {
         World world = center.getWorld();
         Location mid = center.clone().add(0, 1.0, 0);
 
@@ -204,7 +208,8 @@ public class EruptionAbility extends BaseAbility {
             if (!LavaTargets.isValid(caster, e, trust)) continue;
             if (!insideBlast(center, e)) continue;
 
-            TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).ignoreIFrames(false).apply(e);
+            double damage = e.getUniqueId().equals(mainTarget) ? DAMAGE : SPLASH_DAMAGE;
+            TrueDamage.of(damage).attacker(caster).ability(getName()).ignoreIFrames(false).apply(e);
             e.setFireTicks(BURN_TICKS);
             e.setVelocity(new Vector(0, LAUNCH_VELOCITY, 0));
         }

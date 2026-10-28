@@ -55,7 +55,7 @@ public class LightningSpearAbility extends BaseAbility {
     private static final double SPEAR_LENGTH = 3.0;
 
     /** True damage dealt to the entity the spear hits directly. */
-    private static final double DIRECT_DAMAGE = 7.0;
+    private static final double DIRECT_DAMAGE = 5.0; // 2.5 hearts
     /** Radius of the shock burst at the impact point. Set SHOCK_DAMAGE to 0 to disable the burst damage. */
     private static final double SHOCK_RADIUS = 3.0;
     /** True damage dealt to everything else caught in the shock burst. */

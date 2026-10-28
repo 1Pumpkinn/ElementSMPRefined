@@ -8,7 +8,7 @@ import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.particles.element.WaterParticles;
 import net.rose.elementSMPRefined.status.StatusEffectType;
-import net.rose.elementSMPRefined.util.damage.AbilityDamage;
+import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.ChatColor;
@@ -72,7 +72,7 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
     /** Radius of the marked circle; everything inside it when the tentacle lands is hit. */
     public static final double HIT_RADIUS = 3.5;
     private static final double HIT_HALF_HEIGHT = 3.0;      // vertical reach above/below the impact point
-    private static final double DAMAGE = 8.0;               // 4 hearts
+    private static final double DAMAGE = 8.0;               // 4 hearts of true damage
     private static final double KNOCKBACK_OUT = 0.7;
     private static final double KNOCKBACK_UP = 0.65;
     private static final int SLOW_TICKS = 40;               // 2 seconds
@@ -276,8 +276,7 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
             double reach = HIT_RADIUS + target.getWidth() / 2.0;
             if (dx * dx + dz * dz > reach * reach) continue;
 
-            boolean landed = AbilityDamage.deal(target, getName(),
-                    () -> target.damage(DAMAGE, state.caster));
+            boolean landed = TrueDamage.of(DAMAGE).attacker(state.caster).ability(getName()).apply(target);
             if (!landed || target.isDead()) continue; // an ability shield soaked it up
 
             // Thrown outward from the impact point (straight back along the swing if dead centre).

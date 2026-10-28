@@ -76,7 +76,10 @@ public class ShockwaveAbility extends BaseAbility {
 
     private static final double LAUNCH_UP = 1.1;       // ~6-8 blocks of height
     private static final double LAUNCH_OUTWARD = 0.6;
+    /** True damage at the impact point (3 hearts). Falls off linearly to {@link #DAMAGE_AT_MAX_RANGE} at {@link #MAX_RANGE}. */
     private static final double DAMAGE = 6.0;
+    /** True damage dealt to something right at the edge of the wave (1 heart). */
+    private static final double DAMAGE_AT_MAX_RANGE = 2.0;
     private static final double HIT_RADIUS_XZ = 1.5;
     private static final double HIT_RADIUS_Y = 3.0;
 
@@ -263,7 +266,7 @@ public class ShockwaveAbility extends BaseAbility {
 
                     if (candidates == null) candidates = collectCandidates(caster, trust, origin, radius, alreadyHit);
                     if (!candidates.isEmpty()) {
-                        launchNearby(caster, candidates, ground, dirX, dirZ, alreadyHit);
+                        launchNearby(caster, origin, candidates, ground, dirX, dirZ, alreadyHit);
                     }
                 }
 
@@ -364,7 +367,7 @@ public class ShockwaveAbility extends BaseAbility {
     }
 
     /** Launches whoever overlaps the hit zone above this ground block, once each. */
-    private void launchNearby(Player caster, List<LivingEntity> candidates, Block ground,
+    private void launchNearby(Player caster, Location origin, List<LivingEntity> candidates, Block ground,
                               double outwardX, double outwardZ, Set<UUID> alreadyHit) {
         BoundingBox zone = BoundingBox.of(
                 new Vector(ground.getX() + 0.5, ground.getY() + 1.0, ground.getZ() + 0.5),
@@ -379,10 +382,20 @@ public class ShockwaveAbility extends BaseAbility {
 
             // Damage first: it applies its own knockback, which would otherwise
             // overwrite the launch if we set velocity before it.
-            TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).apply(entity);
+            TrueDamage.of(damageAt(origin, entity)).attacker(caster).ability(getName()).apply(entity);
 
             entity.setVelocity(new Vector(outwardX * LAUNCH_OUTWARD, LAUNCH_UP, outwardZ * LAUNCH_OUTWARD));
         }
+    }
+
+    /** Full damage at the impact point, tapering off the further (horizontally) the target is from it. */
+    private static double damageAt(Location origin, LivingEntity entity) {
+        Location at = entity.getLocation();
+        double dx = at.getX() - origin.getX();
+        double dz = at.getZ() - origin.getZ();
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        double t = Math.min(1.0, distance / MAX_RANGE);
+        return DAMAGE + (DAMAGE_AT_MAX_RANGE - DAMAGE) * t;
     }
 
     /** Packs an (x, z) column into one long. */

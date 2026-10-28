@@ -150,6 +150,11 @@ public final class PingCompensation {
             return now.add(lead);
         }
 
+        /** The player's smoothed speed as of the last {@link #sample(int)}, in blocks per tick. */
+        public double speed() {
+            return Math.sqrt(velX * velX + velY * velY + velZ * velZ);
+        }
+
         /** The offset applied by the last {@link #sample(int)} (a copy). */
         public Vector lead() {
             return lead.clone();

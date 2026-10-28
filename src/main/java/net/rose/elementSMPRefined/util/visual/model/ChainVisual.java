@@ -64,6 +64,18 @@ public final class ChainVisual {
     /** Furthest the owner end may be led ahead of the server position (a grapple moves fast), in blocks. */
     private static final double MAX_LEAD_BLOCKS = 5.0;
 
+    /**
+     * The owner's end of the chain is run back along the chain to the middle of the owner's body (and
+     * no further, so it never pokes out behind them) so there's no gap between the player and the
+     * first link. Display entities trail the client-predicted player by roughly a tick of movement,
+     * so a little extra is added in proportion to the owner's speed.
+     */
+    private static final double OVERLAP_PER_SPEED = 0.1;
+    /** Fraction of the way to the body centre the chain runs back - under 1 keeps the end tucked inside the body. */
+    private static final double BODY_DEPTH_FACTOR = 0.8;
+    private static final double MIN_OVERLAP = 0.1;
+    private static final double MAX_OVERLAP = 0.9;
+
     /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<ChainVisual> ACTIVE = new HashSet<>();
 
@@ -98,9 +110,11 @@ public final class ChainVisual {
             return;
         }
 
+        Location bodyCenter = null; // the owner's torso (led by ping), for anchoring the owner end
         if (tracker != null) {
             int wanted = PingCompensation.smoothingTicks(owner, MAX_SMOOTHING_TICKS);
-            tracker.sample(wanted);
+            Location led = tracker.sample(wanted);
+            bodyCenter = led.add(0, owner.getHeight() * 0.5, 0);
             from = from.clone().add(tracker.lead());
             if (wanted != smoothing) {
                 smoothing = wanted;
@@ -118,6 +132,17 @@ public final class ChainVisual {
         if (length < MIN_LENGTH) {
             hide();
             return;
+        }
+
+        if (tracker != null && bodyCenter != null) {
+            // How far back along the chain the owner's body centre sits from the chain's start;
+            // run the start back that far (plus the speed allowance) so it ends inside the body.
+            double toBody = -bodyCenter.toVector().subtract(from.toVector()).dot(delta) / length;
+            double overlap = Math.min(length, Math.max(MIN_OVERLAP,
+                    Math.min(MAX_OVERLAP, Math.max(0.0, toBody) * BODY_DEPTH_FACTOR + tracker.speed() * OVERLAP_PER_SPEED)));
+            from = from.clone().add(delta.clone().multiply(-overlap / length));
+            delta = to.toVector().subtract(from.toVector());
+            length = delta.length();
         }
 
         int count = Math.min(MAX_SEGMENTS, Math.max(1, (int) Math.round(length / SEGMENT_LENGTH)));

@@ -1,5 +1,8 @@
 package net.rose.elementSMPRefined.items.recipes;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
 import org.bukkit.Material;
@@ -13,11 +16,14 @@ import org.bukkit.plugin.java.JavaPlugin;
  * (Fire -> Lava, Earth -> Metal, Water -> Frost, Air -> Storm).
  */
 public final class ForgedUpgraderItem {
+    /** Reddish pink used for the Forged Upgrader's name. */
+    public static final TextColor COLOR = TextColor.color(0xAD1457);
+
     private ForgedUpgraderItem() {}
 
     public static ItemStack make(JavaPlugin plugin) {
         return ItemBuilder.of(Material.ENDER_EYE)
-                .name("&6&lForged Upgrader")
+                .name(Component.text("Forged Upgrader", COLOR))
                 .lore(
                         "&7Forges your basic element",
                         "&7into its advanced stage")

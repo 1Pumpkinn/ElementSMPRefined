@@ -18,9 +18,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Air Element Passive 2: Wind Burst
@@ -43,6 +52,12 @@ import org.bukkit.util.Vector;
  * it never interferes with vanilla hit / mace smash sounds. Resetting the fall distance
  * inside the damage event used to stop vanilla from treating the hit as a smash attack,
  * which silenced the mace.
+ *
+ * Reliability: the fall check uses the larger of the server's fall distance and the drop from the
+ * player's own highest point since they last stood on something, because the server's value can
+ * be reset or lag behind after wind charge launches. The burst is also applied when the hit
+ * kills the target (the launch used to be skipped because the dead target was no longer valid).
+ * Set {@link #DEBUG} to true to log why a hit did not trigger a burst.
  */
 public class AirWindBurstListener implements Listener {
 
@@ -54,9 +69,15 @@ public class AirWindBurstListener implements Listener {
     private static final double BURST_RADIUS = 3.5;
     private static final double BURST_STRENGTH = 0.6 * LEVEL_MULTIPLIER;
 
+    /** Logs to console why an eligible Air/Storm hit did not trigger a burst. */
+    private static final boolean DEBUG = false;
+
     private final JavaPlugin plugin;
     private final ElementManager elementManager;
     private final TrustManager trustManager;
+
+    /** Highest Y each Air/Storm player has been at since they last stood on something. */
+    private final Map<UUID, Double> peakY = new HashMap<>();
 
     public AirWindBurstListener(JavaPlugin plugin, ElementManager elementManager, TrustManager trustManager) {
         this.plugin = plugin;
@@ -67,6 +88,60 @@ public class AirWindBurstListener implements Listener {
     /** Air, and Storm (upgraded from Air, inherits these passives). */
     private static boolean hasAirPassives(ElementType type) {
         return type == ElementType.AIR || type == ElementType.STORM;
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onMove(PlayerMoveEvent event) {
+        if (!event.hasChangedPosition()) return;
+
+        Player player = event.getPlayer();
+        UUID id = player.getUniqueId();
+
+        var data = elementManager.data(id);
+        if (data == null || !hasAirPassives(data.getCurrentElement())) {
+            if (!peakY.isEmpty()) peakY.remove(id);
+            return;
+        }
+
+        double y = event.getTo().getY();
+        if (isSupported(player)) {
+            peakY.put(id, y);
+        } else {
+            peakY.merge(id, y, Math::max);
+        }
+    }
+
+    @EventHandler
+    public void onTeleport(PlayerTeleportEvent event) {
+        peakY.remove(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        peakY.remove(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        peakY.remove(event.getPlayer().getUniqueId());
+    }
+
+    /** Standing on something, or in a state where vanilla doesn't count falling at all. */
+    private static boolean isSupported(Player player) {
+        return player.isOnGround() || player.isFlying() || player.isGliding()
+                || player.isInsideVehicle() || player.isClimbing() || player.isSwimming()
+                || player.isInWater() || player.isInLava()
+                || player.hasPotionEffect(PotionEffectType.SLOW_FALLING);
+    }
+
+    /** Larger of the server's fall distance and the drop from the player's own highest point. */
+    private double effectiveFallDistance(Player player) {
+        double fall = player.getFallDistance();
+        Double peak = peakY.get(player.getUniqueId());
+        if (peak != null) {
+            fall = Math.max(fall, peak - player.getLocation().getY());
+        }
+        return fall;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -97,24 +172,42 @@ public class AirWindBurstListener implements Listener {
         if (weapon.containsEnchantment(Enchantment.WIND_BURST)) return;
 
         // Smash-attack conditions
-        if (attacker.getFallDistance() <= MIN_FALL_DISTANCE) return;
+        double fall = effectiveFallDistance(attacker);
+        if (fall <= MIN_FALL_DISTANCE) {
+            debug(attacker, "fall distance too low: " + fall + " (server " + attacker.getFallDistance() + ")");
+            return;
+        }
         if (attacker.isOnGround() || attacker.isFlying() || attacker.isGliding()
-                || attacker.isInsideVehicle() || attacker.isClimbing() || attacker.isSwimming()) return;
+                || attacker.isInsideVehicle() || attacker.isClimbing() || attacker.isSwimming()) {
+            debug(attacker, "blocked by state: onGround=" + attacker.isOnGround()
+                    + " flying=" + attacker.isFlying() + " gliding=" + attacker.isGliding()
+                    + " vehicle=" + attacker.isInsideVehicle() + " climbing=" + attacker.isClimbing()
+                    + " swimming=" + attacker.isSwimming());
+            return;
+        }
 
         if (target instanceof Player victim
                 && trustManager.isTrusted(attacker.getUniqueId(), victim.getUniqueId())) {
             return;
         }
 
+        // Captured now: the hit may kill the target, and a dead target has no valid position to burst from
+        Location center = target.getLocation().add(0, target.getHeight() / 2.0, 0);
+
         // Let vanilla finish the hit (damage, hit sound, mace smash sound) before launching
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (!attacker.isOnline() || !target.isValid()) return;
-            burst(attacker, target);
+            if (!attacker.isOnline() || attacker.isDead()) return;
+            burst(attacker, center);
         });
     }
 
-    private void burst(Player attacker, LivingEntity target) {
-        Location center = target.getLocation().add(0, target.getHeight() / 2.0, 0);
+    private void debug(Player attacker, String reason) {
+        if (DEBUG) {
+            plugin.getLogger().info("[WindBurst] " + attacker.getName() + " no burst: " + reason);
+        }
+    }
+
+    private void burst(Player attacker, Location center) {
         World world = center.getWorld();
         if (world == null) return;
 
@@ -123,6 +216,8 @@ public class AirWindBurstListener implements Listener {
         velocity.setY(LAUNCH_VELOCITY_Y);
         attacker.setVelocity(velocity);
         attacker.setFallDistance(0f);
+        // The fall was just spent: restart the tracked drop from here so the next hit needs a new fall
+        peakY.put(attacker.getUniqueId(), attacker.getLocation().getY());
 
         // Blow everything nearby (including the target) away from the burst
         for (Entity entity : world.getNearbyEntities(center, BURST_RADIUS, BURST_RADIUS, BURST_RADIUS)) {

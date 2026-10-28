@@ -1,10 +1,12 @@
 package net.rose.elementSMPRefined.listeners.item;
 
-import org.bukkit.Bukkit;
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.PlayerData;
+import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.managers.ElementManager;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,6 +14,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Optional;
+
+/**
+ * Death penalties for the element system:
+ * <ul>
+ *   <li>Dying with an upgrade level drops the matching Upgrader item and costs one level.</li>
+ *   <li>Dying as an advanced element (Lava, Metal, Frost, Storm) drops a Forged Upgrader and
+ *       sends the player back to their pre-stage (basic) element: Lava -> Fire, Metal -> Earth,
+ *       Frost -> Water, Storm -> Air.</li>
+ * </ul>
+ * Nothing happens with keepInventory, since the player keeps their items and their progress.
+ */
 public class PlayerDeathListener implements Listener {
 
     private static final long REAPPLY_DELAY_TICKS = 1L;
@@ -37,14 +51,56 @@ public class PlayerDeathListener implements Listener {
             return;
         }
 
-        // With keepInventory the player keeps their items, so they must keep their level too
+        // With keepInventory the player keeps their items, so they must keep their level and element too
         if (event.getKeepInventory()) {
             return;
         }
 
+        // Read the level up front: it is looked up per element, so it must be read before any rollback
         int level = data.getUpgradeLevel(element);
+
+        boolean changed = false;
+
+        // 1) Advanced element -> drop a Forged Upgrader and fall back to the basic element
+        changed |= dropForgedUpgraderAndRevert(event, player, element);
+
+        // 2) Upgrade level -> drop the matching Upgrader and lose one level.
+        // Read from the element the player holds now, which may be the basic one after step 1.
+        changed |= dropUpgraderAndLowerLevel(event, player, data, level);
+
+        if (changed) {
+            plugin.getDataStore().save(data);
+            scheduleUpsideReapply(player);
+        }
+    }
+
+    /**
+     * If {@code element} is an advanced element, adds a Forged Upgrader to the drops and moves the
+     * player back to its basic element (the upgrade level is kept by {@code assignBasicElement}).
+     *
+     * @return true if the player was reverted
+     */
+    private boolean dropForgedUpgraderAndRevert(PlayerDeathEvent event, Player player, ElementType element) {
+        Optional<ForgeRecipe> forge = ForgeRecipe.forTarget(element);
+        if (forge.isEmpty()) {
+            return false;
+        }
+
+        ItemStack forged = ForgedUpgraderItem.make(plugin);
+        if (forged == null) {
+            // Item couldn't be created, so don't strip the element for nothing
+            plugin.getLogger().warning("Could not create Forged Upgrader (player " + player.getName() + ")");
+            return false;
+        }
+
+        event.getDrops().add(forged);
+        elements.assignBasicElement(player, forge.get().base());
+        return true;
+    }
+
+    private boolean dropUpgraderAndLowerLevel(PlayerDeathEvent event, Player player, PlayerData data, int level) {
         if (level <= 0) {
-            return;
+            return false;
         }
 
         ItemStack drop = createUpgraderFor(level);
@@ -52,15 +108,15 @@ public class PlayerDeathListener implements Listener {
             // Item couldn't be created, so don't strip the level for nothing
             plugin.getLogger().warning("Could not create upgrader for level " + level
                     + " (player " + player.getName() + ")");
-            return;
+            return false;
         }
 
         event.getDrops().add(drop);
 
-        data.setUpgradeLevel(element, level - 1);
-        plugin.getDataStore().save(data);
-
-        scheduleUpsideReapply(player);
+        // The current element may have just been swapped to the basic one, so use whatever is active now
+        ElementType current = data.getCurrentElement();
+        data.setUpgradeLevel(current, level - 1);
+        return true;
     }
 
     private ItemStack createUpgraderFor(int level) {

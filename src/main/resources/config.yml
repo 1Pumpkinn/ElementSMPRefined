@@ -48,6 +48,8 @@ grace_period:
 # a Forged Upgrader - the recipe depends on your element (each player sees their own); the structure is then removed and the terrain it overwrote
 # is restored. Only one altar exists at a time. Test it with /reforgealtar.
 reforge_altar:
+  # false = no new altars spawn automatically (also: /reforgealtar toggle|enable|disable).
+  # An altar that already exists is left alone; /reforgealtar spawn still works for testing.
   enabled: true
   # World to spawn in (blank = first overworld)
   world: ""

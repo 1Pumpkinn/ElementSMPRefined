@@ -13,9 +13,9 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.Locale;
 
-/** /reforgealtar &lt;spawn|here|remove|status|tp&gt; - admin tools for testing the Reforge Altar. */
+/** /reforgealtar &lt;spawn|here|remove|status|tp|toggle|enable|disable&gt; - admin tools for testing the Reforge Altar. */
 public class ReforgeAltarCommand implements CommandExecutor, TabCompleter {
-    private static final List<String> SUBCOMMANDS = List.of("spawn", "here", "remove", "status", "tp");
+    private static final List<String> SUBCOMMANDS = List.of("spawn", "here", "remove", "status", "tp", "toggle", "enable", "disable");
 
     private final ReforgeAltarManager altar;
 
@@ -30,7 +30,7 @@ public class ReforgeAltarCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Usage: /" + label + " <spawn|here|remove|status|tp>", NamedTextColor.YELLOW));
+            sender.sendMessage(Component.text("Usage: /" + label + " <spawn|here|remove|status|tp|toggle|enable|disable>", NamedTextColor.YELLOW));
             return true;
         }
 
@@ -63,6 +63,9 @@ public class ReforgeAltarCommand implements CommandExecutor, TabCompleter {
                 }
             }
             case "status" -> sendStatus(sender);
+            case "toggle" -> setSpawning(sender, !altar.isSpawningEnabled());
+            case "enable" -> setSpawning(sender, true);
+            case "disable" -> setSpawning(sender, false);
             case "tp" -> {
                 if (!(sender instanceof Player player)) {
                     sender.sendMessage(Component.text("Only players can use this.", NamedTextColor.RED));
@@ -75,12 +78,23 @@ public class ReforgeAltarCommand implements CommandExecutor, TabCompleter {
                     player.teleportAsync(loc.clone().add(0.5, 1.0, 3.5));
                 }
             }
-            default -> sender.sendMessage(Component.text("Usage: /" + label + " <spawn|here|remove|status|tp>", NamedTextColor.YELLOW));
+            default -> sender.sendMessage(Component.text("Usage: /" + label + " <spawn|here|remove|status|tp|toggle|enable|disable>", NamedTextColor.YELLOW));
         }
         return true;
     }
 
+    private void setSpawning(CommandSender sender, boolean enabled) {
+        altar.setSpawningEnabled(enabled);
+        if (enabled) {
+            sender.sendMessage(Component.text("Automatic altar spawning enabled.", NamedTextColor.GREEN));
+        } else {
+            sender.sendMessage(Component.text("Automatic altar spawning disabled. An existing altar stays until removed or claimed.", NamedTextColor.YELLOW));
+        }
+    }
+
     private void sendStatus(CommandSender sender) {
+        sender.sendMessage(Component.text("Automatic spawning: " + (altar.isSpawningEnabled() ? "enabled" : "disabled"),
+                altar.isSpawningEnabled() ? NamedTextColor.GREEN : NamedTextColor.RED));
         var active = altar.getActiveAltar();
         if (active == null) {
             sender.sendMessage(Component.text("No active altar.", NamedTextColor.YELLOW));

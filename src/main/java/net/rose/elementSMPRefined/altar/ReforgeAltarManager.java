@@ -164,8 +164,28 @@ public final class ReforgeAltarManager {
         removeDisplays();
     }
 
-    private boolean isEnabled() {
-        return altarStructure != null && cfg().getBoolean("reforge_altar.enabled", true);
+    /** Whether the altar can run at all (structure loaded). */
+    private boolean isLoaded() {
+        return altarStructure != null;
+    }
+
+    /** Whether the timer is allowed to spawn new altars ({@code reforge_altar.enabled}). */
+    public boolean isSpawningEnabled() {
+        return cfg().getBoolean("reforge_altar.enabled", true);
+    }
+
+    /**
+     * Turns automatic spawning on or off and saves it to config.yml. Disabling
+     * never removes an altar that already exists (use /reforgealtar remove for that).
+     * Enabling re-rolls the timer if it ran out while disabled, so an altar
+     * doesn't appear the instant it's switched back on.
+     */
+    public void setSpawningEnabled(boolean enabled) {
+        cfg().set("reforge_altar.enabled", enabled);
+        plugin.saveConfig();
+        if (enabled && nextSpawnAtMillis <= System.currentTimeMillis()) {
+            scheduleNextSpawn();
+        }
     }
 
     private FileConfiguration cfg() {
@@ -205,17 +225,20 @@ public final class ReforgeAltarManager {
     // ------------------------------------------------------------------
 
     private void tick() {
-        if (!isEnabled()) return;
+        if (!isLoaded()) return;
 
-        long now = System.currentTimeMillis();
-        if (nextSpawnAtMillis <= 0) {
-            scheduleNextSpawn();
-        } else if (now >= nextSpawnAtMillis) {
-            if (active == null && !spawning) {
-                spawnRandom();
-            } else if (!spawning) {
-                // The previous altar was never claimed - don't stack a second one.
+        // Spawning can be switched off; an altar that already exists is still maintained below.
+        if (isSpawningEnabled()) {
+            long now = System.currentTimeMillis();
+            if (nextSpawnAtMillis <= 0) {
                 scheduleNextSpawn();
+            } else if (now >= nextSpawnAtMillis) {
+                if (active == null && !spawning) {
+                    spawnRandom();
+                } else if (!spawning) {
+                    // The previous altar was never claimed - don't stack a second one.
+                    scheduleNextSpawn();
+                }
             }
         }
 
@@ -628,7 +651,9 @@ public final class ReforgeAltarManager {
             td.setAlignment(TextDisplay.TextAlignment.CENTER);
             td.setShadowed(true);
             td.setSeeThrough(false);
-            td.setBackgroundColor(Color.fromARGB(110, 0, 0, 0));
+            // No background box behind the text: turn off the default one and make any custom one fully transparent.
+            td.setDefaultBackground(false);
+            td.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
             // Hidden from everyone until updateDisplayVisibility() shows it to a
             // player whose element uses this recipe.
             td.setVisibleByDefault(false);

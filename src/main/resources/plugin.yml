@@ -49,7 +49,7 @@ commands:
 
   reforgealtar:
     description: Spawn, remove or inspect the Reforge Altar
-    usage: /reforgealtar <spawn|here|remove|status|tp>
+    usage: /reforgealtar <spawn|here|remove|status|tp|toggle|enable|disable>
     aliases: [ altar ]
     permission: element.admin
 

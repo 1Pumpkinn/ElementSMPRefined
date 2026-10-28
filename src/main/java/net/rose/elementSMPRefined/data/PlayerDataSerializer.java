@@ -30,7 +30,9 @@ public final class PlayerDataSerializer {
         data.setCurrentElementUpgradeLevel(section.getInt("currentUpgradeLevel", 0));
         data.setPendingRerollerRefunds(section.getInt("pendingRerollerRefunds", 0));
         data.setPendingAdvancedRerollerRefunds(section.getInt("pendingAdvancedRerollerRefunds", 0));
-        data.setAutoSmeltEnabled(section.getBoolean("autoSmelt", true));
+        for (PassiveToggle toggle : PassiveToggle.values()) {
+            data.setToggleEnabled(toggle, section.getBoolean(toggle.configKey(), true));
+        }
 
         ConfigurationSection trust = section.getConfigurationSection("trust");
         if (trust != null) {
@@ -53,7 +55,9 @@ public final class PlayerDataSerializer {
         section.set("currentUpgradeLevel", data.getCurrentElementUpgradeLevel());
         section.set("pendingRerollerRefunds", data.getPendingRerollerRefunds());
         section.set("pendingAdvancedRerollerRefunds", data.getPendingAdvancedRerollerRefunds());
-        section.set("autoSmelt", data.isAutoSmeltEnabled());
+        for (PassiveToggle toggle : PassiveToggle.values()) {
+            section.set(toggle.configKey(), data.isToggleEnabled(toggle));
+        }
 
         section.set("items", null); // element cores were removed - drop the old owned-items list
 

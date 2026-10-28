@@ -24,7 +24,8 @@ public final class PlayerData {
     private final Set<UUID> trustedPlayers;
     private int pendingRerollerRefunds;
     private int pendingAdvancedRerollerRefunds;
-    private boolean autoSmeltEnabled = true;
+    /** Passives the player has switched off with /toggle. Everything is on by default. */
+    private final EnumSet<PassiveToggle> disabledToggles = EnumSet.noneOf(PassiveToggle.class);
 
     public PlayerData(UUID uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
@@ -144,13 +145,26 @@ public final class PlayerData {
         return count;
     }
 
-    /** Fire/Lava auto smelt toggle (/autosmelt). On by default. */
+    /** Whether a /toggle passive is switched on for this player. On by default. */
+    public boolean isToggleEnabled(PassiveToggle toggle) {
+        return !disabledToggles.contains(toggle);
+    }
+
+    public void setToggleEnabled(PassiveToggle toggle, boolean enabled) {
+        if (enabled) {
+            disabledToggles.remove(toggle);
+        } else {
+            disabledToggles.add(toggle);
+        }
+    }
+
+    /** Fire/Lava auto smelt toggle (/toggle firesmelt, or the old /autosmelt). On by default. */
     public boolean isAutoSmeltEnabled() {
-        return autoSmeltEnabled;
+        return isToggleEnabled(PassiveToggle.FIRE_SMELT);
     }
 
     public void setAutoSmeltEnabled(boolean enabled) {
-        this.autoSmeltEnabled = enabled;
+        setToggleEnabled(PassiveToggle.FIRE_SMELT, enabled);
     }
 
     @Override

@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.ability.passive.basic.air.listeners;
 
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.data.PassiveToggle;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.Location;
@@ -34,7 +35,8 @@ import org.bukkit.util.Vector;
  * Skipped when the held item already has a real Wind Burst enchantment, so vanilla
  * handles it and the effect never doubles up.
  *
- * Unlocks at Upgrade II. Also inherited by Storm (upgraded from Air).
+ * Unlocks at Upgrade II. Also inherited by Storm (upgraded from Air). Players can switch it
+ * off/on with /toggle windburst.
  *
  * Sounds: this passive plays no sound of its own, and the launch is deferred by one tick so
  * it never interferes with vanilla hit / mace smash sounds. Resetting the fall distance
@@ -76,6 +78,9 @@ public class AirWindBurstListener implements Listener {
 
         var data = elementManager.data(attacker.getUniqueId());
         if (data == null || !hasAirPassives(data.getCurrentElement())) return;
+
+        // Player switched Wind Burst off with /toggle windburst
+        if (!data.isToggleEnabled(PassiveToggle.WIND_BURST)) return;
 
         // Second passive: unlocks at Upgrade II
         if (data.getUpgradeLevel(data.getCurrentElement()) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;

@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.basic.fire.listeners;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.data.PassiveToggle;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -27,7 +28,7 @@ import java.util.Map;
  *
  * Fortune still multiplies the output (vanilla loot table). Silk Touch bypasses
  * smelting entirely and drops the raw block as normal. Players can switch the
- * whole passive off/on with /autosmelt.
+ * whole passive off/on with /toggle firesmelt.
  */
 public class FireSmeltListener implements Listener {
 
@@ -66,8 +67,8 @@ public class FireSmeltListener implements Listener {
             return;
         }
 
-        // Player turned auto smelt off with /autosmelt - drops stay vanilla
-        if (!playerData.isAutoSmeltEnabled()) {
+        // Player turned auto smelt off with /toggle firesmelt - drops stay vanilla
+        if (!playerData.isToggleEnabled(PassiveToggle.FIRE_SMELT)) {
             return;
         }
 

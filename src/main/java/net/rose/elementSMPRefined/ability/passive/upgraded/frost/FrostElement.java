@@ -24,8 +24,8 @@ import java.util.List;
  * Passive 1: Breath of the Nautilus (inherited from Water)
  * Passive 2 (Upgrade II): True invisibility while standing still in water (inherited from Water,
  *            see WaterInvisibilityListener, which handles both Water and Frost)
- * Passive 3 (Upgrade II): Flash Freeze - 1% chance on a melee hit to encase the target in ice and
- *            stun it for 2 seconds (see FrostFreezeListener)
+ * Passive 3 (Upgrade II): Flash Freeze - chance on a melee hit to encase a player in ice on the ground and
+ *            stun them for 2 seconds (see FrostFreezeListener)
  */
 public class FrostElement extends BaseElement implements ListenerProvider {
     public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
@@ -65,6 +65,6 @@ public class FrostElement extends BaseElement implements ListenerProvider {
         return List.of(
                 "Breath of the Nautilus",
                 "True Invis while staying still in water (Upgrade II)",
-                "1% chance on hit to freeze the target in ice for 2 seconds (Upgrade II)");
+                "5% chance on hit to freeze a player in ice on the ground for 2 seconds (Upgrade II)");
     }
 }

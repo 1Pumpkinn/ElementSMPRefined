@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -41,6 +42,10 @@ import java.util.UUID;
  *       {@link AbilityDamage}) is absorbed too, but shatters <b>all</b> remaining shields at
  *       once. Non-damage abilities (pulls, dashes...) never touch a shield.</li>
  * </ul>
+ * Shields break one at a time, at least {@value #POP_INTERVAL_TICKS} ticks (1 second) apart: a hit that lands while the previous
+ * shield broke less than a second ago is still blocked, but doesn't pop another shield - so spamming the
+ * attack button can't chew through all three at once. (A damaging ability still shatters everything.)
+ * <p>
  * An absorbed hit is cancelled outright - no damage, no knockback. The effect ends when the last
  * shield pops, or fades on its own after {@value #DURATION_TICKS} ticks. Environmental damage
  * (fall, fire, drowning, explosions...) is deliberately not blocked.
@@ -56,12 +61,16 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     private static final int SHIELD_COUNT = 3;
     private static final int DURATION_TICKS = 15 * 20; // 15 seconds if it's never broken
     private static final int COOLDOWN_SECONDS = 45;
+    /** Minimum time between two melee/projectile hits popping a shield. */
+    private static final int POP_INTERVAL_TICKS = 20; // 1 second
 
     private enum EndReason { BROKEN, EXPIRED, REMOVED }
 
     private static final class Shield {
         final MetalShieldVisual visual;
         BukkitRunnable task;
+        /** Server tick the last shield was popped by a normal hit; far in the past until one is. */
+        int lastPopTick = Integer.MIN_VALUE / 2;
 
         Shield(MetalShieldVisual visual) {
             this.visual = visual;
@@ -155,6 +164,18 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     private void absorb(Player victim, Shield shield, EntityDamageEvent event, Entity source, boolean abilityHit) {
         event.setCancelled(true);
 
+        // Melee/projectile hits can only break a shield once per second. A hit inside that window
+        // is still blocked (the player isn't hurt) but costs the shield nothing.
+        if (!abilityHit) {
+            int now = Bukkit.getCurrentTick();
+            if (now - shield.lastPopTick < POP_INTERVAL_TICKS) {
+                victim.getWorld().playSound(victim.getLocation().add(0, 1.0, 0),
+                        Sound.ITEM_SHIELD_BLOCK, 0.5f, 1.4f);
+                return;
+            }
+            shield.lastPopTick = now;
+        }
+
         Location from = source != null ? source.getLocation() : null;
         int toPop = abilityHit ? shield.visual.count() : 1;
 
@@ -233,6 +254,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return "Orbiting shields each block one hit. A damaging ability breaks all of them.";
+        return "Orbiting shields each block one hit, breaking at most one per second. A damaging ability breaks all of them.";
     }
 }

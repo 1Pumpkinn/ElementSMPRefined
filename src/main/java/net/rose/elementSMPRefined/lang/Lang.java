@@ -540,6 +540,46 @@ public final class Lang {
                     .append(Component.text("disabled", NamedTextColor.RED))
                     .append(Component.text(".", NamedTextColor.GRAY));
 
+    public static final Component TOGGLE_PLAYERS_ONLY =
+            Component.text("Only players can use this command!", NamedTextColor.RED);
+
+    public static final Component TOGGLE_NO_ELEMENT =
+            Component.text("You don't have an element, so there are no passives to toggle.", NamedTextColor.RED);
+
+    public static final Component TOGGLE_NONE_AVAILABLE =
+            Component.text("Your element has no passives that can be toggled.", NamedTextColor.YELLOW);
+
+    public static final Component TOGGLE_USAGE =
+            Component.text("Usage: /toggle [passive] [on|off]  (run /toggle to see yours)", NamedTextColor.YELLOW);
+
+    public static final Component TOGGLE_LIST_HEADER =
+            Component.text("Passive toggles:", NamedTextColor.GOLD);
+
+    public static Component toggleListEntry(String id, String displayName, boolean enabled) {
+        return Component.text(" - ", NamedTextColor.DARK_GRAY)
+                .append(Component.text(displayName, NamedTextColor.GRAY))
+                .append(Component.text(" (" + id + "): ", NamedTextColor.DARK_GRAY))
+                .append(enabled
+                        ? Component.text("on", NamedTextColor.GREEN)
+                        : Component.text("off", NamedTextColor.RED));
+    }
+
+    public static Component toggleUnknown(String input) {
+        return Component.text("Unknown passive '" + input + "'. Run /toggle to see the ones you can use.", NamedTextColor.RED);
+    }
+
+    public static Component toggleWrongElement(String displayName, String elementNames) {
+        return Component.text(displayName + " is only available to " + elementNames + ".", NamedTextColor.RED);
+    }
+
+    public static Component toggleChanged(String displayName, boolean enabled) {
+        return Component.text(displayName + " ", NamedTextColor.GRAY)
+                .append(enabled
+                        ? Component.text("enabled", NamedTextColor.GREEN)
+                        : Component.text("disabled", NamedTextColor.RED))
+                .append(Component.text(".", NamedTextColor.GRAY));
+    }
+
     public static final Component ELEMENT_INFO_PLAYERS_ONLY =
             Component.text("Only players can use this command!", NamedTextColor.RED);
 

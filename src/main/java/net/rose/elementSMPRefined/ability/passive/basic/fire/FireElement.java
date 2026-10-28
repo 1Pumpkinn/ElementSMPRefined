@@ -55,7 +55,7 @@ public class FireElement extends BaseElement {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Auto Smelt (toggle with /autosmelt)",
+                "Auto Smelt (toggle with /toggle firesmelt)",
                 "Fire Resistance (Upgrade II)");
     }
 }

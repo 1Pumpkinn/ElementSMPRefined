@@ -16,7 +16,10 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.AbstractArrow;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -31,6 +34,10 @@ import org.bukkit.util.Vector;
  * <ul>
  *     <li>Hooked an entity directly - drags them in to the caster, like a
  *     harpoon, then sets them alight on arrival.</li>
+ *     <li>Hooked a projectile in flight (arrow, snowball, wind charge, fireball, trident...) -
+ *     yanks it in to the caster and snuffs it out the moment it arrives, so it can never land.
+ *     Projectiles stuck in a block and projectiles fired by a player the caster trusts are ignored,
+ *     so they never block a terrain hook.</li>
  *     <li>Hooked terrain - reels the caster in to that point instead (the
  *     caster moves, not the target). If the hook landed on a flat/top
  *     surface, this ends with a scorch at the landing spot so aiming at the
@@ -127,6 +134,12 @@ public class HellChainAbility extends BaseAbility {
     private static final double DRAG_MAX_DOWNWARD = -0.5;
     private static final double DRAG_VERTICAL_FACTOR = 0.15;
 
+    // Projectile-catch mode (hook lands on a projectile in flight)
+    private static final double PROJECTILE_MAX_SPEED = 1.2;
+    private static final double PROJECTILE_MIN_SPEED = 0.4;
+    private static final double PROJECTILE_SPEED_PER_BLOCK = 0.4; // slows as it nears the caster
+    private static final double PROJECTILE_CATCH_DISTANCE = 2.5;  // removed this far out, so it never actually hits the caster
+
     // Ping compensation: a player's server-side position lags behind what they actually see, so the
     // very first ticks of the pull look like "no movement" to the server. Snag detection gets a
     // grace period + extra tolerance equal to the caster's ping (in ticks) so it doesn't bail early.
@@ -162,7 +175,7 @@ public class HellChainAbility extends BaseAbility {
         RayTraceResult result = player.getWorld().rayTrace(
                 eyeLoc, direction, RANGE,
                 FluidCollisionMode.NEVER, true, RAY_SIZE,
-                entity -> entity instanceof LivingEntity && !entity.equals(player)
+                entity -> isHookable(entity, player, context.getTrustManager())
         );
 
         if (result == null) {
@@ -172,6 +185,7 @@ public class HellChainAbility extends BaseAbility {
         }
 
         LivingEntity hookedEntity = result.getHitEntity() instanceof LivingEntity le ? le : null;
+        Projectile hookedProjectile = result.getHitEntity() instanceof Projectile pr ? pr : null;
         TrustManager trust = context.getTrustManager();
 
         if (hookedEntity instanceof Player hookedPlayer
@@ -186,6 +200,8 @@ public class HellChainAbility extends BaseAbility {
         setActive(player, true);
         if (hookedEntity != null) {
             dragEntityIn(player, hookedEntity);
+        } else if (hookedProjectile != null) {
+            catchProjectile(player, hookedProjectile);
         } else {
             grappleToPoint(player, hookLocation, hitFace, trust);
         }
@@ -270,6 +286,88 @@ public class HellChainAbility extends BaseAbility {
                 target.setVelocity(new Vector(vx, vy, vz));
 
                 playChainStep(player, casterEye, ticks);
+                ticks++;
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    /**
+     * What the chain's ray may latch onto: living entities (other than the caster) and projectiles
+     * that are actually flying. Arrows/tridents stuck in a block and projectiles shot by a player the
+     * caster trusts are skipped, so a stray arrow in a wall never hijacks a terrain hook.
+     */
+    private static boolean isHookable(Entity entity, Player caster, TrustManager trust) {
+        if (entity.equals(caster)) return false;
+        if (entity instanceof LivingEntity) return true;
+        if (!(entity instanceof Projectile projectile)) return false;
+        if (!projectile.isValid() || projectile.isDead()) return false;
+        if (projectile instanceof AbstractArrow arrow && (arrow.isInBlock() || arrow.isOnGround())) return false;
+        return !(projectile.getShooter() instanceof Player shooter
+                && trust.isTrusted(caster.getUniqueId(), shooter.getUniqueId()));
+    }
+
+    /**
+     * Direct hit on a projectile (wind charge, arrow, snowball...) - reel it in to the caster. Its
+     * gravity is switched off and its velocity is set toward the caster each tick; once it is within
+     * {@link #PROJECTILE_CATCH_DISTANCE} it is removed, so wind charges don't burst and arrows don't
+     * hit. If the chain is let go early or times out the projectile gets its gravity back and carries on.
+     */
+    private void catchProjectile(Player player, Projectile projectile) {
+        final int maxTicks = maxTicksFor(player.getLocation().distance(projectile.getLocation()));
+        final boolean hadGravity = projectile.hasGravity();
+
+        new BukkitRunnable() {
+            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
+            int ticks = 0;
+            boolean caught = false;
+
+            /** Every exit path calls cancel(), so the chain entities can never outlive the ability. */
+            @Override
+            public synchronized void cancel() throws IllegalStateException {
+                chain.remove();
+                setActive(player, false);
+                if (!caught && projectile.isValid()) {
+                    projectile.setGravity(hadGravity); // let go - it carries on as normal
+                }
+                super.cancel();
+            }
+
+            @Override
+            public void run() {
+                // Projectile hit something / despawned on the way in, or the caster left.
+                if (!player.isOnline() || !projectile.isValid() || projectile.isDead()) {
+                    cancel();
+                    return;
+                }
+                if (!isActiveFor(player) || ticks >= maxTicks) {
+                    cancel();
+                    return;
+                }
+
+                Location target = player.getLocation().add(0, player.getHeight() * 0.6, 0);
+                Location at = projectile.getLocation();
+                Vector offset = target.toVector().subtract(at.toVector()); // projectile -> caster
+                double distance = offset.length();
+
+                if (distance < PROJECTILE_CATCH_DISTANCE) {
+                    caught = true;
+                    at.getWorld().spawnParticle(Particle.LAVA, at, 12, 0.2, 0.2, 0.2, 0.05);
+                    at.getWorld().spawnParticle(Particle.SMALL_FLAME, at, 10, 0.2, 0.2, 0.2, 0.02);
+                    at.getWorld().playSound(at, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.4f);
+                    projectile.remove();
+                    cancel();
+                    return;
+                }
+
+                chain.update(chainStart(player), projectile.getLocation());
+
+                // Velocity is SET each tick, aimed straight at the caster, so it can't drift off course.
+                double speed = Math.max(PROJECTILE_MIN_SPEED,
+                        Math.min(PROJECTILE_MAX_SPEED, distance * PROJECTILE_SPEED_PER_BLOCK));
+                projectile.setGravity(false);
+                projectile.setVelocity(offset.normalize().multiply(speed));
+
+                playChainStep(player, player.getEyeLocation(), ticks);
                 ticks++;
             }
         }.runTaskTimer(plugin, 0L, 1L);
@@ -603,6 +701,6 @@ public class HellChainAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Shoots a chain at an entity you are looking at. It pulls the entity to you, or pulls you to a block, and sets nearby enemies on fire. Use again to stop mid-chain.";
+        return "Shoots a chain at an entity you are looking at. It pulls the entity to you, snatches projectiles (arrows, snowballs, wind charges...) out of the air, or pulls you to a block, and sets nearby enemies on fire. Use again to stop mid-chain.";
     }
 }

@@ -15,7 +15,6 @@ import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBarrage
 import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
 import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
-import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostFreezeListener;
 
 /**
  * Main plugin class which significantly simplified by extending AbstractElementPlugin.
@@ -43,7 +42,6 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         TornadoVisual.removeAll();
         IceSpikeVisual.removeAll();
         IceBlockVisual.removeAll();
-        FrostFreezeListener.releaseAll();
         FrostIcicleBarrageAbility.removeAll();
         EruptionAbility.removeAll();
         LifeTotemAbility.removeAll();

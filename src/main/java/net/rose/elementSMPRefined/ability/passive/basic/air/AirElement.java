@@ -41,6 +41,6 @@ public class AirElement extends BaseElement {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "No fall damage",
-                "Wind Burst (Upgrade II)");
+                "Wind Burst (Upgrade II, toggle with /toggle windburst)");
     }
 }

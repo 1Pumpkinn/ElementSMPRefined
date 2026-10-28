@@ -35,8 +35,8 @@ import org.bukkit.util.Vector;
  *     <li>Hooked an entity directly - drags them in to the caster, like a
  *     harpoon, then sets them alight on arrival.</li>
  *     <li>Hooked a projectile in flight (arrow, snowball, wind charge, fireball, trident...) -
- *     yanks it in to the caster and snuffs it out the moment it arrives, so it can never land.
- *     Projectiles stuck in a block and projectiles fired by a player the caster trusts are ignored,
+ *     latches onto it and the projectile pulls the caster along behind it, lifting them as it goes.
+ *     The projectile itself is untouched. Projectiles stuck in a block and projectiles fired by a player the caster trusts are ignored,
  *     so they never block a terrain hook.</li>
  *     <li>Hooked terrain - reels the caster in to that point instead (the
  *     caster moves, not the target). If the hook landed on a flat/top
@@ -134,11 +134,9 @@ public class HellChainAbility extends BaseAbility {
     private static final double DRAG_MAX_DOWNWARD = -0.5;
     private static final double DRAG_VERTICAL_FACTOR = 0.15;
 
-    // Projectile-catch mode (hook lands on a projectile in flight)
-    private static final double PROJECTILE_MAX_SPEED = 1.2;
-    private static final double PROJECTILE_MIN_SPEED = 0.4;
-    private static final double PROJECTILE_SPEED_PER_BLOCK = 0.4; // slows as it nears the caster
-    private static final double PROJECTILE_CATCH_DISTANCE = 2.5;  // removed this far out, so it never actually hits the caster
+    // Projectile-latch mode (hook lands on a projectile in flight): the caster is hauled along behind it
+    private static final double PROJECTILE_MAX_PULL_SPEED = 1.3; // a bit quicker than a terrain hook, projectiles move
+    private static final double PROJECTILE_RIDE_DISTANCE = 2.0;  // closer than this, match the projectile's velocity
 
     // Ping compensation: a player's server-side position lags behind what they actually see, so the
     // very first ticks of the pull look like "no movement" to the server. Snag detection gets a
@@ -201,7 +199,7 @@ public class HellChainAbility extends BaseAbility {
         if (hookedEntity != null) {
             dragEntityIn(player, hookedEntity);
         } else if (hookedProjectile != null) {
-            catchProjectile(player, hookedProjectile);
+            latchOntoProjectile(player, hookedProjectile);
         } else {
             grappleToPoint(player, hookLocation, hitFace, trust);
         }
@@ -307,67 +305,76 @@ public class HellChainAbility extends BaseAbility {
     }
 
     /**
-     * Direct hit on a projectile (wind charge, arrow, snowball...) - reel it in to the caster. Its
-     * gravity is switched off and its velocity is set toward the caster each tick; once it is within
-     * {@link #PROJECTILE_CATCH_DISTANCE} it is removed, so wind charges don't burst and arrows don't
-     * hit. If the chain is let go early or times out the projectile gets its gravity back and carries on.
+     * Direct hit on a projectile (wind charge, arrow, snowball...) - the chain latches onto it and the
+     * projectile hauls the caster along behind it. The projectile is left completely alone (it flies
+     * on with its own velocity and gravity); each tick the caster is pulled toward wherever it is
+     * now, the same pull a terrain hook uses. Once the caster catches up they ride along with it.
+     * The chain lets go when the projectile lands, hits something or despawns, when the ability is
+     * pressed again, or on timeout, keeping a little momentum.
      */
-    private void catchProjectile(Player player, Projectile projectile) {
-        final int maxTicks = maxTicksFor(player.getLocation().distance(projectile.getLocation()));
-        final boolean hadGravity = projectile.hasGravity();
+    private void latchOntoProjectile(Player player, Projectile projectile) {
+        final boolean startedOnGround = player.isOnGround();
+        final int maxTicks = maxTicksFor(player.getEyeLocation().distance(projectile.getLocation()));
 
         new BukkitRunnable() {
             final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
             int ticks = 0;
-            boolean caught = false;
 
             /** Every exit path calls cancel(), so the chain entities can never outlive the ability. */
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 chain.remove();
                 setActive(player, false);
-                if (!caught && projectile.isValid()) {
-                    projectile.setGravity(hadGravity); // let go - it carries on as normal
-                }
                 super.cancel();
             }
 
             @Override
             public void run() {
-                // Projectile hit something / despawned on the way in, or the caster left.
-                if (!player.isOnline() || !projectile.isValid() || projectile.isDead()) {
+                if (!player.isOnline() || player.isDead()) {
                     cancel();
                     return;
                 }
-                if (!isActiveFor(player) || ticks >= maxTicks) {
-                    cancel();
-                    return;
-                }
-
-                Location target = player.getLocation().add(0, player.getHeight() * 0.6, 0);
-                Location at = projectile.getLocation();
-                Vector offset = target.toVector().subtract(at.toVector()); // projectile -> caster
-                double distance = offset.length();
-
-                if (distance < PROJECTILE_CATCH_DISTANCE) {
-                    caught = true;
-                    at.getWorld().spawnParticle(Particle.LAVA, at, 12, 0.2, 0.2, 0.2, 0.05);
-                    at.getWorld().spawnParticle(Particle.SMALL_FLAME, at, 10, 0.2, 0.2, 0.2, 0.02);
-                    at.getWorld().playSound(at, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.4f);
-                    projectile.remove();
+                // Projectile landed / hit something / despawned, pressed again, or timed out: let go.
+                if (!projectile.isValid() || projectile.isDead() || !isActiveFor(player) || ticks >= maxTicks) {
+                    player.setVelocity(player.getVelocity().multiply(0.5));
+                    player.setFallDistance(0f);
                     cancel();
                     return;
                 }
 
-                chain.update(chainStart(player), projectile.getLocation());
+                Location eye = player.getEyeLocation();
+                Location anchor = projectile.getLocation();
+                Vector toProjectile = anchor.toVector().subtract(eye.toVector());
+                double distance = toProjectile.length();
 
-                // Velocity is SET each tick, aimed straight at the caster, so it can't drift off course.
-                double speed = Math.max(PROJECTILE_MIN_SPEED,
-                        Math.min(PROJECTILE_MAX_SPEED, distance * PROJECTILE_SPEED_PER_BLOCK));
-                projectile.setGravity(false);
-                projectile.setVelocity(offset.normalize().multiply(speed));
+                chain.update(chainStart(player), anchor);
 
-                playChainStep(player, player.getEyeLocation(), ticks);
+                Vector velocity;
+                if (distance < PROJECTILE_RIDE_DISTANCE) {
+                    // Caught up - travel with the projectile instead of stopping or overshooting it.
+                    velocity = projectile.getVelocity().clone();
+                    if (velocity.length() > PROJECTILE_MAX_PULL_SPEED) {
+                        velocity.normalize().multiply(PROJECTILE_MAX_PULL_SPEED);
+                    }
+                } else {
+                    // Velocity is SET each tick, ramping up to the max speed, aimed at the projectile's current spot.
+                    double speed = Math.min(PROJECTILE_MAX_PULL_SPEED, PULL_STRENGTH * (ticks + 1));
+                    velocity = toProjectile.normalize().multiply(speed);
+                }
+
+                // The projectile hauls you up: never let the pull point downward-only while it's above you.
+                if (anchor.getY() >= eye.getY() - 1.0) {
+                    velocity.setY(Math.max(velocity.getY(), MIN_UPWARD_PULL));
+                }
+                if (ticks == 0 && startedOnGround) {
+                    velocity.setY(Math.max(velocity.getY(), GROUND_HOP_VELOCITY));
+                }
+                applyStepAssist(player, velocity);
+
+                player.setVelocity(velocity);
+                player.setFallDistance(0f);
+
+                playChainStep(player, eye, ticks);
                 ticks++;
             }
         }.runTaskTimer(plugin, 0L, 1L);
@@ -701,6 +708,6 @@ public class HellChainAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Shoots a chain at an entity you are looking at. It pulls the entity to you, snatches projectiles (arrows, snowballs, wind charges...) out of the air, or pulls you to a block, and sets nearby enemies on fire. Use again to stop mid-chain.";
+        return "Shoots a chain at an entity you are looking at. It pulls the entity to you, latches onto a projectile (arrow, snowball, wind charge...) so it drags you along, or pulls you to a block, and sets nearby enemies on fire. Use again to stop mid-chain.";
     }
 }

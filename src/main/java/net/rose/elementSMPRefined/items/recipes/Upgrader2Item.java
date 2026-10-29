@@ -13,9 +13,12 @@ public final class Upgrader2Item {
 
     public static final String KEY = "upgrader_2";
 
+    private static final NamespacedKey MODEL = NamespacedKey.fromString("elementsmp:upgrader_2");
+
     public static ItemStack make(JavaPlugin plugin) {
-        return ItemBuilder.of(Material.ECHO_SHARD)
+        return ItemBuilder.of(Material.AMETHYST_SHARD)
                 .name("&bUpgrader II")
+                .itemModel(MODEL)
                 .lore("Unlocks Ability 2 and Passive 2")
                 .data(ItemKeys.upgraderLevel(plugin), 2)
                 .build();

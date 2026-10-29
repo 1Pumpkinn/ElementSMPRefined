@@ -63,6 +63,7 @@ public class UpgraderHandler implements Listener {
         if (item == null) return false;
 
         Material type = item.getType();
+        // ECHO_SHARD is the old Upgrader II material - still accepted so existing items keep working.
         if (type != Material.AMETHYST_SHARD && type != Material.ECHO_SHARD) return false;
 
         return ItemUtil.hasTag(item, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER);

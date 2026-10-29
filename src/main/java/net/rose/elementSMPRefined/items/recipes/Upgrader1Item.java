@@ -13,9 +13,12 @@ public final class Upgrader1Item {
 
     public static final String KEY = "upgrader_1";
 
+    private static final NamespacedKey MODEL = NamespacedKey.fromString("elementsmp:upgrader_1");
+
     public static ItemStack make(JavaPlugin plugin) {
         return ItemBuilder.of(Material.AMETHYST_SHARD)
                 .name("&aUpgrader I")
+                .itemModel(MODEL)
                 .lore("Unlocks Ability 1")
                 .data(ItemKeys.upgraderLevel(plugin), 1)
                 .build();

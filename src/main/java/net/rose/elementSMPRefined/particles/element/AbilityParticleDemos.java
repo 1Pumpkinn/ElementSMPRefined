@@ -267,9 +267,9 @@ public final class AbilityParticleDemos {
         Location eye = player.getEyeLocation();
         Vector dir = eye.getDirection().normalize();
         for (double d = 2.0; d <= 20; d += 1.0) {
-            LifeParticles.healingBeamPoint(world, eye.clone().add(dir.clone().multiply(d)));
+            LifeParticles.drainBeamPoint(world, eye.clone().add(dir.clone().multiply(d)));
         }
-        LifeParticles.healingBeamHit(world, eye.clone().add(dir.clone().multiply(10)));
+        LifeParticles.drainHit(world, eye.clone().add(dir.clone().multiply(10)));
     }
 
     private static void frostSpikes(Player player, ElementSMPRefined plugin) {

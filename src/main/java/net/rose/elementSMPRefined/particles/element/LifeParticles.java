@@ -21,11 +21,15 @@ public final class LifeParticles {
         world.spawnParticle(Particle.DUST, loc, 1, 0.1, 0.1, 0.1, 0, RED_DUST, true);
     }
 
-    public static void healingBeamHit(World world, Location hitLoc) {
-        world.spawnParticle(Particle.HEART, hitLoc, 3, 0.2, 0.2, 0.2, 0.0, null, true);
+    public static void drainBeamPoint(World world, Location pt) {
+        world.spawnParticle(Particle.COPPER_FIRE_FLAME, pt, 1, 0, 0, 0, 0, null, true);
     }
 
-    public static void healingBeamPoint(World world, Location pt) {
-        world.spawnParticle(Particle.HEART, pt, 1, 0.05, 0.05, 0.05, 0, null, true);
+    public static void drainHit(World world, Location hitLoc) {
+        world.spawnParticle(Particle.COPPER_FIRE_FLAME, hitLoc, 2, 0.2, 0.3, 0.2, 0.0, null, true);
+    }
+
+    public static void drainGain(World world, Location loc) {
+        world.spawnParticle(Particle.COPPER_FIRE_FLAME, loc, 2, 0.2, 0.3, 0.2, 0.0, null, true);
     }
 }

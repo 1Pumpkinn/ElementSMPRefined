@@ -42,8 +42,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class FrostFreezeListener implements Listener {
 
-    private static final double CHANCE = 0.05; // 5% (keep FrostElement's info text in sync)
-    private static final int CHANCE_PERCENT = 5;
+    private static final double CHANCE = 0.025; // 2.5% (keep FrostElement's info text in sync)
+    private static final double CHANCE_PERCENT = 2.5;
     private static final int FREEZE_TICKS = 40; // 2 seconds
 
     /** How far below the victim to look for ground before giving up (blocks). */
@@ -70,7 +70,7 @@ public class FrostFreezeListener implements Listener {
         // Players only - mobs are never frozen.
         if (!(event.getEntity() instanceof Player victim) || victim.equals(attacker)) return;
 
-        // Roll first - it fails 95% of the time, so this keeps every other hit on the server cheap.
+        // Roll first - it fails 97.5% of the time, so this keeps every other hit on the server cheap.
         if (ThreadLocalRandom.current().nextDouble() >= CHANCE) return;
 
         var data = elementManager.data(attacker.getUniqueId());

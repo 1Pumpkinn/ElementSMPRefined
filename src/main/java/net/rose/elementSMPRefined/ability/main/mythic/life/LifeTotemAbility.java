@@ -71,7 +71,7 @@ public class LifeTotemAbility extends BaseAbility {
     private static final int DURATION_TICKS = 200;       // 10 seconds standing
     private static final float COLLAPSED = 0.05f;        // never scale to exactly zero
 
-    private static final int HITS_TO_BREAK = 5;          // critical hits needed to destroy it
+    private static final int HITS_TO_BREAK = 3;          // critical hits needed to destroy it
     private static final float HITBOX_WIDTH = PLANTED_SCALE * 1.0f;
     private static final float HITBOX_HEIGHT = PLANTED_SCALE * (24.4f / 16f);
 

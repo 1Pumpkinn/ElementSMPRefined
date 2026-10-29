@@ -98,6 +98,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     private void initializeCore() {
         this.configManager = new ConfigManager(this);
+        this.configManager.mergeNewDefaults();
         this.dataStore = new DataStore(this);
     }
 

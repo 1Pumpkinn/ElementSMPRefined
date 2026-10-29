@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.data;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,8 +36,12 @@ public class DataStore implements PlayerDataRepository {
 
     private final JavaPlugin plugin;
 
+    private static final int BACKUP_KEEP = 30;
+    private static final long BACKUP_MIN_AGE_MINUTES = 30;
+
     private final File playerFile;
     private FileConfiguration playerCfg;
+    private long lastUnreadableLogMillis = 0L;
 
     private final Map<UUID, PlayerData> playerDataCache = new ConcurrentHashMap<>();
 
@@ -50,6 +55,14 @@ public class DataStore implements PlayerDataRepository {
 
         this.playerFile = createIfMissing(dataDir, "players.yml");
         this.playerCfg = loadYaml(playerFile, "players.yml");
+
+        // Rolling copy of players.yml taken before anything can modify it this session, so a bad
+        // update/edit is always recoverable from data/backups/.
+        try {
+            YamlFiles.backup(playerFile, new File(dataDir, "backups"), "players", BACKUP_KEEP, BACKUP_MIN_AGE_MINUTES);
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.WARNING, "Could not back up players.yml", e);
+        }
     }
 
     private File createIfMissing(File dir, String name) {
@@ -66,11 +79,46 @@ public class DataStore implements PlayerDataRepository {
         return file;
     }
 
+    /**
+     * Startup load. If players.yml is unreadable the file is NOT replaced: a copy is quarantined,
+     * the plugin starts with an empty in-memory view, and every write is refused until the file
+     * parses again (see {@link #reloadFromDisk}), so the real data can be repaired by hand.
+     */
     private FileConfiguration loadYaml(File file, String name) {
         try {
-            return YamlConfiguration.loadConfiguration(file);
-        } catch (Exception e) {
-            throw new IllegalStateException("Could not load " + name, e);
+            return YamlFiles.loadStrict(file);
+        } catch (IOException | InvalidConfigurationException e) {
+            reportUnreadable(name, e);
+            return new YamlConfiguration();
+        }
+    }
+
+    private void reportUnreadable(String name, Exception e) {
+        plugin.getLogger().log(Level.SEVERE, name + " could not be read - player data will NOT be saved until it is "
+                + "fixed (nothing has been overwritten). Fix or restore it from data/backups/ and restart.", e);
+        try {
+            File copy = YamlFiles.quarantine(playerFile);
+            plugin.getLogger().severe("Copied the unreadable file to " + copy.getName());
+        } catch (IOException ioe) {
+            plugin.getLogger().log(Level.WARNING, "Could not quarantine " + name, ioe);
+        }
+    }
+
+    /**
+     * Re-reads players.yml from disk. Returns false (leaving {@link #playerCfg} untouched) if it
+     * can't be parsed, so callers never merge onto an empty config and save it over the real file.
+     */
+    private boolean reloadFromDisk() {
+        try {
+            playerCfg = YamlFiles.loadStrict(playerFile);
+            return true;
+        } catch (IOException | InvalidConfigurationException e) {
+            long now = System.currentTimeMillis();
+            if (now - lastUnreadableLogMillis > 60_000L) { // don't spam on every save
+                lastUnreadableLogMillis = now;
+                plugin.getLogger().log(Level.SEVERE, "players.yml is unreadable - skipping disk access to protect saved data", e);
+            }
+            return false;
         }
     }
 
@@ -92,10 +140,7 @@ public class DataStore implements PlayerDataRepository {
     }
 
     private synchronized PlayerData loadPlayerDataFromFile(UUID uuid) {
-        try {
-            playerCfg = YamlConfiguration.loadConfiguration(playerFile);
-        } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to reload players.yml, using blank data for " + uuid, e);
+        if (!reloadFromDisk()) {
             return new PlayerData(uuid);
         }
 
@@ -147,8 +192,10 @@ public class DataStore implements PlayerDataRepository {
     private void persistToDisk(PlayerData data) {
         try {
             // Reload first so we merge onto whatever's currently on disk rather than
-            // clobbering changes written by another save() call in between.
-            playerCfg = YamlConfiguration.loadConfiguration(playerFile);
+            // clobbering changes written by another save() call in between. If the file is
+            // unreadable we must NOT continue: merging onto an empty config and saving would
+            // erase every other player.
+            if (!reloadFromDisk()) return;
 
             String key = "players." + data.getUuid();
             ConfigurationSection section = playerCfg.getConfigurationSection(key);
@@ -169,15 +216,30 @@ public class DataStore implements PlayerDataRepository {
         playerDataCache.remove(uuid);
     }
 
-    /** Synchronous - only safe to call on shutdown/disable where blocking briefly is acceptable. */
+    /**
+     * Synchronous - only safe to call on shutdown/disable where blocking briefly is acceptable.
+     * Writes every cached player to disk in one pass, so changes still queued in
+     * {@link #saveAsync} when the server stops are not lost. Does nothing if players.yml is
+     * unreadable (never overwrite a file that couldn't be parsed).
+     */
     @Override
     public synchronized void flushAll() {
+        if (!reloadFromDisk()) return;
+
+        for (PlayerData data : playerDataCache.values()) {
+            String key = "players." + data.getUuid();
+            ConfigurationSection section = playerCfg.getConfigurationSection(key);
+            if (section == null) {
+                section = playerCfg.createSection(key);
+            }
+            PlayerDataSerializer.serialize(data, section);
+        }
         flushPlayerData();
     }
 
     private void flushPlayerData() {
         try {
-            playerCfg.save(playerFile);
+            YamlFiles.saveAtomic(playerCfg, playerFile);
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save players.yml to disk", e);
         }

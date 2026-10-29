@@ -16,7 +16,9 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.BlockState;
 import org.bukkit.structure.Palette;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import net.rose.elementSMPRefined.data.YamlFiles;
 import org.bukkit.entity.Display;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.Entity;
@@ -89,6 +91,8 @@ public final class ReforgeAltarManager {
 
     private final JavaPlugin plugin;
     private final File stateFile;
+    /** True if reforge_altar.yml existed but couldn't be parsed - saving is disabled so it isn't overwritten. */
+    private boolean stateUnreadable = false;
     private final Random random = new Random();
 
     /** One non-air block of the structure, relative to its origin corner. */
@@ -765,7 +769,16 @@ public final class ReforgeAltarManager {
 
     private void loadState() {
         if (!stateFile.exists()) return;
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(stateFile);
+        YamlConfiguration yaml;
+        try {
+            yaml = YamlFiles.loadStrict(stateFile);
+        } catch (IOException | InvalidConfigurationException e) {
+            // Don't fall through to an empty state: the next saveState() would overwrite the real
+            // altar record (and its terrain snapshot) with nothing.
+            stateUnreadable = true;
+            plugin.getLogger().log(Level.SEVERE, "reforge_altar.yml is unreadable - altar state will not be saved until it is fixed", e);
+            return;
+        }
         nextSpawnAtMillis = yaml.getLong("next_spawn_at", 0L);
 
         String worldName = yaml.getString("altar.world");
@@ -777,6 +790,7 @@ public final class ReforgeAltarManager {
     }
 
     private void saveState() {
+        if (stateUnreadable) return;
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("next_spawn_at", nextSpawnAtMillis);
         Altar a = active;
@@ -790,7 +804,7 @@ public final class ReforgeAltarManager {
         }
         try {
             plugin.getDataFolder().mkdirs();
-            yaml.save(stateFile);
+            YamlFiles.saveAtomic(yaml, stateFile);
         } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING, "Could not save reforge_altar.yml", e);
         }

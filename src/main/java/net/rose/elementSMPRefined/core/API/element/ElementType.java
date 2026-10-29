@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.core.API.element;
 
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -28,6 +29,14 @@ public enum ElementType {
      * not {@linkplain #isPlayable() playable}: it can't be rolled, set or suggested.
      */
     EXAMPLE(false);
+
+    /**
+     * Old stored names -> current element, so renaming an enum constant doesn't strip the element
+     * from every player who has it saved under the old name. When you rename an element, add the
+     * OLD name here (upper-case) and never remove it, e.g. {@code Map.entry("FROSTBITE", FROST)}.
+     * Removing an element outright can't be migrated - those players are simply re-rolled.
+     */
+    private static final Map<String, ElementType> LEGACY_NAMES = Map.of();
 
     private final boolean playable;
 
@@ -63,8 +72,13 @@ public enum ElementType {
         if (value == null) {
             return Optional.empty();
         }
+        String name = value.trim().toUpperCase(Locale.ROOT);
+        ElementType legacy = LEGACY_NAMES.get(name);
+        if (legacy != null) {
+            return Optional.of(legacy);
+        }
         try {
-            return Optional.of(valueOf(value.trim().toUpperCase(Locale.ROOT)));
+            return Optional.of(valueOf(name));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }

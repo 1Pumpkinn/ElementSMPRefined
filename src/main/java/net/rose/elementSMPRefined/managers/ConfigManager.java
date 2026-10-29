@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.managers;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.rose.elementSMPRefined.core.Constants;
+import net.rose.elementSMPRefined.data.YamlFiles;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -46,6 +47,26 @@ public class ConfigManager {
 
     private void loadFromDisk() {
         this.config = plugin.getConfig();
+    }
+
+    /**
+     * Adds any keys that are new in the jar's bundled config.yml to the server's existing
+     * config.yml (with their comments), without changing or removing anything already there.
+     * {@code saveDefaultConfig()} only writes the file when it is missing, so without this every
+     * new option would be absent from existing servers' files until someone deleted the config.
+     * Call once on enable, before anything reads the config.
+     */
+    public void mergeNewDefaults() {
+        try (InputStream stream = plugin.getResource("config.yml")) {
+            if (stream == null) return;
+            FileConfiguration bundled = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+            if (YamlFiles.mergeMissing(config, bundled)) {
+                plugin.saveConfig();
+                plugin.getLogger().info("Added new options to config.yml (existing values were left untouched).");
+            }
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Could not merge new defaults into config.yml", e);
+        }
     }
 
     public FileConfiguration getConfig() {

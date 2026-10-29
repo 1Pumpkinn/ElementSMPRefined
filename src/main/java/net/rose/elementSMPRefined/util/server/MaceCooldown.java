@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.server;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -28,6 +29,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  * container, so it survives logging off, relogging and server restarts. It keeps counting down
  * while the player is offline. Only normal melee ({@code ENTITY_ATTACK}) counts, so ability and
  * true damage dealt by a player holding a mace neither triggers nor is blocked by the cooldown.
+ * <p>
+ * Mace melee hits are also capped at {@link Constants.Mace#MAX_DAMAGE_HEARTS} hearts of final
+ * damage (after armor/resistance, before absorption), smash bonus included.
  */
 public class MaceCooldown implements Listener {
 
@@ -143,6 +147,26 @@ public class MaceCooldown implements Listener {
 
         if (isOnCooldown(player)) {
             event.setCancelled(true);
+        }
+    }
+
+    /** Caps a mace melee hit at {@link Constants.Mace#MAX_DAMAGE}. Ability damage is never capped. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onCapDamage(EntityDamageByEntityEvent event) {
+        if (!isPlayerMelee(event)) return;
+        Player player = (Player) event.getDamager();
+        if (!isMace(player.getInventory().getItemInMainHand())) return;
+
+        double max = Constants.Mace.MAX_DAMAGE;
+        double finalDamage = event.getFinalDamage();
+        if (finalDamage <= max) return;
+
+        // Armor reduction isn't perfectly linear in the base damage, so scale and re-check a few times.
+        double base = event.getDamage();
+        for (int i = 0; i < 5 && finalDamage > max + 1.0E-6; i++) {
+            base *= max / finalDamage;
+            event.setDamage(base);
+            finalDamage = event.getFinalDamage();
         }
     }
 

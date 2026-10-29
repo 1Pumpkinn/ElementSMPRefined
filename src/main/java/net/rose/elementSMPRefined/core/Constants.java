@@ -20,6 +20,14 @@ public final class Constants {
         private Cooldown() {}
     }
 
+    public static final class Mace {
+        /** Most damage one mace melee hit can deal, in hearts. */
+        public static final double MAX_DAMAGE_HEARTS = 6.0;
+        public static final double MAX_DAMAGE = MAX_DAMAGE_HEARTS * 2.0;
+
+        private Mace() {}
+    }
+
     public static final class Health {
         public static final double NORMAL_MAX = 20.0;
         public static final double LIFE_MAX = 30.0;

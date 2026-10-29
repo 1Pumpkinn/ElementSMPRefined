@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.frost;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -87,7 +88,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
     private final Set<UUID> activeCasters = new HashSet<>();
 
     public FrostIceSpikesAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("frost_ice_spikes", ElementType.FROST, 2, 30, 2, configManager);
+        super("frost_ice_spikes", ElementType.FROST, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

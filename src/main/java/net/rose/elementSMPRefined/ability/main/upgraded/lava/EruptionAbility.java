@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -72,7 +73,7 @@ public class EruptionAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public EruptionAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("lava_magma_eruption", ElementType.LAVA, 1, 20, 1, configManager);
+        super("lava_magma_eruption", ElementType.LAVA, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.earth;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -114,7 +115,7 @@ public class ShockwaveAbility extends BaseAbility {
     private record WaveBlock(BlockDisplay display, Transformation raised, int born) {}
 
     public ShockwaveAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("earth_shockwave", ElementType.EARTH, 2, 60, 2, configManager);
+        super("earth_shockwave", ElementType.EARTH, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

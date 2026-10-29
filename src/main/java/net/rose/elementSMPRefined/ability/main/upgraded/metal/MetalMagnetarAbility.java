@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -53,7 +54,6 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double AIR_RANGE = 12.0;           // how far away it floats when you aim at open sky (so it can't go as high)
     private static final double HOVER = 1.2;                // how far off the surface it floats (about chest height off the floor)
     private static final int DURATION_TICKS = 5 * 20;
-    private static final int COOLDOWN_SECONDS = 40;
 
     private static final double PULL_RADIUS = 16.0;         // pull range in every direction when the core sits on a surface
     private static final double AIR_PULL_HORIZONTAL = 9.0;  // when it floats in the air the field is tall and narrow instead:
@@ -152,7 +152,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     }
 
     public MetalMagnetarAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("metal_magnetar_core", ElementType.METAL, 2, COOLDOWN_SECONDS, 2, configManager);
+        super("metal_magnetar_core", ElementType.METAL, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

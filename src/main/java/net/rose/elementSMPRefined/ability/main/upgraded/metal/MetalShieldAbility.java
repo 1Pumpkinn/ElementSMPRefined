@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -60,7 +61,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
 
     private static final int SHIELD_COUNT = 3;
     private static final int DURATION_TICKS = 15 * 20; // 15 seconds if it's never broken
-    private static final int COOLDOWN_SECONDS = 45;
     /** Minimum time between two melee/projectile hits popping a shield. */
     private static final int POP_INTERVAL_TICKS = 20; // 1 second
 
@@ -81,7 +81,7 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     private final Map<UUID, Shield> shields = new HashMap<>();
 
     public MetalShieldAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("metal_shield", ElementType.METAL, 1, COOLDOWN_SECONDS, 1, configManager);
+        super("metal_shield", ElementType.METAL, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }

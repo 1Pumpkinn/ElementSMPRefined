@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.air;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
@@ -41,7 +42,7 @@ public class AirCutterAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public AirCutterAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("air_cutter", ElementType.AIR, 2, 60, 2, configManager);
+        super("air_cutter", ElementType.AIR, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

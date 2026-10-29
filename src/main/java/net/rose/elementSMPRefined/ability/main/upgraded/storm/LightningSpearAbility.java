@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.particles.element.StormParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
@@ -89,7 +90,7 @@ public class LightningSpearAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public LightningSpearAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("storm_lightning_spear", ElementType.STORM, 1, 12, 1, configManager);
+        super("storm_lightning_spear", ElementType.STORM, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

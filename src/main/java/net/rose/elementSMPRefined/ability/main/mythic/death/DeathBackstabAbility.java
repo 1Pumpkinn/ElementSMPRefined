@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.mythic.death;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -47,7 +48,7 @@ public class DeathBackstabAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public DeathBackstabAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("death_backstab", ElementType.DEATH, 2, 60, 2, configManager);
+        super("death_backstab", ElementType.DEATH, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

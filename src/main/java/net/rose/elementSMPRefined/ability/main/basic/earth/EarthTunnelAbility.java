@@ -35,7 +35,7 @@ public class EarthTunnelAbility extends BaseAbility {
     private final Map<UUID, ItemStack> tunnelTools = new HashMap<>();
 
     public EarthTunnelAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("earth_tunnel", ElementType.EARTH, 1, 30, 1, configManager);
+        super("earth_tunnel", ElementType.EARTH, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         this.metadataHelper = ((ElementSMPRefined) plugin).getMetadataHelper();
     }

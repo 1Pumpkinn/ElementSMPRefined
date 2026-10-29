@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.water;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -46,7 +47,7 @@ public class WaterDashAbility extends BaseAbility implements Listener {
     private final ElementSMPRefined plugin;
 
     public WaterDashAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("water_dash", ElementType.WATER, 1, 20, 1, configManager);
+        super("water_dash", ElementType.WATER, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }

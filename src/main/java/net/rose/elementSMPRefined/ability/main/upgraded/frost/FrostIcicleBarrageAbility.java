@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.frost;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -127,7 +128,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public FrostIcicleBarrageAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("frost_icicle_barrage", ElementType.FROST, 1, 60, 1, configManager);
+        super("frost_icicle_barrage", ElementType.FROST, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

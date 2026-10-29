@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.fire;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -80,7 +81,7 @@ public class StarFallAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public StarFallAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("fire_starfall", ElementType.FIRE, 2, 60, 2, configManager);
+        super("fire_starfall", ElementType.FIRE, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

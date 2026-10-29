@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.mythic.life;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
@@ -20,7 +21,7 @@ public class LifeHealingBeamAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public LifeHealingBeamAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("life_healing_beam", ElementType.LIFE, 2, 60, 2, configManager);
+        super("life_healing_beam", ElementType.LIFE, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -53,7 +54,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public class TornadoAbility extends BaseAbility {
 
     // Cast / lifetime
-    private static final int COOLDOWN_SECONDS = 40;
     private static final int DURATION_TICKS = 8 * 20;
     /** Ticks to grow to full size / to shrink away at the end. */
     private static final int GROW_TICKS = 15;
@@ -144,7 +144,7 @@ public class TornadoAbility extends BaseAbility {
     }
 
     public TornadoAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("storm_tornado", ElementType.STORM, 2, COOLDOWN_SECONDS, 2, configManager);
+        super("storm_tornado", ElementType.STORM, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 

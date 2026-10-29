@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.mythic.death;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -37,7 +38,7 @@ public class DeathSideStepAbility extends BaseAbility {
             new Particle.DustOptions(Color.fromRGB(5, 5, 5), 1.4F);
 
     public DeathSideStepAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("death_side_step", ElementType.DEATH, 1, 30, 1, configManager);
+        super("death_side_step", ElementType.DEATH, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
     }
 
     @Override

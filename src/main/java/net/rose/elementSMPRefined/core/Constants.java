@@ -11,6 +11,15 @@ public final class Constants {
         private Timing() {}
     }
 
+    public static final class Cooldown {
+        /** Every ability1 (slot 1) cooldown, in seconds. */
+        public static final int ABILITY_1_SECONDS = 60;
+        /** Every ability2 (slot 2) cooldown, in seconds. */
+        public static final int ABILITY_2_SECONDS = 120;
+
+        private Cooldown() {}
+    }
+
     public static final class Health {
         public static final double NORMAL_MAX = 20.0;
         public static final double LIFE_MAX = 30.0;

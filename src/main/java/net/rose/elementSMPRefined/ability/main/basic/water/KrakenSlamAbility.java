@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.basic.water;
 
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
@@ -118,7 +119,7 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
     private final Map<UUID, SlamState> slams = new ConcurrentHashMap<>();
 
     public KrakenSlamAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("kraken_slam", ElementType.WATER, 2, 25, 2, configManager);
+        super("kraken_slam", ElementType.WATER, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }

@@ -26,9 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LifeElement extends BaseElement {
 
-    /** Crops within this many blocks horizontally of the player are grown. */
     private static final int CROP_AURA_RADIUS = 5;
-    /** Crops within this many blocks vertically of the player are grown. */
     private static final int CROP_AURA_HEIGHT = 1;
     private static final long CROP_AURA_INTERVAL_TICKS = 40L; // every 2 seconds
 
@@ -47,7 +45,6 @@ public class LifeElement extends BaseElement {
 
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, 0, true, false));
 
-        // Upside 1: 15 hearts (30 HP)
         var attr = player.getAttribute(Attribute.MAX_HEALTH);
         if (attr != null) {
             if (attr.getBaseValue() < 30.0) attr.setBaseValue(30.0);
@@ -56,7 +53,6 @@ public class LifeElement extends BaseElement {
             }
         }
 
-        // Upside 2: crop growth aura (upgrade level 2+)
         if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
             BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
                 if (!player.isOnline()) {

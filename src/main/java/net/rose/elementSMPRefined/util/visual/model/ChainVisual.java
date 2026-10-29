@@ -20,67 +20,27 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * A chain drawn with a resource-pack MODEL instead of particles.
- * <p>
- * The chain is a row of {@link ItemDisplay} entities, each showing the 1-block-long chain
- * model (long axis = Y, see {@code assets/elementsmp/models/item/hell_chain.json}). Every
- * call to {@link #update(Location, Location)} re-lays the row between two points:
- * <ul>
- *     <li>The number of segments follows the distance (about one per block), so links keep
- *     roughly their natural proportions instead of being stretched into one long smear.</li>
- *     <li>Segments are pooled - spawned when the chain grows, removed when it shrinks, and
- *     otherwise just moved/re-rotated - so a chain that's redrawn every tick doesn't churn
- *     through entities.</li>
- *     <li>Teleport + transformation interpolation are set to 1 tick so a chain being dragged
- *     around by a fast-moving caster stays smooth on the client.</li>
- *     <li>Segments are non-persistent and fullbright, so they never get saved to disk and
- *     the chain glows regardless of the light level around it.</li>
- * </ul>
- * Without the matching resource pack, clients just see the missing-model placeholder - the
- * pack has to be applied for the chain to look right.
- * <p>
- * Always call {@link #remove()} when the effect ends (or {@link #removeAll()} on plugin
- * disable as a safety net) - segments are real entities and will otherwise hang around.
- */
 public final class ChainVisual {
 
-    /** {@code assets/elementsmp/items/hell_chain.json} in the resource pack. */
     public static final NamespacedKey HELL_CHAIN =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:hell_chain"));
 
-    /** Aim for roughly one segment per block of chain. */
     private static final double SEGMENT_LENGTH = 1.0;
-    /** Hard cap so an absurd distance can never spawn an absurd number of entities. */
     private static final int MAX_SEGMENTS = 48;
-    /** Below this the chain is too short to be worth drawing at all. */
     private static final double MIN_LENGTH = 0.3;
-    /** Widens the 3px-wide vanilla-style chain so it reads at a distance. */
     private static final float THICKNESS = 1.5f;
-    /** The model's long axis. */
     private static final Vector3f MODEL_AXIS = new Vector3f(0f, 1f, 0f);
-    /** Most extra interpolation ticks a high-ping owner gets. */
     private static final int MAX_SMOOTHING_TICKS = 2;
-    /** Furthest the owner end may be led ahead of the server position (a grapple moves fast), in blocks. */
     private static final double MAX_LEAD_BLOCKS = 5.0;
 
-    /**
-     * The owner's end of the chain is run back along the chain to the middle of the owner's body (and
-     * no further, so it never pokes out behind them) so there's no gap between the player and the
-     * first link. Display entities trail the client-predicted player by roughly a tick of movement,
-     * so a little extra is added in proportion to the owner's speed.
-     */
     private static final double OVERLAP_PER_SPEED = 0.1;
-    /** Fraction of the way to the body centre the chain runs back - under 1 keeps the end tucked inside the body. */
     private static final double BODY_DEPTH_FACTOR = 0.8;
     private static final double MIN_OVERLAP = 0.1;
     private static final double MAX_OVERLAP = 0.9;
 
-    /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<ChainVisual> ACTIVE = new HashSet<>();
 
     private final ItemStack modelItem;
-    /** Entries may be null where a segment couldn't be spawned (unloaded chunk) - retried next update. */
     private final List<ItemDisplay> segments = new ArrayList<>();
     private final Player owner;                       // may be null: no ping handling
     private final PingCompensation.Tracker tracker;   // null when owner is null
@@ -102,7 +62,6 @@ public final class ChainVisual {
         ACTIVE.add(this);
     }
 
-    /** Lays the chain out from {@code from} to {@code to}, spawning/moving/removing segments as needed. */
     public void update(Location from, Location to) {
         World world = from.getWorld();
         if (world == null || !world.equals(to.getWorld())) {
@@ -191,7 +150,6 @@ public final class ChainVisual {
         }
     }
 
-    /** Removes the segments but keeps this visual usable - a later {@link #update} respawns them. */
     public void hide() {
         for (ItemDisplay display : segments) {
             removeSegment(display);
@@ -199,13 +157,11 @@ public final class ChainVisual {
         segments.clear();
     }
 
-    /** Removes everything and unregisters. Call when the effect is over. */
     public void remove() {
         hide();
         ACTIVE.remove(this);
     }
 
-    /** Safety net for plugin disable - removes every chain still on screen. */
     public static void removeAll() {
         for (ChainVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();
@@ -232,7 +188,6 @@ public final class ChainVisual {
         }
     }
 
-    /** Spawning into an unloaded chunk would force a synchronous load - just skip that segment instead. */
     private static boolean isLoaded(Location at) {
         return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }

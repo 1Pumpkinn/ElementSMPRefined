@@ -63,15 +63,6 @@ public abstract class BaseElement implements Element {
         return activate(context, ability2, 2, this::canCancelAbility2);
     }
 
-    /**
-     * Shared activation flow: check upgrade level, let an active/cancellable ability
-     * toggle off for free, otherwise check the ability's cooldown and, on a successful
-     * cast, start it.
-     * <p>
-     * The cooldown is started AFTER {@link Ability#execute} runs, and only if it
-     * returns true - a failed cast (no target, blocked, etc.) stays free, same as
-     * a failed cast never used to spend mana.
-     */
     private boolean activate(ElementContext context, Ability ability, int requiredLevel,
                              Predicate<ElementContext> canCancel) {
         Player player = context.getPlayer();

@@ -22,25 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Storm Element Passive 3: Thunder Throw (unlocks at Upgrade II)
- *
- * When a Storm player throws a trident, it calls down a real lightning bolt where it lands - on the
- * block or entity it hits - with or without a thunderstorm and without needing Channeling.
- *
- * The bolt never causes fire: it doesn't light blocks and doesn't set anyone alight. The thrower is
- * credited for the strike, and the thrower and anyone they trust take no damage from it, so standing
- * next to your own trident is safe.
- */
 public class StormTridentLightningListener implements Listener {
 
-    /** How long a strike stays on the protection list - lightning is gone well inside this (ticks). */
     private static final long TRACK_TICKS = 40L;
 
     private final JavaPlugin plugin;
     private final ElementManager elementManager;
     private final TrustManager trustManager;
-    /** Strikes this passive created -> the player who threw the trident. */
     private final Map<UUID, UUID> strikes = new HashMap<>();
 
     public StormTridentLightningListener(JavaPlugin plugin, ElementManager elementManager, TrustManager trustManager) {
@@ -69,7 +57,6 @@ public class StormTridentLightningListener implements Listener {
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> strikes.remove(strikeId), TRACK_TICKS);
     }
 
-    /** The thrower and their trusted players take no damage from the bolt. */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onStrikeDamage(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof LightningStrike strike)) return;
@@ -80,11 +67,6 @@ public class StormTridentLightningListener implements Listener {
         extinguishAfterStrike(strike, event.getEntity());
     }
 
-    /**
-     * Vanilla bumps the victim's fire ticks by 1 before the ignite event fires, so a victim can still
-     * flicker alight even with the combust event cancelled. Put that out a tick later unless they were
-     * already burning before the bolt landed.
-     */
     private void extinguishAfterStrike(LightningStrike strike, Entity victim) {
         if (!strikes.containsKey(strike.getUniqueId())) return;
         boolean wasBurning = victim.getFireTicks() > 1;
@@ -94,7 +76,6 @@ public class StormTridentLightningListener implements Listener {
         });
     }
 
-    /** Our bolts never set entities on fire (that's a separate event from the damage). */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onStrikeIgniteEntity(EntityCombustByEntityEvent event) {
         if (event.getCombuster() instanceof LightningStrike strike && strikes.containsKey(strike.getUniqueId())) {
@@ -102,7 +83,6 @@ public class StormTridentLightningListener implements Listener {
         }
     }
 
-    /** ...and never light blocks on fire. */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onStrikeIgniteBlock(BlockIgniteEvent event) {
         if (event.getCause() != BlockIgniteEvent.IgniteCause.LIGHTNING) return;

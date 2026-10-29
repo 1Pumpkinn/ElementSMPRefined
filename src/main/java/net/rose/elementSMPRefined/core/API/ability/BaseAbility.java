@@ -61,7 +61,6 @@ public abstract class BaseAbility implements Ability {
         this.configManager = configManager;
     }
 
-
     @Override
     public int getCooldownSeconds() {
         return cooldownSeconds;

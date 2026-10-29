@@ -82,7 +82,6 @@ public class DisarmManager {
         abilityDisarmExpiry.remove(player.getUniqueId());
     }
 
-
     /**
      * Disarms a random weapon (sword/axe/spear/mace) the player currently owns.
      * If they only own one of those categories, that one always gets picked.
@@ -105,10 +104,6 @@ public class DisarmManager {
         return isLocked(weaponDisarm, player, material);
     }
 
-    /**
-     * One representative material per weapon category the player owns anywhere
-     * in their inventory (main hand, offhand, armor/storage slots all count).
-     */
     private List<Material> ownedWeaponMaterials(Player player) {
         Map<WeaponCategory, Material> found = new EnumMap<>(WeaponCategory.class);
         for (ItemStack stack : player.getInventory().getContents()) {
@@ -140,7 +135,6 @@ public class DisarmManager {
         return null;
     }
 
-
     /**
      * Disarms whatever material is currently in the player's main hand.
      *
@@ -159,7 +153,6 @@ public class DisarmManager {
     public boolean isMainHandDisarmed(Player player, Material material) {
         return isLocked(mainHandDisarm, player, material);
     }
-
 
     private void lockMaterial(Map<UUID, MaterialLock> map, Player player, Material material, int durationTicks) {
         long expiry = System.currentTimeMillis() + (durationTicks * 50L);

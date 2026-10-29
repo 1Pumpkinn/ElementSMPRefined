@@ -40,7 +40,6 @@ public class ListenerInitializer {
     private MetalMagnetarAbility metalMagnetarAbility;
     private GracePeriod gracePeriod;
 
-
     public ListenerInitializer(JavaPlugin plugin) {
         this.plugin = (ElementSMPRefined) plugin;
         this.pluginManager = plugin.getServer().getPluginManager();
@@ -94,10 +93,6 @@ public class ListenerInitializer {
         });
     }
 
-    /**
-     * Register core element listeners that don't fit the ListenerProvider pattern
-     * (e.g., listeners that need special setup or cross-references)
-     */
     private void registerCoreElementListeners() {
         this.airAntiFallDmgListener = new AirAntiFallDmgListener(plugin.getElementManager());
         pluginManager.registerEvents(airAntiFallDmgListener, plugin);

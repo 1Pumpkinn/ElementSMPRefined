@@ -15,15 +15,8 @@ import org.bukkit.potion.PotionEffectType;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Hides an invisible player's name in chat and death messages.
- * <p>
- * Invisibility that comes from an element passive (e.g. Water's invisibility,
- * Death's night invisibility) is ignored - see {@link PassiveInvisibility}.
- */
 public class InvisibilityNameHider implements Listener {
 
-    /** Shown in place of an invisible player's name. Swap for "???" or similar if you'd rather. */
     private static final String HIDDEN_NAME = " ";
 
     private boolean isInvisible(Player player) {
@@ -31,9 +24,6 @@ public class InvisibilityNameHider implements Listener {
                 && !PassiveInvisibility.isPassive(player);
     }
 
-    /**
-     * Blank out the sender's name in their own chat messages while they're invisible.
-     */
     @EventHandler(priority = EventPriority.HIGH)
     public void onChat(AsyncChatEvent event) {
         Player sender = event.getPlayer();
@@ -43,7 +33,6 @@ public class InvisibilityNameHider implements Listener {
 
         event.renderer((source, sourceDisplayName, message, viewer) -> message);
     }
-
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent event) {

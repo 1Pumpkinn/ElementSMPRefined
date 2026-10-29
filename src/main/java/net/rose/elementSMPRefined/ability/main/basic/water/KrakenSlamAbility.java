@@ -47,30 +47,11 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Water ability 2: Kraken Slam.
- * <p>
- * Look at a mob, a player or the ground: a giant kraken tentacle erupts from the ground on the far
- * side of the target, rears back, then comes crashing down on the marked spot. Everything inside
- * the marked circle when it lands takes damage, gets thrown outward and is slowed.
- * <p>
- * The impact point is locked when the ability is cast and shown on the ground as a ring (the inner
- * ring closes in as the slam gets closer), so it can be dodged.
- * <p>
- * The tentacle is a single {@link ItemDisplay} using the {@code elementsmp:water_tentacle} model,
- * scaled up and animated in a few client-side interpolation segments: it pivots around its base, so the whole body swings like a
- * real arm instead of just sliding around.
- * <p>
- * The slam ends early (without damage if it has not landed yet) if the caster dies, logs off,
- * changes world or changes element.
- */
 public class KrakenSlamAbility extends BaseAbility implements Listener {
 
     private static final double RANGE = 25.0;
     private static final double RAY_SIZE = 0.5;
 
-    // ---- impact ----
-    /** Radius of the marked circle; everything inside it when the tentacle lands is hit. */
     public static final double HIT_RADIUS = 3.5;
     private static final double HIT_HALF_HEIGHT = 3.0;      // vertical reach above/below the impact point
     private static final double DAMAGE = 8.0;               // 4 hearts of true damage
@@ -79,7 +60,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
     private static final int SLOW_TICKS = 40;               // 2 seconds
     private static final int SLOW_AMPLIFIER = 1;
 
-    // ---- timeline, in ticks since the cast ----
     private static final int RISE_TICKS = 10;               // tentacle grows out of the ground
     private static final int SLAM_START_TICK = 16;          // winds up until here, then swings down
     private static final int SLAM_TICKS = 5;                // the swing itself - fast
@@ -89,26 +69,16 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
     private static final int RETRACT_START_TICK = IMPACT_TICK + HOLD_TICKS;
     private static final int END_TICK = RETRACT_START_TICK + RETRACT_TICKS;
 
-    // ---- tentacle pose ----
-    /** Tilt towards the target, in degrees: negative leans away (wind-up), ~90 is flat on the ground. */
     private static final float TILT_START = -8f;
     private static final float TILT_WINDUP = -38f;
     private static final float TILT_SLAM = 86f;
     private static final float TILT_RISE_END = -28f;        // lean reached by the end of the rise
-    /** The swing is two segments (slow start, fast finish) to approximate an ease-in. */
     private static final int SLAM_FIRST_TICKS = 3;
     private static final float TILT_SLAM_MID = TILT_WINDUP + 0.36f * (TILT_SLAM - TILT_WINDUP);
-    /** Giant: about 9 blocks tall (MODEL_HEIGHT * SCALE). */
     private static final float SCALE = 6.0f;
     private static final float MIN_SCALE_FACTOR = 0.05f;
-    /** Where along the fallen tentacle the impact point sits, as a fraction of its length. */
     private static final double IMPACT_ALONG_BODY = 0.75;
 
-    // ---- tentacle model (elementsmp:water_tentacle), in blocks at scale 1 ----
-    // 24.7/16 tall. The model is shifted up in its json so its base sits almost exactly on the
-    // display's centre (just 0.73/16 below it): the pivot of the swing is then the display itself,
-    // which keeps the client-side interpolation of the translation and rotation in agreement. Its
-    // tip curls towards the model's +X.
     private static final double MODEL_HEIGHT = 24.7 / 16.0;
     private static final float MODEL_BASE_BELOW_CENTER = 0.73f / 16f;
 
@@ -188,12 +158,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         return true;
     }
 
-    // ---- targeting ----
-
-    /**
-     * The spot the tentacle will land on: the feet of the entity the caster is looking at, or the
-     * ground point they are looking at. Null if they are looking at nothing in range.
-     */
     private Location findImpact(Player player, ElementContext context) {
         Location eye = player.getEyeLocation();
         World world = player.getWorld();
@@ -223,9 +187,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         return new Location(world, hit.getX(), ground.getY() + 1.0, hit.getZ());
     }
 
-    // ---- per-tick ----
-
-    /** One tick of the slam. Returns false when it should end. */
     private boolean tick(SlamState state) {
         Player caster = state.caster;
         if (!caster.isOnline() || caster.isDead() || !isActiveFor(caster)) return false;
@@ -256,7 +217,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         return true;
     }
 
-    /** The tentacle lands: damage, knockback and slow on everything inside the marked circle. */
     private void impact(SlamState state) {
         Location at = state.impact;
         World world = at.getWorld();
@@ -295,8 +255,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         }
     }
 
-    // ---- tentacle display ----
-
     private ItemDisplay spawnTentacle(SlamState state, int tick) {
         Transformation initial = transformFor(state, tick);
         return state.base.getWorld().spawn(state.base, ItemDisplay.class, d -> {
@@ -311,13 +269,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         });
     }
 
-    /**
-     * Starts the next client-side interpolation segment when a phase begins. Each phase is ONE
-     * interpolation (set once, then left alone): re-sending a pose and restarting the interpolation
-     * every tick makes the client flicker between poses, so nothing is sent on the ticks in between.
-     * Positions inside a phase are interpolated by the client; the pivot is the display itself, so
-     * the in-between frames line up.
-     */
     private void animate(SlamState state, int tick) {
         if (tick == 1) {
             interpolate(state, RISE_TICKS, 1f, TILT_RISE_END);
@@ -340,11 +291,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         display.setTransformation(transform(state, scaleFactor, tiltDegrees));
     }
 
-    /**
-     * Pose at the given tick. The tentacle pivots around its base: the tilt is a rotation about the
-     * horizontal axis perpendicular to the swing direction, and the translation is corrected every
-     * tick so the model's base stays planted on the ground while it swings.
-     */
     private static Transformation transformFor(SlamState state, int tick) {
         return transform(state, scaleFactor(tick), tiltDegrees(tick));
     }
@@ -361,7 +307,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         return new Transformation(translation, tilt, new Vector3f(scale, scale, scale), yaw);
     }
 
-    /** Lean back while rising and winding up, then swing down hard (ease-in) to the ground. */
     private static float tiltDegrees(int tick) {
         if (tick < SLAM_START_TICK) {
             float p = clamp01((float) tick / SLAM_START_TICK);
@@ -374,7 +319,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         return TILT_SLAM;
     }
 
-    /** Grows out of the ground at the start, sinks back into it at the end. */
     private static float scaleFactor(int tick) {
         if (tick < RISE_TICKS) {
             return lerp(MIN_SCALE_FACTOR, 1f, easeOut(clamp01((float) tick / RISE_TICKS)));
@@ -398,8 +342,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
     private static float clamp01(float v) {
         return Math.max(0f, Math.min(1f, v));
     }
-
-    // ---- lifecycle ----
 
     private void endSlam(UUID casterId) {
         SlamState state = slams.remove(casterId);
@@ -443,7 +385,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         return "A giant tentacle slams down crushing anything under it.";
     }
 
-    /** All the state of one running slam. */
     private static final class SlamState {
         final Player caster;
         final ElementContext context;

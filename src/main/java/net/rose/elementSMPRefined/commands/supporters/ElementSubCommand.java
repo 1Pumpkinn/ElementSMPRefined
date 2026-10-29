@@ -15,11 +15,6 @@ import java.util.List;
 public interface ElementSubCommand {
     boolean execute(CommandSender sender, String[] args);
 
-    /**
-     * Suggestions for the argument currently being typed. {@code args[0]} is
-     * always this subcommand's own name; {@code args.length} tells you which
-     * position is being completed. Default: no suggestions.
-     */
     default List<String> tabComplete(CommandSender sender, String[] args) {
         return Collections.emptyList();
     }

@@ -8,11 +8,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 
-/**
- * Air element Passive 1: no fall damage.
- * Also inherited by Storm (upgraded from Air).
- * (Passive 2, Wind Burst, lives in {@link AirWindBurstListener}.)
- */
 public class AirAntiFallDmgListener implements Listener {
     private final ElementManager elementManager;
 
@@ -20,7 +15,6 @@ public class AirAntiFallDmgListener implements Listener {
         this.elementManager = elementManager;
     }
 
-    /** Air, and Storm (upgraded from Air, inherits these passives). */
     private static boolean hasAirPassives(ElementType type) {
         return type == ElementType.AIR || type == ElementType.STORM;
     }

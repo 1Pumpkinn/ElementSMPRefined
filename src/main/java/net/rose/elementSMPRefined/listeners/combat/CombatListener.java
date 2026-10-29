@@ -8,18 +8,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-/**
- * Listener for preventing damage between trusted players.
- * Supports both direct damage and projectile attacks.
- *
- * Trust is granted/revoked only via {@link TrustManager#addMutualTrust} and
- * {@link TrustManager#removeMutualTrust} everywhere in this codebase, so
- * isTrusted(a, b) and isTrusted(b, a) are always kept in sync - a single
- * direction check below is enough (and avoids a second map lookup on every
- * non-trusted hit, which is the common case in combat). If a one-directional
- * trust grant is ever added elsewhere, this needs to go back to checking
- * both directions.
- */
 public class CombatListener implements Listener {
     private final TrustManager trust;
 
@@ -27,10 +15,6 @@ public class CombatListener implements Listener {
         this.trust = trust;
     }
 
-    /**
-     * Prevent damage between trusted players.
-     * Runs at HIGHEST priority to ensure this runs before other damage modifiers.
-     */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player victim)) {

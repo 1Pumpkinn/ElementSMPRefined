@@ -20,29 +20,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
-/**
- * Death ability2: Backstab.
- * <p>
- * Looks for a living entity within {@link #RANGE} blocks that the caster is looking
- * at, blinks the caster directly behind them, and stabs them for
- * {@link #TRUE_DAMAGE} true damage (bypasses armor/resistance/enchants -
- * same convention as {@code MetalDashAbility}/{@code WaterPullDownAbility}),
- * <p>
- * Replaces the old Ability Disarm (formerly {@code DeathAbilityDisarmAbility}).
- */
 public class DeathBackstabAbility extends BaseAbility {
     private static final double RANGE = 8.0;
-    /** Cosine of the targeting cone half-angle - matches the "looking at" feel used by other targeted abilities. */
     private static final double LOOK_DOT_THRESHOLD = 0.8;
     private static final double BEHIND_DISTANCE = 1.2;
     private static final double MIN_BEHIND_DISTANCE = 0.4;
     private static final double SWEEP_STEP = 0.2;
     private static final double TRUE_DAMAGE = 8.0; // 4 hearts
-    /** Flat mana stolen from the target on a successful backstab (instant, not over time). */
     private static final int MANA_STEAL_AMOUNT = 30;
-    /** Whether the drained mana is credited back to the caster (true) or just removed from the target (false). */
     private static final boolean MANA_STEAL_GIVES_CASTER = true;
-    /** Pure black dust, matching the vanish/reappear look used by DeathSideStepAbility. */
     private static final Particle.DustOptions BLACK_DUST =
             new Particle.DustOptions(Color.fromRGB(5, 5, 5), 1.4F);
 
@@ -84,20 +70,9 @@ public class DeathBackstabAbility extends BaseAbility {
         world.playSound(hitLoc, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1f, 0.8f);
         world.playSound(hitLoc, Sound.ENTITY_WITHER_HURT, 0.5f, 1.6f);
 
-//        dealTrueDamage(target, player);
-//        if (target instanceof Player targetPlayer) {
-//            int stolen = plugin.getStatusEffectManager().applyManaSteal(player, targetPlayer, MANA_STEAL_AMOUNT, MANA_STEAL_GIVES_CASTER);
-//            player.sendMessage(Lang.deathBackstabDebugStolen(stolen, player.getGameMode(), plugin.getManaManager().get(player.getUniqueId()).getMana()));
-//        }
-
         return true;
     }
 
-    /**
-     * Finds the nearest living entity within RANGE that the caster is currently
-     * looking at (cone check, not just proximity). Trust is only checked against
-     * other players - mobs have no trust relationship and are always valid targets.
-     */
     private LivingEntity findLookedAtTarget(ElementContext context) {
         Player player = context.getPlayer();
         Location eyeLoc = player.getEyeLocation();
@@ -128,11 +103,6 @@ public class DeathBackstabAbility extends BaseAbility {
         return best;
     }
 
-    /**
-     * Walks inward from directly behind the target toward them, stopping at the
-     * first unblocked spot. Falls back to right on top of the target if the
-     * whole sweep is blocked, same fail-safe spirit as DeathSideStepAbility.
-     */
     private Location findSafeSpotBehind(LivingEntity target) {
         Location targetLoc = target.getLocation();
 
@@ -156,25 +126,12 @@ public class DeathBackstabAbility extends BaseAbility {
         return fallback;
     }
 
-    /** True if either foot or head level at this location is a solid block. */
     private boolean isBlocked(Location loc) {
         Block feet = loc.getBlock();
         Block head = loc.clone().add(0, 1, 0).getBlock();
         return feet.getType().isSolid() || head.getType().isSolid();
     }
 
-    /**
-     * True damage - ignores armor/resistance/enchants. Killing blows are routed
-     * through {@link LivingEntity#damage} instead of setHealth so death events
-     * and totems of undying still fire correctly (same edge case handled in
-     * WaterPullDownAbility).
-     * <p>
-     * Non-lethal hits also fire a negligible real {@code damage()} call first -
-     * a bare {@code setHealth()} never triggers the vanilla hurt animation/red
-     * damage overlay/hurt sound, since those are driven off the damage event,
-     * not the health value. The tiny amount can be soaked up by
-     * armor/resistance without meaningfully affecting the true-damage total.
-     */
     private void dealTrueDamage(LivingEntity target, Player attacker) {
         double newHealth = target.getHealth() - TRUE_DAMAGE;
         if (newHealth <= 0) {

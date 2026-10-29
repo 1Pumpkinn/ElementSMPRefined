@@ -21,29 +21,6 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Repeating task that shows each online player's current element's two
- * ability cooldowns in their action bar, refreshed once a second.
- * <p>
- * Sends for a player whose current element is upgraded (upgrade level of at
- * least 1), showing "Ready" for an ability that's off cooldown, so the HUD is
- * a constant, always-visible readout rather than something that only appears
- * while cooling down. Sends nothing for a player with no element, or whose
- * element has not been upgraded yet.
- * <p>
- * Also implements {@link Listener} and refreshes immediately on
- * {@link AbilityActivateEvent} - the periodic tick alone means a player who
- * casts right after a refresh could see the old "Ready" state for up to a
- * full second before the bar catches up to the cooldown that just started.
- * The event fires the instant the cooldown is actually set (see
- * {@code BaseElement#activate}), so pushing an update there closes that gap
- * instead of waiting on the next scheduled tick.
- * <p>
- * Started from {@code AbstractElementPlugin#startBackgroundTasks()} and
- * stopped on plugin disable via {@link #stop()} - mirrors the
- * start/stop/cleanup shape of {@link net.rose.elementSMPRefined.util.server.GracePeriod}.
- * Registered as a listener in {@code ListenerInitializer}.
- */
 public class CooldownActionBarTask implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
@@ -57,13 +34,11 @@ public class CooldownActionBarTask implements Listener {
         this.cooldownManager = cooldownManager;
     }
 
-    /** Starts the once-a-second refresh. No-op if already running. */
     public void start(TaskScheduler scheduler) {
         if (task != null) return;
         task = scheduler.runTimer(this::tick, Constants.Timing.TICKS_PER_SECOND, Constants.Timing.TICKS_PER_SECOND);
     }
 
-    /** Stops the refresh, e.g. on plugin disable. Idempotent. */
     public void stop() {
         if (task != null) {
             task.cancel();
@@ -77,7 +52,6 @@ public class CooldownActionBarTask implements Listener {
         }
     }
 
-    /** Refreshes the caster's bar the instant their cooldown actually starts, instead of waiting up to a second for the next tick. */
     @EventHandler
     public void onAbilityActivate(AbilityActivateEvent event) {
         updateFor(event.getPlayer());

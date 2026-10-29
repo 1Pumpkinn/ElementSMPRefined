@@ -12,16 +12,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
-/**
- * Listener for handling status effect mechanics like stun, freeze, etc.
- * Cancels appropriate events based on player's active status effects.
- *
- * Performance note: PlayerMoveEvent fires frequently, so checks are minimized by:
- * - Only performing detailed checks if player has any restrictive effect
- * - Caching effect name lookups to avoid repeated queries
- */
 public class StatusEffectListener implements Listener {
-
 
     private final StatusEffectManager statusEffectManager;
 
@@ -29,12 +20,6 @@ public class StatusEffectListener implements Listener {
         this.statusEffectManager = plugin.getStatusEffectManager();
     }
 
-    /**
-     * Cancel movement for fully stunned, partially stunned, stunned, rooted, or frozen players.
-     * Full stun and partial stun also prevent head movement.
-     *
-     * Performance optimization: Early exit if player has no restrictive effects.
-     */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
@@ -55,31 +40,23 @@ public class StatusEffectListener implements Listener {
 
         if (isFullyStunned || isPartiallyStunned) {
             if (event.getFrom().getYaw() != event.getTo().getYaw() ||
-                    event.getFrom().getPitch() != event.getTo().getPitch()) {
+                event.getFrom().getPitch() != event.getTo().getPitch()) {
                 event.setCancelled(true);
                 return;
             }
         }
 
-        boolean movedSideways = event.getFrom().getX() != event.getTo().getX()
-                || event.getFrom().getZ() != event.getTo().getZ();
-        boolean movedUp = event.getTo().getY() > event.getFrom().getY();
-        // Straight down is allowed: a stunned player who is somehow in the air (knocked up, or no
-        // ground to be set down on) drops instead of hovering there.
-        if (movedSideways || movedUp) {
+        if (event.getFrom().getX() != event.getTo().getX() ||
+            event.getFrom().getY() != event.getTo().getY() ||
+            event.getFrom().getZ() != event.getTo().getZ()) {
             event.setCancelled(true);
         }
     }
 
-
-    /**
-     * Cancel interactions for fully stunned and silenced players.
-     * Other stun types allow interactions since they don't affect hands.
-     */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-
+        
         if (statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)) {
             event.setCancelled(true);
         } else if (statusEffectManager.isSilenced(player)) {
@@ -87,10 +64,6 @@ public class StatusEffectListener implements Listener {
         }
     }
 
-    /**
-     * Cancel block breaking for fully stunned players.
-     * Other stun types allow block breaking since they preserve hand control.
-     */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -100,10 +73,6 @@ public class StatusEffectListener implements Listener {
         }
     }
 
-    /**
-     * Cancel block placing for fully stunned players.
-     * Other stun types allow block placement since they preserve hand control.
-     */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
         Player player = event.getPlayer();

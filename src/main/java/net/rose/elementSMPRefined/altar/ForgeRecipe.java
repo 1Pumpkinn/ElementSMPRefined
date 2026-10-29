@@ -48,7 +48,6 @@ public enum ForgeRecipe {
     /** The basic element a Forged Upgrader turns into {@link #target()}. */
     public ElementType base() { return base; }
 
-    /** The advanced element this recipe is named after. */
     public ElementType target() { return target; }
 
     public List<Ingredient> ingredients() { return ingredients; }

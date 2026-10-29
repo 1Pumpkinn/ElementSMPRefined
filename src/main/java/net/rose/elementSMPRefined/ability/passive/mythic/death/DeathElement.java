@@ -37,9 +37,6 @@ public class DeathElement extends BaseElement implements ListenerProvider {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passive 1 (start): Invisibility at night (handled by DeathNightInvisibilityListener)
-        // Passive 2 (Upgrade II): Chance to apply Wither on hit (handled by DeathWitherOnHitListener)
-        // Neither passive is a standing potion effect applied here.
     }
 
     @Override

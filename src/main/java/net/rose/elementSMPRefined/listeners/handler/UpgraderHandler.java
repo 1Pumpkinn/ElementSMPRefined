@@ -18,10 +18,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-/**
- * Handles upgrader item usage: crafting only gives the item, and right-clicking it
- * unlocks the next upgrade level for the player's current element.
- */
 public class UpgraderHandler implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
@@ -105,12 +101,6 @@ public class UpgraderHandler implements Listener {
         }
     }
 
-    /**
-     * Fires the cancellable UpgradeLevelChangeEvent before touching any state,
-     * then applies the level, saves, refreshes passives, and consumes the
-     * upgrader. Returns false (item/level untouched, no message) if another
-     * plugin cancelled the event.
-     */
     private boolean applyUpgrade(Player player, ItemStack item, EquipmentSlot hand, PlayerData playerData,
                                  ElementType currentElement, int level) {
         int previousLevel = playerData.getUpgradeLevel(currentElement);

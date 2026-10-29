@@ -7,37 +7,27 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-/** Particle effects for the Water element. */
 public final class WaterParticles {
 
     private WaterParticles() {}
 
-    /** Burst of water where the tentacle breaks the ground. */
     public static void graspBurst(Location at) {
         World world = at.getWorld();
         world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.2, 0), 50, 0.5, 0.2, 0.5, 0.2, null, true);
         world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.8, 0), 20, 0.4, 0.6, 0.4, 0.05, null, true);
     }
 
-    /** Small splash where one tentacle breaks the ground. */
     public static void tentacleErupt(Location at) {
         World world = at.getWorld();
         world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.1, 0), 14, 0.2, 0.1, 0.2, 0.15, null, true);
         world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.4, 0), 6, 0.15, 0.3, 0.15, 0.03, null, true);
     }
 
-    /** Bubbles as the tentacle sinks back into the ground. */
     public static void graspRelease(Location body) {
         body.getWorld().spawnParticle(Particle.BUBBLE_POP, body, 40, 0.5, 0.7, 0.5, 0.15, null, true);
         body.getWorld().spawnParticle(Particle.SPLASH, body, 30, 0.5, 0.5, 0.5, 0.2, null, true);
     }
 
-    // ---- Kraken Slam ----
-
-    /**
-     * Ground marker for the slam: the outer ring is the hit area, the inner ring closes in on it as
-     * the tentacle gets closer ({@code progress} 0 -> 1).
-     */
     public static void krakenSlamMarker(Location center, double radius, double progress) {
         ring(center, radius, 28);
         ring(center, Math.max(0.3, radius * Math.min(1.0, progress)), 16);
@@ -53,7 +43,6 @@ public final class WaterParticles {
         }
     }
 
-    /** The tentacle landing: a big splash at the centre and a ring of spray rolling out to the edge. */
     public static void krakenSlamImpact(Location at, double radius) {
         World world = at.getWorld();
         world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.3, 0), 120,
@@ -70,7 +59,6 @@ public final class WaterParticles {
         }
     }
 
-    /** Spray at the geyser launch point. */
     public static void geyserSpray(Location sprayOrigin) {
         World world = sprayOrigin.getWorld();
         world.spawnParticle(Particle.SPLASH, sprayOrigin, 25,
@@ -81,11 +69,6 @@ public final class WaterParticles {
                 0.4, 0.2, 0.4, 0.02, null, true);
     }
 
-    /**
-     * Vanilla geyser plume; {@code waterBlocks} drives its height. {@code Particle.GEYSER} is
-     * 26.2-only and crashes older clients joining via ViaBackwards, so it's sent per-viewer:
-     * native clients get the real plume, translated clients get a splash/bubble fallback.
-     */
     public static void geyserEruption(Location origin, int waterBlocks) {
         Particle.Geyser data = new Particle.Geyser(waterBlocks);
         for (Player viewer : origin.getNearbyPlayers(64)) {
@@ -99,30 +82,24 @@ public final class WaterParticles {
         }
     }
 
-    /** Per-tick trail behind the player riding the geyser. */
     public static void geyserTrail(Location playerLocation) {
         World world = playerLocation.getWorld();
         world.spawnParticle(Particle.SPLASH, playerLocation, 6, 0.25, 0.25, 0.25, 0.02, null, true);
         world.spawnParticle(Particle.BUBBLE, playerLocation, 4, 0.2, 0.2, 0.2, 0.01, null, true);
     }
 
-    // ---- Tidal Surge (water dash). ----
-
-    /** Burst at the start of the dash. */
     public static void surgeBurst(Location at) {
         World world = at.getWorld();
         world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.9, 0), 40, 0.4, 0.5, 0.4, 0.2, null, true);
         world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.9, 0), 20, 0.4, 0.5, 0.4, 0.1, null, true);
     }
 
-    /** Hit effect on something the dash ran into. */
     public static void surgeImpact(Location at) {
         World world = at.getWorld();
         world.spawnParticle(Particle.SPLASH, at, 30, 0.4, 0.5, 0.4, 0.25, null, true);
         world.spawnParticle(Particle.BUBBLE, at, 12, 0.3, 0.4, 0.3, 0.05, null, true);
     }
 
-    /** Per-tick wake behind the dashing player, spread wide across the heading. */
     public static void surgeWake(Location at, Vector heading) {
         World world = at.getWorld();
         Vector dir = heading.clone().setY(0);
@@ -138,7 +115,6 @@ public final class WaterParticles {
         }
     }
 
-    /** Puff when the dash ends. */
     public static void surgeEnd(Location at) {
         at.getWorld().spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.5, 0), 25, 0.4, 0.4, 0.4, 0.1, null, true);
     }

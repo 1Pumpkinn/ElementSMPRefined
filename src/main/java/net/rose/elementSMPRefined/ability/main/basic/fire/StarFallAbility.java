@@ -35,13 +35,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
-/**
- * Starfall: calls down a barrage of flaming meteors on the area the caster is looking at.
- * <p>
- * Each meteor is a {@link BlockDisplay} spawned in the sky and moved to its landing spot with a single
- * client-interpolated teleport (the spin is a single interpolated transformation), so the server does no
- * per-tick movement work.
- */
 public class StarFallAbility extends BaseAbility {
     private static final double RANGE = 40.0;
     private static final double GROUND_SEARCH_DISTANCE = 40.0;
@@ -85,7 +78,6 @@ public class StarFallAbility extends BaseAbility {
         this.plugin = (ElementSMPRefined) plugin;
     }
 
-    /** Removes every meteor still on screen. Call from the plugin's disable hook. */
     public static void removeAll() {
         for (BlockDisplay display : ACTIVE_DISPLAYS) {
             display.remove();
@@ -241,7 +233,6 @@ public class StarFallAbility extends BaseAbility {
         }
     }
 
-    /** The first solid block the caster is looking at, or the ground below the end of their reach. */
     private Location findTargetPoint(Player player) {
         World world = player.getWorld();
         Location eye = player.getEyeLocation();
@@ -266,7 +257,6 @@ public class StarFallAbility extends BaseAbility {
         }
     }
 
-    /** Display rotation pivots on the block's corner; offset by the rotated half-extent to tumble around the centre. */
     private static Transformation centred(Quaternionf rotation, float size) {
         Vector3f translation = new Vector3f(size / 2f, size / 2f, size / 2f).rotate(rotation).negate();
         return new Transformation(translation, rotation, new Vector3f(size, size, size), new Quaternionf());
@@ -321,11 +311,6 @@ public class StarFallAbility extends BaseAbility {
             return new Meteor(display, impact, landing, size, endRot, spawnTick);
         }
 
-        /**
-         * Starts the fall. Position interpolation runs from the entity's own last position, so it still works when the
-         * spawn and this update reach the client in the same batch (e.g. after a lag spike); a transformation-based
-         * fall would snap to its end state instead.
-         */
         void launch(int landTick) {
             launched = true;
             this.landTick = landTick;

@@ -1,8 +1,5 @@
 package net.rose.elementSMPRefined.status;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.rose.elementSMPRefined.util.scan.GroundSettle;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,11 +19,6 @@ public class StatusEffectManager {
     private final Map<UUID, Map<StatusEffectType, StatusEffectInstance>> activeEffects = new ConcurrentHashMap<>();
     private final Map<StatusEffectType, StatusEffectData> effectData = new EnumMap<>(StatusEffectType.class);
 
-    /** Effects that stop a player moving - they get set down on the ground when applied. */
-    private static final Set<StatusEffectType> LOCKS_MOVEMENT = EnumSet.of(
-            StatusEffectType.STUN, StatusEffectType.FULL_STUN, StatusEffectType.PARTIAL_STUN, StatusEffectType.ROOT);
-
-    /** The per-tick monitor task - stored so {@link #cleanup()} can actually cancel it. */
     private BukkitTask monitorTask;
 
     public StatusEffectManager(JavaPlugin plugin) {
@@ -162,7 +154,6 @@ public class StatusEffectManager {
                 .computeIfAbsent(uuid, k -> new ConcurrentHashMap<>());
 
         UUID sourceUuid = caster != null ? caster.getUniqueId() : null;
-        boolean newlyLocked = LOCKS_MOVEMENT.contains(type) && !playerEffects.containsKey(type);
 
         playerEffects.compute(type, (t, existing) -> {
             if (existing == null) {
@@ -178,28 +169,8 @@ public class StatusEffectManager {
         });
 
         restorePotionEffects(player, playerEffects);
-
-        if (newlyLocked) {
-            settleOnGroundLater(player, type);
-        }
     }
 
-    /**
-     * Movement-locking effects don't stop a player's vertical position, so one landed mid-air would
-     * leave them hanging there. Like the Frost freeze, set them down on the ground - one tick later
-     * so the knockback from the hit that applied it has already happened.
-     */
-    private void settleOnGroundLater(Player player, StatusEffectType type) {
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (!player.isOnline() || player.isDead() || !player.isValid()) return;
-            if (!hasEffect(player, type)) return; // already expired / removed
-            GroundSettle.settle(player); // no ground (void) = left alone, they simply fall
-        });
-    }
-
-    /**
-     * Apply a status effect with default amplifier (1)
-     */
     public void applyEffect(Player player, StatusEffectType type, int duration) {
         applyEffect(null, player, type, duration, 1);
     }
@@ -270,14 +241,6 @@ public class StatusEffectManager {
         return false;
     }
 
-    /**
-     * (Re)applies the potion side of every status effect that is currently active on the
-     * player, keeping only the strongest amplifier per potion type. Several status effects
-     * share one potion type (STUN/ROOT/SLOW/FULL_STUN are all Slowness), so applying or
-     * expiring them one at a time used to let a weaker effect overwrite a stronger one, or
-     * let one expiring effect strip the potion another active effect still needs.
-     * Note: Stun and Freeze are also handled by event listeners, not just potion effects
-     */
     private void restorePotionEffects(Player player, Map<StatusEffectType, StatusEffectInstance> active) {
         Map<PotionEffectType, PotionEffect> strongest = new HashMap<>();
         for (StatusEffectType activeType : active.keySet()) {
@@ -293,11 +256,6 @@ public class StatusEffectManager {
         }
     }
 
-    /**
-     * Remove the potion effects a status effect applied. Only infinite-duration potions are
-     * touched (that's what status effects apply), so a player's real Slowness/Weakness potion
-     * isn't stripped by an unrelated status expiring.
-     */
     private void removePotionEffects(Player player, StatusEffectType type) {
         StatusEffectData data = effectData.get(type);
         if (data != null && data.potionEffects() != null) {
@@ -324,11 +282,6 @@ public class StatusEffectManager {
         }
     }
 
-    /**
-     * Start the effect monitoring task. The returned task is kept in
-     * {@link #monitorTask} so {@link #cleanup()} can actually cancel it -
-     * previously this ran forever with no handle to stop it on demand.
-     */
     private void startEffectMonitor() {
         monitorTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             // Runs every tick, and nearly always there is nothing to do - bail before building iterators.

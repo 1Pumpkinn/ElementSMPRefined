@@ -18,15 +18,6 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
 
-/**
- * Frost - upgraded from Water.
- *
- * Passive 1: Breath of the Nautilus (inherited from Water)
- * Passive 2 (Upgrade II): True invisibility while standing still in water (inherited from Water,
- *            see WaterInvisibilityListener, which handles both Water and Frost)
- * Passive 3 (Upgrade II): Flash Freeze - chance on a melee hit to encase a player in ice on the ground and
- *            stun them for 2 seconds (see FrostFreezeListener)
- */
 public class FrostElement extends BaseElement implements ListenerProvider {
     public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.FROST,
@@ -36,10 +27,7 @@ public class FrostElement extends BaseElement implements ListenerProvider {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passive 1 (from Water): Breath of the Nautilus, same effect Water uses.
         player.addPotionEffect(new PotionEffect(PotionEffectType.BREATH_OF_THE_NAUTILUS, PotionEffect.INFINITE_DURATION, 0, true, false));
-
-        // Passive 2 (from Water) is handled by WaterInvisibilityListener.
 
     }
 

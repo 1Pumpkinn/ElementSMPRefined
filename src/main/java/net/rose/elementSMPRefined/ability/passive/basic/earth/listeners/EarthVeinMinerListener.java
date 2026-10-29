@@ -15,10 +15,6 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
-/**
- * Earth Vein Miner - Breaks connected ore blocks when mining ores
- * Second passive of the Earth element (unlocks at Upgrade II) (also inherited by Metal, which is upgraded from Earth)
- */
 public class EarthVeinMinerListener implements Listener {
     private final ElementManager elementManager;
 
@@ -55,7 +51,6 @@ public class EarthVeinMinerListener implements Listener {
             return;
         }
 
-        // Second passive: unlocks at Upgrade II
         if (playerData.getUpgradeLevel(current) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) {
             return;
         }
@@ -72,10 +67,6 @@ public class EarthVeinMinerListener implements Listener {
         breakConnectedOres(block, player);
     }
 
-    /**
-     * Any ore counts as part of the vein (iron + gold, iron + deepslate iron, etc.),
-     * but only if the held tool is the correct one for it so no ore is destroyed without dropping.
-     */
     private boolean isMineable(Block block, ItemStack tool) {
         return ORES.contains(block.getType()) && block.isPreferredTool(tool);
     }

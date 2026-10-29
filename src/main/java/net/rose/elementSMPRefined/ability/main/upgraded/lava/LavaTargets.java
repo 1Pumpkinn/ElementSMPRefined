@@ -6,7 +6,6 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
-/** Shared "can this lava ability hurt that entity" rule for the Lava element's abilities. */
 final class LavaTargets {
     private LavaTargets() {}
 

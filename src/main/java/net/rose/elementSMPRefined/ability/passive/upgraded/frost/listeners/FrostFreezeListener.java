@@ -6,42 +6,32 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
-import net.rose.elementSMPRefined.util.scan.GroundSettle;
 import net.rose.elementSMPRefined.util.visual.model.IceBlockVisual;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Frost Element Passive: Flash Freeze (unlocks at Upgrade II)
- *
- * Every melee hit a Frost player lands on another <b>player</b> has a {@value #CHANCE_PERCENT}% chance
- * to encase them in a block of ice for {@value #FREEZE_TICKS} ticks (2 seconds), during which they
- * cannot move. Mobs are never frozen.
- * <ul>
- *     <li>The victim gets the {@link StatusEffectType#STUN} status (can't move, can still look and
- *     interact), so the existing stun handling covers movement, knockback and the HUD message.</li>
- *     <li>A frozen player is always on the ground: if the victim is airborne when the freeze lands
- *     they are set down on the ground below them first, so nobody hangs frozen in mid-air. If there
- *     is no ground beneath them (the void) the freeze simply doesn't happen.</li>
- * </ul>
- * The ice is an {@link IceBlockVisual}. Trusted players, creative/spectator players are never
- * frozen, and a victim that is already frozen can't be re-frozen until it thaws.
- */
 public class FrostFreezeListener implements Listener {
 
-    private static final double CHANCE = 0.025; // 2.5% (keep FrostElement's info text in sync)
-    private static final double CHANCE_PERCENT = 2.5;
+    private static final double CHANCE = 0.05; // 5% (keep FrostElement's info text in sync)
+    private static final int CHANCE_PERCENT = 5;
     private static final int FREEZE_TICKS = 40; // 2 seconds
+
+    private static final double MAX_GROUND_SEARCH = 64.0;
+    private static final double AIRBORNE_THRESHOLD = 0.15;
 
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
@@ -62,7 +52,7 @@ public class FrostFreezeListener implements Listener {
         // Players only - mobs are never frozen.
         if (!(event.getEntity() instanceof Player victim) || victim.equals(attacker)) return;
 
-        // Roll first - it fails 97.5% of the time, so this keeps every other hit on the server cheap.
+        // Roll first - it fails 95% of the time, so this keeps every other hit on the server cheap.
         if (ThreadLocalRandom.current().nextDouble() >= CHANCE) return;
 
         var data = elementManager.data(attacker.getUniqueId());
@@ -100,8 +90,31 @@ public class FrostFreezeListener implements Listener {
         });
     }
 
-    /** Sets the victim down on the ground (see {@link GroundSettle}); false if there is none (the void). */
+    /**
+     * Makes sure the victim is standing on the ground before they're frozen: if they're in the air,
+     * they are put down on the first solid surface beneath them, with their momentum and fall
+     * distance cleared and gliding stopped.
+     *
+     * @return false if there is no ground below the victim, in which case nothing was changed
+     */
     private boolean settleOnGround(Player victim) {
-        return GroundSettle.settle(victim);
+        Location at = victim.getLocation();
+        // Start a touch above the feet so a victim standing inside a carpet/slab edge still finds their floor.
+        Location from = at.clone().add(0, 0.1, 0);
+        RayTraceResult ground = victim.getWorld().rayTraceBlocks(
+                from, new Vector(0, -1, 0), MAX_GROUND_SEARCH, FluidCollisionMode.NEVER, true);
+        if (ground == null) return false;
+
+        double groundY = ground.getHitPosition().getY();
+        boolean airborne = at.getY() - groundY > AIRBORNE_THRESHOLD;
+
+        if (airborne) {
+            if (victim.isGliding()) victim.setGliding(false);
+            Location landing = new Location(at.getWorld(), at.getX(), groundY, at.getZ(), at.getYaw(), at.getPitch());
+            victim.teleport(landing);
+        }
+        victim.setVelocity(new Vector(0, 0, 0));
+        victim.setFallDistance(0f);
+        return true;
     }
 }

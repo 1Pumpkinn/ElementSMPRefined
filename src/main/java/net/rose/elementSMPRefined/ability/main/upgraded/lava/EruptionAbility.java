@@ -39,25 +39,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-
-/**
- * Magma Eruption - look at an enemy and the ground under them cracks open. After a short,
- * dodgeable warning the spot erupts: everything in the blast takes damage, is set on fire
- * and is thrown into the air.
- * <p>
- * The eruption is a ring of rock spikes (exactly one {@link BlockDisplay} each) around a lava
- * fountain made of particles. It never changes real blocks, so nothing needs to be restored.
- */
 public class EruptionAbility extends BaseAbility {
 
     private static final double RANGE = 30.0;
     private static final double RAY_SIZE = 0.8;
-    /** Warning time before the blast. The spot is locked when cast, so moving away dodges it. */
     private static final int WARNING_TICKS = 14;
     private static final double RADIUS = 6.0;
-    /** True damage to the entity the caster aimed at (3 hearts). */
     private static final double DAMAGE = 6.0;
-    /** True damage to anything else caught in the blast (1.5 hearts). */
     private static final double SPLASH_DAMAGE = 3.0;
     private static final double LAUNCH_VELOCITY = 1.0;
     private static final int BURN_TICKS = 80;
@@ -66,9 +54,7 @@ public class EruptionAbility extends BaseAbility {
     private static final BlockData MAGMA = Material.MAGMA_BLOCK.createBlockData();
     private static final BlockData BASALT = Material.BASALT.createBlockData();
 
-    /** Every live spike, so plugin disable can sweep up anything still on screen. */
     private static final Set<BlockDisplay> ACTIVE_PILLARS = new HashSet<>();
-
 
     private final ElementSMPRefined plugin;
 
@@ -92,7 +78,6 @@ public class EruptionAbility extends BaseAbility {
         return true;
     }
 
-    /** First valid living entity under the crosshair, not hidden behind a wall. */
     private LivingEntity findTarget(Player player, TrustManager trust) {
         World world = player.getWorld();
         Location eye = player.getEyeLocation();
@@ -106,7 +91,6 @@ public class EruptionAbility extends BaseAbility {
         return hit == null ? null : (LivingEntity) hit.getHitEntity();
     }
 
-    /** Snaps to the floor so an airborne target still gets an eruption on the ground below. */
     private Location groundBelow(Location from) {
         World world = from.getWorld();
         RayTraceResult down = world.rayTraceBlocks(from.clone().add(0, 0.5, 0), new Vector(0, -1, 0),
@@ -216,8 +200,6 @@ public class EruptionAbility extends BaseAbility {
         }
     }
 
-
-    /** True while the entity is standing inside the eruption's particles and spikes (a round area, not a box). */
     private static boolean insideBlast(Location center, LivingEntity entity) {
         Location at = entity.getLocation();
         double dx = at.getX() - center.getX();
@@ -229,7 +211,6 @@ public class EruptionAbility extends BaseAbility {
     }
 
     private static final int CRACKS = 9;
-    /** Points on the shockwave / warning rings - scales with the radius so the rings have no gaps. */
     private static final int RING_POINTS = (int) Math.round(RADIUS * 11);
 
     private static final Particle.DustOptions CORE_DUST = new Particle.DustOptions(Color.fromRGB(255, 130, 25), 1.5f);
@@ -243,18 +224,12 @@ public class EruptionAbility extends BaseAbility {
             new Particle.DustTransition(Color.fromRGB(255, 200, 80), Color.fromRGB(200, 40, 0), 1.0f);
 
     private static final double COLUMN_HEIGHT = 3.2;
-    /** Ticks the core column takes to shoot up. */
     private static final int RISE_TICKS = 4;
     private static final int ERUPTION_TICKS = 24;
     private static final double COLUMN_RADIUS = 0.55;
     private static final int DROPLETS = 28;
     private static final double GRAVITY = 0.07;
 
-    /**
-     * Particle side of the eruption: a slim, tapered core column, a double shockwave on the
-     * ground, a fan of lava droplets that fly out in arcs and splash back down, and a glow at
-     * the tip of every spike.
-     */
     private void spawnFountain(Location center, List<Location> tips) {
         World world = center.getWorld();
         ThreadLocalRandom rng = ThreadLocalRandom.current();
@@ -369,17 +344,13 @@ public class EruptionAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-
     private static final BlockData SMOOTH_BASALT = Material.SMOOTH_BASALT.createBlockData();
 
-    /** Every slab is the same size and leans the same amount. */
     private static final float SLAB_HEIGHT = 1.4f;
     private static final float SLAB_WIDTH = 0.55f;
     private static final float SLAB_DEPTH = 0.35f;
     private static final float SLAB_TILT = (float) Math.toRadians(14);
-    /** Roughly how many blocks apart neighbouring slabs on a ring are. Lower = denser (more entities). */
     private static final double SLAB_SPACING = 1.8;
-    /** Concentric rings of slabs, as a fraction of the blast radius, outermost first. */
     private static final double[] RING_FRACTIONS = {0.86, 0.60, 0.34};
 
     /**
@@ -491,11 +462,6 @@ public class EruptionAbility extends BaseAbility {
         return center.clone().add(base.x + top.x, base.y + top.y, base.z + top.z);
     }
 
-    /**
-     * Pivots the block about the middle of its base, which sits at {@code base}.
-     * Display maths is {@code T * rotation * scale}, so the base centre lands at
-     * {@code T + rotation * (0.5 * width, 0, 0.5 * depth)}; solve for T.
-     */
     private static Transformation slabTransform(Vector3f base, Quaternionf rotation,
                                                 float width, float height, float depth) {
         Vector3f baseCentre = rotation.transform(new Vector3f(0.5f * width, 0f, 0.5f * depth));
@@ -503,7 +469,6 @@ public class EruptionAbility extends BaseAbility {
                 new Vector3f(width, height, depth), new Quaternionf());
     }
 
-    /** Safety net for plugin disable - removes every spike still on screen. */
     public static void removeAll() {
         for (BlockDisplay spike : new ArrayList<>(ACTIVE_PILLARS)) {
             if (spike.isValid()) spike.remove();

@@ -12,16 +12,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.util.Vector;
 
-/**
- * Listener for metal chain stun effects.
- * Enforces stun constraints:
- * - Removes knockback from stunned entities
- * - Works for both players (via StatusEffectManager) and mobs (via AI disable)
- *
- * Performance note: this used to also cancel {@code EntityMoveEvent} for AI-less mobs. That event
- * fires for every moving non-player entity on the server, every tick, as long as ANY plugin listens
- * to it, and nothing in this plugin disables mob AI any more, so the handler only added overhead.
- */
 public class MetalChainStunListener implements Listener {
     private static final Vector ZERO_VELOCITY = new Vector(0, 0, 0);
 
@@ -31,10 +21,6 @@ public class MetalChainStunListener implements Listener {
         this.plugin = (ElementSMPRefined) plugin;
     }
 
-    /**
-     * Prevent stunned entities from being knocked back by damage.
-     * This ensures stun immobilization is complete.
-     */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) {

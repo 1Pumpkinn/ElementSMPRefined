@@ -28,10 +28,6 @@ public class EarthTunnelAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
     private final MetadataHelper metadataHelper;
 
-    /**
-     * Pickaxe each active tunneler had in hand when they started tunneling. Drops are rolled
-     * against this copy, so Fortune / Silk Touch keep working after they swap items or put it away.
-     */
     private final Map<UUID, ItemStack> tunnelTools = new HashMap<>();
 
     public EarthTunnelAbility(JavaPlugin plugin, ConfigManager configManager) {
@@ -129,7 +125,6 @@ public class EarthTunnelAbility extends BaseAbility {
         }
     }
 
-
     private static final Set<Material> TUNNELABLE = EnumSet.of(
             Material.STONE, Material.DEEPSLATE, Material.DIRT, Material.GRASS_BLOCK,
             Material.COBBLESTONE, Material.ANDESITE, Material.DIORITE, Material.GRANITE,
@@ -139,11 +134,8 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.GRAVEL, Material.SAND, Material.RED_SAND, Material.SANDSTONE,
             Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK,
 
-            // Nether Blocks
             Material.BLACKSTONE, Material.CRIMSON_NYLIUM, Material.WARPED_HYPHAE,
             Material.SOUL_SAND, Material.BASALT,  Material.SMOOTH_BASALT, Material.SOUL_SOIL,
-
-            // Ores
 
             Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
             Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE,
@@ -154,7 +146,6 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
             Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE,
 
-            // Raw Ores
             Material.RAW_COPPER_BLOCK, Material.RAW_IRON_BLOCK, Material.RAW_GOLD_BLOCK
 
     );

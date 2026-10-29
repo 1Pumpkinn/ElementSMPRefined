@@ -18,11 +18,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Death passive: players become invisible during the night, and lose the
- * effect again once day breaks. Time is checked against each player's own
- * world clock, so it tracks correctly across multiple worlds/dimensions.
- */
 public class DeathNightInvisibilityListener implements Listener {
 
     private static final long NIGHT_START = 13000L; // vanilla night threshold
@@ -82,10 +77,6 @@ public class DeathNightInvisibilityListener implements Listener {
         PassiveInvisibility.unmark(event.getPlayer());
     }
 
-    /**
-     * Strips the passive's invisibility immediately - call when a player leaves
-     * Death or when clearing element effects.
-     */
     public void clear(Player player) {
         if (nightInvisible.remove(player.getUniqueId())) {
             removeInvisibility(player);

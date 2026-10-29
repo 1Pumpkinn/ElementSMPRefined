@@ -18,21 +18,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * A block of ice encasing a player or mob, drawn with a vanilla {@link BlockDisplay} (no resource
- * pack needed). It is sized from the target's bounding box, follows the target's position every tick
- * while it lasts (its rotation stays fixed, so it never turns when the target looks around), and shatters (removes itself with a glass-break sound) when the time is up or the target
- * dies / leaves.
- * <p>
- * Always keep the returned handle's lifetime short and call {@link #removeAll()} on plugin disable
- * as a safety net - the displays are real entities.
- */
 public final class IceBlockVisual {
 
-    /** Extra room around the target's hitbox so the ice reads as a block around them, not a skin on them. */
     private static final double PADDING = 0.3;
 
-    /** Every live block, so plugin disable can sweep up anything still on screen. */
     private static final Set<IceBlockVisual> ACTIVE = new HashSet<>();
 
     private final BlockDisplay display;
@@ -86,7 +75,6 @@ public final class IceBlockVisual {
         }.runTaskTimer(plugin, 1L, 1L);
     }
 
-    /** Copy of {@code loc} with yaw/pitch zeroed so the display never rotates with the target's view. */
     private static Location fixedRotation(Location loc) {
         Location copy = loc.clone();
         copy.setYaw(0f);
@@ -94,7 +82,6 @@ public final class IceBlockVisual {
         return copy;
     }
 
-    /** Encases {@code target} in ice for {@code ticks} ticks. */
     public static IceBlockVisual encase(JavaPlugin plugin, LivingEntity target, int ticks) {
         return new IceBlockVisual(plugin, target, ticks);
     }
@@ -108,14 +95,12 @@ public final class IceBlockVisual {
         remove();
     }
 
-    /** Removes the display straight away, no sound. */
     public void remove() {
         removed = true;
         if (display.isValid()) display.remove();
         ACTIVE.remove(this);
     }
 
-    /** Safety net for plugin disable - removes every ice block still on screen. */
     public static void removeAll() {
         for (IceBlockVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();

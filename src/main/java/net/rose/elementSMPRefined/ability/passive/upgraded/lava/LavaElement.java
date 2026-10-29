@@ -15,13 +15,6 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
 
-/**
- * Lava - upgraded from Fire.
- *
- * Passive 1: Auto smelt mined ores (inherited from Fire, see FireSmeltListener)
- * Passive 2 (Upgrade II): Permanent fire/lava immunity (inherited from Fire)
- * Passive 3 (Upgrade II): +1 attack damage while on fire or in lava (LavaBurningDamagePassive)
- */
 public class LavaElement extends BaseElement {
 
     private final LavaBurningDamagePassive burningDamage;
@@ -35,16 +28,11 @@ public class LavaElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passive 1 (start): auto smelt, handled by FireSmeltListener.
-
-        // Passive 2 (Upgrade II): permanent fire/lava immunity.
         if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
             player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 0, true, false));
         } else {
             EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
         }
-
-        // Passive 3 (Upgrade II): +1 attack damage while burning / in lava, handled by LavaBurningDamagePassive.
     }
 
     @Override

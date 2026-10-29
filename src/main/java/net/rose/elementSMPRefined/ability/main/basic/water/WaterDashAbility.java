@@ -21,18 +21,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-/**
- * Water ability 1: Tidal Surge.
- * <p>
- * Deliberately NOT shaped like {@code AirDashAbility}. Air Dash is a single
- * upward-biased impulse that arcs through the air and knocks enemies away.
- * Tidal Surge is a sustained, ground-hugging torrent: for a short window the
- * player is carried along at a constant speed while the current follows
- * wherever they look, so you can curve around corners, pillars and targets.
- * Vertical motion is clamped so it reads as a low glide instead of a jump,
- * it ends early if you slam into a wall, and it leaves a wide water wake
- * behind you. No knockback, pure mobility.
- */
 public class WaterDashAbility extends BaseAbility implements Listener {
 
     private static final int SURGE_TICKS = 14;
@@ -135,7 +123,6 @@ public class WaterDashAbility extends BaseAbility implements Listener {
         return true;
     }
 
-    /** Ends the surge with a splash and releases fall immunity once the player lands. */
     private void finish(Player player) {
         if (player.isOnline()) {
             WaterParticles.surgeEnd(player.getLocation().add(0, 0.5, 0));
@@ -175,7 +162,6 @@ public class WaterDashAbility extends BaseAbility implements Listener {
         setActive(player, false);
     }
 
-    /** A disconnect mid-surge must not leave the player permanently immune to fall damage. */
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         setActive(event.getPlayer(), false);

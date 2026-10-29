@@ -16,11 +16,6 @@ import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
 import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
 
-/**
- * Main plugin class which significantly simplified by extending AbstractElementPlugin.
- * This class now only contains plugin-specific logic, with common functionality
- * handled by the abstract base class.
- */
 public final class ElementSMPRefined extends AbstractElementPlugin {
 
     @Override

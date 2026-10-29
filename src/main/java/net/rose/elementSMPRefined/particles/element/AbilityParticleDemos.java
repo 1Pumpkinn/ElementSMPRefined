@@ -19,13 +19,6 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntConsumer;
 
-/**
- * Previews of every ability's particle effects, for {@code /element particles <effect>}.
- * <p>
- * Each demo plays that ability's effects from the {@code *Particles} classes at (or in front of) the
- * player, using sample values - so tweaking a particle in its class and re-running the command is the
- * whole feedback loop. Nothing here touches gameplay: no damage, no cooldowns, no blocks.
- */
 public final class AbilityParticleDemos {
 
     @FunctionalInterface
@@ -36,37 +29,26 @@ public final class AbilityParticleDemos {
     private static final Map<String, Demo> DEMOS = new LinkedHashMap<>();
 
     static {
-        // Air
         register("air_dash", AbilityParticleDemos::airDash);
         register("air_cutter", AbilityParticleDemos::airCutter);
         register("air_fall_impact", AbilityParticleDemos::airFallImpact);
-        // Earth
         register("earth_tunnel", AbilityParticleDemos::earthTunnel);
         register("earth_shockwave", AbilityParticleDemos::earthShockwave);
-        // Fire
         register("fire_starfall", AbilityParticleDemos::fireStarFall);
         register("fire_hellchain", AbilityParticleDemos::fireHellChain);
-        // Water
         register("kraken_slam", AbilityParticleDemos::krakenSlam);
         register("water_dash", AbilityParticleDemos::waterDash);
-        // Death
         register("death_backstab", AbilityParticleDemos::deathBackstab);
         register("death_sidestep", AbilityParticleDemos::deathSideStep);
-        // Life
         register("life_regen", AbilityParticleDemos::lifeRegen);
         register("life_beam", AbilityParticleDemos::lifeBeam);
-        // Frost
         register("frost_spikes", AbilityParticleDemos::frostSpikes);
         register("frost_barrage", AbilityParticleDemos::frostBarrage);
-        // Lava
         register("lava_eruption", AbilityParticleDemos::lavaEruption);
         register("lava_magmabeam", AbilityParticleDemos::lavaMagmaBeam);
-        // Metal
         register("metal_shield", AbilityParticleDemos::metalShield);
         register("metal_magnetar", AbilityParticleDemos::metalMagnetar);
-        // Storm
         register("storm_spear", AbilityParticleDemos::stormSpear);
-        // Reroll gem ring
         register("gem_orbit", AbilityParticleDemos::gemOrbit);
     }
 
@@ -76,12 +58,10 @@ public final class AbilityParticleDemos {
         DEMOS.put(key, demo);
     }
 
-
     public static boolean exists(String input) {
         return normalize(input) != null && DEMOS.containsKey(normalize(input));
     }
 
-    /** Plays the named demo. Returns the canonical key if one matched. */
     public static Optional<String> play(String input, Player player, ElementSMPRefined plugin) {
         String key = normalize(input);
         if (key == null || player == null || player.isDead()) {
@@ -114,8 +94,6 @@ public final class AbilityParticleDemos {
         return input.trim().toLowerCase(Locale.ROOT).replace('-', '_');
     }
 
-
-    /** A point {@code distance} blocks in front of the player (horizontal), at the player's feet height. */
     private static Location front(Player player, double distance) {
         Vector dir = player.getLocation().getDirection().setY(0);
         if (dir.lengthSquared() < 1.0E-4) {
@@ -124,7 +102,6 @@ public final class AbilityParticleDemos {
         return player.getLocation().add(dir.normalize().multiply(distance));
     }
 
-    /** Runs {@code body} once a tick for {@code ticks} ticks (tick index passed in), stopping if the player leaves. */
     private static void repeat(ElementSMPRefined plugin, Player player, int ticks, IntConsumer body) {
         new BukkitRunnable() {
             int tick = 0;
@@ -149,7 +126,6 @@ public final class AbilityParticleDemos {
             }
         }.runTaskLater(plugin, delay);
     }
-
 
     private static void airDash(Player player, ElementSMPRefined plugin) {
         repeat(plugin, player, 10, tick -> {
@@ -198,7 +174,6 @@ public final class AbilityParticleDemos {
         });
     }
 
-
     private static void earthTunnel(Player player, ElementSMPRefined plugin) {
         Location mine = front(player, 2).add(0, 1, 0);
         repeat(plugin, player, 6, tick -> EarthParticles.tunnelDebris(mine));
@@ -221,7 +196,6 @@ public final class AbilityParticleDemos {
         });
     }
 
-
     private static void fireStarFall(Player player, ElementSMPRefined plugin) {
         World world = player.getWorld();
         Location impact = front(player, 5);
@@ -234,7 +208,6 @@ public final class AbilityParticleDemos {
         later(plugin, 10L, () -> FireParticles.hellChainImpact(front(player, 2).add(0, 1, 0)));
         later(plugin, 20L, () -> FireParticles.hellChainMantle(player.getLocation()));
     }
-
 
     private static void krakenSlam(Player player, ElementSMPRefined plugin) {
         Location impact = front(player, 8);
@@ -253,7 +226,6 @@ public final class AbilityParticleDemos {
         repeat(plugin, player, 14, tick -> WaterParticles.surgeWake(player.getLocation(), dir));
         later(plugin, 15L, () -> WaterParticles.surgeEnd(player.getLocation().add(0, 0.5, 0)));
     }
-
 
     private static void deathBackstab(Player player, ElementSMPRefined plugin) {
         World world = player.getWorld();
@@ -278,7 +250,6 @@ public final class AbilityParticleDemos {
         DeathParticles.shadowBurst(world, destination);
     }
 
-
     private static void lifeRegen(Player player, ElementSMPRefined plugin) {
         World world = player.getWorld();
         double radius = 5.0;
@@ -300,7 +271,6 @@ public final class AbilityParticleDemos {
         }
         LifeParticles.healingBeamHit(world, eye.clone().add(dir.clone().multiply(10)));
     }
-
 
     private static void frostSpikes(Player player, ElementSMPRefined plugin) {
         World world = player.getWorld();
@@ -359,7 +329,6 @@ public final class AbilityParticleDemos {
             });
         });
     }
-
 
     private static void lavaEruption(Player player, ElementSMPRefined plugin) {
         World world = player.getWorld();
@@ -480,7 +449,6 @@ public final class AbilityParticleDemos {
         Vector dir = start.getDirection().normalize();
         Location orb = start.clone().add(dir.clone().multiply(0.4));
 
-        // Charge.
         repeat(plugin, player, 12, tick -> {
             double progress = tick / 12.0;
             double radius = 2.6 * (1.0 - progress) + 0.3;
@@ -491,7 +459,6 @@ public final class AbilityParticleDemos {
             LavaParticles.magmaChargeOrb(world, orb);
         });
 
-        // Beam.
         later(plugin, 14L, () -> repeat(plugin, player, 12, beamTick -> {
             Location from = player.getEyeLocation();
             Vector d = from.getDirection().normalize();
@@ -500,7 +467,6 @@ public final class AbilityParticleDemos {
                 Location p = from.clone().add(d.clone().multiply(dist));
                 LavaParticles.magmaBeamSheath(world, p, ((int) (dist / 0.4) + beamTick) % 3 == 0);
             }
-            // Double helix around the beam.
             Vector side = d.clone().crossProduct(new Vector(0, 1, 0));
             if (side.lengthSquared() < 1.0E-4) side = new Vector(1, 0, 0);
             side.normalize();
@@ -520,7 +486,6 @@ public final class AbilityParticleDemos {
             }
         }));
     }
-
 
     private static void metalShield(Player player, ElementSMPRefined plugin) {
         Location at = player.getLocation().add(0, 1, 0);
@@ -550,7 +515,6 @@ public final class AbilityParticleDemos {
                     MetalParticles.magnetarFieldPoint(world, centre.clone().add(local), color);
                 }
             }
-            // Jets out of both poles.
             for (int sign = -1; sign <= 1; sign += 2) {
                 for (int i = 0; i < 6; i++) {
                     double distance = 0.5 + ((i / 6.0 + tick * 0.05) % 1.0) * 2.5;
@@ -558,13 +522,11 @@ public final class AbilityParticleDemos {
                             .add(random.nextDouble(-0.05, 0.05), 0, random.nextDouble(-0.05, 0.05)));
                 }
             }
-            // Shimmer on the core surface.
             for (int i = 0; i < 6; i++) {
                 Vector dir = new Vector(random.nextGaussian(), random.nextGaussian(), random.nextGaussian());
                 if (dir.lengthSquared() < 1.0E-6) continue;
                 MetalParticles.magnetarShimmer(world, centre.clone().add(dir.normalize().multiply(0.5)));
             }
-            // Inflow streams.
             for (int s = 0; s < 4; s++) {
                 for (int i = 0; i < 8; i++) {
                     double f = ((double) i / 8 - tick * 0.03 + s * 0.25 + 2.0) % 1.0;
@@ -579,7 +541,6 @@ public final class AbilityParticleDemos {
         });
         later(plugin, 42L, () -> MetalParticles.magnetarCollapse(world, centre));
     }
-
 
     private static void stormSpear(Player player, ElementSMPRefined plugin) {
         World world = player.getWorld();

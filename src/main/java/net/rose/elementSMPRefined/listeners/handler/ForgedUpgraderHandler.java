@@ -24,11 +24,6 @@ import org.bukkit.persistence.PersistentDataType;
 import java.time.Duration;
 import java.util.Optional;
 
-/**
- * Right-clicking a Forged Upgrader reforges the player's basic element into
- * its advanced form: Fire -> Lava, Earth -> Metal, Water -> Frost, Air -> Storm.
- * Replaces the old Advanced Reroller (no rolling, no randomness).
- */
 public class ForgedUpgraderHandler implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;

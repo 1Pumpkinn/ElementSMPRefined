@@ -40,26 +40,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Shockwave - Leap into the air, hang for a beat, then slam back down. The
- * impact sends a ring of rippling earth outward in every direction, launching
- * every player and mob it passes under into the air.
- *
- * <p>The ring expands one step per tick. At each step the ground block under
- * every point on the circle is copied as a {@link BlockDisplay} that heaves up
- * straight up, holds, and settles back, so the terrain visibly ripples
- * outward like a real shockwave. No real blocks are ever changed, so there is
- * nothing to clean up if the server stops mid-cast.</p>
- *
- * <p>The displays are spawned in the air block <em>above</em> the ground block
- * (not inside it). A display inside a solid block samples that block's light
- * level, which is zero, and renders pitch black.</p>
- *
- * <p>Performance: a whole cast is driven by ONE repeating task. Every display goes
- * through the same fixed raise -> settle -> remove timeline, so instead of scheduling
- * three delayed tasks per block, each phase is a FIFO queue that is drained from the
- * front once per tick (blocks always come due in the order they were spawned).</p>
- */
 public class ShockwaveAbility extends BaseAbility {
 
     private static final double JUMP_VELOCITY = 1.1;   // ~6-7 blocks of hop
@@ -77,9 +57,7 @@ public class ShockwaveAbility extends BaseAbility {
 
     private static final double LAUNCH_UP = 1.1;       // ~6-8 blocks of height
     private static final double LAUNCH_OUTWARD = 0.6;
-    /** True damage at the impact point (3 hearts). Falls off linearly to {@link #DAMAGE_AT_MAX_RANGE} at {@link #MAX_RANGE}. */
     private static final double DAMAGE = 6.0;
-    /** True damage dealt to something right at the edge of the wave (1 heart). */
     private static final double DAMAGE_AT_MAX_RANGE = 2.0;
     private static final double HIT_RADIUS_XZ = 1.5;
     private static final double HIT_RADIUS_Y = 3.0;
@@ -97,21 +75,17 @@ public class ShockwaveAbility extends BaseAbility {
     private static final int FALL_AT = RAISE_AT + RISE_TICKS + HOLD_TICKS;
     private static final int REMOVE_AT = FALL_AT + FALL_TICKS + 2;
 
-    /** Fraction of the normal render distance the copies are visible from (0.5 = ~32 blocks). Smaller = less network traffic. */
     private static final float VIEW_RANGE = 0.5f;
-    /** Dust particles are only spawned on every other column (checkerboard) - half the packets, same look. */
     private static final int DUST_COUNT = 3;
 
     private static final int SCAN_UP = 2;
     private static final int SCAN_DOWN = 4;
 
-    /** Every block rests in the same pose, so it is built once. */
     private static final Transformation RESTING = placed(-0.5f, new Quaternionf());
 
     private final ElementSMPRefined plugin;
     private final Set<UUID> activeCasters = new HashSet<>();
 
-    /** A live copy of a ground block: its display, the pose it heaves to, and the cast tick it was spawned on. */
     private record WaveBlock(BlockDisplay display, Transformation raised, int born) {}
 
     public ShockwaveAbility(JavaPlugin plugin, ConfigManager configManager) {
@@ -199,7 +173,6 @@ public class ShockwaveAbility extends BaseAbility {
         return player.getLocation().subtract(0, 0.2, 0).getBlock().getType().isSolid();
     }
 
-    /** Impact burst, then the ring of rippling earth expanding in every direction. */
     private void startShockwave(Player caster, TrustManager trust, Location origin) {
         World world = origin.getWorld();
         world.spawnParticle(Particle.EXPLOSION, origin, 3, 0.5, 0.2, 0.5, 0.0);
@@ -279,10 +252,6 @@ public class ShockwaveAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    /**
-     * Moves every display that has come due on to its next phase. Later phases are handled first
-     * so a block is never pushed through two phases in the same tick.
-     */
     private static void advanceBlocks(int now, Deque<WaveBlock> toRaise, Deque<WaveBlock> toFall,
                                       Deque<WaveBlock> toRemove) {
         WaveBlock b;
@@ -313,7 +282,6 @@ public class ShockwaveAbility extends BaseAbility {
         }
     }
 
-    /** Spawns the resting copy of a ground block, just above the real one, plus a little dust. */
     private BlockDisplay spawnBlock(Block ground) {
         World w = ground.getWorld();
         BlockData data = ground.getBlockData();
@@ -337,10 +305,6 @@ public class ShockwaveAbility extends BaseAbility {
         return display;
     }
 
-    /**
-     * Pose for the cube whose centre sits at (0.5, centerY, 0.5) relative to the
-     * spawn block, rotated about its own centre rather than a corner.
-     */
     private static Transformation placed(float centerY, Quaternionf rotation) {
         float half = CUBE_SCALE / 2f;
         Vector3f rotatedHalf = new Vector3f(half, half, half).rotate(rotation);
@@ -349,7 +313,6 @@ public class ShockwaveAbility extends BaseAbility {
                 new Vector3f(CUBE_SCALE, CUBE_SCALE, CUBE_SCALE), new Quaternionf());
     }
 
-    /** Everything near the ring that it is allowed to launch, fetched with a single query. */
     private List<LivingEntity> collectCandidates(Player caster, TrustManager trust, Location origin,
                                                  double radius, Set<UUID> alreadyHit) {
         double reachXZ = radius + STEP_PER_TICK + HIT_RADIUS_XZ + 1.0;
@@ -367,7 +330,6 @@ public class ShockwaveAbility extends BaseAbility {
         return out;
     }
 
-    /** Launches whoever overlaps the hit zone above this ground block, once each. */
     private void launchNearby(Player caster, Location origin, List<LivingEntity> candidates, Block ground,
                               double outwardX, double outwardZ, Set<UUID> alreadyHit) {
         BoundingBox zone = BoundingBox.of(
@@ -389,7 +351,6 @@ public class ShockwaveAbility extends BaseAbility {
         }
     }
 
-    /** Full damage at the impact point, tapering off the further (horizontally) the target is from it. */
     private static double damageAt(Location origin, LivingEntity entity) {
         Location at = entity.getLocation();
         double dx = at.getX() - origin.getX();
@@ -399,7 +360,6 @@ public class ShockwaveAbility extends BaseAbility {
         return DAMAGE + (DAMAGE_AT_MAX_RANGE - DAMAGE) * t;
     }
 
-    /** Packs an (x, z) column into one long. */
     private static long planarKey(int x, int z) {
         return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
     }

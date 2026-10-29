@@ -79,7 +79,6 @@ public class GracePeriod implements Listener {
         return true;
     }
 
-    /** Disables the dimensions listed under grace_period.on_start when the grace period begins. */
     private void closeDimensionsOnStart() {
         if (configManager.isGracePeriodDisableNetherOnStart() && !configManager.isNetherDisabled()) {
             configManager.setNetherDisabled(true);
@@ -169,7 +168,6 @@ public class GracePeriod implements Listener {
         }
     }
 
-    /** Re-enables the dimensions listed under grace_period.on_end once the countdown finishes on its own. */
     private void openDimensionsOnEnd() {
         if (configManager.isGracePeriodEnableNetherOnEnd() && configManager.isNetherDisabled()) {
             configManager.setNetherDisabled(false);
@@ -237,7 +235,6 @@ public class GracePeriod implements Listener {
         warnPvpDisabled(damager);
     }
 
-    /** Extracts the player damager from a damage event, including projectile attacks. */
     private Player extractDamager(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player player) {
             return player;

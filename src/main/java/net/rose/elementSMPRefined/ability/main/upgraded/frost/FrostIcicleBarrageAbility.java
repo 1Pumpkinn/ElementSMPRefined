@@ -47,22 +47,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Icicle Barrage - Frost ability 1, built the same way as Magma Beam: hold still (slowed) while the
- * attack charges in front of you, then unleash it along your aim.
- * <p>
- * Charging: frost is pulled in towards a point just ahead of the caster and, one by one, icicles
- * materialise in a slowly spinning ring around it, all pointing the way the caster is looking. The ring
- * follows the caster's aim the whole time.
- * <p>
- * Firing: once the ring is full, the icicles are released ONE AT A TIME, {@link #FIRE_INTERVAL_TICKS}
- * ticks apart. Each one is a real projectile fired at whatever the caster is looking at
- * at that moment; it hits the first thing in its path and either hurts it or sticks in the wall.
- * <p>
- * The icicles are resource-pack models ({@code elementsmp:icicle_tip}, the same model Ice Spikes uses)
- * shown by {@link ItemDisplay}s. No real blocks are ever changed, so there is nothing to clean up if the
- * server stops.
- */
 public class FrostIcicleBarrageAbility extends BaseAbility {
 
     private static final NamespacedKey ICICLE_MODEL = Objects.requireNonNull(NamespacedKey.fromString("elementsmp:icicle_tip"));
@@ -70,7 +54,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private static final Component ALREADY_ACTIVE =
             Component.text("Icicle Barrage is already active!", NamedTextColor.RED);
 
-    // Charge
     private static final int CHARGE_TICKS = 14;
     private static final int SLOW_AMPLIFIER_CASTER = 2;     // Slowness III for the whole cast, like Magma Beam
     private static final double ORB_DISTANCE = 3.0;         // how far in front of the eyes the ring floats
@@ -81,7 +64,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private static final int APPEAR_TICKS = 3;              // an icicle grows in over this long once loaded
     private static final int CHARGE_SPARKS = 1;             // frost pulled towards the ring each tick
 
-    // Volley
     private static final int ICICLE_COUNT = 6;
     private static final int FIRE_INTERVAL_TICKS = 8;       // ticks between icicles (20 = 1 second)
     private static final double SPEED = 2.8;                // blocks per tick
@@ -97,10 +79,8 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private static final Vector3f TIP_AXIS = new Vector3f(0f, -1f, 0f);
     private static final float ICICLE_WIDTH = 1.0f;
     private static final float ICICLE_LENGTH = 3.2f;
-    /** The sprite's point is 5 of the model's 16 pixels below its centre, in blocks - a stuck icicle is pushed this far into the wall. */
     private static final double ICICLE_HALF_LENGTH = ICICLE_LENGTH * 5.0 / 16.0;
 
-    // Hit
     private static final double DAMAGE = 2.0;               // 1 heart per icicle (6 icicles = 12 if they all land)
     private static final int SLOW_TICKS = 60;
     private static final int SLOW_AMPLIFIER = 1;            // Slowness II on the target
@@ -132,7 +112,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         this.plugin = (ElementSMPRefined) plugin;
     }
 
-    /** Removes every icicle still on screen. Call from the plugin's disable hook. */
     public static void removeAll() {
         for (Display display : new ArrayList<>(ACTIVE)) {
             if (display.isValid()) display.remove();
@@ -159,7 +138,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         return true;
     }
 
-    /** One icicle: first hovering in the ring, then (once launched) in flight. */
     private static final class Icicle {
         final ItemDisplay display;
         final int appearTick;
@@ -177,7 +155,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         }
     }
 
-    /** One cast: charges a ring in front of the caster, fires it one icicle at a time, then runs until every icicle is gone. */
     private final class Cast extends BukkitRunnable {
         private final Player caster;
         private final TrustManager trust;
@@ -249,12 +226,10 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             }
         }
 
-        /** Tick at which a given ring slot gets its icicle, spread evenly across the charge. */
         private int appearTick(int slot) {
             return Math.round(slot * (float) CHARGE_TICKS / ICICLE_COUNT);
         }
 
-        /** Frost is pulled in towards the ring while it fills up. */
         private void chargeEffects(Location orb) {
             double progress = (double) ticks / CHARGE_TICKS;
 
@@ -271,14 +246,12 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             }
         }
 
-        /** A light frost haze while the loaded ring waits for its turn to fire. */
         private void ringAura(Location orb) {
             if (ticks % 4 == 0) {
                 world.spawnParticle(Particle.SNOWFLAKE, orb, 1, 0.3, 0.3, 0.3, 0.0, null, true);
             }
         }
 
-        /** Materialises the next icicle in the ring, tiny at first - updateRing grows it in. */
         private void loadNext(Location orb, Vector aim, Vector[] axes) {
             int slot = spawned++;
             Location pos = ringSpot(orb, axes, slot, 0f);
@@ -301,7 +274,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             world.playSound(pos, Sound.BLOCK_GLASS_PLACE, 0.8f, (float) (0.6 + progress * 0.9));
         }
 
-        /** Keeps every icicle still in the ring hovering around the orb, pointing where the caster looks. */
         private void updateRing(Location orb, Vector aim, Vector[] axes) {
             for (int i = 0; i < ICICLE_COUNT; i++) {
                 Icicle ic = slots[i];
@@ -323,7 +295,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             }
         }
 
-        /** Where a ring slot sits: spread around the aim axis, spinning slowly, easing outwards as it grows in. */
         private Location ringSpot(Location orb, Vector[] axes, int slot, float grow) {
             double angle = spin + Math.PI * 2 * slot / ICICLE_COUNT;
             double r = RING_RADIUS * (0.4 + 0.6 * grow);
@@ -332,7 +303,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
                     .add(axes[1].clone().multiply(Math.sin(angle) * r));
         }
 
-        /** Lets the next icicle in the ring go, fired at whatever the caster is looking at right now. */
         private void launchNext(Vector aim) {
             int slot = launched++;
             if (launched >= ICICLE_COUNT) releaseCaster(); // last one is away: the caster can move again
@@ -374,7 +344,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             flying.add(ic);
         }
 
-        /** Advances one icicle a tick. Returns true once it is finished and removed. */
         private boolean updateIcicle(Icicle ic) {
             if (!ic.display.isValid()) {
                 ACTIVE.remove(ic.display);
@@ -484,7 +453,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             world.playSound(spot, Sound.BLOCK_GLASS_BREAK, 1.0f, 1.2f);
         }
 
-        /** Entities an icicle can hit. */
         private boolean isTarget(Entity entity) {
             if (!(entity instanceof LivingEntity living)) return false;
             if (entity.equals(caster) || entity instanceof ArmorStand) return false;
@@ -495,7 +463,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             return living.isValid();
         }
 
-        /** Takes the slowness back off the caster (only the one this cast applied). Safe to call twice. */
         private void releaseCaster() {
             PotionEffect slow = caster.getPotionEffect(PotionEffectType.SLOWNESS);
             if (slow != null && slow.getAmplifier() == SLOW_AMPLIFIER_CASTER) {
@@ -503,7 +470,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             }
         }
 
-        /** Every exit path comes through here, so no icicle or slowness can outlive the ability. */
         private void end() {
             setActive(caster, false);
             releaseCaster();
@@ -516,13 +482,11 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         }
     }
 
-    /** True while {@code /tick freeze} is active and no {@code /tick step} is being run. */
     private static boolean isTickFrozen() {
         var tickManager = Bukkit.getServerTickManager();
         return tickManager.isFrozen() && !tickManager.isStepping();
     }
 
-    /** Where the ring floats: ahead of the caster's eyes, a little low. */
     private static Location orbSpot(Location eyeLocation) {
         Location eye = eyeLocation.clone();
         Location spot = eye.add(eye.getDirection().multiply(ORB_DISTANCE)).subtract(0, ORB_DROP, 0);
@@ -533,7 +497,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         return spot;
     }
 
-    /** Two unit vectors perpendicular to the aim and to each other, for laying things out around it. */
     private static Vector[] axes(Vector aim) {
         Vector right = aim.clone().crossProduct(new Vector(0, 1, 0));
         if (right.lengthSquared() < 1.0E-6) right = new Vector(1, 0, 0); // looking straight up/down
@@ -542,12 +505,10 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         return new Vector[]{right, up};
     }
 
-    /** Points the model's tip (TIP_AXIS) along the given direction. Scale 0..1 shrinks it away. */
     private static Transformation pose(Vector direction, float scale) {
         return pose(direction, scale, 0f);
     }
 
-    /** Same, but also shoves the model {@code push} blocks along the direction it points (used to sink it into a wall). */
     private static Transformation pose(Vector direction, float scale, float push) {
         Vector d = direction.clone().normalize();
         Quaternionf facing = new Quaternionf().rotationTo(TIP_AXIS,

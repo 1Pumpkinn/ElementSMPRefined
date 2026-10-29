@@ -22,43 +22,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * One Frost ice spike, drawn with the SAME resource-pack model as Icicle Barrage
- * ({@code elementsmp:icicle_tip}, the pointed-dripstone shape wearing the icicle texture) shown by an
- * {@link ItemDisplay}.
- * <p>
- * That model's sprite hangs point-DOWN (wide end at the top of the model, point 5 of 16 units below its
- * centre), so for a spike standing on the ground it is flipped upside down: wide end in the floor, point
- * in the air. Each spike gets a random facing and a little width jitter so a ring of them never looks
- * copy-pasted.
- * <p>
- * The whole life cycle lives in here: the spike bursts up out of the ground, holds, sinks back and
- * removes itself. Growth is a client-side interpolated transformation (same approach as
- * {@link TornadoVisual}), planted by the BASE of the model - position it at the ground contact point and
- * the visual works out where the display's centre goes.
- * <p>
- * Performance: every live spike is advanced by ONE shared repeating task (started with the first
- * spike, cancelled when the last one is gone) instead of three scheduled tasks per spike - a single
- * Ice Spikes cast spawns ~40 of them. The model item is cached ({@link ModelItems}) rather than
- * rebuilt for each entity.
- * <p>
- * Spikes remove themselves, but call {@link #removeAll()} on plugin disable as a safety net.
- */
 public final class IceSpikeVisual {
 
-    /** Same model Icicle Barrage fires. */
     private static final NamespacedKey MODEL = Objects.requireNonNull(NamespacedKey.fromString("elementsmp:icicle_tip"));
 
-    /**
-     * How much of the model's height the sprite actually fills: the point sits at pixel 3 and the wide end
-     * at pixel 16, so 13 of 16 units. Used to turn a wanted visible height into a model scale.
-     */
     private static final double SPRITE_FILL = 13.0 / 16.0;
 
-    /** Width of a spike as a fraction of its visible height. */
     private static final double WIDTH_RATIO = 0.6;
 
-    /** How far the wide end is sunk into the ground so there is never a gap under it, in blocks. */
     private static final double EMBED = 0.08;
 
     private static final int GROW_TICKS = 3;
@@ -70,19 +41,16 @@ public final class IceSpikeVisual {
     private static final int SHRINK_AT = GROW_AT + GROW_TICKS + HOLD_TICKS;
     private static final int REMOVE_AT = SHRINK_AT + SHRINK_TICKS + 2;
 
-    /** Never scale to exactly zero - a degenerate transformation can render glitchy. */
     private static final float COLLAPSED = 0.05f;
 
     private static final org.bukkit.block.data.BlockData PACKED_ICE = Material.PACKED_ICE.createBlockData();
     private static final org.bukkit.block.data.BlockData ICE = Material.ICE.createBlockData();
 
-    /** Every live spike, advanced by {@link #tickAll()}. */
     private static final List<Spike> ACTIVE = new ArrayList<>();
     private static BukkitTask ticker;
 
     private IceSpikeVisual() {}
 
-    /** One spike's state. The pose numbers are fixed at spawn; only the growth changes. */
     private static final class Spike {
         final ItemDisplay display;
         final World world;
@@ -156,7 +124,6 @@ public final class IceSpikeVisual {
         ticker = Bukkit.getScheduler().runTaskTimer(plugin, IceSpikeVisual::tickAll, 1L, 1L);
     }
 
-    /** Advances every live spike one step; stops the shared task once none are left. */
     private static void tickAll() {
         int now = Bukkit.getCurrentTick();
 
@@ -202,7 +169,6 @@ public final class IceSpikeVisual {
         s.display.setTransformation(pose(s.width, s.height, s.yaw, growth));
     }
 
-    /** Safety net for plugin disable - removes every spike still on screen. */
     public static void removeAll() {
         for (Spike s : ACTIVE) {
             if (s.display.isValid()) s.display.remove();

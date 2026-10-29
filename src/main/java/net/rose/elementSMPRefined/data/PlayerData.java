@@ -15,7 +15,6 @@ import java.util.*;
  */
 public final class PlayerData {
 
-    /** Upgrade levels are clamped to [0, MAX_UPGRADE_LEVEL]. */
     public static final int MAX_UPGRADE_LEVEL = 2;
 
     private final UUID uuid;
@@ -24,7 +23,6 @@ public final class PlayerData {
     private final Set<UUID> trustedPlayers;
     private int pendingRerollerRefunds;
     private int pendingAdvancedRerollerRefunds;
-    /** Passives the player has switched off with /toggle. Everything is on by default. */
     private final EnumSet<PassiveToggle> disabledToggles = EnumSet.noneOf(PassiveToggle.class);
 
     public PlayerData(UUID uuid) {

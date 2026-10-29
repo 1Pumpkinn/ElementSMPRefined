@@ -23,19 +23,8 @@ public enum ElementType {
     LIFE,
     DEATH,
 
-
-    /**
-     * Placeholder used by {@code ExampleElement}. It is never registered, so it is
-     * not {@linkplain #isPlayable() playable}: it can't be rolled, set or suggested.
-     */
     EXAMPLE(false);
 
-    /**
-     * Old stored names -> current element, so renaming an enum constant doesn't strip the element
-     * from every player who has it saved under the old name. When you rename an element, add the
-     * OLD name here (upper-case) and never remove it, e.g. {@code Map.entry("FROSTBITE", FROST)}.
-     * Removing an element outright can't be migrated - those players are simply re-rolled.
-     */
     private static final Map<String, ElementType> LEGACY_NAMES = Map.of();
 
     private final boolean playable;

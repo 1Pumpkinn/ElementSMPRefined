@@ -32,60 +32,29 @@ import org.bukkit.util.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Lightning Spear - hurls a spear of crackling lightning in a straight line at very high speed.
- * It stops on the first thing it touches: a block, or an enemy. On an enemy it deals damage,
- * shocks them (a short stun on players, heavy slow on mobs) and a real lightning strike
- * goes off at the point of impact.
- * <p>
- * The spear itself is the {@code elementsmp:lightning_spear} resource-pack model (see
- * {@link LightningSpearVisual}); the crackle around it is particles, but the impact is a real
- * visual-only lightning strike (no vanilla damage, fire or mob conversion - all damage is ours).
- * Every tick it travels {@link #SPEED} blocks, and the whole segment is ray-traced in one go, so
- * even at that speed it can't skip over a thin wall or a player.
- */
 public class LightningSpearAbility extends BaseAbility {
 
-    /** Blocks travelled per tick. */
     private static final double SPEED = 2.2 ;
-    /** Max distance before the spear fizzles out. */
     private static final double RANGE = 48.0;
-    /** How wide the spear is for hit detection (radius, in blocks). */
     private static final double HIT_RADIUS = 0.6;
-    /** Visible length of the spear shaft, tip to tail. */
     private static final double SPEAR_LENGTH = 3.0;
 
-    /** True damage dealt to the entity the spear hits directly. */
     private static final double DIRECT_DAMAGE = 5.0; // 2.5 hearts
-    /** Radius of the shock burst at the impact point. Set SHOCK_DAMAGE to 0 to disable the burst damage. */
     private static final double SHOCK_RADIUS = 3.0;
-    /** True damage dealt to everything else caught in the shock burst. */
     private static final double SHOCK_DAMAGE = 3.0;
 
-    /** How long a hit player is stunned (ticks). */
     private static final int PLAYER_STUN_TICKS = 15;
-    /** How long a hit mob is heavily slowed (ticks). */
     private static final int MOB_SLOW_TICKS = 30;
 
     // Sound volumes (1.0 = vanilla "normal"; lower = quieter and shorter range)
     // The impact thunder/zap are played by the lightning entity itself on the client, so their
     // volume can't be set here (override entity.lightning_bolt.* in the resource pack if needed).
-    /** Launch whoosh. */
     private static final float THROW_VOLUME = 0.45f;
-    /** Launch crackle. */
     private static final float CRACKLE_VOLUME = 0.25f;
-    /** Faint rumble under the launch. */
     private static final float RUMBLE_VOLUME = 0.12f;
-    /** Spear fizzling out at max range. */
     private static final float FIZZLE_VOLUME = 0.35f;
 
-    /**
-     * Inspection helper: while the server tick is frozen ({@code /tick freeze}) the spear stops
-     * advancing and stays exactly where it is, so you can walk up and look at the model. It
-     * carries on when you {@code /tick unfreeze}, and moves one step per {@code /tick step}.
-     */
     private static final boolean HOLD_WHEN_TICK_FROZEN = true;
-
 
     private final ElementSMPRefined plugin;
 
@@ -113,7 +82,6 @@ public class LightningSpearAbility extends BaseAbility {
             final LightningSpearVisual spear = new LightningSpearVisual(start, direction, player);
             double travelled = 0;
 
-            /** Every exit path calls cancel(), so the spear entity can never outlive the ability. */
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 spear.remove();
@@ -162,13 +130,11 @@ public class LightningSpearAbility extends BaseAbility {
         return true;
     }
 
-    /** True while {@code /tick freeze} is active and no {@code /tick step} is being run. */
     private static boolean isTickFrozen() {
         var ticks = Bukkit.getServerTickManager();
         return ticks.isFrozen() && !ticks.isStepping();
     }
 
-    /** Whether the spear should collide with this entity. */
     private boolean isTargetable(ElementContext context, Entity entity) {
         if (!(entity instanceof LivingEntity living)) return false;
         if (entity instanceof ArmorStand) return false;
@@ -180,14 +146,9 @@ public class LightningSpearAbility extends BaseAbility {
         return isValidTarget(context, living);
     }
 
-    /**
-     * Particle accents around the spear model (tip at {@code head}): a glowing tip, a thin
-     * energy trail and loose arcs of electricity. The shaft itself is the model.
-     */
     private void drawSpear(World world, Location head, Vector direction) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
-        // Glowing tip.
         StormParticles.spearTip(world, head);
 
         // Thin energy trail behind the tail so the fast spear still leaves a streak.
@@ -205,7 +166,6 @@ public class LightningSpearAbility extends BaseAbility {
         }
     }
 
-    /** Impact: real lightning strike, then the direct hit's damage + shock and the shock burst. */
     private void explode(ElementContext context, Location impact, LivingEntity directHit, Vector direction) {
         Player caster = context.getPlayer();
         World world = impact.getWorld();
@@ -236,7 +196,6 @@ public class LightningSpearAbility extends BaseAbility {
         }
     }
 
-    /** The "shock": a very short stun for players, a heavy slow for everything else. */
     private void shock(Player caster, LivingEntity target) {
         if (target instanceof Player player) {
             plugin.getStatusEffectManager().applyEffect(caster, player, StatusEffectType.STUN, PLAYER_STUN_TICKS, 1);

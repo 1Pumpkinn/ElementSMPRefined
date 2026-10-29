@@ -21,7 +21,6 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class ElementSmpTablist implements Listener {
 
-    /** The title. Paste a new one from the MiniMessage editor here. */
     private static final String HEADER_MINI =
             "<gradient:#ffffff:#90fe92:#00bfc2:#00fbff:#ffa200:#c20000><bold>Element SMP</bold></gradient>";
 

@@ -10,15 +10,6 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 
-/**
- * Lava Element Passive 3: Molten Strikes (unlocks at Upgrade II)
- *
- * While a Lava player is on fire or standing in lava they get +{@value #ATTACK_DAMAGE_BONUS} attack
- * damage. Implemented as a transient attack damage attribute modifier (never saved with the player)
- * that a small repeating task adds or removes. Polling instead of listening for events means it
- * reacts to fire starting and ending, entering and leaving lava, upgrades, element changes, respawns
- * and joins without needing a handler for each.
- */
 public class LavaBurningDamagePassive {
 
     private static final double ATTACK_DAMAGE_BONUS = 1; // keep LavaElement's info text in sync
@@ -34,7 +25,6 @@ public class LavaBurningDamagePassive {
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, CHECK_INTERVAL_TICKS, CHECK_INTERVAL_TICKS);
     }
 
-    /** Drops the bonus immediately (used when Lava's effects are cleared, e.g. on an element change). */
     public void clear(Player player) {
         setBonus(player, false);
     }

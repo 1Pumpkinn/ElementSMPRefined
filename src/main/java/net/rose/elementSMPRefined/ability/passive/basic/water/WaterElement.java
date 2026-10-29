@@ -35,9 +35,6 @@ public class WaterElement extends BaseElement implements ListenerProvider {
     public void applyUpsides(Player player, int upgradeLevel) {
         // Passive 1: Breath of the Nautilus DO NOT CHANGE THIS EFFECT IT'S BREATH OF THE NATULIST
         player.addPotionEffect(new PotionEffect(PotionEffectType.BREATH_OF_THE_NAUTILUS, PotionEffect.INFINITE_DURATION, 0, true, false));
-
-        // Passive 2 (Upgrade II): in-water invisibility, handled by WaterInvisibilityListener,
-        // which checks the level.
     }
 
     @Override

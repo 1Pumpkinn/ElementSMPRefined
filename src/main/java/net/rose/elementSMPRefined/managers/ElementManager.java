@@ -86,7 +86,6 @@ public class ElementManager {
         return advanced.toArray(new ElementType[0]);
     }
 
-    /** Every element not in {@link #DEFAULT_BASIC_ELEMENTS}. */
     private EnumSet<ElementType> classifyBasicElements() {
         return EnumSet.copyOf(DEFAULT_BASIC_ELEMENTS);
     }
@@ -95,12 +94,6 @@ public class ElementManager {
         return elementRegistry.getAllElements();
     }
 
-    /**
-     * Every element's own class already knows its display name, description, and
-     * abilities (see {@link net.rose.elementSMPRefined.core.API.element.BaseElement}) - so
-     * registering a new element is just adding one line here. Whether it's a
-     * "basic" starter element is decided separately, by {@link #getBasicElements()}.
-     */
     private void registerAllElements() {
         elementRegistry.register(new AirElement(plugin, configManager));
         elementRegistry.register(new WaterElement(plugin, configManager));
@@ -269,7 +262,6 @@ public class ElementManager {
         return success;
     }
 
-    /** Shared builder for the {@link ElementContext} every ability call needs. */
     private ElementContext buildContext(Player player, PlayerData pd, ElementType type) {
         return ElementContext.builder()
                 .player(player)

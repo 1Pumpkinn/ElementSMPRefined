@@ -98,13 +98,6 @@ public class PlayerLifecycle implements Listener {
         });
     }
 
-    /**
-     * Runs the same "Rolling..." title animation as {@code RerollerHandler}
-     * and assigns a random basic element once it finishes. Used for a
-     * player's very first element assignment instead of opening
-     * {@code ElementSelectionGUI}, so first join and a basic reroll feel
-     * identical.
-     */
     private void rollStarterElement(Player player) {
         if (!elementManager.beginRolling(player)) return;
 
@@ -186,12 +179,6 @@ public class PlayerLifecycle implements Listener {
         plugin.getDataStore().save(pd);
     }
 
-    /**
-     * Gives the player {@code amount} copies of {@code template}, split
-     * across multiple stacks if it exceeds the item's max stack size, and
-     * drops anything that doesn't fit in their inventory at their feet
-     * instead of silently discarding it.
-     */
     private void giveItemStack(Player player, org.bukkit.inventory.ItemStack template, int amount) {
         int maxStack = template.getMaxStackSize();
         int remaining = amount;
@@ -229,21 +216,6 @@ public class PlayerLifecycle implements Listener {
         }
     }
 
-    /**
-     * Without this, an ability's active-state flag (bubble shields, healing beams,
-     * stone-fist holds, the water geyser's fall immunity, etc.) only clears itself once
-     * that ability's own internal timeout elapses - it never checks whether the
-     * player died, only whether they went offline. Death doesn't end an ability
-     * early anywhere in this codebase without this hook, so a shield, beam, or
-     * carry could keep ticking against/around a corpse for the ability's full
-     * duration before self-expiring. Clearing on death this way brings dying in
-     * line with quitting and switching elements, which already snap every
-     * ability's active flag immediately instead of waiting it out.
-     * <p>
-     * Uses the single-element clear (not {@link EffectService#clearAllElementEffects})
-     * since only the player's current element could have anything active, and deaths
-     * are frequent enough (PvP) that the full every-element sweep isn't worth it here.
-     */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();

@@ -37,17 +37,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Metal element ability 2: plants an Magnetar Core ({@link MagnetarVisual}) where the caster is
- * looking. For {@value #DURATION_TICKS} ticks it drags every nearby living entity - players and
- * mobs alike, except the caster, anyone they trust, their tamed pets and armor stands - toward
- * it, pulling harder the closer they get. Anything that gets within {@value #CAPTURE_RADIUS} blocks
- * of its centre is captured: it is swept onto a ring {@value #ORBIT_RADIUS} blocks from the centre and
- * orbits the core there (snapped back onto the ring if it ever drifts more than {@value #LEASH} blocks
- * off it), taking true damage every {@value #DAMAGE_INTERVAL_TICKS} ticks until the core collapses.
- * <p>
- * Damage goes through {@link TrueDamage}, so a Metal Shield counts it as a damaging ability.
- */
 public class MetalMagnetarAbility extends BaseAbility {
 
     private static final double RANGE = 25.0;               // how far away the core can be placed on a surface
@@ -96,11 +85,9 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double STREAM_FLOW = 0.03;         // fraction of the stream that flows inward per tick
     private static final double FIELD_SPIN = 0.03;          // radians/tick the whole stream field turns about the vertical axis
 
-    /** Field line colours: deep blue out at the equator, lighter blue where the lines pinch together at the poles. */
     private static final int[] EQUATOR_RGB = {35, 85, 255};
     private static final int[] POLE_RGB = {90, 150, 255};
 
-    /** Stream directions (spread evenly over a sphere) and a perpendicular pair for each, for the swirl. */
     private static final Vector[] STREAM_DIR = new Vector[STREAMS];
     private static final Vector[] STREAM_U = new Vector[STREAMS];
     private static final Vector[] STREAM_V = new Vector[STREAMS];
@@ -128,12 +115,9 @@ public class MetalMagnetarAbility extends BaseAbility {
         final Location centre;
         final MagnetarVisual visual;
         final TrustManager trust;
-        /** Pull reach sideways / up-and-down. Equal on a surface, tall and narrow in the air. */
         final double radiusH;
         final double radiusV;
-        /** Tick at which each captured player may next be hit. */
         final Map<UUID, Integer> nextHit = new HashMap<>();
-        /** Everyone currently held by the core -> the tick they were captured. Once in, they stay in until it collapses. */
         final Map<UUID, Integer> captured = new HashMap<>();
         int ticks = 0;
         BukkitRunnable task;
@@ -147,7 +131,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         }
     }
 
-    /** Where the core goes, and whether it's floating in open air (true) or hovering off a surface (false). */
     private record Placement(Location location, boolean airborne) {
     }
 
@@ -193,7 +176,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         return true;
     }
 
-    /** Where the caster is looking (up to RANGE), floated off the surface it hit; AIR_RANGE blocks out in the air if nothing is hit (then the pull field is tall instead of round). */
     private Placement findPlacement(Player caster) {
         Location eye = caster.getEyeLocation();
         Vector direction = eye.getDirection();
@@ -212,7 +194,6 @@ public class MetalMagnetarAbility extends BaseAbility {
                 : new Vector(0, 1, 0);
         return new Placement(hit.getHitPosition().clone().add(normal.multiply(HOVER)).toLocation(caster.getWorld()), false);
     }
-
 
     private void tick(Core core, Player caster) {
         World world = core.centre.getWorld();
@@ -263,7 +244,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         }
     }
 
-    /** Drags the target straight at the core, harder the closer they are, easing in so they never overshoot it. */
     private void pull(LivingEntity target, Vector toCore, double fieldDistance) {
         double closeness = 1.0 - Math.min(1.0, fieldDistance / PULL_RADIUS);
         double speed = PULL_SPEED_FAR + (PULL_SPEED_NEAR - PULL_SPEED_FAR) * closeness;
@@ -284,7 +264,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         target.setVelocity(velocity);
     }
 
-    /** The target is inside the core: swing them round it on a ring and crush them on a timer until the core collapses. */
     private void capture(Core core, Player caster, LivingEntity target, Vector toCore, int capturedAt) {
         UUID id = target.getUniqueId();
 
@@ -323,11 +302,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         target.setFallDistance(0f);
     }
 
-    /**
-     * Moves the target by {@code toCore} (so the centre of its body lands on the spot that offset points at)
-     * and kills its momentum. Refused (false) if that spot is inside solid blocks, so a core hugging a wall
-     * can't suffocate anyone.
-     */
     private static boolean snapToCore(LivingEntity target, Vector toCore) {
         BoundingBox moved = target.getBoundingBox().clone().shift(toCore);
         World world = target.getWorld();
@@ -345,7 +319,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         return true;
     }
 
-    /** True if any part of the target's body is inside a cobweb block. */
     private static boolean isInCobweb(LivingEntity target) {
         BoundingBox box = target.getBoundingBox();
         World world = target.getWorld();
@@ -382,10 +355,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         return core.trust != null && core.trust.isTrusted(caster.getUniqueId(), other);
     }
 
-    /**
-     * Draws the core as a magnetar: dipole field loops, a shimmering surface and (faintly)
-     * the inward streams that show where the pull is coming from.
-     */
     private void spawnSuctionParticles(Core core) {
         World world = core.centre.getWorld();
         double precession = core.ticks * AXIS_PRECESSION;
@@ -396,11 +365,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         spawnInflow(core, world);
     }
 
-    /**
-     * Dipole field lines: r = L * sin^2(theta) measured from the magnetic axis, so every line leaves one
-     * pole, swings out to a radius of L at the equator and dives back into the opposite pole. Sparks flow
-     * along each line, hot near the poles and cool at the equator.
-     */
     private void spawnFieldLoops(Core core, World world, double loopSpin, double precession) {
         double flow = (core.ticks * LOOP_FLOW) % 1.0;
 
@@ -431,7 +395,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         }
     }
 
-    /** Crackling sparks over the surface of the star itself. */
     private void spawnShimmer(Core core, World world) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < SHIMMER_POINTS; i++) {
@@ -442,7 +405,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         }
     }
 
-    /** Faint streams spiralling in from every direction, stretched to match the pull field. */
     private void spawnInflow(Core core, World world) {
         double flow = (core.ticks * STREAM_FLOW) % 1.0;
         double spin = core.ticks * FIELD_SPIN;
@@ -468,12 +430,10 @@ public class MetalMagnetarAbility extends BaseAbility {
         }
     }
 
-    /** Spins a magnetic-axis-local vector about the axis (local Y), tips the axis over, then sweeps it around. */
     private static Vector orient(Vector local, double spinAboutAxis, double precession) {
         return local.rotateAroundY(spinAboutAxis).rotateAroundZ(AXIS_TILT).rotateAroundY(precession);
     }
 
-    /** {@code polar} is 1 right at a pole and 0 on the equator. */
     private static Color fieldColor(double polar) {
         double k = polar * polar; // keep most of the loop blue, the pinched ends just brighten to a lighter blue
         return Color.fromRGB(
@@ -481,7 +441,6 @@ public class MetalMagnetarAbility extends BaseAbility {
                 (int) (EQUATOR_RGB[1] + (POLE_RGB[1] - EQUATOR_RGB[1]) * k),
                 (int) (EQUATOR_RGB[2] + (POLE_RGB[2] - EQUATOR_RGB[2]) * k));
     }
-
 
     private void end(UUID casterId, boolean collapsed) {
         Core core = cores.remove(casterId);
@@ -502,7 +461,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         }
     }
 
-    /** Called by {@code BaseElement.clearEffects} (element change etc.) - drops the core with the flag. */
     @Override
     public void setActive(Player player, boolean active) {
         super.setActive(player, active);
@@ -511,7 +469,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         }
     }
 
-    /** Caster left the server: the core goes with them. */
     public void onPlayerQuit(UUID playerUuid) {
         end(playerUuid, false);
     }

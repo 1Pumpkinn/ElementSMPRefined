@@ -52,21 +52,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Totem of Life - Life ability 1. The caster hurls a totem along an arc; it tumbles through the air,
- * sticks upright into the first ground it reaches, and then pulses Regeneration to the caster and
- * trusted players standing near it until it sinks away again (think Wynncraft's Shaman totem).
- *
- * <p>The totem is the {@code elementsmp:life_totem} resource-pack model (eyes glow) shown by an
- * {@link ItemDisplay}. No real blocks are touched, so nothing needs cleaning up apart from the display
- * itself, which {@link #removeAll()} sweeps on plugin disable.</p>
- */
 public class LifeTotemAbility extends BaseAbility {
 
     private static final NamespacedKey MODEL =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:life_totem"));
 
-    // Flight
     private static final double LAUNCH_SPEED = 1.1;      // blocks per tick
     private static final double LAUNCH_LIFT = 0.12;      // extra upward push so the throw arcs
     private static final double GRAVITY = 0.05;          // blocks per tick^2
@@ -74,7 +64,6 @@ public class LifeTotemAbility extends BaseAbility {
     private static final float SPIN_PER_TICK = 0.5f;     // radians, end over end
     private static final float FLIGHT_SCALE = 1.2f;
 
-    // Planted
     private static final float PLANTED_SCALE = 1.6f;     // model is ~1.5 blocks tall at scale 1 (~2.7 planted)
     private static final double EMBED = 0.05;            // sink the base slightly so there is no gap
     private static final int GROW_TICKS = 4;
@@ -82,7 +71,6 @@ public class LifeTotemAbility extends BaseAbility {
     private static final int DURATION_TICKS = 200;       // 10 seconds standing
     private static final float COLLAPSED = 0.05f;        // never scale to exactly zero
 
-    // Breaking
     private static final int HITS_TO_BREAK = 5;          // critical hits needed to destroy it
     private static final float HITBOX_WIDTH = PLANTED_SCALE * 1.0f;
     private static final float HITBOX_HEIGHT = PLANTED_SCALE * (24.4f / 16f);
@@ -100,14 +88,11 @@ public class LifeTotemAbility extends BaseAbility {
     private static final BlockData BAR_YELLOW = Material.YELLOW_CONCRETE.createBlockData();
     private static final BlockData BAR_RED = Material.RED_CONCRETE.createBlockData();
 
-    // Players standing inside the hitbox
     private static final double ATTACK_REACH = 3.0;      // vanilla melee reach, used to pick which occupant was swung at
     private static final double OCCUPANT_AIM_MARGIN = 0.1; // forgiveness around an occupant's body, like vanilla's pick radius
-    /** Items that can still be eaten while standing inside a totem (the hitbox otherwise eats the right-click). */
     private static final java.util.Set<Material> EATABLE_INSIDE =
             java.util.EnumSet.of(Material.GOLDEN_APPLE, Material.ENCHANTED_GOLDEN_APPLE);
 
-    // Aura
     private static final double RADIUS = Constants.Distance.LIFE_REGEN_RADIUS;
     private static final int PULSE_EVERY_TICKS = 20;
     private static final int PULSE_FIRST_TICK = 3;       // just after it finished planting
@@ -115,12 +100,9 @@ public class LifeTotemAbility extends BaseAbility {
     private static final int REGEN_AMPLIFIER = 1;
     private static final int RING_TICKS = 8;             // how long a pulse ring takes to expand
 
-    /** Every live totem, so plugin disable can clear them. */
     private static final List<Totem> ACTIVE = new ArrayList<>();
 
-    /** Hitbox entity UUID -> its totem, so attacks can be routed to the right one. */
     private static final Map<UUID, Totem> BY_HITBOX = new HashMap<>();
-    /** Attacker UUID -> game tick of their last handled hit, so two events for one swing count once. */
     private static final Map<UUID, Integer> LAST_HIT_TICK = new HashMap<>();
 
     private final ElementSMPRefined plugin;
@@ -187,11 +169,6 @@ public class LifeTotemAbility extends BaseAbility {
         return true;
     }
 
-    /**
-     * Right-click on a totem's hitbox by a player standing inside it. The client sends the click to the
-     * (invisible) hitbox instead of using the held item, so the item is started by hand here.
-     * Only {@link #EATABLE_INSIDE} items are handled.
-     */
     public static void handleUse(Player player, Entity target, EquipmentSlot hand) {
         Totem totem = BY_HITBOX.get(target.getUniqueId());
         if (totem == null || !totem.contains(player)) return;
@@ -207,7 +184,6 @@ public class LifeTotemAbility extends BaseAbility {
         player.startUsingItem(slot);
     }
 
-    /** Vanilla critical-hit conditions: falling, airborne, not sprinting, and a (nearly) full swing. */
     private static boolean isCrit(Player p) {
         return p.getFallDistance() > 0f
                 && !p.isOnGround()
@@ -219,7 +195,6 @@ public class LifeTotemAbility extends BaseAbility {
                 && p.getAttackCooldown() >= 0.9f;
     }
 
-    /** Safety net for plugin disable - removes every totem still on screen. */
     public static void removeAll() {
         for (Totem t : new ArrayList<>(ACTIVE)) {
             t.cancelAndRemove();
@@ -229,9 +204,6 @@ public class LifeTotemAbility extends BaseAbility {
         LAST_HIT_TICK.clear();
     }
 
-    // ---- poses ---------------------------------------------------------------------------------
-
-    /** Tumbling pose while thrown: spun end over end around the X axis. */
     private static Transformation flightPose(float spin) {
         return new Transformation(
                 new Vector3f(),
@@ -255,8 +227,6 @@ public class LifeTotemAbility extends BaseAbility {
                 new Vector3f(s, s, s),
                 new Quaternionf());
     }
-
-    // ---- one totem -----------------------------------------------------------------------------
 
     private final class Totem extends BukkitRunnable {
         private final World world;
@@ -422,7 +392,6 @@ public class LifeTotemAbility extends BaseAbility {
             }
         }
 
-        /** Regeneration to the caster and trusted players inside the aura. */
         private void pulse() {
             for (Player other : world.getNearbyPlayers(base, RADIUS)) {
                 boolean owner = other.getUniqueId().equals(ownerId);
@@ -444,19 +413,16 @@ public class LifeTotemAbility extends BaseAbility {
             }
         }
 
-        /** Faint glow around the totem's head plus motes drifting up between pulses. */
         private void ambient() {
             world.spawnParticle(Particle.HAPPY_VILLAGER, base.clone().add(0, 1.8, 0), 2, 0.3, 0.3, 0.3, 0.0, null, true);
             double a = world.getGameTime() * 0.3;
             LifeParticles.totemRingPoint(world, base.clone().add(Math.cos(a) * RADIUS, 0.15, Math.sin(a) * RADIUS));
         }
 
-        /** True if {@code p} is standing (at least partly) inside this totem's hitbox. */
         boolean contains(Entity p) {
             return hitbox != null && hitbox.isValid() && hitbox.getBoundingBox().overlaps(p.getBoundingBox());
         }
 
-        /** The living entity (player or mob) inside this totem that {@code attacker} is aiming at (nearest within reach), or null. */
         LivingEntity occupantInSights(Player attacker) {
             if (hitbox == null || !hitbox.isValid()) return null;
 
@@ -485,10 +451,6 @@ public class LifeTotemAbility extends BaseAbility {
             return best;
         }
 
-        /**
-         * An attack on this totem's hitbox. The owner and trusted players can never hurt it; anyone else
-         * only counts critical hits, and {@link #HITS_TO_BREAK} of them destroy it.
-         */
         void onHit(Player attacker, boolean crit) {
             UUID id = attacker.getUniqueId();
             if (id.equals(ownerId) || (trust != null && trust.isTrusted(ownerId, id))) return;
@@ -523,7 +485,6 @@ public class LifeTotemAbility extends BaseAbility {
             finish();
         }
 
-        /** Dark backing plus one block per hit; all billboarded so the bar always faces the viewer. */
         private void spawnBar(Location at) {
             float segW = (BAR_WIDTH - BAR_GAP * (HITS_TO_BREAK - 1)) / HITS_TO_BREAK;
 
@@ -536,7 +497,6 @@ public class LifeTotemAbility extends BaseAbility {
             }
         }
 
-        /** One flat box centred on {@code at}, shifted {@code centreX} sideways in the viewer's frame. */
         private BlockDisplay spawnBarPiece(Location at, BlockData data, float w, float h, float d, float centreX) {
             return world.spawn(at, BlockDisplay.class, e -> {
                 e.setBlock(data);
@@ -552,7 +512,6 @@ public class LifeTotemAbility extends BaseAbility {
             });
         }
 
-        /** Green -> yellow -> red as it weakens; lost segments go grey. */
         private void updateBar() {
             int left = Math.max(0, HITS_TO_BREAK - hits);
             double ratio = (double) left / HITS_TO_BREAK;
@@ -583,7 +542,6 @@ public class LifeTotemAbility extends BaseAbility {
             hitbox = null;
         }
 
-        /** Thrown into the void / never found ground: just disappears. */
         private void fizzle() {
             world.spawnParticle(Particle.SMOKE, pos.toLocation(world), 8, 0.2, 0.2, 0.2, 0.02, null, true);
             finish();

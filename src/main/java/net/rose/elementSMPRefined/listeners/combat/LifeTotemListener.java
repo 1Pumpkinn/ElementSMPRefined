@@ -9,13 +9,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
-/**
- * Feeds player attacks on a Totem of Life's hitbox into {@link LifeTotemAbility}.
- * <p>
- * The hitbox is an {@code Interaction} entity, which can't take normal damage, so the attack is
- * picked up from whichever event the server fires for it. Both are handled here; the ability ignores
- * the second one for the same swing.
- */
 public class LifeTotemListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -33,7 +26,6 @@ public class LifeTotemListener implements Listener {
         }
     }
 
-    /** Right-clicks that land on the hitbox (e.g. eating a golden apple while standing inside the totem). */
     @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEntityEvent event) {
         LifeTotemAbility.handleUse(event.getPlayer(), event.getRightClicked(), event.getHand());

@@ -53,12 +53,6 @@ import java.util.UUID;
  * requiring them to log in first.
  */
 public class DebugCommand implements ElementSubCommand {
-    /**
-     * Which {@link StatusEffectType}s to check via {@link StatusEffectManager}.
-     * Excludes ABILITY_DISARM/WEAPON_DISARM/MAIN_HAND_DISARM - those three are
-     * tracked separately by {@link DisarmManager}, not this manager, and
-     * {@code debugDisarmed()} already covers the ability-disarm case.
-     */
     private static final EnumSet<StatusEffectType> MONITORED_STATUS_EFFECTS = EnumSet.of(
             StatusEffectType.SLOW, StatusEffectType.SILENCE, StatusEffectType.WEAKNESS,
             StatusEffectType.FREEZE, StatusEffectType.BLEED, StatusEffectType.BURN,
@@ -66,15 +60,8 @@ public class DebugCommand implements ElementSubCommand {
             StatusEffectType.STUN
     );
 
-    /**
-     * Element passives are applied with an effectively-infinite duration (see
-     * {@code EffectService#isElementPotionEffect}) - that's what actually
-     * distinguishes "granted by our passive system" from "player drank a
-     * potion", since both otherwise show up in the same active-effects list.
-     */
     private static final int ELEMENT_PASSIVE_DURATION_THRESHOLD_TICKS = 1_000_000;
 
-    /** Trust list names beyond this many are collapsed to "(+N more)" so a long list doesn't flood chat. */
     private static final int MAX_TRUST_NAMES_SHOWN = 10;
 
     private final DataStore dataStore;
@@ -144,7 +131,6 @@ public class DebugCommand implements ElementSubCommand {
         return true;
     }
 
-    /** Everything that comes straight from disk-backed storage - works whether or not the target is online. */
     private void sendPersistedData(CommandSender sender, UUID uuid) {
         sender.sendMessage(Lang.debugSection("Persisted Data"));
 
@@ -168,7 +154,6 @@ public class DebugCommand implements ElementSubCommand {
         sender.sendMessage(Lang.debugPendingRefunds(pd.getPendingRerollerRefunds(), pd.getPendingAdvancedRerollerRefunds()));
     }
 
-    /** Everything that needs the target actually online right now. */
     private void sendLiveState(CommandSender sender, Player livePlayer) {
         sendAbilityStatus(sender, livePlayer, elementManager.getPlayerElement(livePlayer));
 
@@ -179,12 +164,6 @@ public class DebugCommand implements ElementSubCommand {
         sender.sendMessage(Lang.debugGameMode(livePlayer.getGameMode().name()));
     }
 
-    /**
-     * Reports live {@link CooldownManager} state for both of the target's
-     * abilities - the same {@code isReady}/{@code getRemainingSeconds} calls
-     * the action bar HUD makes each tick, so what this prints is exactly
-     * what the player's action bar should be showing right now.
-     */
     private void sendAbilityStatus(CommandSender sender, Player target, ElementType elementType) {
         Element element = elementManager.get(elementType);
 
@@ -218,14 +197,6 @@ public class DebugCommand implements ElementSubCommand {
         return active.isEmpty() ? "None" : String.join(", ", active);
     }
 
-    /**
-     * The live "active passive viewer": scans the player's actual current potion
-     * effects for ones that look element-granted (an effectively-infinite duration,
-     * per {@code EffectService#isElementPotionEffect}) rather than a normal potion
-     * someone drank. This shows what's genuinely applied right now, as opposed to
-     * what the element's static description promises - the two can disagree if
-     * {@code applyUpsides} isn't being re-run when it should be.
-     */
     private String formatActivePassiveEffects(Player player) {
         List<String> active = new ArrayList<>();
         for (PotionEffect effect : player.getActivePotionEffects()) {
@@ -243,13 +214,6 @@ public class DebugCommand implements ElementSubCommand {
         return name.substring(0, 1).toUpperCase(Locale.ROOT) + name.substring(1);
     }
 
-    /**
-     * Trust is tracked in two places that are each other's cache: {@link TrustManager}
-     * keeps its own in-memory copy for fast lookups, separate from the
-     * {@link PlayerData#getTrustedPlayers()} set loaded straight from disk. They should
-     * always agree - if they don't, something changed one without invalidating the
-     * other, and surfacing that drift is exactly what a debug command is for.
-     */
     private void sendTrustInfo(CommandSender sender, UUID uuid, PlayerData pd) {
         List<String> liveNames = trustManager.getTrustedNames(uuid);
         sender.sendMessage(Lang.debugTrustedNames(joinCapped(liveNames, MAX_TRUST_NAMES_SHOWN), liveNames.size()));

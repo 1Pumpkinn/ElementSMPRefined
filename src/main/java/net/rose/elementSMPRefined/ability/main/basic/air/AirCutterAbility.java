@@ -17,26 +17,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-/**
- * Air Cutter - fires a fan of three fast-moving blades of compressed air in front of
- * the player. Each blade cuts through anything in a narrow line, dealing damage and
- * knocking targets away.
- * <p>
- * The blades are drawn with the {@code elementsmp:air_cutter} resource-pack model via
- * {@link AirCutterVisual} (an ItemDisplay teleported each tick), the same way Hell's Chain
- * draws its chain with {@code ChainVisual}.
- */
 public class AirCutterAbility extends BaseAbility {
 
-    /** Number of blades per cast. They fan out symmetrically around the player's aim. */
     private static final int CUTTER_COUNT = 3;
-    /** Horizontal angle, in degrees, between neighbouring blades. */
     private static final double SPREAD_DEGREES = 10.0;
-    /** Horizontal knockback applied once per cast (was 1.4 and stacked once per blade). */
     private static final double KNOCKBACK_HORIZONTAL = 0.6;
-    /** Small lift so targets slide instead of scraping along the ground. */
     private static final double KNOCKBACK_VERTICAL = 0.2;
-    /** Blocks the blade travels before its particles start, so they don't clutter the caster's view. The model is unaffected. */
     private static final double PARTICLE_START_DISTANCE = 4.5;
 
     private final ElementSMPRefined plugin;
@@ -75,12 +61,6 @@ public class AirCutterAbility extends BaseAbility {
         return true;
     }
 
-    /**
-     * The axis the blades fan out around: the aim's "up" vector (perpendicular to both the aim and
-     * the player's right side). For a level aim this is exactly world Y, so the spread looks the same
-     * as before. Looking straight up/down the aim is parallel to world Y, so the player's facing is
-     * used to pick a stable right side and the blades split left/right instead of stacking.
-     */
     private static Vector fanAxis(Player player, Vector aim) {
         Vector up = new Vector(0, 1, 0);
         Vector right = aim.clone().crossProduct(up);
@@ -93,7 +73,6 @@ public class AirCutterAbility extends BaseAbility {
         return right.clone().crossProduct(aim).normalize();
     }
 
-    /** Launches a single blade along {@code direction}; hits are tracked per cast via {@code hitEntities}. */
     private void launchCutter(Player player, TrustManager trust, Location origin, Vector direction,
                               java.util.Set<java.util.UUID> hitEntities) {
         World w = origin.getWorld();
@@ -107,12 +86,10 @@ public class AirCutterAbility extends BaseAbility {
 
         new BukkitRunnable() {
             double travelled = 0;
-            /** Where the blade was last tick, so each step can be ray-traced for blocks. */
             Location previous = origin.clone();
             final AirCutterVisual blade =
                     new AirCutterVisual(origin.clone().add(direction.clone().multiply(1.0)), direction, player);
 
-            /** Every exit path calls cancel(), so the blade entity can never outlive the ability. */
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 blade.remove();

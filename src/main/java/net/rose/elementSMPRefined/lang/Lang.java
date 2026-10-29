@@ -6,26 +6,10 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
-/**
- * All player-facing message text lives here so wording/colors can be edited
- * in one place instead of hunting through every listener/ability/manager
- * that sends a message.
- * <p>
- * Every field/method returns an Adventure {@link Component} ready to hand
- * straight to {@code Audience#sendMessage}. Messages with dynamic content
- * are exposed as small static methods instead of format strings so the
- * colors of each segment stay intact.
- */
 public final class Lang {
 
     private Lang() {}
 
-    /**
-     * Element display names still carry legacy section codes (e.g. {@code ChatColor.AQUA + "Water"}),
-     * and handing those to {@code Component.text} makes Adventure log a LegacyFormattingDetected
-     * warning every time. This turns them into a proper coloured component instead; if the name
-     * has no colour of its own it falls back to {@code fallback}.
-     */
     private static Component legacy(Object text, NamedTextColor fallback) {
         return LegacyComponentSerializer.legacySection()
                 .deserialize(String.valueOf(text))
@@ -34,7 +18,6 @@ public final class Lang {
 
     public static final Component DEATH_BACKSTAB_NO_TARGET_IN_RANGE =
             Component.text("No target in range.", NamedTextColor.RED);
-
 
     public static final Component EARTH_TUNNEL_TUNNELING_CANCELLED =
             Component.text("Tunneling cancelled", NamedTextColor.YELLOW);
@@ -45,7 +28,6 @@ public final class Lang {
 
     public static final Component EARTH_TUNNEL_TUNNELING_ENDED =
             Component.text("Tunneling ended", NamedTextColor.YELLOW);
-
 
     public static final Component TRUST_PLAYERS_ONLY =
             Component.text("Players only");
@@ -133,7 +115,6 @@ public final class Lang {
     public static final Component TRUST_REMOVED_MUTUAL_TRUST =
             Component.text("Removed mutual trust.", NamedTextColor.YELLOW);
 
-
     public static final Component UTIL_THIS_COMMAND_CAN_ONLY_BE =
             Component.text("This command can only be used by players.", NamedTextColor.RED);
 
@@ -154,7 +135,6 @@ public final class Lang {
 
     public static final Component UTIL_64X_FORGED_UPGRADER =
             Component.text("• 64x Forged Upgrader", NamedTextColor.DARK_PURPLE);
-
 
     public static final Component CONFIG_CONFIGURATION_RELOADED_SUCCESSFULLY =
             Component.text("Configuration reloaded successfully!", NamedTextColor.GREEN);
@@ -221,7 +201,6 @@ public final class Lang {
     public static final Component CONFIG_SET_KEY_VALUE =
             Component.text("  set <key> <value>", NamedTextColor.GRAY);
 
-
     public static final Component DEBUG_USAGE_ELEMENT_DEBUG_PLAYER =
             Component.text("Usage: /element debug [player]", NamedTextColor.RED);
 
@@ -247,7 +226,6 @@ public final class Lang {
                 : Component.text("Status: OFFLINE (only persisted data is available below)", NamedTextColor.YELLOW);
     }
 
-    /** Section divider, e.g. "--- Persisted Data ---". */
     public static Component debugSection(String title) {
         return Component.text("--- " + title + " ---", NamedTextColor.AQUA);
     }
@@ -280,7 +258,6 @@ public final class Lang {
         );
     }
 
-    /** One line per ability: name/id, its configured cooldown, and its current live status against {@code CooldownManager}. */
     public static Component debugAbilityStatus(int slot, String name, String abilityId, boolean ready,
                                                long remainingSeconds, int cooldownSeconds) {
         Component status = ready
@@ -313,12 +290,6 @@ public final class Lang {
         );
     }
 
-    /**
-     * The player's currently-active passive potion effects - i.e. the ones an
-     * element's {@code applyUpsides} actually granted them right now, distinct
-     * from {@link #debugActiveStatusEffects}, which covers combat status effects
-     * like SLOW/STUN/BURN.
-     */
     public static Component debugActivePassiveEffects(String summary) {
         return Component.textOfChildren(
                 Component.text("Active passive effects: ", NamedTextColor.YELLOW),
@@ -333,11 +304,6 @@ public final class Lang {
         );
     }
 
-    /**
-     * Only shown when {@code TrustManager}'s live in-memory cache and the raw
-     * stored trust list disagree - a real cache-drift bug (something changed
-     * trust without invalidating one side), not a normal debug line.
-     */
     public static Component debugTrustCacheMismatch(int liveCount, int storedCount) {
         return Component.text(
                 "WARNING: TrustManager cache (" + liveCount + ") disagrees with stored data (" + storedCount + ")!",
@@ -371,7 +337,6 @@ public final class Lang {
 
     public static final Component DEBUG_FOOTER =
             Component.text("=== End Debug ===", NamedTextColor.GOLD);
-
 
     public static final Component PARTICLES_THIS_COMMAND_CAN_ONLY_BE =
             Component.text("This command can only be used by players.", NamedTextColor.RED);
@@ -419,7 +384,6 @@ public final class Lang {
     public static final Component PARTICLES_EXAMPLE_ELEMENT_PARTICLES_CIRCLE_2 =
             Component.text("Example: /element particles circle 2.5 0 36 red dust", NamedTextColor.GRAY);
 
-
     public static final Component SET_USAGE_ELEMENT_SET_PLAYER_ELEMENT =
             Component.text("Usage: /element set <player> <element>", NamedTextColor.RED);
 
@@ -455,7 +419,6 @@ public final class Lang {
         );
     }
 
-
     public static final Component BASE_ELEMENT_YOU_NEED_UPGRADE_I_BEFORE =
             Component.text("You need Upgrade I before you can use Upgrade II abilities.", NamedTextColor.RED);
 
@@ -466,7 +429,6 @@ public final class Lang {
                 Component.text(" to use this ability.", NamedTextColor.RED)
         );
     }
-
 
     public static final Component UPGRADER_NO_ELEMENT_YET =
             Component.text("You don't have an element yet.", NamedTextColor.RED);
@@ -492,7 +454,6 @@ public final class Lang {
                     Component.text("Upgrade II", NamedTextColor.GOLD)
             );
 
-
     public static Component lifecycleYourElementReroller(Object was) {
         return Component.textOfChildren(
                 Component.text("Your Element Reroller", NamedTextColor.YELLOW),
@@ -509,7 +470,6 @@ public final class Lang {
         );
     }
 
-
     public static Component elementManagerYourElementIsNow(Object id) {
         return Component.textOfChildren(
                 Component.text("Your element is now ", NamedTextColor.GOLD),
@@ -519,7 +479,6 @@ public final class Lang {
 
     public static final Component ELEMENT_MANAGER_YOU_ARE_ALREADY_REROLLING =
             Component.text("You are already rerolling!", NamedTextColor.RED);
-
 
     public static final Component AUTOSMELT_PLAYERS_ONLY =
             Component.text("Only players can use this command!", NamedTextColor.RED);
@@ -583,10 +542,8 @@ public final class Lang {
     public static final Component ELEMENT_INFO_PLAYERS_ONLY =
             Component.text("Only players can use this command!", NamedTextColor.RED);
 
-
     public static final Component DIMENSION_TRAVEL_DISABLED =
             Component.text("Dimension is disabled.", NamedTextColor.RED);
-
 
     public static final Component DIMENSION_CMD_USAGE =
             Component.text("Usage: /dimension <enable|disable|toggle> <nether|end|all> [time]  |  status  |  settings  |  set <option> <value>", NamedTextColor.YELLOW);
@@ -604,7 +561,6 @@ public final class Lang {
         );
     }
 
-    /** Toggle that will flip back by itself after {@code duration}. */
     public static Component dimensionCmdToggledTimed(String name, boolean disabled, String duration) {
         return Component.textOfChildren(
                 dimensionCmdToggled(name, disabled),
@@ -612,7 +568,6 @@ public final class Lang {
         );
     }
 
-    /** Broadcast when a timed toggle runs out and the dimension flips back. */
     public static Component dimensionTimerEnded(String name, boolean disabled) {
         return Component.textOfChildren(
                 Component.text("The timer ran out - " + name + " travel is now ", NamedTextColor.YELLOW),
@@ -620,7 +575,6 @@ public final class Lang {
         );
     }
 
-    /** One line of /dimension status; {@code timeLeft} is null when no timed toggle is pending. */
     public static Component dimensionStatusLine(String name, boolean disabled, String timeLeft) {
         Component line = Component.textOfChildren(
                 Component.text(name + ": ", NamedTextColor.YELLOW),
@@ -670,7 +624,6 @@ public final class Lang {
         return Component.text("Usage: /" + command + " set <option> <value>  (see /" + command + " settings)", NamedTextColor.YELLOW);
     }
 
-
     public static Component gracePeriodBossBarTitle(String timeLeft) {
         return Component.textOfChildren(
                 Component.text("Grace Period: ", NamedTextColor.GREEN),
@@ -683,7 +636,6 @@ public final class Lang {
 
     public static final Component GRACE_PERIOD_PVP_DISABLED =
             Component.text("PvP is disabled during the grace period!", NamedTextColor.RED);
-
 
     public static final Component GRACE_CMD_USAGE =
             Component.text("Usage: /grace <start [time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>", NamedTextColor.YELLOW);
@@ -708,17 +660,14 @@ public final class Lang {
         );
     }
 
-
     // Shown by CooldownActionBarTask once a second while at least one of the
     // player's two abilities is on cooldown; ability names are truncated to a
     // fixed prefix length so a long ability name can't push the other side of
     // the bar off-screen or make it flicker as it re-renders each tick.
     private static final int COOLDOWN_BAR_NAME_MAX_LENGTH = 16;
 
-    /** Upgrade level an element needs before its second ability can be used. */
     private static final int ABILITY2_REQUIRED_UPGRADE = 2;
 
-    /** Font {@code assets/elementsmp/font/icons.json} in the resource pack - holds the lock glyph. */
     private static final Key ICON_FONT = Key.key("elementsmp", "icons");
     private static final String LOCK_GLYPH = "\uE000";
 
@@ -756,7 +705,6 @@ public final class Lang {
                 ? abilityName
                 : abilityName.substring(0, COOLDOWN_BAR_NAME_MAX_LENGTH - 1) + "\u2026";
     }
-
 
     public static Component graceCmdStatus(String timeLeft) {
         return Component.textOfChildren(

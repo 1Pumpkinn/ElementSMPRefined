@@ -38,79 +38,42 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Storm element ability 2: summons a tornado where the caster is looking. It grows in, then roams
- * for {@value #DURATION_TICKS} ticks - drifting along the ground, meandering, bouncing off walls
- * and lazily curving toward the nearest enemy player - before dying down.
- * <p>
- * Everything near it (players and mobs, except the caster, anyone they trust, tamed pets and
- * armor stands) is sucked toward it, swirling as they go. Anyone who ends up inside the funnel is
- * lifted, spun round its axis and takes true damage every {@value #DAMAGE_INTERVAL_TICKS} ticks.
- * <p>
- * The funnel is the {@code elementsmp:tornado_funnel} resource-pack model drawn by
- * {@link TornadoVisual}; there are no particles. Damage goes through
- * {@link TrueDamage}, so a Metal Shield counts it as a damaging ability.
- */
 public class TornadoAbility extends BaseAbility {
 
-    // Cast / lifetime
     private static final int DURATION_TICKS = 8 * 20;
-    /** Ticks to grow to full size / to shrink away at the end. */
     private static final int GROW_TICKS = 15;
     private static final int FADE_TICKS = 15;
-    /** How far away the tornado can be summoned (blocks). */
     private static final double CAST_RANGE = 22.0;
-    /** How far down it searches for ground below where you aimed (blocks). */
     private static final double CAST_GROUND_SEARCH = 40.0;
 
-    // Movement
-    /** Blocks per tick at full size (3.4 blocks/s - slower than a sprinting player). */
     private static final double SPEED = 0.17;
-    /** Random wobble added to its heading every tick while wandering (radians, +/-). */
     private static final double WANDER_JITTER = Math.toRadians(3.5);
-    /** Fastest it can steer toward a target / back to the caster (radians per tick). */
     private static final double TURN_RATE = Math.toRadians(2.5);
-    /** It starts curving toward the nearest enemy player inside this range (blocks). Set to 0 to never chase. */
     private static final double HOMING_RANGE = 18.0;
-    /** It curves back toward the caster if it gets further away than this (blocks). */
     private static final double LEASH = 40.0;
-    /** Highest ledge it will climb in one step (blocks). Anything taller counts as a wall. */
     private static final double MAX_STEP_UP = 1.2;
-    /** Most it will drop to follow the ground each tick (blocks). */
     private static final double MAX_DROP_PER_TICK = 0.4;
-    /** How far down it looks for ground while travelling - i.e. the biggest drop it will follow (blocks). */
     private static final double GROUND_SEARCH = 9.0;
-    /** How often (ticks) it re-picks a player to chase. */
     private static final int RETARGET_INTERVAL = 5;
 
-    // Suction
-    /** Sideways reach of the pull (blocks). */
     private static final double PULL_RADIUS = 9.0;
     private static final double PULL_SPEED_FAR = 0.20;    // blocks/tick at the edge of the pull...
     private static final double PULL_SPEED_NEAR = 0.50;   // ...and right next to the funnel
     private static final double PULL_SWIRL = 0.22;        // sideways drift while being pulled in (reads as a spiral)
     private static final double MAX_SPEED = 0.75;
 
-    // Inside the funnel
-    /** Extra width on the funnel wall that still counts as "in it" (blocks). The base is thin, so this keeps it forgiving. */
     private static final double INSIDE_MARGIN = 0.8;
     private static final double ORBIT_SPEED = 0.45;       // how fast they're whipped round the axis
     private static final double LIFT_SPEED = 0.42;
-    /** Highest they're carried above the ground (blocks); they hover and bob around this height. */
     private static final double LIFT_MAX = 5.5;
     private static final double DAMAGE = 1.5;             // true damage per hit (0.75 hearts)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
 
-    // Wind loop sound
-    /** Wind loop sound. It's played in its own category so stopSound() can cancel it without touching real elytra sounds. */
     private static final Sound WIND_SOUND = Sound.ITEM_ELYTRA_FLYING;
     private static final SoundCategory WIND_CATEGORY = SoundCategory.AMBIENT;
     private static final int WIND_INTERVAL_TICKS = 10;
-    /** Wind loudness at full size (1.0 = normal). Lower = quieter. */
     private static final double WIND_VOLUME = 0.4;
-    /** Players within this range (blocks) hear the wind. Leave it and the wind is cut off immediately. */
     private static final double WIND_LISTEN_RANGE = 24.0;
-    /** When the tornado collapses the wind steps down to silence over WIND_FADE_STEPS * WIND_FADE_STEP_TICKS ticks. */
     private static final int WIND_FADE_STEPS = 6;
     private static final int WIND_FADE_STEP_TICKS = 5;
 
@@ -119,19 +82,14 @@ public class TornadoAbility extends BaseAbility {
 
     private static final class Tornado {
         final World world;
-        /** Ground contact point of the funnel. */
         final Location pos;
         final TornadoVisual visual;
         final TrustManager trust;
-        /** Travel direction as an angle: x = cos(heading), z = sin(heading). */
         double heading;
         int ticks = 0;
-        /** The player it is currently curving toward, if any. */
         Player chasing;
-        /** Tick at which each caught entity may next be hit. */
         final Map<UUID, Integer> nextHit = new HashMap<>();
         BukkitRunnable task;
-        /** Players currently hearing the wind loop, so it can be cut off for them when they leave or it ends. */
         final Set<UUID> windListeners = new HashSet<>();
 
         Tornado(World world, Location pos, TornadoVisual visual, TrustManager trust, double heading) {
@@ -191,11 +149,6 @@ public class TornadoAbility extends BaseAbility {
         return true;
     }
 
-    /**
-     * Where the tornado first appears: the block the caster is looking at (or {@value #CAST_RANGE}
-     * blocks out if they're looking at open air), dropped down to the ground. Null if there's no
-     * ground to be found.
-     */
     private Location findStart(Player caster) {
         World world = caster.getWorld();
         Location eye = caster.getEyeLocation();
@@ -238,11 +191,6 @@ public class TornadoAbility extends BaseAbility {
         }
     }
 
-    /**
-     * Plays the wind to every player within {@link #WIND_LISTEN_RANGE} and stops it for anyone who
-     * was hearing it but has since left range, teleported to another world, or logged off. Once the
-     * fade begins no new clips are started, so it dies down with the tornado.
-     */
     private void updateWind(Tornado t, double growth) {
         boolean fading = t.ticks >= DURATION_TICKS - FADE_TICKS;
         double rangeSq = WIND_LISTEN_RANGE * WIND_LISTEN_RANGE;
@@ -272,11 +220,6 @@ public class TornadoAbility extends BaseAbility {
         }
     }
 
-    /**
-     * Fades the wind out after the tornado is gone. Vanilla can't turn a playing sound down, so each
-     * step stops the wind and restarts it a little quieter, until the last step stops it for good.
-     * Listeners who leave range or log off during the fade are cut off straight away.
-     */
     private void fadeWind(Tornado t) {
         if (t.windListeners.isEmpty()) return;
 
@@ -316,7 +259,6 @@ public class TornadoAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, WIND_FADE_STEP_TICKS);
     }
 
-    /** Cuts the wind off for everyone who was hearing it, wherever they are now. */
     private void stopWind(Tornado t) {
         for (UUID id : t.windListeners) {
             Player listener = plugin.getServer().getPlayer(id);
@@ -327,19 +269,12 @@ public class TornadoAbility extends BaseAbility {
         t.windListeners.clear();
     }
 
-    /** 0 -> 1 as it grows in, 1 while it roams, 1 -> 0 as it dies down. */
     private static double growth(int ticks) {
         double in = Math.min(1.0, ticks / (double) GROW_TICKS);
         double out = Math.min(1.0, (DURATION_TICKS - ticks) / (double) FADE_TICKS);
         return Math.max(0.02, Math.min(in, out));
     }
 
-
-    /**
-     * Decides where it's heading. Priority: back toward the caster if it strayed too far, then
-     * curving toward the nearest enemy player, otherwise a random wander (a slow random walk on
-     * its heading, which gives a meandering path rather than a straight line).
-     */
     private void steer(Tornado t, Player caster) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
@@ -382,7 +317,6 @@ public class TornadoAbility extends BaseAbility {
         return best;
     }
 
-    /** Rotates the heading toward {@code wanted} by at most {@link #TURN_RATE}, the short way round. */
     private static void turnToward(Tornado t, double wanted) {
         double diff = wanted - t.heading;
         while (diff > Math.PI) diff -= Math.PI * 2;
@@ -390,7 +324,6 @@ public class TornadoAbility extends BaseAbility {
         t.heading += Math.max(-TURN_RATE, Math.min(TURN_RATE, diff));
     }
 
-    /** Slides along the ground in its heading; turns away instead if there's a wall, a cliff or unloaded ground ahead. */
     private void move(Tornado t, double growth) {
         double speed = SPEED * Math.max(0.35, growth); // slow while still forming / fading
         double dx = Math.cos(t.heading) * speed;
@@ -422,17 +355,12 @@ public class TornadoAbility extends BaseAbility {
         t.pos.add(dx, dy, dz);
     }
 
-    /** Blocked: swing round roughly 90 degrees either way and try again next tick. */
     private static void bounce(Tornado t) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         double turn = Math.PI / 2 + random.nextDouble() * 0.8;
         t.heading += random.nextBoolean() ? turn : -turn;
     }
 
-    /**
-     * Y of the ground (or water surface) below {@code (x, fromY + 2, z)}, searching down
-     * {@code depth} blocks. Null if there's nothing there.
-     */
     private static Double groundY(World world, double x, double fromY, double z, double depth) {
         Location from = new Location(world, x, fromY + 2.0, z);
         RayTraceResult hit = world.rayTraceBlocks(
@@ -440,8 +368,6 @@ public class TornadoAbility extends BaseAbility {
         if (hit == null || hit.getHitPosition() == null) return null;
         return hit.getHitPosition().getY();
     }
-
-    // Suction + damage
 
     private void suck(Tornado t, Player caster, double growth) {
         Location middle = t.pos.clone().add(0, TornadoVisual.HEIGHT / 2.0, 0);
@@ -475,7 +401,6 @@ public class TornadoAbility extends BaseAbility {
         }
     }
 
-    /** Drags the target toward the funnel, harder the closer they are, curving as they come. */
     private void pull(LivingEntity target, Vector inward, Vector swirl, double distance, double growth) {
         double closeness = 1.0 - Math.min(1.0, distance / PULL_RADIUS);
         double speed = (PULL_SPEED_FAR + (PULL_SPEED_NEAR - PULL_SPEED_FAR) * closeness) * growth;
@@ -494,10 +419,6 @@ public class TornadoAbility extends BaseAbility {
         target.setVelocity(velocity);
     }
 
-    /**
-     * The target is inside the funnel: whip them round the axis, carry them up to {@link #LIFT_MAX}
-     * (then hold them there, bobbing) and hit them on a timer.
-     */
     private void caught(Tornado t, Player caster, LivingEntity target, Vector inward, Vector swirl,
                         double distance, double funnel, double height) {
         UUID id = target.getUniqueId();
@@ -570,7 +491,6 @@ public class TornadoAbility extends BaseAbility {
         return true;
     }
 
-    /** True if the target is the caster's vehicle or is riding / being carried by the caster. */
     private static boolean isCasterAttached(Player caster, LivingEntity target) {
         Entity vehicle = caster.getVehicle();
         if (vehicle != null && vehicle.getUniqueId().equals(target.getUniqueId())) return true;
@@ -584,8 +504,6 @@ public class TornadoAbility extends BaseAbility {
     private boolean isTrusted(Tornado t, Player caster, UUID other) {
         return t.trust != null && t.trust.isTrusted(caster.getUniqueId(), other);
     }
-
-    // Ending
 
     private void end(UUID casterId, boolean collapsed) {
         Tornado tornado = tornadoes.remove(casterId);
@@ -612,7 +530,6 @@ public class TornadoAbility extends BaseAbility {
         }
     }
 
-    /** Called by {@code BaseElement.clearEffects} (element change, death etc.) - drops the tornado with the flag. */
     @Override
     public void setActive(Player player, boolean active) {
         super.setActive(player, active);

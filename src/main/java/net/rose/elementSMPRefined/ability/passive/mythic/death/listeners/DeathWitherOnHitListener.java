@@ -15,10 +15,6 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Death passive 2 (unlocks at Upgrade II): hitting an entity has a chance to apply Wither for 5 seconds.
- * Does not apply to trusted/allied players.
- */
 public class DeathWitherOnHitListener implements Listener {
 
     private static final double WITHER_CHANCE = 0.35; // 35%
@@ -40,7 +36,6 @@ public class DeathWitherOnHitListener implements Listener {
         var playerData = elementManager.data(attacker.getUniqueId());
         if (playerData == null || playerData.getCurrentElement() != ElementType.DEATH) return;
 
-        // Second passive: unlocks at Upgrade II
         if (playerData.getUpgradeLevel(ElementType.DEATH) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
 
         if (victim instanceof Player targetPlayer &&

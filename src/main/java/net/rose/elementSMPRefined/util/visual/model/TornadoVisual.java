@@ -18,72 +18,31 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * The Storm tornado drawn with two resource-pack MODELS shown by two {@link ItemDisplay}s:
- * <ul>
- *   <li>{@code elementsmp:tornado_funnel} - the body: 8 octagonal tiers that widen toward the top,
- *   each sitting slightly off-axis (so the spinning funnel corkscrews like a rope) and a few panels
- *   torn open;</li>
- *   <li>{@code elementsmp:tornado_wisps} - a handful of loose strips whirling around the outside,
- *   spinning the other way and faster.</li>
- * </ul>
- * The texture is a hand-drawn wind-streak pattern that scrolls round the funnel on its own.
- * <p>
- * Neither display ever has geometry near the axis: the narrowest part of the body is ~0.9 blocks
- * from the centre and the wisps sit outside the wall, so a player standing or being carried inside
- * the tornado never has panels spinning through their camera.
- * <p>
- * Spin, sway and grow/shrink all live in each display's transformation (client-side
- * interpolation, same approach as {@link MagnetarVisual}); {@link #moveTo(Location)} teleports
- * both displays with a short teleport duration so a slowly drifting tornado glides instead of
- * stepping. Position everything by the funnel's BASE (ground contact point) - the visual works out
- * where the model's centre goes.
- * <p>
- * The model is 48 units (3 blocks) tall before scaling; {@link #HEIGHT} is the funnel's real
- * height in blocks. {@link #radiusAt(double)} mirrors the body's tier widths, so gameplay code can
- * ask "how wide is the tornado at this height?" and stay in sync with what players see. If you
- * edit the model's tiers, update {@link #TIER_HEIGHT}/{@link #TIER_RADIUS}.
- * <p>
- * Always call {@link #remove()} when the effect ends (or {@link #removeAll()} on plugin disable as
- * a safety net) - they're real entities and will otherwise hang around.
- */
 public final class TornadoVisual {
 
-    /** {@code assets/elementsmp/items/tornado_funnel.json} in the resource pack - the funnel body. */
     public static final NamespacedKey TORNADO_FUNNEL =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:tornado_funnel"));
-    /** {@code assets/elementsmp/items/tornado_wisps.json} in the resource pack - the loose strips round the outside. */
     public static final NamespacedKey TORNADO_WISPS =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:tornado_wisps"));
 
-    /** Height of the funnel in blocks at full size. */
     public static final double HEIGHT = 8.0;
 
-    /** The model is 3 blocks tall, so this scales it up to {@link #HEIGHT}. */
     private static final float SCALE = (float) (HEIGHT / 3.0);
 
-    /** The body's 8 tiers, bottom to top, in model units (16 units = 1 block before scaling). Mirrors the model. */
     private static final double[] TIER_HEIGHT = {4, 4, 5, 5, 6, 7, 8, 9};
-    /** Wall distance from the axis of each tier (the octagon's apothem). */
     private static final double[] TIER_RADIUS = {5.0, 5.6, 6.8, 8.4, 10.6, 13.0, 16.0, 19.0};
-    /** An octagon's corners stick out ~8% past its flat sides; this splits the difference for a round-ish radius. */
     private static final double OCTAGON_FUDGE = 1.04;
 
-    /** A new pose is sent every this many ticks... */
     private static final int STEP_TICKS = 2;
-    /** ...and interpolated over this many, so windows overlap (slack for packet jitter). */
     private static final int INTERPOLATION_TICKS = 3;
-    /** Cap on the teleport smoothing a high-ping caster gets (the tornado is slow, so 3 is fine). */
     private static final int MAX_SMOOTHING_TICKS = 3;
 
     private static final float BODY_SPIN = 16f;       // degrees per tick
     private static final float WISP_SPIN = -26f;       // opposite direction, faster
     private static final double SWAY_DEGREES = 3.0;    // how far the whole funnel leans side to side
 
-    /** Never scale to exactly zero - a degenerate transformation can render glitchy. */
     private static final double MIN_GROWTH = 0.02;
 
-    /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<TornadoVisual> ACTIVE = new HashSet<>();
 
     private final ItemDisplay body;
@@ -135,7 +94,6 @@ public final class TornadoVisual {
         return radius * OCTAGON_FUDGE * SCALE / 16.0;
     }
 
-    /** Moves the funnel so its base is at {@code base}. Call every tick while the tornado travels. */
     public void moveTo(Location base) {
         World world = base.getWorld();
         if (world == null || !body.isValid() || !isLoaded(base)) return;
@@ -169,14 +127,12 @@ public final class TornadoVisual {
         animate(wisps, target, WISP_SPIN, g, leanX, leanZ);
     }
 
-    /** Removes the entities and unregisters. Call when the effect is over. */
     public void remove() {
         if (body.isValid()) body.remove();
         if (wisps.isValid()) wisps.remove();
         ACTIVE.remove(this);
     }
 
-    /** Safety net for plugin disable - removes every tornado still on screen. */
     public static void removeAll() {
         for (TornadoVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();
@@ -222,12 +178,10 @@ public final class TornadoVisual {
         });
     }
 
-    /** The display's position for a given base: half the funnel's height above the ground contact point. */
     private static Location centre(Location base) {
         return new Location(base.getWorld(), base.getX(), base.getY() + HEIGHT / 2.0, base.getZ(), 0f, 0f);
     }
 
-    /** Teleporting into an unloaded chunk would force a synchronous load - just skip that step instead. */
     private static boolean isLoaded(Location at) {
         return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }

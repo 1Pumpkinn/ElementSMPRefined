@@ -40,7 +40,6 @@ import java.util.UUID;
  */
 public final class TrueDamage implements Listener {
 
-    /** Entities currently being hit by true damage -> the exact amount to deal. */
     private static final Map<UUID, Pending> PENDING = new HashMap<>();
 
     private record Pending(double amount, boolean bypassAbsorption, String abilityName) {}
@@ -49,7 +48,6 @@ public final class TrueDamage implements Listener {
     public TrueDamage(Plugin plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
-
 
     public static boolean apply(LivingEntity target, double amount) {
         return of(amount).apply(target);
@@ -67,7 +65,6 @@ public final class TrueDamage implements Listener {
     public static boolean isTrueDamage(Entity entity) {
         return PENDING.containsKey(entity.getUniqueId());
     }
-
 
     public static final class Builder {
         private final double amount;
@@ -88,7 +85,6 @@ public final class TrueDamage implements Listener {
             return this;
         }
 
-        /** Damage type shown for death messages. Default GENERIC. */
         public Builder type(DamageType type) {
             this.type = type;
             return this;
@@ -165,7 +161,6 @@ public final class TrueDamage implements Listener {
         }
     }
 
-
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     @SuppressWarnings("deprecation")
     public void onDamage(EntityDamageEvent event) {
@@ -181,10 +176,6 @@ public final class TrueDamage implements Listener {
         event.setDamage(DamageModifier.BASE, pending.amount());
     }
 
-    /**
-     * The death event fires synchronously inside {@code damage()}, so the ability that dealt the
-     * killing blow is still registered here and can be named in the death message.
-     */
     @EventHandler(priority = EventPriority.HIGH)
     public void onDeath(PlayerDeathEvent event) {
         if (event.deathMessage() == null) return; // death messages are turned off

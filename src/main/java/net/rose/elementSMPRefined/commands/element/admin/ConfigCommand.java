@@ -113,7 +113,6 @@ public class ConfigCommand implements ElementSubCommand {
         return Collections.emptyList();
     }
 
-    /** Suggests the shipped default value for a dotted path, so admins can tab-complete back to it. */
     private List<String> defaultValueSuggestion(String path) {
         Object def = configManager.getDefaultValue(path);
         if (def == null) {

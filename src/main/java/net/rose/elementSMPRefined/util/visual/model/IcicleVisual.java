@@ -21,17 +21,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * One ice spike styled after Mojang's 26.4 icicle, built from resource-pack models so it works on 26.2.
- * <p>
- * Like a pointed-dripstone stalagmite, a spike of height N is a stack of N segments that thin out toward
- * the point: {@code icicle_base -> icicle_middle -> icicle_frustum -> icicle_tip}. Each segment is its own
- * {@link ItemDisplay} showing one of those models ({@code elementsmp:icicle_*}, files under
- * {@code assets/elementsmp/models/item/}). The segments shoot up one after another, hold, and sink back.
- * No real blocks are ever placed, so there is nothing to clean up if the server stops.
- * <p>
- * Same signature as {@link IceSpikeVisual#spawn}, so either can be swapped in anywhere.
- */
 public final class IcicleVisual {
 
     private static final NamespacedKey BASE = key("elementsmp:icicle_base");
@@ -42,10 +31,8 @@ public final class IcicleVisual {
     private static final int GROW_TICKS = 3;
     private static final int HOLD_TICKS = 40;
     private static final int SHRINK_TICKS = 6;
-    /** Gap between one segment starting to rise and the next, so the spike shoots up. */
     private static final int STAGGER_TICKS = 1;
 
-    /** Never scale to exactly zero - a degenerate transformation can render glitchy. */
     private static final float COLLAPSED = 0.05f;
 
     private static final Set<ItemDisplay> ACTIVE = new HashSet<>();
@@ -126,7 +113,6 @@ public final class IcicleVisual {
         }
     }
 
-    /** Safety net for plugin disable - removes every icicle still on screen. */
     public static void removeAll() {
         for (ItemDisplay display : new ArrayList<>(ACTIVE)) {
             if (display.isValid()) display.remove();
@@ -134,7 +120,6 @@ public final class IcicleVisual {
         ACTIVE.clear();
     }
 
-    /** Tip on top, then frustum, then middles, base at the bottom. */
     private static NamespacedKey modelFor(int index, int count) {
         if (index == count - 1) return TIP;
         if (index == count - 2) return FRUSTUM;

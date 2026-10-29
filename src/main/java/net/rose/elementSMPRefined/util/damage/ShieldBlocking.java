@@ -54,7 +54,6 @@ public final class ShieldBlocking {
         return true;
     }
 
-    /** The hand holding the shield that's currently raised, or null. */
     private static EquipmentSlot findShieldSlot(Player player) {
         EquipmentSlot active = player.getActiveItemHand();
         if (active != null && isShield(player.getInventory().getItem(active))) return active;
@@ -67,7 +66,6 @@ public final class ShieldBlocking {
         return item != null && item.getType() == Material.SHIELD;
     }
 
-    /** Takes {@code points} durability off the shield (each point rolled against Unbreaking), breaking it if it runs out. */
     private static void wearShield(Player player, EquipmentSlot slot, int points) {
         ItemStack shield = player.getInventory().getItem(slot);
         ItemMeta meta = shield.getItemMeta();

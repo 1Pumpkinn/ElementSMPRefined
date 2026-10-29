@@ -21,9 +21,7 @@ import java.util.UUID;
  */
 public final class AbilityDamage {
 
-    /** Entities currently taking ability damage -> [0] flips to true if a shield absorbed it. */
     private static final Map<UUID, boolean[]> IN_FLIGHT = new HashMap<>();
-    /** Entities currently taking named ability damage -> the ability's display name (for death messages). */
     private static final Map<UUID, String> NAMES = new HashMap<>();
 
     private AbilityDamage() {}
@@ -57,7 +55,6 @@ public final class AbilityDamage {
         return !blocked[0];
     }
 
-    /** Display name of the ability currently dealing named damage to this entity, or null. */
     static String abilityName(Entity entity) {
         return NAMES.get(entity.getUniqueId());
     }

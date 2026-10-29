@@ -99,11 +99,6 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
         return name.charAt(0) + name.substring(1).toLowerCase();
     }
 
-    /**
-     * Element/ability text carries legacy '{@literal §}' color codes for use in
-     * chat messages elsewhere; strip them here since this command builds its own
-     * Adventure {@link Component} colors instead.
-     */
     private static String strip(String legacyText) {
         return org.bukkit.ChatColor.stripColor(legacyText);
     }

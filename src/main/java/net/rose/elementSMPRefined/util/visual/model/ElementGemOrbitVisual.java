@@ -26,22 +26,6 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
-/**
- * The reroll animation drawn with element gems ({@code elementsmp:<element>_gem} resource-pack
- * items): a ring of gems spins around the player, they get knocked out one by one, and the one
- * gem left - always the element the player actually rolled - glides to a stop in front of them.
- * <p>
- * Phases, driven by {@link #tick()} (call once per server tick):
- * <ol>
- *   <li>{@link Phase#SPIN} - the whole ring orbits, speeding up.</li>
- *   <li>{@link Phase#ELIMINATE} - every few ticks a random non-chosen gem pops, until one is left.</li>
- *   <li>{@link Phase#REVEAL} - the survivor glides from its orbit slot to a point in front of the player.</li>
- *   <li>{@link Phase#HOLD} - it hovers there, grown, so the player can read what they got.</li>
- *   <li>{@link Phase#DONE} - it bursts and everything is removed.</li>
- * </ol>
- * Always call {@link #remove()} if the roll is aborted (or {@link #removeAll()} on plugin disable
- * as a safety net) - gems are real entities and will otherwise hang around.
- */
 public final class ElementGemOrbitVisual {
 
     public enum Phase { SPIN, ELIMINATE, REVEAL, HOLD, DONE }
@@ -55,13 +39,11 @@ public final class ElementGemOrbitVisual {
     private static final double FRONT_DISTANCE = 1.8;   // how far ahead the chosen gem stops
     private static final double FRONT_HEIGHT = 1.35;    // roughly eye height
 
-    /** Furthest the ring may be led ahead of the player to hide high ping, in blocks. */
     private static final double MAX_LEAD_BLOCKS = 2.5;
 
     private static final double SPIN_START_DEG = 6.0;   // degrees per tick
     private static final double SPIN_MAX_DEG = 22.0;
 
-    /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<ElementGemOrbitVisual> ACTIVE = new HashSet<>();
 
     private record Gem(ItemDisplay display, double slotDegrees, int index, ElementType type) {}
@@ -115,7 +97,6 @@ public final class ElementGemOrbitVisual {
         return phase;
     }
 
-    /** True from the moment the survivor has landed in front of the player. */
     public boolean hasRevealed() {
         return phase == Phase.HOLD || phase == Phase.DONE;
     }
@@ -188,7 +169,6 @@ public final class ElementGemOrbitVisual {
         }
     }
 
-    /** Removes every gem and unregisters. Safe to call more than once. */
     public void remove() {
         for (Gem g : gems) {
             if (g.display().isValid()) g.display().remove();
@@ -198,14 +178,12 @@ public final class ElementGemOrbitVisual {
         phase = Phase.DONE;
     }
 
-    /** Safety net for plugin disable - removes every gem still on screen. */
     public static void removeAll() {
         for (ElementGemOrbitVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();
         }
     }
 
-    /** Re-applies the teleport window to every gem, but only when the player's ping tier changed. */
     private void applySmoothing(int ticks) {
         if (ticks == smoothing) return;
         smoothing = ticks;
@@ -272,7 +250,6 @@ public final class ElementGemOrbitVisual {
         });
     }
 
-    /** A point on the ring around the player. */
     private static Location place(Location owner, double angleDegrees, int tick, int index) {
         double a = Math.toRadians(angleDegrees);
         double bob = Math.sin(tick * 0.15 + index * 2.1) * BOB;
@@ -282,7 +259,6 @@ public final class ElementGemOrbitVisual {
                 owner.getZ() + Math.sin(a) * RADIUS);
     }
 
-    /** The spot straight ahead of where the player is looking (horizontally), for the given (led) yaw. */
     private static Location front(Location owner, float yawDegrees, int tick) {
         double yaw = Math.toRadians(yawDegrees);
         double dx = -Math.sin(yaw);
@@ -301,7 +277,6 @@ public final class ElementGemOrbitVisual {
                 a.getZ() + (b.getZ() - a.getZ()) * t);
     }
 
-    /** Teleporting into an unloaded chunk would force a synchronous load - just skip that step instead. */
     private static boolean isLoaded(Location at) {
         return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }

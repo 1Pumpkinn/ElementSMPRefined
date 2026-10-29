@@ -44,7 +44,6 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         return commands;
     }
 
-    /** "particle" is accepted as an alias for "particles". */
     private static boolean isParticles(String arg) {
         return arg.equalsIgnoreCase("particles") || arg.equalsIgnoreCase("particle");
     }

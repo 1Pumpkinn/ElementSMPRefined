@@ -82,11 +82,6 @@ public class ConfigManager {
         }
     }
 
-    /**
-     * The shipped defaults from the jar's bundled config.yml, lazily loaded once.
-     * Independent of the live on-disk config, so editing/resetting the live file
-     * never affects what "default" means.
-     */
     private FileConfiguration getDefaultConfig() {
         if (defaultConfig == null) {
             try (InputStream stream = plugin.getResource("config.yml")) {

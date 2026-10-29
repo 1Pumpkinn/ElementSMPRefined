@@ -41,10 +41,6 @@ public class MaceCooldown implements Listener {
 
     private static final long REAPPLY_DELAY_TICKS = 1L;
 
-    /**
-     * >0 while {@link #ignoreHits} is running. Main-thread only, and only ever non-zero for the
-     * duration of one synchronous {@code damage()} call.
-     */
     private static int ignoreDepth = 0;
 
     /**
@@ -62,11 +58,6 @@ public class MaceCooldown implements Listener {
         }
     }
 
-    /**
-     * Whether this event is a real melee swing by a player. Ability damage dealt with a player as
-     * the attacker (TrueDamage, AbilityDamage.deal, ignoreHits) shows up as {@code ENTITY_ATTACK}
-     * too, so it has to be filtered out explicitly.
-     */
     private static boolean isPlayerMelee(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player)) return false;
         if (event.getCause() != DamageCause.ENTITY_ATTACK) return false;
@@ -82,7 +73,6 @@ public class MaceCooldown implements Listener {
         this.expiryKey = new NamespacedKey(plugin, "mace_cooldown_expiry");
     }
 
-    /** Whether the player's mace is currently on cooldown. */
     public boolean isOnCooldown(Player player) {
         return remainingMillis(player) > 0;
     }
@@ -115,10 +105,6 @@ public class MaceCooldown implements Listener {
         return remaining;
     }
 
-    /**
-     * Bukkit's item cooldown is session state and is lost on relog/respawn, but the stored
-     * expiry isn't, so this just shows the cooldown swipe on the client again.
-     */
     private void reapplyClientCooldown(Player player) {
         long remaining = remainingMillis(player);
         if (remaining > 0) {
@@ -138,7 +124,6 @@ public class MaceCooldown implements Listener {
         return item != null && item.getType() == Material.MACE;
     }
 
-    /** Runs before the hit lands: blocks mace hits while the mace is on cooldown. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onAttack(EntityDamageByEntityEvent event) {
         if (!isPlayerMelee(event)) return;
@@ -150,7 +135,6 @@ public class MaceCooldown implements Listener {
         }
     }
 
-    /** Caps a mace melee hit at {@link Constants.Mace#MAX_DAMAGE}. Ability damage is never capped. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCapDamage(EntityDamageByEntityEvent event) {
         if (!isPlayerMelee(event)) return;
@@ -170,7 +154,6 @@ public class MaceCooldown implements Listener {
         }
     }
 
-    /** Runs after the hit landed: a mace hit on a player or mob starts the cooldown. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHit(EntityDamageByEntityEvent event) {
         if (!isPlayerMelee(event)) return;

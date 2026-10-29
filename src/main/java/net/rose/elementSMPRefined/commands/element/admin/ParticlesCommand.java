@@ -187,7 +187,6 @@ public class ParticlesCommand implements ElementSubCommand {
         return arg.startsWith(key + "=") || arg.equalsIgnoreCase(key);
     }
 
-    /** Reads the value for a named arg at {@code i}, consuming the next token if the form was "key value" not "key=value". */
     private static NamedValue extractValue(String[] args, int i) {
         String arg = args[i];
         if (arg.contains("=")) {

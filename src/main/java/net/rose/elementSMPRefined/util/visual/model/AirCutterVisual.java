@@ -19,48 +19,18 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Objects;
 
-/**
- * A flying air-cutter drawn with a resource-pack MODEL instead of particles - the same idea
- * as {@link ChainVisual}, but a single {@link ItemDisplay} that travels instead of a row of
- * segments.
- * <p>
- * The display is spawned once with a fixed orientation (the blade's apex points along the
- * flight direction), then {@link #moveTo(Location)} just teleports it each tick. Teleport
- * interpolation is 1 tick so a blade moving 1.5 blocks per tick still looks smooth.
- * <p>
- * Always call {@link #remove()} when the effect ends (or {@link #removeAll()} on plugin
- * disable as a safety net) - it's a real entity and will otherwise hang around.
- */
 public final class AirCutterVisual {
 
-    /** {@code assets/elementsmp/items/air_cutter.json} in the resource pack. */
     public static final NamespacedKey AIR_CUTTER =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:air_cutter"));
 
-    /** The model is ~0.9 blocks wide; this makes it read at a distance and match the hitbox. */
     private static final float SCALE = 3.0f;
-    /** How far (in blocks) the model is drawn below its real position. Visual only - hit detection is unaffected. */
     private static final float DROP = 0.1f;
-    /**
-     * World direction the model's apex (the bulging, sharp front edge - model -Z) points at
-     * with an unrotated ItemDisplay. If the blade ever flies backwards in game, flip this
-     * to (0, 0, -1).
-     */
     private static final Vector3f MODEL_FORWARD = new Vector3f(0f, 0f, 1f);
-    /**
-     * Extra roll, in degrees, around the flight direction. The model itself is authored flat
-     * (lying in the XZ plane), so 0 keeps the blade level like "---". Only change this if the
-     * blade shows up on its side in game (try 90 or -90).
-     */
     private static final float ROLL_DEGREES = 0f;
 
-    /**
-     * Most extra interpolation ticks a high-ping caster gets. Kept low: the blade moves 1.5 blocks
-     * a tick, so every tick of smoothing makes the model trail the real hit position by that much.
-     */
     private static final int MAX_SMOOTHING_TICKS = 2;
 
-    /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<AirCutterVisual> ACTIVE = new HashSet<>();
 
     private final ItemDisplay display;
@@ -119,7 +89,6 @@ public final class AirCutterVisual {
         ACTIVE.add(this);
     }
 
-    /** Moves the blade to {@code at}, keeping its orientation. */
     public void moveTo(Location at) {
         World world = at.getWorld();
         if (world == null || !display.isValid() || !isLoaded(at)) return;
@@ -131,7 +100,6 @@ public final class AirCutterVisual {
         display.teleport(flat(at));
     }
 
-    /** Removes the entity and unregisters. Call when the effect is over. */
     public void remove() {
         if (display.isValid()) {
             display.remove();
@@ -139,7 +107,6 @@ public final class AirCutterVisual {
         ACTIVE.remove(this);
     }
 
-    /** Safety net for plugin disable - removes every blade still on screen. */
     public static void removeAll() {
         for (AirCutterVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();
@@ -150,7 +117,6 @@ public final class AirCutterVisual {
         return new Location(at.getWorld(), at.getX(), at.getY(), at.getZ(), 0f, 0f);
     }
 
-    /** Teleporting into an unloaded chunk would force a synchronous load - just skip that step instead. */
     private static boolean isLoaded(Location at) {
         return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }

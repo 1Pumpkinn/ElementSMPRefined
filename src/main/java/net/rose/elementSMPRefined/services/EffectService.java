@@ -114,10 +114,6 @@ public class EffectService implements Listener {
         }
     }
 
-    /**
-     * Ensure player's max health matches their current element.
-     * Life element grants bonus health; all others use normal health.
-     */
     private void updatePlayerHealth(Player player, ElementType elementType) {
         var attr = player.getAttribute(Attribute.MAX_HEALTH);
         if (attr == null) return;

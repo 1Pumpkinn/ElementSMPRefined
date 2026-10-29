@@ -39,7 +39,6 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS =
             List.of("start", "stop", "status", "extend", "shorten", "settings", "set");
 
-    /** Everything {@code /grace set} can change. The boss bar colour applies to the next start. */
     private static final List<ConfigOption> OPTIONS = List.of(
             ConfigOption.duration("duration", "grace_period.duration_seconds"),
             ConfigOption.choice("bossbar_color", "grace_period.boss_bar.color", BossBar.Color.values()),

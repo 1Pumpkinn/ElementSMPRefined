@@ -27,13 +27,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Handles basic element reroller item usage. Owns its own "Rolling..."
- * title animation and its own element-picking logic the same way
- * {@code AdvancedRerollerHandler} does, rather than delegating that to
- * ElementManager, so both rerollers are structured the same way and
- * ElementManager only deals with the shared element-assignment plumbing.
- */
 public class RerollerHandler implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
@@ -72,11 +65,6 @@ public class RerollerHandler implements Listener {
         return ItemUtil.hasTag(item, ItemKeys.reroller(plugin), PersistentDataType.BYTE);
     }
 
-    /**
-     * Picks a random basic element, excluding the player's current element
-     * so a basic reroll can never leave you right back where you started -
-     * unlike the advanced reroller, which allows repeats.
-     */
     private ElementType determineNewElement(Player player) {
         ElementType[] basicElements = elementManager.getBasicElements();
         ElementType current = elementManager.getPlayerElement(player);
@@ -120,14 +108,6 @@ public class RerollerHandler implements Listener {
         }
     }
 
-    /**
-     * Runs the reroll animation: a ring of element gems orbits the player, gets knocked out one
-     * by one, and the survivor - the element already chosen by {@code determineNewElement} -
-     * glides to a stop in front of them. The element is assigned the moment that gem lands, and
-     * the gem hovers for a moment before it bursts. The "Rolling..." title keeps cycling through
-     * the basic elements (round-robin, so it never repeats a name back to back) while the ring
-     * is still spinning.
-     */
     private void performBasicRoll(Player player, ElementType targetElement) {
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 

@@ -32,36 +32,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Metal element ability 1: surrounds the caster with {@value #SHIELD_COUNT} orbiting Metal
- * Shields ({@link MetalShieldVisual}):
- * <ul>
- *   <li>each melee or projectile hit is absorbed by one shield, popping the shield closest to
- *       the attacker, and</li>
- *   <li>a damaging ability (anything dealt through
- *       {@link net.rose.elementSMPRefined.util.damage.TrueDamage} or flagged with
- *       {@link AbilityDamage}) is absorbed too, but shatters <b>all</b> remaining shields at
- *       once. Non-damage abilities (pulls, dashes...) never touch a shield.</li>
- * </ul>
- * Shields break one at a time, at least {@value #POP_INTERVAL_TICKS} ticks (1 second) apart: a hit that lands while the previous
- * shield broke less than a second ago is still blocked, but doesn't pop another shield - so spamming the
- * attack button can't chew through all three at once. (A damaging ability still shatters everything.)
- * <p>
- * An absorbed hit is cancelled outright - no damage, no knockback. The effect ends when the last
- * shield pops, or fades on its own after {@value #DURATION_TICKS} ticks. Environmental damage
- * (fall, fire, drowning, explosions...) is deliberately not blocked.
- * <p>
- * Hits that would be cancelled anyway are ignored so they don't waste a charge: self-damage
- * and trusted players.
- * <p>
- * The listener runs at LOW priority so it cancels the hit before on-hit passives (e.g. Death's
- * wither) get to apply their effects to a shielded player.
- */
 public class MetalShieldAbility extends BaseAbility implements Listener {
 
     private static final int SHIELD_COUNT = 3;
     private static final int DURATION_TICKS = 15 * 20; // 15 seconds if it's never broken
-    /** Minimum time between two melee/projectile hits popping a shield. */
     private static final int POP_INTERVAL_TICKS = 20; // 1 second
 
     private enum EndReason { BROKEN, EXPIRED, REMOVED }
@@ -69,7 +43,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     private static final class Shield {
         final MetalShieldVisual visual;
         BukkitRunnable task;
-        /** Server tick the last shield was popped by a normal hit; far in the past until one is. */
         int lastPopTick = Integer.MIN_VALUE / 2;
 
         Shield(MetalShieldVisual visual) {
@@ -157,10 +130,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
                 || cause == DamageCause.PROJECTILE;
     }
 
-    /**
-     * Cancels the hit and pops the shield nearest the attacker. An ability hit shatters every
-     * remaining shield instead of just one.
-     */
     private void absorb(Player victim, Shield shield, EntityDamageEvent event, Entity source, boolean abilityHit) {
         event.setCancelled(true);
 
@@ -204,7 +173,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         at.getWorld().spawnParticle(Particle.CRIT, at, abilityHit ? 24 : 12, 0.3, 0.4, 0.3, 0.2, null, true);
     }
 
-
     private void end(Player player, EndReason reason) {
         Shield shield = shields.remove(player.getUniqueId());
         if (shield == null) return;
@@ -227,7 +195,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         }
     }
 
-    /** Called by {@code BaseElement.clearEffects} (element change etc.) - drops the shield with the flag. */
     @Override
     public void setActive(Player player, boolean active) {
         super.setActive(player, active);
@@ -245,7 +212,6 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     public void onDeath(PlayerDeathEvent event) {
         end(event.getEntity(), EndReason.REMOVED);
     }
-
 
     @Override
     public String getName() {

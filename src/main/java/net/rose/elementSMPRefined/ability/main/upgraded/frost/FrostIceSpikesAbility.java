@@ -35,19 +35,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Ice Spike - Frost ability 2. The caster stays on the ground: a short wind-up where frost
- * gathers around their feet, then a stomp. The impact cracks the ground and rings of small ice
- * spikes burst up around the caster, sweeping around the circle like it is unzipping. Anything a
- * spike comes up under is hurt, thrown up and slowed.
- *
- * <p>The spikes use the same icicle model as Icicle Barrage (see {@link IceSpikeVisual}); no real
- * blocks are ever changed, so there is nothing to clean up if the server stops mid-cast.</p>
- *
- * <p>Performance: the whole sweep is planned up front and driven by ONE repeating task (not one
- * scheduled task per spike), and the entity query covers the whole circle and is refreshed every few ticks,
- * with the spikes tested against that list, instead of one world query per spike.</p>
- */
 public class FrostIceSpikesAbility extends BaseAbility {
 
     // Wind-up before the stomp (caster does not leave the ground)
@@ -62,7 +49,6 @@ public class FrostIceSpikesAbility extends BaseAbility {
     private static final double SPIKE_MAX_HEIGHT = 1.9; // inner ring, ground to point, in blocks
     private static final double SPIKE_MIN_HEIGHT = 1.2; // outer ring, ground to point, in blocks
 
-    // Hit
     private static final double DAMAGE = 6.0; // 3 hearts of true damage
     private static final double LAUNCH_UP = 0.8;
     private static final double HIT_RADIUS_XZ = 1.2;
@@ -77,11 +63,6 @@ public class FrostIceSpikesAbility extends BaseAbility {
     private static final double RADIUS_JITTER = 0.25;   // r +/- this
     private static final double QUERY_XZ = RING_RADII[RING_RADII.length - 1] + RADIUS_JITTER + HIT_RADIUS_XZ + 0.5;
     private static final double QUERY_Y = 6.0;
-    /**
-     * How often the candidate list is refreshed. A query over the whole circle is much more expensive
-     * than one around a single spike, so it runs a few times per cast (not every tick); entities that
-     * are already in the list are still tested against their CURRENT position every time.
-     */
     private static final int QUERY_EVERY_TICKS = 4;
 
     private final ElementSMPRefined plugin;
@@ -146,10 +127,8 @@ public class FrostIceSpikesAbility extends BaseAbility {
         return true;
     }
 
-    /** One planned spike: where it goes (as an offset from the stomp) and how tall it is. */
     private record PlannedSpike(double dx, double dz, double height) {}
 
-    /** The stomp: impact burst, then the rings of spikes sweeping around the caster. */
     private void startSpikes(Player caster, TrustManager trust, Location origin) {
         World world = origin.getWorld();
         Location fx = origin.clone();
@@ -219,10 +198,6 @@ public class FrostIceSpikesAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    /**
-     * Spawns every spike due this tick, then damages whoever each one came up under. The candidate
-     * list is shared across ticks and shrinks as entities are hit.
-     */
     private void spawnBatch(Player caster, Location origin, int startY, List<PlannedSpike> batch,
                             List<LivingEntity> candidates, Set<UUID> alreadyHit) {
         World world = origin.getWorld();
@@ -254,7 +229,6 @@ public class FrostIceSpikesAbility extends BaseAbility {
         }
     }
 
-    /** Everything near the stomp that a spike is allowed to hurt, fetched with a single query. */
     private List<LivingEntity> collectCandidates(Player caster, TrustManager trust, Location origin,
                                                  Set<UUID> alreadyHit) {
         List<LivingEntity> out = new ArrayList<>();

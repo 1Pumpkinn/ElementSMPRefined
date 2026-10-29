@@ -39,7 +39,6 @@ public final class ItemBuilder {
         this.item = item;
     }
 
-
     public static ItemBuilder of(Material material) {
         return of(material, 1);
     }
@@ -61,8 +60,6 @@ public final class ItemBuilder {
         }
         return new ItemBuilder(stack.clone());
     }
-
-
 
     /** Sets the display name, translating {@code &} color codes. */
     public ItemBuilder name(String name) {
@@ -100,7 +97,6 @@ public final class ItemBuilder {
         return lore(combined);
     }
 
-
     public ItemBuilder amount(int amount) {
         item.setAmount(amount);
         return this;
@@ -128,7 +124,6 @@ public final class ItemBuilder {
         return edit(meta -> meta.addItemFlags(flags));
     }
 
-
     public <T, Z> ItemBuilder data(NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
         return edit(meta -> meta.getPersistentDataContainer().set(key, type, value));
     }
@@ -151,8 +146,6 @@ public final class ItemBuilder {
         return data(key, (byte) 1);
     }
 
-
-    /** For meta operations this builder doesn't wrap yet. */
     public ItemBuilder edit(Consumer<ItemMeta> modifier) {
         item.editMeta(modifier);
         return this;
@@ -163,7 +156,6 @@ public final class ItemBuilder {
         return item;
     }
 
-    /** Vanilla italicises custom names/lore by default; turn that off unless the text set it. */
     private static Component noItalic(Component component) {
         return component.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }

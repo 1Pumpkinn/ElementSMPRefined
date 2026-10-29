@@ -135,7 +135,6 @@ public class DimensionDisable implements Listener {
         return null;
     }
 
-    /** Shoves the player back the way they came so they leave the portal block instead of re-triggering the event every tick. */
     private void pushOutOfPortal(Player player) {
         Vector pushback = player.getLocation().getDirection()
                 .multiply(-1)

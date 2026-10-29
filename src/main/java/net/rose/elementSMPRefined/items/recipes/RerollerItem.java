@@ -13,7 +13,6 @@ public final class RerollerItem {
 
     public static final String KEY = "element_reroller";
 
-    /** Resource-pack item model (assets/elementsmp/items/element_reroller.json). */
     private static final NamespacedKey MODEL = NamespacedKey.fromString("elementsmp:element_reroller");
 
     public static ItemStack make(JavaPlugin plugin) {

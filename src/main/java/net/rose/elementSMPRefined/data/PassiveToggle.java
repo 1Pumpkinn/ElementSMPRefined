@@ -16,10 +16,8 @@ import java.util.Set;
  */
 public enum PassiveToggle {
 
-    /** Fire / Lava passive 1 - smelts raw ore drops. Stored under the old "autoSmelt" key so existing saves carry over. */
     FIRE_SMELT("firesmelt", "Fire Smelt", "autoSmelt", EnumSet.of(ElementType.FIRE, ElementType.LAVA)),
 
-    /** Air / Storm passive 2 - the built-in Wind Burst smash attack. */
     WIND_BURST("windburst", "Wind Burst", "windBurst", EnumSet.of(ElementType.AIR, ElementType.STORM));
 
     private final String id;
@@ -43,7 +41,6 @@ public enum PassiveToggle {
         return displayName;
     }
 
-    /** Key in players.yml. */
     public String configKey() {
         return configKey;
     }
@@ -60,7 +57,6 @@ public enum PassiveToggle {
                 .toList());
     }
 
-    /** Parses what the player typed ("firesmelt", "fire_smelt", "WindBurst"...). */
     public static Optional<PassiveToggle> parse(String input) {
         if (input == null) return Optional.empty();
         String cleaned = input.trim().toLowerCase(Locale.ROOT).replace("_", "").replace("-", "");

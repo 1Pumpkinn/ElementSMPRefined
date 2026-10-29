@@ -15,17 +15,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
-/**
- * Storm - lightning-based element.
- * <p>
- * Ability 1: Lightning Spear (fast lightning projectile that shocks what it hits)
- * Ability 2: Tornado (a roaming funnel that sucks in and damages everything near it)
- * Passive 1: No fall damage (inherited from Air, see AirFallImpactListener)
- * Passive 2 (Upgrade II): Wind Burst on any weapon, not a real enchantment
- *            (inherited from Air, see AirWindBurstListener)
- * Passive 3 (Upgrade II): Thrown tridents summon lightning where they land
- *            (see StormTridentLightningListener)
- */
 public class StormElement extends BaseElement implements ListenerProvider {
 
     public StormElement(JavaPlugin plugin, ConfigManager configManager) {

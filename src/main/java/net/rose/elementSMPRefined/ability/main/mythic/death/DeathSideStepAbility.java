@@ -16,24 +16,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
-/**
- * Death ability1: Side Step.
- * <p>
- * Not a physics dash anymore - this is an instant blink. The player is
- * repositioned a short distance in the direction they're facing with no
- * velocity involved, vanishing in a burst of black particles and
- * reappearing the same way. A block-safety sweep keeps it from ever
- * dropping you inside a wall.
- * <p>
- * See {@link DeathBackstabAbility} for the backstab (that's ability2).
- */
 public class DeathSideStepAbility extends BaseAbility {
 
-    /** Max blink range in blocks. */
     private static final double BLINK_DISTANCE = 12.0;
-    /** How finely we sweep the path for solid blocks - smaller = safer, more checks. */
     private static final double SWEEP_STEP = 0.25;
-    /** Pure black dust for both the vanish and reappear bursts. */
     private static final Particle.DustOptions BLACK_DUST =
             new Particle.DustOptions(Color.fromRGB(5, 5, 5), 1.4F);
 
@@ -80,7 +66,6 @@ public class DeathSideStepAbility extends BaseAbility {
         return true;
     }
 
-    /** Walks the path forward in small steps and stops just before any solid block. */
     private double sweepForSafeDistance(Location origin, Vector dir) {
         double safeDistance = 0;
         for (double d = SWEEP_STEP; d <= BLINK_DISTANCE; d += SWEEP_STEP) {
@@ -94,7 +79,6 @@ public class DeathSideStepAbility extends BaseAbility {
         return safeDistance;
     }
 
-    /** True if either foot or head level at this location is a solid block. */
     private boolean isBlocked(Location loc) {
         Block feet = loc.getBlock();
         Block head = loc.clone().add(0, 1, 0).getBlock();

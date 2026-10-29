@@ -178,11 +178,6 @@ public class DataCommand implements ElementSubCommand {
         return remaining <= 0 ? "READY (" + totalSeconds + "s)" : remaining + "s left of " + totalSeconds + "s";
     }
 
-    /**
-     * Potion effects granted by an element passive (see {@code EffectService#isElementPotionEffect}):
-     * they're applied with an infinite duration, which is what separates them from a drunk potion.
-     * Listener-based passives have no potion effect and only appear in the Passives list above.
-     */
     private String appliedPassiveEffects(Player player) {
         List<String> applied = new ArrayList<>();
         for (PotionEffect effect : player.getActivePotionEffects()) {

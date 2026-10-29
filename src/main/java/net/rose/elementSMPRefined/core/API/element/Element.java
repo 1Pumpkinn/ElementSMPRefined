@@ -11,7 +11,6 @@ import java.util.List;
  * ability name/description pass-through for you.
  */
 public interface Element {
-    /** The built-in type this element represents. Never null. */
     ElementType getType();
 
     void applyUpsides(Player player, int upgradeLevel);
@@ -32,23 +31,14 @@ public interface Element {
 
     String getAbility2Description();
 
-    /** Ability ID used for cooldown tracking - see {@link net.rose.elementSMPRefined.managers.CooldownManager}. */
     String getAbility1Id();
 
-    /** Ability ID used for cooldown tracking - see {@link net.rose.elementSMPRefined.managers.CooldownManager}. */
     String getAbility2Id();
 
-    /** Seconds ability1 takes to come off cooldown after use - also used by /elements to display it. */
     int getAbility1CooldownSeconds();
 
-    /** Seconds ability2 takes to come off cooldown after use - also used by /elements to display it. */
     int getAbility2CooldownSeconds();
 
-    /**
-     * Short, player-facing bullet points describing this element's passive perks.
-     * Used by /elements. Defaults to none - override if the element has passives
-     * worth advertising.
-     */
     default List<String> getPassiveBenefits() {
         return List.of();
     }

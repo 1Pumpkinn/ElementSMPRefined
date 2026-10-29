@@ -36,7 +36,6 @@ public final class Upgrader2Item {
            recipe.setIngredient('T', Material.TOTEM_OF_UNDYING);
            recipe.setIngredient('W', Material.WITHER_SKELETON_SKULL);
 
-            
             plugin.getServer().addRecipe(recipe);
         } catch (Exception e) {
             plugin.getLogger().severe("Error registering Upgrader II recipe: " + e.getMessage());

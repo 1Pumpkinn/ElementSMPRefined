@@ -15,36 +15,16 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * The Metal Magnetar Core drawn with two resource-pack MODELS: a spiky steel core with a glowing
- * cyan eye ({@code elementsmp:magnetar_core}) wrapped in a tilted octagonal ring
- * ({@code elementsmp:magnetar_core_ring}). The core tumbles, the ring spins the other way, and the
- * whole thing bobs gently in place.
- * <p>
- * Orientation AND the bobbing both live in each display's transformation (the entities never move),
- * so the client does all the animating. {@link #update(int)} only sends a new pose every
- * {@link #STEP_TICKS} ticks and each pose is interpolated over {@link #INTERPOLATION_TICKS}: the
- * windows overlap, so a late or bunched-up packet on a high-ping connection no longer freezes or
- * skips the spin, and half as many packets are sent.
- * <p>
- * Always call {@link #remove()} when the effect ends (or {@link #removeAll()} on plugin disable
- * as a safety net) - they're real entities and will otherwise hang around.
- */
 public final class MagnetarVisual {
 
-    /** {@code assets/elementsmp/items/magnetar_core.json} in the resource pack. */
     public static final NamespacedKey MAGNETAR_CORE =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:magnetar_core"));
-    /** {@code assets/elementsmp/items/magnetar_core_ring.json} in the resource pack. */
     public static final NamespacedKey MAGNETAR_CORE_RING =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:magnetar_core_ring"));
 
-    /** The models are 16 units (1 block) across before scaling; the ring reaches ~0.7 blocks from the centre at this scale. */
     private static final float SCALE = 1.4f;
 
-    /** A new pose is sent every this many ticks... */
     private static final int STEP_TICKS = 2;
-    /** ...and interpolated over this many, so consecutive windows overlap (slack for packet jitter). */
     private static final int INTERPOLATION_TICKS = 3;
 
     private static final double BOB = 0.08;
@@ -53,7 +33,6 @@ public final class MagnetarVisual {
     private static final float RING_SPIN_PER_TICK = -14f;  // opposite direction to the core
     private static final float RING_TILT = 22f;
 
-    /** Every live visual, so plugin disable can sweep up anything still on screen. */
     private static final Set<MagnetarVisual> ACTIVE = new HashSet<>();
 
     private final ItemDisplay core;
@@ -65,7 +44,6 @@ public final class MagnetarVisual {
         ACTIVE.add(this);
     }
 
-    /** Advances the animation. Call once per tick with the number of ticks since the core was placed. */
     public void update(int tick) {
         if (tick % STEP_TICKS != 0) return;
 
@@ -88,14 +66,12 @@ public final class MagnetarVisual {
         }
     }
 
-    /** Removes the entities and unregisters. Call when the effect is over. */
     public void remove() {
         if (core.isValid()) core.remove();
         if (ring.isValid()) ring.remove();
         ACTIVE.remove(this);
     }
 
-    /** Safety net for plugin disable - removes every core still on screen. */
     public static void removeAll() {
         for (MagnetarVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();

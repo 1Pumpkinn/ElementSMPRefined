@@ -16,16 +16,6 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
-/**
- * Death penalties for the element system:
- * <ul>
- *   <li>Dying with an upgrade level drops the matching Upgrader item and costs one level.</li>
- *   <li>Dying as an advanced element (Lava, Metal, Frost, Storm) drops a Forged Upgrader and
- *       sends the player back to their pre-stage (basic) element: Lava -> Fire, Metal -> Earth,
- *       Frost -> Water, Storm -> Air.</li>
- * </ul>
- * Nothing happens with keepInventory, since the player keeps their items and their progress.
- */
 public class PlayerDeathListener implements Listener {
 
     private static final long REAPPLY_DELAY_TICKS = 1L;

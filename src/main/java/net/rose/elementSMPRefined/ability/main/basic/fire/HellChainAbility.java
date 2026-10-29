@@ -27,30 +27,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-/**
- * Fire ability1: Hell Chain.
- * <p>
- * A fire-themed grapple hook - fires a chain at whatever's directly ahead.
- * Two modes depending on what the raycast actually connects with:
- * <ul>
- *     <li>Hooked an entity directly - drags them in to the caster, like a
- *     harpoon, then sets them alight on arrival.</li>
- *     <li>Hooked a projectile in flight (arrow, snowball, wind charge, fireball, trident...) -
- *     latches onto it and the projectile pulls the caster along behind it, lifting them as it goes.
- *     The projectile itself is untouched. Projectiles stuck in a block and projectiles fired by a player the caster trusts are ignored,
- *     so they never block a terrain hook.</li>
- *     <li>Hooked terrain - reels the caster in to that point instead (the
- *     caster moves, not the target). If the hook landed on a flat/top
- *     surface, this ends with a scorch at the landing spot so aiming at the
- *     ground next to someone still burns them without a direct hit. If it
- *     landed on a vertical wall face instead, the caster scales the wall
- *     once they reach it, climbing until they clear the top, then mantles
- *     onto the ledge with the same scorch effect. The climb only goes as high as the
- *     hooked point (plus a ledge's worth), and ends if the caster comes off the wall.</li>
- * </ul>
- * <p>
- * Replaces the old Fire ability1, {@code FireGeyserAbility} (now deprecated).
- */
 public class HellChainAbility extends BaseAbility {
     private static final double RANGE = 35.0;
     private static final double RAY_SIZE = 0.4;
@@ -62,7 +38,6 @@ public class HellChainAbility extends BaseAbility {
     private static final double SLOWEST_EXPECTED_SPEED = 0.6; // blocks/tick the cap assumes the pull manages on average
     private static final int EXTRA_TICKS = 0;                 // slack (was 20; every chain now lasts 20 ticks less) for ramp-up, lag and arcing over obstacles
 
-    /** Flip to true to log why every chain ended (arrived / timed out / snagged / cancelled) in the console. */
     private static final boolean DEBUG = false;
 
     private static final Component NOTHING_IN_RANGE = Component.text(
@@ -118,11 +93,8 @@ public class HellChainAbility extends BaseAbility {
     // where the hook landed, so hooking the base of any tall wall (e.g. aiming steeply down at it) and
     // then pressing/strafing against it let the caster crawl all the way up. It now only goes as far as
     // the point that was hooked, and it lets go if the caster stops touching the wall.
-    /** How far (blocks) the caster's eyes may rise above the top of the hooked block - enough to vault that ledge, no more. */
     private static final double CLIMB_LEDGE_ALLOWANCE = 1.5;
-    /** How far (blocks) into the wall, at lower-chest height, still counts as "touching" it. */
     private static final double WALL_CONTACT_DISTANCE = 0.8;
-    /** Climb ticks given to settle against the wall (the stick-to-wall push needs a moment) before contact is enforced. */
     private static final int CLIMB_CONTACT_GRACE_TICKS = 6;
 
     // Entity-drag mode (hook lands directly on a living entity)
@@ -178,8 +150,6 @@ public class HellChainAbility extends BaseAbility {
         );
 
         if (result == null) {
-            // Silent failures made "the ray missed" look the same as "the pull stopped early".
-            //player.sendActionBar(NOTHING_IN_RANGE);
             return false;
         }
 
@@ -208,7 +178,6 @@ public class HellChainAbility extends BaseAbility {
         return true;
     }
 
-    /** Direct hit on a living entity - harpoon them in to the caster instead of the other way around. */
     private void dragEntityIn(Player player, LivingEntity target) {
         // Horizontal vector caster -> target at cast time; used to detect the target passing the caster.
         final Vector startOffset = target.getLocation().toVector()
@@ -219,7 +188,6 @@ public class HellChainAbility extends BaseAbility {
             final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
             int ticks = 0;
 
-            /** Every exit path calls cancel(), so the chain entities can never outlive the ability. */
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 chain.remove();
@@ -290,11 +258,6 @@ public class HellChainAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    /**
-     * What the chain's ray may latch onto: living entities (other than the caster) and projectiles
-     * that are actually flying. Arrows/tridents stuck in a block and projectiles shot by a player the
-     * caster trusts are skipped, so a stray arrow in a wall never hijacks a terrain hook.
-     */
     private static boolean isHookable(Entity entity, Player caster, TrustManager trust) {
         if (entity.equals(caster)) return false;
         if (entity instanceof LivingEntity) return true;
@@ -305,14 +268,6 @@ public class HellChainAbility extends BaseAbility {
                 && trust.isTrusted(caster.getUniqueId(), shooter.getUniqueId()));
     }
 
-    /**
-     * Direct hit on a projectile (wind charge, arrow, snowball...) - the chain latches onto it and the
-     * projectile hauls the caster along behind it. The projectile is left completely alone (it flies
-     * on with its own velocity and gravity); each tick the caster is pulled toward wherever it is
-     * now, the same pull a terrain hook uses. Once the caster catches up they ride along with it.
-     * The chain lets go when the projectile lands, hits something or despawns, when the ability is
-     * pressed again, or on timeout, keeping a little momentum.
-     */
     private void latchOntoProjectile(Player player, Projectile projectile) {
         final boolean startedOnGround = player.isOnGround();
         final int maxTicks = maxTicksFor(player.getEyeLocation().distance(projectile.getLocation()));
@@ -321,7 +276,6 @@ public class HellChainAbility extends BaseAbility {
             final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
             int ticks = 0;
 
-            /** Every exit path calls cancel(), so the chain entities can never outlive the ability. */
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 chain.remove();
@@ -381,18 +335,6 @@ public class HellChainAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    /**
-     * No entity directly hit - grapple the caster to the hook point. What happens on arrival
-     * depends on what kind of surface was hit:
-     * <ul>
-     *     <li>Flat/top surface (e.g. the ground, the top of a ledge) - stop and scorch
-     *     anything standing nearby, same as before.</li>
-     *     <li>Vertical wall face (e.g. a cliff directly ahead) - rather than stopping dead at
-     *     the base, the caster switches into climbing the wall once they're close enough,
-     *     scaling it until they clear the top, then mantles onto the ledge with the same
-     *     scorch effect.</li>
-     * </ul>
-     */
     private void grappleToPoint(Player player, Location hookLocation, BlockFace hitFace, TrustManager trust) {
         boolean wallHit = isWallFace(hitFace);
         // Direction from the caster INTO the wall - the opposite of the hit face's own outward
@@ -415,7 +357,6 @@ public class HellChainAbility extends BaseAbility {
             int climbStuckTicks = 0;
             int climbTicks = 0;
 
-            /** Every exit path calls cancel(), so the chain entities can never outlive the ability. */
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 chain.remove();
@@ -591,7 +532,6 @@ public class HellChainAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    /** How long a chain may run for a hook this far away: at least MAX_TICKS, growing with distance, never past MAX_TICKS_CAP. */
     private static int maxTicksFor(double distance) {
         int needed = (int) Math.ceil(distance / SLOWEST_EXPECTED_SPEED) + EXTRA_TICKS;
         return Math.min(MAX_TICKS_CAP, Math.max(MAX_TICKS, needed));
@@ -603,17 +543,11 @@ public class HellChainAbility extends BaseAbility {
                 + " (tick " + ticks + ", " + String.format("%.1f", distance) + " blocks from hook)");
     }
 
-    /** Caster's ping converted to server ticks, capped so a huge spike can't disable snag detection. */
     private int pingTicks(Player player) {
         int ping = Math.max(0, player.getPing());
         return Math.min(MAX_PING_TICKS, (int) Math.ceil(ping / MS_PER_TICK));
     }
 
-    /**
-     * Whether the caster is still against the wall they hooked: a solid block {@link #WALL_CONTACT_DISTANCE}
-     * into the wall at lower-chest height. Deliberately NOT checked at eye height - that block going
-     * clear is how the top of the wall is detected, and the lower body is still against the ledge then.
-     */
     private boolean touchingWall(Location eye, Vector intoWall) {
         Location lowerChest = eye.clone().subtract(0, 0.9, 0).add(intoWall.clone().multiply(WALL_CONTACT_DISTANCE));
         return lowerChest.getBlock().getType().isSolid();
@@ -624,7 +558,6 @@ public class HellChainAbility extends BaseAbility {
                 || face == BlockFace.EAST || face == BlockFace.WEST;
     }
 
-    /** Boosts the caster forward and up onto the ledge once a wall-climb clears the top, then scorches anything nearby - the same arrival effect a flat-terrain hit gets. */
     private void mantleOntoLedge(Player player, Location at, Vector intoWall, TrustManager trust) {
         Vector boost = intoWall.clone().multiply(MANTLE_FORWARD_VELOCITY);
         boost.setY(MANTLE_UPWARD_VELOCITY);
@@ -644,12 +577,6 @@ public class HellChainAbility extends BaseAbility {
         }
     }
 
-    /**
-     * If a solid block sits at foot level in the pull's horizontal direction and the block
-     * above it is clear, raises {@code velocity}'s Y to hop height (mutating it in place) so the caster
-     * steps up over the ledge instead of stalling against it. No-ops for a near-zero horizontal pull (e.g. the
-     * hook point is directly overhead) since there's no "ahead" to check.
-     */
     private void applyStepAssist(Player player, Vector velocity) {
         Vector horizontal = new Vector(velocity.getX(), 0, velocity.getZ());
         if (horizontal.lengthSquared() < 1.0E-4) return;
@@ -667,11 +594,6 @@ public class HellChainAbility extends BaseAbility {
         }
     }
 
-    /**
-     * Where the chain visually leaves the caster: down and to the right of the eyes, a little
-     * forward - roughly a hand - so in first person it doesn't run straight through the middle
-     * of the screen. Only affects the visual; all the movement math still uses the eye location.
-     */
     private Location chainStart(Player player) {
         Location eye = player.getEyeLocation();
         Vector forward = eye.getDirection();
@@ -709,6 +631,6 @@ public class HellChainAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Shoots a chain at an entity you are looking at. It pulls the entity to you, latches onto a projectile (arrow, snowball, wind charge...) so it drags you along, or pulls you to a block, and sets nearby enemies on fire. Use again to stop mid-chain.";
+        return "Shoots a chain at an entity you are looking at or pulls you to a block, Use again to stop mid-chain.";
     }
 }

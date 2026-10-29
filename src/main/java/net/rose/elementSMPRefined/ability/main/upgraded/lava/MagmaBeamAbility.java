@@ -32,38 +32,22 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Magma Beam - hold still while a glowing orb of magma charges up in front of you, then
- * unleash a thick beam that follows your aim and burns everything it passes through.
- * <p>
- * The caster is slowed for the whole ability so it can't be used as a free running attack.
- * The beam stops at the first solid block and never changes real blocks. It is drawn with the
- * {@code elementsmp:magma_beam} resource-pack model via {@link MagmaBeamVisual} (a stretched
- * ItemDisplay) with particles on top, so it still reads if the pack isn't applied.
- */
 public class MagmaBeamAbility extends BaseAbility {
 
     private static final int CHARGE_TICKS = 30;
     private static final int BEAM_TICKS = 30;
     private static final double RANGE = 25.0;
-    /** Ticks between damage pulses while the beam is firing. */
     private static final int HIT_INTERVAL = 5;
     private static final double DAMAGE_PER_PULSE = 2.0;
     private static final double HIT_RADIUS = 1.0;
     private static final int BURN_TICKS = 60;
     private static final int SLOW_AMPLIFIER = 2;
-    /** Roll added to the beam every tick, in radians (~26 degrees). Keep well under PI so interpolation spins the right way. */
     private static final float SPIN_PER_TICK = 0.45f;
-    /** Radius of the particle spiral wrapped around the firing beam. */
     private static final double HELIX_RADIUS = 0.6;
-    /** Blocks between particle samples along the beam. Bigger = fewer particles. */
     private static final double HELIX_STEP = 2.0;
     private static final double SHEATH_STEP = 3.0;
-    /** A flame spark is pulled towards the orb every this many ticks while charging (kept sparse so the caster can see). */
     private static final int CHARGE_SPARK_INTERVAL = 3;
-    /** Lava pop on the orb every this many ticks while charging. */
     private static final int CHARGE_LAVA_INTERVAL = 10;
-    /** Flames in the one-off burst at the muzzle the moment the beam fires. */
     private static final int MUZZLE_FLAMES = 30;
     private static final int MUZZLE_LAVA = 4;
 
@@ -97,7 +81,6 @@ public class MagmaBeamAbility extends BaseAbility {
             int tick = 0;
             float roll = 0f;
 
-            /** Every exit path calls cancel(), so the beam entity and slowness can never outlive the ability. */
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 visual.remove();
@@ -147,7 +130,6 @@ public class MagmaBeamAbility extends BaseAbility {
         return true;
     }
 
-    /** Orb swells in front of the caster while sparks are pulled in towards it. */
     private void charge(Player player, MagmaBeamVisual visual, Location start, Vector dir, int tick, float roll) {
         World w = player.getWorld();
         double progress = (double) tick / CHARGE_TICKS;
@@ -171,7 +153,6 @@ public class MagmaBeamAbility extends BaseAbility {
         }
     }
 
-    /** One tick of the firing beam: re-aim, draw, and (every few ticks) burn what it crosses. */
     private void fire(Player player, TrustManager trust, MagmaBeamVisual visual,
                       Location eye, Location start, Vector dir, int beamTick, float roll) {
         World w = player.getWorld();

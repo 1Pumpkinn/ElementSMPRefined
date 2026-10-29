@@ -116,7 +116,6 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    /** The disabled-state an action asks for: disable = true, enable = false, toggle = the opposite of now. */
     private static boolean desiredState(String action, boolean currentlyDisabled) {
         return switch (action) {
             case "disable" -> true;

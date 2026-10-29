@@ -30,20 +30,15 @@ public final class PingCompensation {
 
     private static final double MS_PER_TICK = 50.0;
 
-    /** At or below this the interpolation window stays at 1 tick - identical to the old behaviour. */
     private static final int LOW_PING_MS = 70;
     private static final int MID_PING_MS = 250;
     private static final int MAX_SMOOTHING_TICKS = 3;
 
-    /** Ping below this is just normal jitter and gets no lead. */
     private static final double LEAD_DEADZONE_MS = 25.0;
     private static final double MAX_LEAD_TICKS = 7.0;
-    /** Vertical motion changes direction too fast (jumps) to be predicted as far as horizontal. */
     private static final double VERTICAL_LEAD_FACTOR = 0.5;
     private static final double MAX_YAW_LEAD_DEGREES = 45.0;
-    /** How quickly the velocity estimate follows new movement (0..1). */
     private static final double VELOCITY_SMOOTHING = 0.5;
-    /** A single-tick move longer than this (blocks, squared) is a teleport, not movement. */
     private static final double TELEPORT_JUMP_SQUARED = 36.0;
 
     private PingCompensation() {}

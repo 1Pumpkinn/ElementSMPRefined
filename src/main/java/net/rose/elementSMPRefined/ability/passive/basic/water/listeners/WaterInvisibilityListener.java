@@ -25,12 +25,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Water passive 2 (unlocks at Upgrade II): standing still in water grants true invisibility from other players.
- * Frost inherits this passive from Water, so it applies to both elements.
- * This is implemented with Bukkit hide/show semantics so the player remains fully visible
- * to themselves while all other players cannot see their armor, held items, or body.
- */
 public class WaterInvisibilityListener implements Listener {
 
     private static final int IDLE_CHECKS_REQUIRED = 8;
@@ -40,14 +34,10 @@ public class WaterInvisibilityListener implements Listener {
     // (they sink ~0.1 blocks per period and bob at the surface), so a plain 3D distance check
     // never saw anyone as idle unless they were resting on the bottom. Instead: almost no sideways
     // movement, and vertical movement only counts if it is more than passive sinking / bobbing.
-    /** Max sideways travel per period (squared, blocks) that still counts as standing still. */
     private static final double HORIZONTAL_THRESHOLD_SQUARED = 0.0036;
-    /** Most a motionless player can sink per period (blocks, negative = down). */
     private static final double MAX_SINK_PER_PERIOD = -0.25;
-    /** Most a motionless player can rise per period; holding jump / swimming up is faster than this. */
     private static final double MAX_RISE_PER_PERIOD = 0.1;
 
-    /** Every visible equipment slot: armor, main hand, off hand. */
     private static final EquipmentSlot[] VISIBLE_SLOTS = {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET,
             EquipmentSlot.HAND, EquipmentSlot.OFF_HAND
@@ -84,12 +74,10 @@ public class WaterInvisibilityListener implements Listener {
         }, 20L, MONITOR_PERIOD_TICKS);
     }
 
-    /** Water and Frost (upgraded from Water) both get the in-water invisibility passive. */
     private boolean hasPassive(Player player) {
         ElementType type = elementManager.getPlayerElement(player);
         if (type != ElementType.WATER && type != ElementType.FROST) return false;
 
-        // Second passive: unlocks at Upgrade II
         var data = elementManager.data(player.getUniqueId());
         return data != null && data.getUpgradeLevel(type) >= BaseElement.PASSIVE_2_UPGRADE_LEVEL;
     }
@@ -116,7 +104,6 @@ public class WaterInvisibilityListener implements Listener {
             if (checks >= IDLE_CHECKS_REQUIRED && !trulyInvisible.contains(uuid)) {
                 concealPlayer(player);
             } else if (trulyInvisible.contains(uuid)) {
-                // Refresh visibility cache
                 hidePlayerFromAll(player);
             }
         } else {
@@ -172,11 +159,6 @@ public class WaterInvisibilityListener implements Listener {
         sendEquipment(subject, blankEquipment());
     }
 
-    /**
-     * hideEntity (not hidePlayer): the subject stays in the observer's tab list, and there is no
-     * listPlayer call - listPlayer throws "Player cannot see other player" once the subject is hidden,
-     * which used to abort the whole hide loop every tick.
-     */
     private void hideFrom(Player observer, Player subject) {
         try {
             observer.hideEntity(plugin, subject);
@@ -242,7 +224,6 @@ public class WaterInvisibilityListener implements Listener {
         }
     }
 
-    /** Someone who joins while a player is invisible must not see them for even a few ticks. */
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player observer = event.getPlayer();

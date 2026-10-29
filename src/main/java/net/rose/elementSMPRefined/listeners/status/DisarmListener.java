@@ -10,12 +10,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-/**
- * Enforces {@code WEAPON_DISARM} and {@code MAIN_HAND_DISARM}: cancels melee damage and
- * item use for whichever material {@link DisarmManager} currently has locked for a player.
- * Bukkit's own item cooldown (set by {@link DisarmManager}) only blocks right-click "use"
- * actions and is purely cosmetic for melee - the actual attack block has to happen here.
- */
 public class DisarmListener implements Listener {
     private final DisarmManager disarmManager;
 

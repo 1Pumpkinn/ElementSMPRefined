@@ -32,10 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Right-click hand-in on the altar's lodestone, plus everything that keeps
- * that lodestone indestructible (the rest of the structure is fair game).
- */
 public class ReforgeAltarListener implements Listener {
     private final ElementSMPRefined plugin;
     private final ReforgeAltarManager altar;
@@ -44,10 +40,6 @@ public class ReforgeAltarListener implements Listener {
         this.plugin = plugin;
         this.altar = altar;
     }
-
-    // ------------------------------------------------------------------
-    // Hand-in
-    // ------------------------------------------------------------------
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onAltarInteract(PlayerInteractEvent event) {
@@ -107,7 +99,6 @@ public class ReforgeAltarListener implements Listener {
         altar.completeAltar();
     }
 
-    /** Counts plain (no custom name/lore/data) items of {@code material} in the main inventory + hotbar. */
     private int count(PlayerInventory inv, Material material) {
         ItemStack plain = new ItemStack(material);
         int total = 0;
@@ -135,10 +126,6 @@ public class ReforgeAltarListener implements Listener {
         inv.setStorageContents(contents);
     }
 
-    // ------------------------------------------------------------------
-    // Lodestone protection
-    // ------------------------------------------------------------------
-
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreak(BlockBreakEvent event) {
         if (altar.isAltarLodestone(event.getBlock())) {
@@ -147,19 +134,16 @@ public class ReforgeAltarListener implements Listener {
         }
     }
 
-    /** TNT, creepers, wither skulls, end crystals, ... */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityExplode(EntityExplodeEvent event) {
         event.blockList().removeIf(altar::isAltarLodestone);
     }
 
-    /** Beds/respawn anchors and other block-sourced explosions. */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockExplode(BlockExplodeEvent event) {
         event.blockList().removeIf(altar::isAltarLodestone);
     }
 
-    /** Wither body smashing blocks, endermen, falling blocks, ... */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
         if (altar.isAltarLodestone(event.getBlock())) {
@@ -174,7 +158,6 @@ public class ReforgeAltarListener implements Listener {
         }
     }
 
-    /** Lodestones can be pushed by pistons - that would move it off the altar. */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPistonExtend(BlockPistonExtendEvent event) {
         if (event.getBlocks().stream().anyMatch(altar::isAltarLodestone)) {

@@ -27,9 +27,6 @@ public class AirElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Passive 1 (start): No fall damage (handled in AirFallImpactListener)
-        // Passive 2 (Upgrade II): Wind Burst - built-in smash-attack burst on any weapon,
-        // not a real enchantment (handled in AirWindBurstListener, which checks the level)
     }
 
     @Override

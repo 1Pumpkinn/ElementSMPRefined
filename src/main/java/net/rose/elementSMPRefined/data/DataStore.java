@@ -79,11 +79,6 @@ public class DataStore implements PlayerDataRepository {
         return file;
     }
 
-    /**
-     * Startup load. If players.yml is unreadable the file is NOT replaced: a copy is quarantined,
-     * the plugin starts with an empty in-memory view, and every write is refused until the file
-     * parses again (see {@link #reloadFromDisk}), so the real data can be repaired by hand.
-     */
     private FileConfiguration loadYaml(File file, String name) {
         try {
             return YamlFiles.loadStrict(file);
@@ -104,10 +99,6 @@ public class DataStore implements PlayerDataRepository {
         }
     }
 
-    /**
-     * Re-reads players.yml from disk. Returns false (leaving {@link #playerCfg} untouched) if it
-     * can't be parsed, so callers never merge onto an empty config and save it over the real file.
-     */
     private boolean reloadFromDisk() {
         try {
             playerCfg = YamlFiles.loadStrict(playerFile);
@@ -188,7 +179,6 @@ public class DataStore implements PlayerDataRepository {
         });
     }
 
-    /** Actual read-merge-write cycle. Caller must hold the lock on {@code this}. */
     private void persistToDisk(PlayerData data) {
         try {
             // Reload first so we merge onto whatever's currently on disk rather than

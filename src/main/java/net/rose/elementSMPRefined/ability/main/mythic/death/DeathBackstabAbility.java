@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.util.server.MaceCooldown;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -177,9 +178,10 @@ public class DeathBackstabAbility extends BaseAbility {
     private void dealTrueDamage(LivingEntity target, Player attacker) {
         double newHealth = target.getHealth() - TRUE_DAMAGE;
         if (newHealth <= 0) {
-            target.damage(TRUE_DAMAGE, attacker);
+            MaceCooldown.ignoreHits(() -> target.damage(TRUE_DAMAGE, attacker));
         } else {
-            target.damage(0.001, attacker); // triggers hurt overlay/animation/sound only
+            // triggers hurt overlay/animation/sound only
+            MaceCooldown.ignoreHits(() -> target.damage(0.001, attacker));
             target.setHealth(Math.max(0.0, target.getHealth() - (TRUE_DAMAGE - 0.001)));
         }
     }

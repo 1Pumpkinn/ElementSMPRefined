@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.server;
 
+import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -35,6 +36,39 @@ public class MaceCooldown implements Listener {
     private static final int COOLDOWN_TICKS = COOLDOWN_SECONDS * 20;
 
     private static final long REAPPLY_DELAY_TICKS = 1L;
+
+    /**
+     * >0 while {@link #ignoreHits} is running. Main-thread only, and only ever non-zero for the
+     * duration of one synchronous {@code damage()} call.
+     */
+    private static int ignoreDepth = 0;
+
+    /**
+     * Runs {@code damageCall} (a synchronous {@code damage()} call) without it counting as a mace
+     * hit. For ability damage that isn't routed through {@link AbilityDamage} or
+     * {@code TrueDamage} - Bukkit reports any damage with a player attacker as a normal melee
+     * {@code ENTITY_ATTACK}, so without this it would start (or be blocked by) the mace cooldown.
+     */
+    public static void ignoreHits(Runnable damageCall) {
+        ignoreDepth++;
+        try {
+            damageCall.run();
+        } finally {
+            ignoreDepth--;
+        }
+    }
+
+    /**
+     * Whether this event is a real melee swing by a player. Ability damage dealt with a player as
+     * the attacker (TrueDamage, AbilityDamage.deal, ignoreHits) shows up as {@code ENTITY_ATTACK}
+     * too, so it has to be filtered out explicitly.
+     */
+    private static boolean isPlayerMelee(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player)) return false;
+        if (event.getCause() != DamageCause.ENTITY_ATTACK) return false;
+        if (ignoreDepth > 0) return false;
+        return !AbilityDamage.isAbilityDamage(event.getEntity());
+    }
 
     private final JavaPlugin plugin;
     private final NamespacedKey expiryKey;
@@ -103,8 +137,8 @@ public class MaceCooldown implements Listener {
     /** Runs before the hit lands: blocks mace hits while the mace is on cooldown. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onAttack(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player player)) return;
-        if (event.getCause() != DamageCause.ENTITY_ATTACK) return;
+        if (!isPlayerMelee(event)) return;
+        Player player = (Player) event.getDamager();
         if (!isMace(player.getInventory().getItemInMainHand())) return;
 
         if (isOnCooldown(player)) {
@@ -115,8 +149,8 @@ public class MaceCooldown implements Listener {
     /** Runs after the hit landed: a mace hit on a player or mob starts the cooldown. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHit(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player player)) return;
-        if (event.getCause() != DamageCause.ENTITY_ATTACK) return;
+        if (!isPlayerMelee(event)) return;
+        Player player = (Player) event.getDamager();
         if (!(event.getEntity() instanceof LivingEntity victim) || victim instanceof ArmorStand) return;
         if (!isMace(player.getInventory().getItemInMainHand())) return;
 

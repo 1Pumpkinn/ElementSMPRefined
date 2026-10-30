@@ -666,6 +666,7 @@ public final class Lang {
     // the bar off-screen or make it flicker as it re-renders each tick.
     private static final int COOLDOWN_BAR_NAME_MAX_LENGTH = 16;
 
+    private static final int ABILITY1_REQUIRED_UPGRADE = 1;
     private static final int ABILITY2_REQUIRED_UPGRADE = 2;
 
     private static final Key ICON_FONT = Key.key("elementsmp", "icons");
@@ -675,7 +676,7 @@ public final class Lang {
                                               String ability2Name, long ability2RemainingSeconds,
                                               int upgradeLevel) {
         return Component.textOfChildren(
-                cooldownBarSegment(ability1Name, ability1RemainingSeconds, false),
+                cooldownBarSegment(ability1Name, ability1RemainingSeconds, upgradeLevel < ABILITY1_REQUIRED_UPGRADE),
                 Component.text("   ", NamedTextColor.DARK_GRAY),
                 cooldownBarSegment(ability2Name, ability2RemainingSeconds, upgradeLevel < ABILITY2_REQUIRED_UPGRADE)
         );

@@ -62,9 +62,6 @@ public class CooldownActionBarTask implements Listener {
         ElementType type = pd.getCurrentElement();
         if (type == null) return;
 
-        // No action bar until the player's element has been upgraded.
-        if (pd.getCurrentElementUpgradeLevel() < 1) return;
-
         Element element = elementManager.get(type);
         if (element == null) return;
 

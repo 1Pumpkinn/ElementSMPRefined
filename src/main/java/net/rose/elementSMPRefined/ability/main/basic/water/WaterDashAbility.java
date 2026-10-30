@@ -21,6 +21,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 public class WaterDashAbility extends BaseAbility implements Listener {
 
     private static final int SURGE_TICKS = 14;
@@ -31,8 +37,18 @@ public class WaterDashAbility extends BaseAbility implements Listener {
     private static final double MIN_FALL = -0.25;            // gentle sink so you don't float forever
     private static final int WALL_CHECK_AFTER_TICKS = 3;     // grace so launch velocity can register
     private static final double WALL_STOP_SPEED = 0.12;      // horizontal speed under which we call it a wall hit
+    private static final double CANCEL_DECAY = 0.88;         // horizontal speed kept each tick after a cancel (higher = slower slow-down)
+    private static final double CANCEL_FLOOR_SPEED = 0.30;   // slow-down stops here, never reaches 0; normal movement takes over
+    private static final int CANCEL_MAX_TICKS = 30;          // hard cap on the slow-down
+    private static final double GRAVITY = 0.08;              // per-tick gravity used while we drive the velocity ourselves
 
     private final ElementSMPRefined plugin;
+
+    /** Players currently mid-surge. Removing a player from here is what stops their dash. */
+    private final Set<UUID> surging = new HashSet<>();
+
+    /** Horizontal velocity the surge last applied to each player - what a cancel slows down from. */
+    private final Map<UUID, Vector> lastSurgeVelocity = new HashMap<>();
 
     public WaterDashAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("water_dash", ElementType.WATER, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
@@ -40,9 +56,25 @@ public class WaterDashAbility extends BaseAbility implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
+    /**
+     * True only while the surge itself is running - NOT during the landing-immunity window after it,
+     * which isActiveFor() also covers. WaterElement uses this for canCancelAbility1.
+     */
+    public boolean isSurging(Player player) {
+        return surging.contains(player.getUniqueId());
+    }
+
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
+
+        // Pressed again mid-surge: stop the dash. (WaterElement lets this through without a cooldown
+        // check, and the cooldown from the original cast keeps running.)
+        if (isSurging(player)) {
+            cancelSurge(player);
+            return true;
+        }
+
         Location start = player.getLocation();
 
         Vector launchLook = horizontalLook(player);
@@ -50,6 +82,7 @@ public class WaterDashAbility extends BaseAbility implements Listener {
 
         // Fall immunity for the duration of the surge and the landing right after it.
         setActive(player, true);
+        surging.add(player.getUniqueId());
         player.setFallDistance(0f);
 
         WaterParticles.surgeBurst(start);
@@ -62,13 +95,21 @@ public class WaterDashAbility extends BaseAbility implements Listener {
 
             @Override
             public void run() {
+                // Cancelled mid-dash (pressed again): cancelSurge() already wound everything down.
+                if (!surging.contains(player.getUniqueId())) {
+                    cancel();
+                    return;
+                }
+
                 if (!player.isOnline() || player.isDead() || !isActiveFor(player)) {
+                    surging.remove(player.getUniqueId());
                     finish(player);
                     cancel();
                     return;
                 }
 
                 if (ticks >= SURGE_TICKS) {
+                    surging.remove(player.getUniqueId());
                     finish(player);
                     cancel();
                     return;
@@ -82,6 +123,7 @@ public class WaterDashAbility extends BaseAbility implements Listener {
                     if (horizontalSpeed < WALL_STOP_SPEED) {
                         WaterParticles.surgeImpact(player.getLocation().add(0, 0.9, 0));
                         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_SPLASH, 1.0f, 1.0f);
+                        surging.remove(player.getUniqueId());
                         finish(player);
                         cancel();
                         return;
@@ -107,7 +149,9 @@ public class WaterDashAbility extends BaseAbility implements Listener {
                     y = 0.0;
                 }
 
-                player.setVelocity(new Vector(current.getX() * speed, y, current.getZ() * speed));
+                Vector applied = new Vector(current.getX() * speed, y, current.getZ() * speed);
+                player.setVelocity(applied);
+                lastSurgeVelocity.put(player.getUniqueId(), new Vector(applied.getX(), 0, applied.getZ()));
                 player.setFallDistance(0f);
 
                 WaterParticles.surgeWake(player.getLocation(), current);
@@ -123,7 +167,78 @@ public class WaterDashAbility extends BaseAbility implements Listener {
         return true;
     }
 
+    /**
+     * Stops a surge in progress: the horizontal speed bleeds off gradually (CANCEL_DECAY per tick)
+     * down to CANCEL_FLOOR_SPEED, then control is handed back to normal movement. The velocity is
+     * never forced to zero, so the player eases out instead of freezing.
+     */
+    private void cancelSurge(Player player) {
+        UUID id = player.getUniqueId();
+        if (!surging.remove(id)) return;
+
+        Vector start = lastSurgeVelocity.get(id);
+        if (start == null) {
+            Vector v = player.getVelocity();
+            start = new Vector(v.getX(), 0, v.getZ());
+        }
+
+        final double startSpeed = Math.hypot(start.getX(), start.getZ());
+        final double dirX = startSpeed > 1.0E-4 ? start.getX() / startSpeed : 0.0;
+        final double dirZ = startSpeed > 1.0E-4 ? start.getZ() / startSpeed : 0.0;
+        final double[] speed = {startSpeed};
+        final double[] vy = {Math.min(player.getVelocity().getY(), 0.0)};
+
+        player.setFallDistance(0f);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_SPLASH, 0.8f, 1.2f);
+        finish(player);
+
+        // Already at or below the floor (or no direction): nothing to slow down, let normal movement take over.
+        if (startSpeed <= CANCEL_FLOOR_SPEED) {
+            return;
+        }
+
+        // We drive the velocity ourselves while it slows down, so gravity is applied by hand
+        // (otherwise a stale vertical value would make an airborne player hover).
+        new BukkitRunnable() {
+            int ticks = 0;
+
+            @Override
+            public void run() {
+                // Gone, dead, or started a fresh dash: leave them alone.
+                if (!player.isOnline() || player.isDead() || surging.contains(id) || ticks >= CANCEL_MAX_TICKS) {
+                    cancel();
+                    return;
+                }
+
+                // Decay gradually, but never below the floor.
+                speed[0] = Math.max(speed[0] * CANCEL_DECAY, CANCEL_FLOOR_SPEED);
+                boolean reachedFloor = speed[0] <= CANCEL_FLOOR_SPEED;
+
+                double y;
+                if (player.isOnGround()) {
+                    vy[0] = 0.0;
+                    y = 0.0;
+                } else {
+                    vy[0] = (vy[0] - GRAVITY) * 0.98;
+                    y = vy[0];
+                }
+
+                player.setVelocity(new Vector(dirX * speed[0], y, dirZ * speed[0]));
+                player.setFallDistance(0f);
+
+                // Floor reached: stop driving the velocity. No zeroing, normal friction takes it from here.
+                if (reachedFloor) {
+                    cancel();
+                    return;
+                }
+                ticks++;
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+
     private void finish(Player player) {
+        lastSurgeVelocity.remove(player.getUniqueId());
+
         if (player.isOnline()) {
             WaterParticles.surgeEnd(player.getLocation().add(0, 0.5, 0));
         }
@@ -164,6 +279,8 @@ public class WaterDashAbility extends BaseAbility implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        surging.remove(event.getPlayer().getUniqueId());
+        lastSurgeVelocity.remove(event.getPlayer().getUniqueId());
         setActive(event.getPlayer(), false);
     }
 
@@ -174,6 +291,6 @@ public class WaterDashAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return "Ride a steerable torrent along the ground, curving wherever you look.";
+        return "Cast a surge curving wherever you look. Press again to stop mid-dash.";
     }
 }

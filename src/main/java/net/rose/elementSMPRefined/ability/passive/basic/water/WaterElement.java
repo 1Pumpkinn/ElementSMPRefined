@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.basic.water;
 
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
+import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.basic.water.KrakenSlamAbility;
@@ -23,6 +24,12 @@ public class WaterElement extends BaseElement implements ListenerProvider {
         super(plugin, ElementType.WATER,
                 new WaterDashAbility(plugin, configManager),
                 new KrakenSlamAbility(plugin, configManager));
+    }
+
+    @Override
+    protected boolean canCancelAbility1(ElementContext context) {
+        // Tidal Surge is mid-dash - pressing the ability again stops it, no cooldown check.
+        return ability1 instanceof WaterDashAbility dash && dash.isSurging(context.getPlayer());
     }
 
     @Override

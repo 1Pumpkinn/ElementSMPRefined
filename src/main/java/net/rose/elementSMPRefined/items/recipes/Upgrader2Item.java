@@ -32,12 +32,11 @@ public final class Upgrader2Item {
             plugin.getServer().removeRecipe(key);
             
             ShapedRecipe recipe = new ShapedRecipe(key, result);
-            recipe.shape("GOG", "TWT", "GOG");
+            recipe.shape("DAD", "ATA", "DAD");
 
-           recipe.setIngredient('G', Material.GOLD_BLOCK);
-           recipe.setIngredient('O', Material.OMINOUS_TRIAL_KEY);
+           recipe.setIngredient('D', Material.DIAMOND_BLOCK);
+           recipe.setIngredient('A', Material.AMETHYST_SHARD);
            recipe.setIngredient('T', Material.TOTEM_OF_UNDYING);
-           recipe.setIngredient('W', Material.WITHER_SKELETON_SKULL);
 
             plugin.getServer().addRecipe(recipe);
         } catch (Exception e) {

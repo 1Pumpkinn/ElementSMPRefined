@@ -33,14 +33,14 @@ public final class RerollerItem {
             plugin.getServer().removeRecipe(key);
             
             ShapedRecipe recipe = new ShapedRecipe(key, result);
-            recipe.shape("IEG", "ETE", "DEM");
-            recipe.setIngredient('I', Material.IRON_BLOCK);
+            recipe.shape("GWG", "FPB", "GRG");
+            recipe.setIngredient('W', Material.WIND_CHARGE);
+            recipe.setIngredient('F', Material.FIRE_CHARGE);
+            recipe.setIngredient('P', Material.PAPER);
+            recipe.setIngredient('B', Material.WATER_BUCKET);
+            recipe.setIngredient('R', Material.GRASS_BLOCK);
             recipe.setIngredient('G', Material.GOLD_BLOCK);
-            recipe.setIngredient('D', Material.DIAMOND_BLOCK);
-            recipe.setIngredient('M', Material.EMERALD_BLOCK);
-            recipe.setIngredient('E', Material.NETHERITE_SCRAP);
-            recipe.setIngredient('T', Material.TOTEM_OF_UNDYING);
-            
+
             plugin.getServer().addRecipe(recipe);
         } catch (Exception e) {
             plugin.getLogger().severe("Error registering Element Reroller recipe: " + e.getMessage());

@@ -11,6 +11,7 @@ import net.rose.elementSMPRefined.ability.passive.basic.earth.listeners.EarthVei
 import net.rose.elementSMPRefined.ability.passive.basic.fire.listeners.FireSmeltListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners.MetalChainStunListener;
+import net.rose.elementSMPRefined.listeners.handler.CraftingIngredientBlocker;
 import net.rose.elementSMPRefined.listeners.handler.ForgedUpgraderHandler;
 import net.rose.elementSMPRefined.listeners.handler.ReforgeAltarListener;
 import net.rose.elementSMPRefined.listeners.item.PlayerDeathListener;
@@ -81,6 +82,7 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new ForgedUpgraderHandler(plugin, plugin.getElementManager(), advancements), plugin);
         pluginManager.registerEvents(new ReforgeAltarListener(plugin, plugin.getReforgeAltarManager()), plugin);
         pluginManager.registerEvents(new UpgraderHandler(plugin, plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new CraftingIngredientBlocker(plugin), plugin);
         pluginManager.registerEvents(advancements, plugin);
     }
 

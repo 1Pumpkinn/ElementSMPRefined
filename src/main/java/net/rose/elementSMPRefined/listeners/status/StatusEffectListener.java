@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.listeners.status;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -49,7 +50,18 @@ public class StatusEffectListener implements Listener {
         if (event.getFrom().getX() != event.getTo().getX() ||
             event.getFrom().getY() != event.getTo().getY() ||
             event.getFrom().getZ() != event.getTo().getZ()) {
-            event.setCancelled(true);
+            if (isFullyStunned || isPartiallyStunned) {
+                event.setCancelled(true);
+                return;
+            }
+
+            // Stun / Root / Freeze: they can't move but may still look around. Cancelling the event would
+            // also snap their camera back (the rollback restores the old yaw/pitch), so instead keep the
+            // old position and carry over the new rotation.
+            Location locked = event.getFrom().clone();
+            locked.setYaw(event.getTo().getYaw());
+            locked.setPitch(event.getTo().getPitch());
+            event.setTo(locked);
         }
     }
 

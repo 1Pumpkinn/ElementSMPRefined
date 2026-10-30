@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.altar.ReforgeAltarManager;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.lang.Lang;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -96,6 +97,12 @@ public class ReforgeAltarListener implements Listener {
         Location center = block.getLocation().add(0.5, 1.0, 0.5);
         block.getWorld().spawnParticle(Particle.END_ROD, center, 80, 1.0, 1.0, 1.0, 0.1);
         block.getWorld().playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 1.2f, 1.2f);
+
+        // Server-wide announcement of who crafted the Forged Upgrader.
+        Bukkit.broadcast(Component.text(player.getName(), NamedTextColor.YELLOW)
+                .append(Component.text(" has crafted the ", NamedTextColor.GOLD))
+                .append(Component.text("Forged Upgrader", ForgedUpgraderItem.COLOR)));
+
         altar.completeAltar();
     }
 

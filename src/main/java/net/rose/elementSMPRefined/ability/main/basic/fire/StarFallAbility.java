@@ -41,7 +41,7 @@ public class StarFallAbility extends BaseAbility {
 
     private static final double ZONE_RADIUS = 6.0;
     private static final int BARRAGE_DURATION_TICKS = 60;
-    private static final int SPAWN_INTERVAL_TICKS = 4;
+    private static final int SPAWN_INTERVAL_TICKS = 6;
     private static final double SPAWN_HEIGHT = 18.0;
     private static final int FALL_TICKS = 16;
     // The sky spawn must reach the client before the landing teleport, otherwise it has nothing to fall from

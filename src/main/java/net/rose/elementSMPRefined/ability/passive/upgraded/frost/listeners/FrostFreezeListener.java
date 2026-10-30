@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -58,6 +59,11 @@ public class FrostFreezeListener implements Listener {
         var data = elementManager.data(attacker.getUniqueId());
         if (data == null || data.getCurrentElement() != ElementType.FROST) return;
         if (data.getUpgradeLevel(ElementType.FROST) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
+
+        // A raised shield stops the freeze. Checked both ways: isBlocking() covers the common case, and the
+        // BLOCKING damage modifier still catches a hit that was blocked even if it disabled the shield (axes).
+        if (victim.isBlocking()) return;
+        if (event.isApplicable(DamageModifier.BLOCKING) && event.getDamage(DamageModifier.BLOCKING) < 0) return;
 
         GameMode mode = victim.getGameMode();
         if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) return;

@@ -40,7 +40,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class TornadoAbility extends BaseAbility {
 
-    private static final int DURATION_TICKS = 8 * 20;
+    private static final int DURATION_TICKS = 6 * 20;
     private static final int GROW_TICKS = 15;
     private static final int FADE_TICKS = 15;
     private static final double CAST_RANGE = 22.0;
@@ -66,7 +66,7 @@ public class TornadoAbility extends BaseAbility {
     private static final double ORBIT_SPEED = 0.45;       // how fast they're whipped round the axis
     private static final double LIFT_SPEED = 0.42;
     private static final double LIFT_MAX = 5.5;
-    private static final double DAMAGE = 1.5;             // true damage per hit (0.75 hearts)
+    private static final double DAMAGE = 2.0;             // true damage per hit (1 heart)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
 
     private static final Sound WIND_SOUND = Sound.ITEM_ELYTRA_FLYING;

@@ -7,7 +7,6 @@ import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
-import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import org.bukkit.ChatColor;
@@ -59,9 +58,6 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double ORBIT_MAX_SPEED = 0.6;      // blocks/tick cap on the orbit velocity
     private static final double LEASH = 1.5;                // captured entities further than this from their spot on the ring are snapped back onto it
     private static final int SETTLE_TICKS = 8;              // grace after capture before the leash applies, so they glide in rather than teleport in
-
-    private static final double DAMAGE = 1.0;               // per hit while captured (half a heart)
-    private static final int DAMAGE_INTERVAL_TICKS = 10;
 
     // Magnetar visuals: a glowing core wrapped in dipole magnetic field loops (they bunch together at the two
     // poles and balloon out around the equator), and a few faint streams of sparks curling in from the pull field so the suction still reads.
@@ -117,7 +113,6 @@ public class MetalMagnetarAbility extends BaseAbility {
         final TrustManager trust;
         final double radiusH;
         final double radiusV;
-        final Map<UUID, Integer> nextHit = new HashMap<>();
         final Map<UUID, Integer> captured = new HashMap<>();
         int ticks = 0;
         BukkitRunnable task;
@@ -219,11 +214,7 @@ public class MetalMagnetarAbility extends BaseAbility {
                 if (fieldDistance > PULL_RADIUS) continue;
 
                 if (distance > CAPTURE_RADIUS) {
-                    if (!isInCobweb(target)) {
-                        // A cobweb zeroes the client's movement every tick, so velocity pushes on a webbed
-                        // entity just rubber-band it. The web simply holds it against the pull instead.
-                        pull(target, toCore, fieldDistance);
-                    }
+                    pull(target, toCore, fieldDistance);
                     continue;
                 }
 
@@ -257,6 +248,14 @@ public class MetalMagnetarAbility extends BaseAbility {
         double step = Math.min(Math.min(speed, MAX_SPEED), Math.min(eased, remaining));
         Vector velocity = toCore.clone().normalize().multiply(step);
 
+        // A cobweb zeroes the client's movement every tick, so a velocity push on a webbed entity just
+        // rubber-bands it (that is what let webs shrug the pull off). Webbed entities are moved by
+        // position instead, which the web can't cancel, so they're dragged straight out of it.
+        if (isInCobweb(target)) {
+            pullOutOfWeb(target, velocity);
+            return;
+        }
+
         // Lift off the floor, otherwise ground friction stalls the pull.
         if (target.isOnGround() && velocity.getY() < 0.1) {
             velocity.setY(0.1);
@@ -264,20 +263,21 @@ public class MetalMagnetarAbility extends BaseAbility {
         target.setVelocity(velocity);
     }
 
+    /**
+     * Drags an entity that is stuck in a cobweb by moving its position this tick by {@code step}
+     * (blocks), instead of by velocity. Tries the full step first, then horizontal-only and vertical-only
+     * if a solid block is in the way, so a webbed player against a wall still slides out along it.
+     */
+    private static void pullOutOfWeb(LivingEntity target, Vector step) {
+        if (step.lengthSquared() < 1.0E-6) return;
+        if (snapToCore(target, step)) return;
+        Vector horizontal = new Vector(step.getX(), 0, step.getZ());
+        if (horizontal.lengthSquared() > 1.0E-6 && snapToCore(target, horizontal)) return;
+        snapToCore(target, new Vector(0, step.getY(), 0));
+    }
+
     private void capture(Core core, Player caster, LivingEntity target, Vector toCore, int capturedAt) {
-        UUID id = target.getUniqueId();
-
-        if (core.ticks >= core.nextHit.getOrDefault(id, 0)) {
-            core.nextHit.put(id, core.ticks + DAMAGE_INTERVAL_TICKS);
-            TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).ignoreIFrames(true).apply(target);
-
-            Location at = target.getLocation().add(0, 1.0, 0);
-            at.getWorld().spawnParticle(Particle.CRIT, at, 12, 0.3, 0.5, 0.3, 0.2);
-            at.getWorld().playSound(at, Sound.ENTITY_IRON_GOLEM_DAMAGE, 0.8f, 0.8f);
-        }
-
-        // Everything below is set after the damage: its knockback would otherwise shove them off the ring.
-        // The orbit is stateless: it is worked out from where they are right now, so lag can't desync it.
+        // No damage: the Magnetar only controls. The orbit is stateless: it is worked out from where they are right now, so lag can't desync it.
         Vector offset = toCore.clone().multiply(-1);          // core -> target
         double vertical = toCore.getY();                      // how far the core is above their body centre
         offset.setY(0);
@@ -289,7 +289,7 @@ public class MetalMagnetarAbility extends BaseAbility {
         Vector toRing = outward.clone().multiply(ORBIT_RADIUS - radius).setY(vertical);
         boolean snapped = settled && toRing.length() > LEASH && snapToCore(target, toRing);
 
-        if (!snapped && !isInCobweb(target)) {
+        if (!snapped) {
             Vector tangent = new Vector(-outward.getZ(), 0, outward.getX()); // counter-clockwise seen from above
             Vector velocity = tangent.multiply(ORBIT_SPEED)
                     .add(outward.multiply((ORBIT_RADIUS - radius) * ORBIT_RADIAL_GAIN))
@@ -297,7 +297,11 @@ public class MetalMagnetarAbility extends BaseAbility {
             if (velocity.lengthSquared() > ORBIT_MAX_SPEED * ORBIT_MAX_SPEED) {
                 velocity.normalize().multiply(ORBIT_MAX_SPEED);
             }
-            target.setVelocity(velocity);
+            if (isInCobweb(target)) {
+                pullOutOfWeb(target, velocity); // velocity is zeroed by the web, so move them by position
+            } else {
+                target.setVelocity(velocity);
+            }
         }
         target.setFallDistance(0f);
     }
@@ -480,6 +484,6 @@ public class MetalMagnetarAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Places a core that pulls in nearby players and mobs, then spins them around it in orbit and hurts them until it collapses.";
+        return "Places a core that pulls in nearby players and mobs (even through cobwebs, which it drags them out of), then spins them around it in orbit until it collapses.";
     }
 }

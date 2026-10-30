@@ -41,7 +41,7 @@ public class ElementAdvancementListener implements Listener {
     private static final String ROOT_JSON = """
             {
               "display": {
-                "icon": { "id": "minecraft:amethyst_shard" },
+                "icon": { "id": "minecraft:wind_charge" },
                 "title": { "text": "Element SMP" },
                 "description": { "text": "Maybe the WE are Element's were the friends we made along the way..." },
                 "background": "minecraft:gui/advancements/backgrounds/stone",
@@ -81,7 +81,7 @@ public class ElementAdvancementListener implements Listener {
             {
               "parent": "%s",
               "display": {
-                "icon": { "id": "minecraft:blaze_powder" },
+                "icon": { "id": "minecraft:fire_charge" },
                 "title": { "text": "Fatal Fall" },
                 "description": { "text": "Get a kill with a ability" },
                 "frame": "task",

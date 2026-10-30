@@ -15,6 +15,7 @@ import net.rose.elementSMPRefined.listeners.handler.ForgedUpgraderHandler;
 import net.rose.elementSMPRefined.listeners.handler.ReforgeAltarListener;
 import net.rose.elementSMPRefined.listeners.item.PlayerDeathListener;
 import net.rose.elementSMPRefined.listeners.handler.RerollerHandler;
+import net.rose.elementSMPRefined.listeners.handler.ElementAdvancementListener;
 import net.rose.elementSMPRefined.listeners.handler.UpgraderHandler;
 import net.rose.elementSMPRefined.listeners.player.InvisibilityNameHider;
 import net.rose.elementSMPRefined.listeners.player.PlayerLifecycle;
@@ -76,9 +77,11 @@ public class ListenerInitializer {
     private void registerItemListeners() {
         pluginManager.registerEvents(new PlayerDeathListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new RerollerHandler(plugin, plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new ForgedUpgraderHandler(plugin, plugin.getElementManager()), plugin);
+        ElementAdvancementListener advancements = new ElementAdvancementListener(plugin);
+        pluginManager.registerEvents(new ForgedUpgraderHandler(plugin, plugin.getElementManager(), advancements), plugin);
         pluginManager.registerEvents(new ReforgeAltarListener(plugin, plugin.getReforgeAltarManager()), plugin);
         pluginManager.registerEvents(new UpgraderHandler(plugin, plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(advancements, plugin);
     }
 
     private void registerElementListeners() {

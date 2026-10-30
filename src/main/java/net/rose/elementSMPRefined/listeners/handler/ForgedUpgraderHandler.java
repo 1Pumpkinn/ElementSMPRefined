@@ -27,10 +27,13 @@ import java.util.Optional;
 public class ForgedUpgraderHandler implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
+    private final ElementAdvancementListener advancements;
 
-    public ForgedUpgraderHandler(ElementSMPRefined plugin, ElementManager elementManager) {
+    public ForgedUpgraderHandler(ElementSMPRefined plugin, ElementManager elementManager,
+                                 ElementAdvancementListener advancements) {
         this.plugin = plugin;
         this.elementManager = elementManager;
+        this.advancements = advancements;
     }
 
     @EventHandler
@@ -71,6 +74,7 @@ public class ForgedUpgraderHandler implements Listener {
         elementManager.assignBasicElement(player, target);
         consume(player, hand);
         showForgedTitle(player, current, target);
+        advancements.awardReforged(player);
     }
 
     private void consume(Player player, EquipmentSlot hand) {

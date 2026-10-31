@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
@@ -96,7 +97,7 @@ public final class TornadoVisual {
 
     public void moveTo(Location base) {
         World world = base.getWorld();
-        if (world == null || !body.isValid() || !isLoaded(base)) return;
+        if (world == null || !body.isValid() || !GroundScan.isLoaded(base)) return;
         int wanted = PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS);
         if (wanted != smoothing) {
             smoothing = wanted;
@@ -180,9 +181,5 @@ public final class TornadoVisual {
 
     private static Location centre(Location base) {
         return new Location(base.getWorld(), base.getX(), base.getY() + HEIGHT / 2.0, base.getZ(), 0f, 0f);
-    }
-
-    private static boolean isLoaded(Location at) {
-        return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }
 }

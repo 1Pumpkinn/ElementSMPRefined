@@ -1,24 +1,30 @@
 package net.rose.elementSMPRefined.listeners.status;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.EquipmentSlot;
 
 public class StatusEffectListener implements Listener {
 
     private final StatusEffectManager statusEffectManager;
+    private final DisarmManager disarmManager;
 
     public StatusEffectListener(ElementSMPRefined plugin) {
         this.statusEffectManager = plugin.getStatusEffectManager();
+        this.disarmManager = plugin.getDisarmManager();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -68,10 +74,10 @@ public class StatusEffectListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        
-        if (statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)) {
-            event.setCancelled(true);
-        } else if (statusEffectManager.isSilenced(player)) {
+
+        if (statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)
+                || statusEffectManager.isSilenced(player)
+                || (event.getHand() == EquipmentSlot.HAND && isMainHandDisarmed(player))) {
             event.setCancelled(true);
         }
     }
@@ -92,5 +98,22 @@ public class StatusEffectListener implements Listener {
         if (statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)) {
             event.setCancelled(true);
         }
+    }
+
+    // ---- Disarm ----
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDamage(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player player && isMainHandDisarmed(player)) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** True if the player is holding something (not air) that a disarm currently locks. */
+    private boolean isMainHandDisarmed(Player player) {
+        Material hand = player.getInventory().getItemInMainHand().getType();
+        if (hand == Material.AIR) return false;
+        return disarmManager.isMainHandDisarmed(player, hand)
+                || disarmManager.isWeaponDisarmed(player, hand);
     }
 }

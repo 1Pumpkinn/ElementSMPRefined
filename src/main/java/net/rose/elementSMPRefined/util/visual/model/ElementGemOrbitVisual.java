@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
@@ -116,7 +117,7 @@ public final class ElementGemOrbitVisual {
         // high-ping players a longer interpolation window to ride out packet jitter.
         int wanted = PingCompensation.smoothingTicks(owner);
         Location base = tracker.sample(wanted);
-        if (!isLoaded(base)) return;
+        if (!GroundScan.isLoaded(base)) return;
         applySmoothing(wanted);
 
         tick++;
@@ -275,9 +276,5 @@ public final class ElementGemOrbitVisual {
                 a.getX() + (b.getX() - a.getX()) * t,
                 a.getY() + (b.getY() - a.getY()) * t,
                 a.getZ() + (b.getZ() - a.getZ()) * t);
-    }
-
-    private static boolean isLoaded(Location at) {
-        return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }
 }

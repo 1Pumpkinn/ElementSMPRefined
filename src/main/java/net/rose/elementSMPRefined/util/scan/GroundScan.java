@@ -1,13 +1,14 @@
 package net.rose.elementSMPRefined.util.scan;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.TileState;
 
 /**
- * Shared "find the floor of this column" scan used by the ground-spawning abilities
- * (Ice Spikes, Shockwave).
+ * Shared world-scanning helpers: the "find the floor of this column" scan used by the
+ * ground-spawning abilities (Ice Spikes, Shockwave), and the chunk-loaded check the visuals use.
  * <p>
  * Behaves exactly like the copies it replaces, but only creates a {@link Block} for columns that
  * are actually solid, and never loads a chunk just to look for ground.
@@ -15,6 +16,11 @@ import org.bukkit.block.TileState;
 public final class GroundScan {
 
     private GroundScan() {}
+
+    /** True if the chunk containing {@code at} is loaded (never loads it). */
+    public static boolean isLoaded(Location at) {
+        return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
+    }
 
     /**
      * Topmost solid, non-special block with open air above it in the column, scanning from

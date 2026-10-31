@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
@@ -135,7 +136,7 @@ public final class ChainVisual {
 
             ItemDisplay display = i < segments.size() ? segments.get(i) : null;
             if (display == null || !display.isValid()) {
-                display = isLoaded(at) ? spawn(at, transformation, smoothing) : null;
+                display = GroundScan.isLoaded(at) ? spawn(at, transformation, smoothing) : null;
                 if (i < segments.size()) {
                     segments.set(i, display);
                 } else {
@@ -186,9 +187,5 @@ public final class ChainVisual {
         if (display != null && display.isValid()) {
             display.remove();
         }
-    }
-
-    private static boolean isLoaded(Location at) {
-        return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }
 }

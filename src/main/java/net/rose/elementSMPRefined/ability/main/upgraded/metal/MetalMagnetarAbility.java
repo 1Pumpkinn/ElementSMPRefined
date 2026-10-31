@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
@@ -12,14 +13,12 @@ import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
@@ -338,14 +337,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     }
 
     private boolean isValidTarget(Core core, Player caster, LivingEntity target) {
-        if (target.equals(caster) || !target.isValid() || target.isDead()) return false;
-        if (target instanceof ArmorStand) return false;
-
-        if (target instanceof Player player) {
-            GameMode mode = player.getGameMode();
-            if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) return false;
-            return !isTrusted(core, caster, player.getUniqueId());
-        }
+        if (!AbilityTargets.isValid(caster, target, core.trust)) return false;
 
         // Mobs are fair game, but leave the caster's (and their trusted friends') tamed pets alone.
         if (target instanceof Tameable pet && pet.getOwnerUniqueId() != null) {

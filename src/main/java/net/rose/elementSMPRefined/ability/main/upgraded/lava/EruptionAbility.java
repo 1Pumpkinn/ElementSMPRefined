@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -87,7 +88,7 @@ public class EruptionAbility extends BaseAbility {
         double maxDistance = blocks == null ? RANGE : blocks.getHitPosition().distance(eye.toVector());
 
         RayTraceResult hit = world.rayTraceEntities(eye, dir, maxDistance, RAY_SIZE,
-                e -> e instanceof LivingEntity living && LavaTargets.isValid(player, living, trust));
+                e -> e instanceof LivingEntity living && AbilityTargets.isValid(player, living, trust));
         return hit == null ? null : (LivingEntity) hit.getHitEntity();
     }
 
@@ -190,7 +191,7 @@ public class EruptionAbility extends BaseAbility {
         // as the fountain. Anyone who has stepped out of the particles and spikes is not hit.
         Location column = center.clone().add(0, COLUMN_HEIGHT / 2, 0);
         for (LivingEntity e : column.getNearbyLivingEntities(RADIUS + 1.0, COLUMN_HEIGHT / 2 + 1.0, RADIUS + 1.0)) {
-            if (!LavaTargets.isValid(caster, e, trust)) continue;
+            if (!AbilityTargets.isValid(caster, e, trust)) continue;
             if (!insideBlast(center, e)) continue;
 
             double damage = e.getUniqueId().equals(mainTarget) ? DAMAGE : SPLASH_DAMAGE;

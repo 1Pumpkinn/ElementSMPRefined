@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
@@ -77,7 +78,7 @@ public final class LightningSpearVisual {
 
     public void moveTo(Location head) {
         World world = head.getWorld();
-        if (world == null || !display.isValid() || !isLoaded(head)) return;
+        if (world == null || !display.isValid() || !GroundScan.isLoaded(head)) return;
         int wanted = PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS);
         if (wanted != smoothing) {
             smoothing = wanted;
@@ -102,9 +103,5 @@ public final class LightningSpearVisual {
     private Location centre(Location head) {
         Location c = head.clone().subtract(direction.clone().multiply(HALF_LENGTH));
         return new Location(c.getWorld(), c.getX(), c.getY(), c.getZ(), 0f, 0f);
-    }
-
-    private static boolean isLoaded(Location at) {
-        return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }
 }

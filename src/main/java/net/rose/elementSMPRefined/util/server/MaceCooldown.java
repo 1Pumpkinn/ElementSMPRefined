@@ -22,7 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * Mace cooldown: the mace goes on a 15 second cooldown when it hits a player or a mob, and
  * while it is on cooldown its melee hits are cancelled (Bukkit's item cooldown on its own is
- * only a cosmetic swipe for melee, see {@code DisarmListener}). A mace that is already on
+ * only a cosmetic swipe for melee, see {@code StatusEffectListener}). A mace that is already on
  * cooldown is never restarted.
  * <p>
  * The expiry is an absolute wall-clock timestamp stored in the player's persistent data

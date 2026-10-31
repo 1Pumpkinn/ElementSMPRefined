@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -234,7 +235,7 @@ public class MagmaBeamAbility extends BaseAbility {
         Set<UUID> hit = new HashSet<>();
         for (Entity nearby : w.getNearbyEntities(corridor, candidate -> candidate instanceof LivingEntity)) {
             LivingEntity e = (LivingEntity) nearby;
-            if (!LavaTargets.isValid(player, e, trust) || hit.contains(e.getUniqueId())) continue;
+            if (!AbilityTargets.isValid(player, e, trust) || hit.contains(e.getUniqueId())) continue;
 
             BoundingBox grown = e.getBoundingBox().expand(HIT_RADIUS);
             if (!grown.contains(from) && grown.rayTrace(from, dir, reach) == null) continue;

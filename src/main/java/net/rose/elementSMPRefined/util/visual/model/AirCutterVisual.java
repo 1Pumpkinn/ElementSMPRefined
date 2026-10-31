@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
@@ -91,7 +92,7 @@ public final class AirCutterVisual {
 
     public void moveTo(Location at) {
         World world = at.getWorld();
-        if (world == null || !display.isValid() || !isLoaded(at)) return;
+        if (world == null || !display.isValid() || !GroundScan.isLoaded(at)) return;
         int wanted = PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS);
         if (wanted != smoothing) {
             smoothing = wanted;
@@ -115,9 +116,5 @@ public final class AirCutterVisual {
 
     private static Location flat(Location at) {
         return new Location(at.getWorld(), at.getX(), at.getY(), at.getZ(), 0f, 0f);
-    }
-
-    private static boolean isLoaded(Location at) {
-        return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }
 }

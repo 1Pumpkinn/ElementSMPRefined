@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Location;
@@ -70,7 +71,7 @@ public final class MetalShieldVisual {
     public void update(int tick) {
         int wanted = PingCompensation.smoothingTicks(owner);
         Location centre = tracker.sample(wanted);
-        if (!isLoaded(centre)) return;
+        if (!GroundScan.isLoaded(centre)) return;
 
         if (wanted != smoothing) {
             smoothing = wanted;
@@ -141,9 +142,5 @@ public final class MetalShieldVisual {
         loc.setYaw((float) Math.toDegrees(Math.atan2(-radialX, radialZ)));
         loc.setPitch(0f);
         return loc;
-    }
-
-    private static boolean isLoaded(Location at) {
-        return at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4);
     }
 }

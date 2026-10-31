@@ -1,5 +1,6 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.particles.element.StormParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -14,12 +15,10 @@ import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.damage.DamageType;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -136,14 +135,8 @@ public class LightningSpearAbility extends BaseAbility {
     }
 
     private boolean isTargetable(ElementContext context, Entity entity) {
-        if (!(entity instanceof LivingEntity living)) return false;
-        if (entity instanceof ArmorStand) return false;
-        if (!living.isValid() || living.isDead()) return false;
-        if (living instanceof Player other) {
-            GameMode mode = other.getGameMode();
-            if (mode == GameMode.SPECTATOR || mode == GameMode.CREATIVE) return false;
-        }
-        return isValidTarget(context, living);
+        return entity instanceof LivingEntity living
+                && AbilityTargets.isValid(context.getPlayer(), living, context.getTrustManager());
     }
 
     private void drawSpear(World world, Location head, Vector direction) {

@@ -20,7 +20,6 @@ import net.rose.elementSMPRefined.listeners.handler.ElementAdvancementHandler;
 import net.rose.elementSMPRefined.listeners.handler.UpgraderHandler;
 import net.rose.elementSMPRefined.listeners.player.InvisibilityNameHider;
 import net.rose.elementSMPRefined.listeners.player.PlayerLifecycle;
-import net.rose.elementSMPRefined.listeners.status.DisarmListener;
 import net.rose.elementSMPRefined.listeners.status.StatusEffectListener;
 import net.rose.elementSMPRefined.util.server.DimensionDisable;
 import net.rose.elementSMPRefined.util.server.GracePeriod;
@@ -60,7 +59,6 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.CombatListener(plugin.getTrustManager()), plugin);
 
         pluginManager.registerEvents(new StatusEffectListener(plugin), plugin);
-        pluginManager.registerEvents(new DisarmListener(plugin.getDisarmManager()), plugin);
 
         pluginManager.registerEvents(new DimensionDisable(plugin.getConfigManager()), plugin);
         pluginManager.registerEvents(new MaceCooldown(plugin), plugin);

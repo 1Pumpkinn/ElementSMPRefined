@@ -154,6 +154,8 @@ public class LifeTotemAbility extends BaseAbility {
         if (totem == null) return false;
 
         int tick = Bukkit.getCurrentTick();
+        // Only same-tick entries matter for the dedupe below, so drop everything older.
+        LAST_HIT_TICK.values().removeIf(t -> t != tick);
         Integer last = LAST_HIT_TICK.put(attacker.getUniqueId(), tick);
         if (last != null && last == tick) return true; // same swing, already handled
 

@@ -211,6 +211,7 @@ public class PlayerLifecycle implements Listener {
         plugin.getDataStore().invalidateCache(playerUuid);
         // Same cache-growth issue as DataStore above, applied to the trusted-set cache.
         plugin.getTrustManager().onPlayerQuit(playerUuid);
+        plugin.getCooldownManager().pruneExpired();
         if (metalMagnetarAbility != null) {
             metalMagnetarAbility.onPlayerQuit(playerUuid);
         }

@@ -59,4 +59,17 @@ public class CooldownManager {
             playerCooldowns.remove(abilityId);
         }
     }
+
+    /**
+     * Drops every cooldown that has already finished, and any player left with none. Called when
+     * someone leaves so the map doesn't keep an entry for every player who ever used an ability.
+     * Cooldowns still running are kept, so relogging can't be used to skip one.
+     */
+    public void pruneExpired() {
+        long now = System.currentTimeMillis();
+        cooldowns.entrySet().removeIf(entry -> {
+            entry.getValue().values().removeIf(readyAt -> now >= readyAt);
+            return entry.getValue().isEmpty();
+        });
+    }
 }

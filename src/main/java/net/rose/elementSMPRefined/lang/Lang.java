@@ -6,659 +6,566 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.textOfChildren;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.DARK_GRAY;
+import static net.kyori.adventure.text.format.NamedTextColor.DARK_PURPLE;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
+import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
+import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
+import static net.kyori.adventure.text.format.NamedTextColor.YELLOW;
+
+/**
+ * Every player-facing message, grouped by feature. Constants are fixed messages; methods take
+ * the values that vary.
+ */
 public final class Lang {
 
     private Lang() {}
 
-    private static Component legacy(Object text, NamedTextColor fallback) {
+    // Helpers
+
+    private static Component green(String message) { return text(message, GREEN); }
+    private static Component red(String message) { return text(message, RED); }
+    private static Component yellow(String message) { return text(message, YELLOW); }
+    private static Component gray(String message) { return text(message, GRAY); }
+
+    /** Parses a name that may contain legacy colour codes; uncoloured parts get {@code fallback}. */
+    private static Component legacy(Object name, NamedTextColor fallback) {
         return LegacyComponentSerializer.legacySection()
-                .deserialize(String.valueOf(text))
+                .deserialize(String.valueOf(name))
                 .colorIfAbsent(fallback);
     }
 
-    public static final Component DEATH_BACKSTAB_NO_TARGET_IN_RANGE =
-            Component.text("No target in range.", NamedTextColor.RED);
+    /** "label: value", with the label and value in different colours. */
+    private static Component labelled(String label, NamedTextColor labelColor, Object value, NamedTextColor valueColor) {
+        return textOfChildren(text(label, labelColor), text(String.valueOf(value), valueColor));
+    }
 
-    public static final Component EARTH_TUNNEL_TUNNELING_CANCELLED =
-            Component.text("Tunneling cancelled", NamedTextColor.YELLOW);
+    private static Component enabledOrDisabled(boolean enabled) {
+        return enabled ? green("enabled") : red("disabled");
+    }
+
+    /** "{subject} enabled." / "{subject} disabled." */
+    private static Component switched(String subject, boolean enabled) {
+        return text(subject + " ", GRAY)
+                .append(enabledOrDisabled(enabled))
+                .append(gray("."));
+    }
+
+    private static Component stateWord(boolean disabled) {
+        return disabled ? red("DISABLED") : green("ENABLED");
+    }
+
+    private static Component playerNotFound(Object name) {
+        return red("Player '" + name + "' not found.");
+    }
+
+    // Messages that several commands share.
+    private static final Component ONLY_PLAYERS_CAN_USE = red("Only players can use this command!");
+    private static final Component COMMAND_PLAYERS_ONLY = red("This command can only be used by players.");
+    private static final Component INVALID_TIME = red("Invalid time! Use seconds or units, e.g. 90, 10m, 1h30m.");
+
+    // Abilities
+
+    public static final Component DEATH_BACKSTAB_NO_TARGET_IN_RANGE = red("No target in range.");
+
+    public static final Component EARTH_TUNNEL_TUNNELING_CANCELLED = yellow("Tunneling cancelled");
 
     // Shown when the tunnel starts: no "started" text, just a hint that it can be cancelled.
     public static final Component EARTH_TUNNEL_TUNNELING_STARTED_PRESS_AGAIN_CANCEL =
-            Component.text("Press again to cancel.", NamedTextColor.GOLD);
+            text("Press again to cancel.", GOLD);
 
-    public static final Component EARTH_TUNNEL_TUNNELING_ENDED =
-            Component.text("Tunneling ended", NamedTextColor.YELLOW);
+    public static final Component EARTH_TUNNEL_TUNNELING_ENDED = yellow("Tunneling ended");
 
-    public static final Component TRUST_PLAYERS_ONLY =
-            Component.text("Players only");
+    public static final Component BASE_ELEMENT_YOU_NEED_UPGRADE_I_BEFORE =
+            red("You need Upgrade I before you can use Upgrade II abilities.");
+
+    public static Component baseElementYouNeedUpgrade(Object level) {
+        return red("You need Upgrade " + level + " to use this ability.");
+    }
+
+    // /trust
+
+    public static final Component TRUST_PLAYERS_ONLY = text("Players only");
 
     public static final Component TRUST_USAGE_TRUST_LIST_ADD_REMOVE =
-            Component.text("Usage: /trust <list|add|remove> [player]", NamedTextColor.YELLOW);
+            yellow("Usage: /trust <list|add|remove> [player]");
 
-    public static final Component TRUST_TRUSTED =
-            Component.textOfChildren(
-                    Component.text("Trusted: ", NamedTextColor.AQUA),
-                    Component.text("(none)", NamedTextColor.WHITE)
-            );
+    public static final Component TRUST_TRUSTED = labelled("Trusted: ", AQUA, "(none)", WHITE);
 
     public static Component trustTrustedList(Object displayNames) {
-        return Component.textOfChildren(
-                Component.text("Trusted: ", NamedTextColor.AQUA),
-                Component.text(String.valueOf(displayNames), NamedTextColor.WHITE)
-        );
+        return labelled("Trusted: ", AQUA, displayNames, WHITE);
     }
 
     public static Component trustUnknownPlayers(Object unknownUUIDs) {
-        return Component.textOfChildren(
-                Component.text("Unknown players: ", NamedTextColor.GRAY),
-                Component.text(String.valueOf(unknownUUIDs), NamedTextColor.GRAY)
-        );
+        return gray("Unknown players: " + unknownUUIDs);
     }
 
     public static final Component TRUST_USE_TRUST_REMOVE_UUID_CLEAN =
-            Component.text("Use '/trust remove <uuid>' to clean up invalid entries", NamedTextColor.GRAY);
+            gray("Use '/trust remove <uuid>' to clean up invalid entries");
 
-    public static final Component TRUST_USAGE_TRUST_ADD_PLAYER =
-            Component.text("Usage: /trust add <player>", NamedTextColor.RED);
+    public static final Component TRUST_USAGE_TRUST_ADD_PLAYER = red("Usage: /trust add <player>");
 
-    public static final Component TRUST_PLAYER_NOT_FOUND =
-            Component.text("Player not found", NamedTextColor.RED);
+    public static final Component TRUST_PLAYER_NOT_FOUND = red("Player not found");
 
-    public static final Component TRUST_YOU_CANNOT_TRUST_YOURSELF =
-            Component.text("You cannot trust yourself", NamedTextColor.RED);
+    public static final Component TRUST_YOU_CANNOT_TRUST_YOURSELF = red("You cannot trust yourself");
 
     public static final Component TRUST_YOU_ARE_ALREADY_MUTUALLY_TRUSTED =
-            Component.text("You are already mutually trusted.", NamedTextColor.YELLOW);
+            yellow("You are already mutually trusted.");
 
     public static Component trustSentTrustRequest(Object name) {
-        return Component.textOfChildren(
-                Component.text("Sent trust request to ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name), NamedTextColor.GREEN)
-        );
+        return green("Sent trust request to " + name);
     }
 
     public static final Component TRUST_USAGE_TRUST_ACCEPT_PLAYER_UUID =
-            Component.text("Usage: /trust accept <player|uuid>", NamedTextColor.RED);
+            red("Usage: /trust accept <player|uuid>");
 
     public static final Component TRUST_NO_PENDING_REQUEST_FROM_THAT =
-            Component.text("No pending request from that player.", NamedTextColor.YELLOW);
+            yellow("No pending request from that player.");
 
     public static final Component TRUST_YOU_ARE_NOW_MUTUALLY_TRUSTED =
-            Component.text("You are now mutually trusted.", NamedTextColor.GREEN);
+            green("You are now mutually trusted.");
 
     public static Component trustAcceptedYourTrustRequest(Object name) {
-        return Component.textOfChildren(
-                Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                Component.text(" accepted your trust request.", NamedTextColor.GREEN)
-        );
+        return green(name + " accepted your trust request.");
     }
 
     public static final Component TRUST_USAGE_TRUST_DENY_PLAYER_UUID =
-            Component.text("Usage: /trust deny <player|uuid>", NamedTextColor.RED);
+            red("Usage: /trust deny <player|uuid>");
 
-    public static final Component TRUST_DENIED_TRUST_REQUEST =
-            Component.text("Denied trust request.", NamedTextColor.YELLOW);
+    public static final Component TRUST_DENIED_TRUST_REQUEST = yellow("Denied trust request.");
 
     public static Component trustDeniedYourTrustRequest(Object name) {
-        return Component.textOfChildren(
-                Component.text(String.valueOf(name), NamedTextColor.RED),
-                Component.text(" denied your trust request.", NamedTextColor.RED)
-        );
+        return red(name + " denied your trust request.");
     }
 
-    public static final Component TRUST_USAGE_TRUST_REMOVE_PLAYER =
-            Component.text("Usage: /trust remove <player>", NamedTextColor.RED);
+    public static final Component TRUST_USAGE_TRUST_REMOVE_PLAYER = red("Usage: /trust remove <player>");
 
     public static final Component TRUST_PLAYER_MUST_BE_ONLINE_OR =
-            Component.text("Player must be online or provide UUID", NamedTextColor.RED);
+            red("Player must be online or provide UUID");
 
-    public static final Component TRUST_REMOVED_MUTUAL_TRUST =
-            Component.text("Removed mutual trust.", NamedTextColor.YELLOW);
+    public static final Component TRUST_REMOVED_MUTUAL_TRUST = yellow("Removed mutual trust.");
 
-    public static final Component UTIL_THIS_COMMAND_CAN_ONLY_BE =
-            Component.text("This command can only be used by players.", NamedTextColor.RED);
+    // /util
+
+    public static final Component UTIL_THIS_COMMAND_CAN_ONLY_BE = COMMAND_PLAYERS_ONLY;
 
     public static final Component UTIL_YOU_DON_T_HAVE_PERMISSION =
-            Component.text("You don't have permission to use this command.", NamedTextColor.RED);
+            red("You don't have permission to use this command.");
 
     public static final Component UTIL_YOU_HAVE_BEEN_GIVEN_UTILITY =
-            Component.text("You have been given utility items!", NamedTextColor.GREEN);
+            green("You have been given utility items!");
 
-    public static final Component UTIL_64X_UPGRADER_I =
-            Component.text("• 64x Upgrader I", NamedTextColor.YELLOW);
+    public static final Component UTIL_64X_UPGRADER_I = yellow("• 64x Upgrader I");
 
-    public static final Component UTIL_64X_UPGRADER_II =
-            Component.text("• 64x Upgrader II", NamedTextColor.YELLOW);
+    public static final Component UTIL_64X_UPGRADER_II = yellow("• 64x Upgrader II");
 
-    public static final Component UTIL_64X_REROLLER =
-            Component.text("• 64x Reroller", NamedTextColor.YELLOW);
+    public static final Component UTIL_64X_REROLLER = yellow("• 64x Reroller");
 
-    public static final Component UTIL_64X_FORGED_UPGRADER =
-            Component.text("• 64x Forged Upgrader", NamedTextColor.DARK_PURPLE);
+    public static final Component UTIL_64X_FORGED_UPGRADER = text("• 64x Forged Upgrader", DARK_PURPLE);
+
+    // /element config
 
     public static final Component CONFIG_CONFIGURATION_RELOADED_SUCCESSFULLY =
-            Component.text("Configuration reloaded successfully!", NamedTextColor.GREEN);
+            green("Configuration reloaded successfully!");
 
     public static final Component CONFIG_USAGE_ELEMENT_CONFIG_SET_KEY =
-            Component.text("Usage: /element config set <key> <value>", NamedTextColor.RED);
+            red("Usage: /element config set <key> <value>");
 
     public static Component configSet(Object key, Object value) {
-        return Component.textOfChildren(
-                Component.text("Set ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(key), NamedTextColor.GREEN),
-                Component.text(" to ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(value), NamedTextColor.GREEN)
-        );
+        return green("Set " + key + " to " + value);
     }
 
     public static Component configErrorSettingValue(Object message) {
-        return Component.textOfChildren(
-                Component.text("Error setting value: ", NamedTextColor.RED),
-                Component.text(String.valueOf(message), NamedTextColor.RED)
-        );
+        return red("Error setting value: " + message);
     }
 
     public static Component configUnknownAction(Object action) {
-        return Component.textOfChildren(
-                Component.text("Unknown action: ", NamedTextColor.RED),
-                Component.text(String.valueOf(action), NamedTextColor.RED)
-        );
+        return red("Unknown action: " + action);
     }
 
     public static final Component CONFIG_CONFIGURATION_RESET_DEFAULT_VALUES =
-            Component.text("Configuration reset to default values!", NamedTextColor.GREEN);
+            green("Configuration reset to default values!");
 
     public static Component configKeyReset(Object key, Object defaultValue) {
-        return Component.textOfChildren(
-                Component.text("Reset ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(key), NamedTextColor.GREEN),
-                Component.text(" to default (", NamedTextColor.GREEN),
-                Component.text(String.valueOf(defaultValue), NamedTextColor.GREEN),
-                Component.text(").", NamedTextColor.GREEN)
-        );
+        return green("Reset " + key + " to default (" + defaultValue + ").");
     }
 
     public static Component configNoDefaultValue(Object key) {
-        return Component.textOfChildren(
-                Component.text("No default value exists for '", NamedTextColor.RED),
-                Component.text(String.valueOf(key), NamedTextColor.RED),
-                Component.text("'.", NamedTextColor.RED)
-        );
+        return red("No default value exists for '" + key + "'.");
     }
 
     public static final Component CONFIG_USAGE_ELEMENT_CONFIG_ACTION =
-            Component.text("Usage: /element config <action>", NamedTextColor.RED);
+            red("Usage: /element config <action>");
 
-    public static final Component CONFIG_ACTIONS =
-            Component.text("Actions:", NamedTextColor.GRAY);
+    public static final Component CONFIG_ACTIONS = gray("Actions:");
 
-    public static final Component CONFIG_RELOAD =
-            Component.text("  reload", NamedTextColor.GRAY);
+    public static final Component CONFIG_RELOAD = gray("  reload");
 
     public static final Component CONFIG_RESET_KEY_OMIT_KEY_RESET =
-            Component.text("  reset [key]  -  omit key to reset everything", NamedTextColor.GRAY);
+            gray("  reset [key]  -  omit key to reset everything");
 
-    public static final Component CONFIG_SET_KEY_VALUE =
-            Component.text("  set <key> <value>", NamedTextColor.GRAY);
+    public static final Component CONFIG_SET_KEY_VALUE = gray("  set <key> <value>");
+
+    // /element debug
 
     public static final Component DEBUG_USAGE_ELEMENT_DEBUG_PLAYER =
-            Component.text("Usage: /element debug [player]", NamedTextColor.RED);
+            red("Usage: /element debug [player]");
 
-    public static Component debugPlayer(Object args) {
-        return Component.textOfChildren(
-                Component.text("Player '", NamedTextColor.RED),
-                Component.text(String.valueOf(args), NamedTextColor.RED),
-                Component.text("' not found.", NamedTextColor.RED)
-        );
+    public static Component debugPlayer(Object name) {
+        return playerNotFound(name);
     }
 
     public static Component debugElementDebug(Object name) {
-        return Component.textOfChildren(
-                Component.text("=== Element Debug: ", NamedTextColor.GOLD),
-                Component.text(String.valueOf(name), NamedTextColor.GOLD),
-                Component.text(" ===", NamedTextColor.GOLD)
-        );
+        return text("=== Element Debug: " + name + " ===", GOLD);
     }
 
     public static Component debugOnlineStatus(boolean online) {
         return online
-                ? Component.text("Status: ONLINE", NamedTextColor.GREEN)
-                : Component.text("Status: OFFLINE (only persisted data is available below)", NamedTextColor.YELLOW);
+                ? green("Status: ONLINE")
+                : yellow("Status: OFFLINE (only persisted data is available below)");
     }
 
     public static Component debugSection(String title) {
-        return Component.text("--- " + title + " ---", NamedTextColor.AQUA);
+        return text("--- " + title + " ---", AQUA);
     }
 
     public static Component debugElementmanagerReportsBuiltinType(Object builtinType) {
-        return Component.textOfChildren(
-                Component.text("ElementManager reports (element): ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(builtinType), NamedTextColor.YELLOW)
-        );
+        return yellow("ElementManager reports (element): " + builtinType);
     }
 
     public static Component debugAfterCacheInvalidation(Object reloadedElement) {
-        return Component.textOfChildren(
-                Component.text("After cache invalidation: ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(reloadedElement), NamedTextColor.YELLOW)
-        );
+        return yellow("After cache invalidation: " + reloadedElement);
     }
 
     public static Component debugDisplayName(Object displayName) {
-        return Component.textOfChildren(
-                Component.text("Display name: ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(displayName), NamedTextColor.YELLOW)
-        );
+        return yellow("Display name: " + displayName);
     }
 
     public static Component debugUpgradeLevel(int level) {
-        return Component.textOfChildren(
-                Component.text("Upgrade level: ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(level), NamedTextColor.YELLOW)
-        );
+        return yellow("Upgrade level: " + level);
     }
 
     public static Component debugAbilityStatus(int slot, String name, String abilityId, boolean ready,
                                                long remainingSeconds, int cooldownSeconds) {
         Component status = ready
-                ? Component.text("READY", NamedTextColor.GREEN)
-                : Component.textOfChildren(
-                Component.text("ON COOLDOWN (", NamedTextColor.RED),
-                Component.text(remainingSeconds + "s", NamedTextColor.RED),
-                Component.text(" left)", NamedTextColor.RED)
-        );
-        return Component.textOfChildren(
-                Component.text("Ability " + slot + " '" + name + "' [" + abilityId + ", " + cooldownSeconds + "s cd]: ", NamedTextColor.YELLOW),
+                ? green("READY")
+                : red("ON COOLDOWN (" + remainingSeconds + "s left)");
+        return textOfChildren(
+                yellow("Ability " + slot + " '" + name + "' [" + abilityId + ", " + cooldownSeconds + "s cd]: "),
                 status
         );
     }
 
     public static final Component DEBUG_NO_ABILITIES_ELEMENT =
-            Component.text("No element assigned - abilities unavailable.", NamedTextColor.RED);
+            red("No element assigned - abilities unavailable.");
 
     public static Component debugDisarmed(boolean disarmed) {
-        return Component.textOfChildren(
-                Component.text("Ability disarmed: ", NamedTextColor.YELLOW),
-                disarmed ? Component.text("YES", NamedTextColor.RED) : Component.text("NO", NamedTextColor.GREEN)
+        return textOfChildren(
+                yellow("Ability disarmed: "),
+                disarmed ? red("YES") : green("NO")
         );
     }
 
     public static Component debugActiveStatusEffects(String summary) {
-        return Component.textOfChildren(
-                Component.text("Active status effects: ", NamedTextColor.YELLOW),
-                Component.text(summary, NamedTextColor.YELLOW)
-        );
+        return yellow("Active status effects: " + summary);
     }
 
     public static Component debugActivePassiveEffects(String summary) {
-        return Component.textOfChildren(
-                Component.text("Active passive effects: ", NamedTextColor.YELLOW),
-                Component.text(summary, NamedTextColor.YELLOW)
-        );
+        return yellow("Active passive effects: " + summary);
     }
 
     public static Component debugTrustedNames(String joined, int liveCount) {
-        return Component.textOfChildren(
-                Component.text("Trusted players (" + liveCount + "): ", NamedTextColor.YELLOW),
-                Component.text(joined, NamedTextColor.YELLOW)
-        );
+        return yellow("Trusted players (" + liveCount + "): " + joined);
     }
 
     public static Component debugTrustCacheMismatch(int liveCount, int storedCount) {
-        return Component.text(
-                "WARNING: TrustManager cache (" + liveCount + ") disagrees with stored data (" + storedCount + ")!",
-                NamedTextColor.RED
-        );
+        return red("WARNING: TrustManager cache (" + liveCount + ") disagrees with stored data (" + storedCount + ")!");
     }
 
     public static Component debugPendingRefunds(int basic, int advanced) {
-        return Component.textOfChildren(
-                Component.text("Pending reroller refunds: ", NamedTextColor.YELLOW),
-                Component.text("basic=" + basic + ", advanced=" + advanced, NamedTextColor.YELLOW)
-        );
+        return yellow("Pending reroller refunds: basic=" + basic + ", advanced=" + advanced);
     }
 
     public static Component debugRerolling(boolean rolling) {
-        return Component.textOfChildren(
-                Component.text("Currently rerolling: ", NamedTextColor.YELLOW),
-                rolling ? Component.text("YES", NamedTextColor.GREEN) : Component.text("NO", NamedTextColor.GRAY)
+        return textOfChildren(
+                yellow("Currently rerolling: "),
+                rolling ? green("YES") : gray("NO")
         );
     }
 
     public static Component debugGameMode(Object mode) {
-        return Component.textOfChildren(
-                Component.text("Game mode: ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(mode), NamedTextColor.YELLOW)
-        );
+        return yellow("Game mode: " + mode);
     }
 
     public static final Component DEBUG_LIVE_STATE_UNAVAILABLE =
-            Component.text("Player is offline - ability/status data unavailable.", NamedTextColor.GRAY);
+            gray("Player is offline - ability/status data unavailable.");
 
-    public static final Component DEBUG_FOOTER =
-            Component.text("=== End Debug ===", NamedTextColor.GOLD);
+    public static final Component DEBUG_FOOTER = text("=== End Debug ===", GOLD);
 
-    public static final Component PARTICLES_THIS_COMMAND_CAN_ONLY_BE =
-            Component.text("This command can only be used by players.", NamedTextColor.RED);
+    // /element particles
+
+    public static final Component PARTICLES_THIS_COMMAND_CAN_ONLY_BE = COMMAND_PLAYERS_ONLY;
 
     public static Component particlesPlayingParticlePreset(Object key) {
-        return Component.textOfChildren(
-                Component.text("Playing particle preset: ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(key), NamedTextColor.AQUA)
-        );
+        return labelled("Playing particle preset: ", GREEN, key, AQUA);
     }
 
     public static final Component PARTICLES_ELEMENT_PARTICLE_PRESETS =
-            Component.text("=== Element Particle Presets ===", NamedTextColor.GOLD);
+            text("=== Element Particle Presets ===", GOLD);
 
-    public static Component particlesAvailable(Object getNames) {
-        return Component.textOfChildren(
-                Component.text("Available: ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(getNames), NamedTextColor.YELLOW)
-        );
+    public static Component particlesAvailable(Object names) {
+        return yellow("Available: " + names);
     }
 
     public static Component particlesPlayingAbilityEffect(Object key) {
-        return Component.textOfChildren(
-                Component.text("Playing ability particles: ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(key), NamedTextColor.AQUA)
-        );
+        return labelled("Playing ability particles: ", GREEN, key, AQUA);
     }
 
     public static Component particlesAbilityEffects(Object names) {
-        return Component.textOfChildren(
-                Component.text("Ability effects: ", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(names), NamedTextColor.YELLOW)
-        );
+        return yellow("Ability effects: " + names);
     }
 
     public static final Component PARTICLES_USAGE_ABILITY_EFFECT =
-            Component.text("Usage: /element particles <ability effect>", NamedTextColor.GRAY);
+            gray("Usage: /element particles <ability effect>");
 
     public static final Component PARTICLES_USAGE_ELEMENT_PARTICLES_PRESET_SIZE =
-            Component.text("Usage: /element particles <preset> [size] [length] [width] [color] [particle]", NamedTextColor.GRAY);
+            gray("Usage: /element particles <preset> [size] [length] [width] [color] [particle]");
 
     public static final Component PARTICLES_ALSO_SUPPORTED_SIZE_2_5 =
-            Component.text("Also supported: size=2.5 length=0 width=36 color=red particle=dust", NamedTextColor.GRAY);
+            gray("Also supported: size=2.5 length=0 width=36 color=red particle=dust");
 
     public static final Component PARTICLES_EXAMPLE_ELEMENT_PARTICLES_CIRCLE_2 =
-            Component.text("Example: /element particles circle 2.5 0 36 red dust", NamedTextColor.GRAY);
+            gray("Example: /element particles circle 2.5 0 36 red dust");
+
+    // /element set
 
     public static final Component SET_USAGE_ELEMENT_SET_PLAYER_ELEMENT =
-            Component.text("Usage: /element set <player> <element>", NamedTextColor.RED);
+            red("Usage: /element set <player> <element>");
 
-    public static Component setPlayer(Object args) {
-        return Component.textOfChildren(
-                Component.text("Player '", NamedTextColor.RED),
-                Component.text(String.valueOf(args), NamedTextColor.RED),
-                Component.text("' not found.", NamedTextColor.RED)
-        );
+    public static Component setPlayer(Object name) {
+        return playerNotFound(name);
     }
 
-    public static Component setInvalidElementValid(Object elementManager) {
-        return Component.textOfChildren(
-                Component.text("Invalid element. Valid: ", NamedTextColor.RED),
-                Component.text(String.valueOf(elementManager), NamedTextColor.RED)
-        );
+    public static Component setInvalidElementValid(Object validElements) {
+        return red("Invalid element. Valid: " + validElements);
     }
 
     public static Component setSet(Object name, Object displayName) {
-        return Component.textOfChildren(
-                Component.text("Set ", NamedTextColor.GREEN),
-                Component.text(String.valueOf(name), NamedTextColor.GREEN),
-                Component.text("'s element to ", NamedTextColor.GREEN),
-                legacy(displayName, NamedTextColor.AQUA)
+        return textOfChildren(
+                green("Set " + name + "'s element to "),
+                legacy(displayName, AQUA)
         );
     }
 
     public static Component setYourElementHasBeenSet(Object displayName) {
-        return Component.textOfChildren(
-                Component.text("Your element has been set to ", NamedTextColor.GREEN),
-                legacy(displayName, NamedTextColor.AQUA),
-                Component.text(" by an admin.", NamedTextColor.GREEN)
+        return textOfChildren(
+                green("Your element has been set to "),
+                legacy(displayName, AQUA),
+                green(" by an admin.")
         );
     }
 
-    public static final Component BASE_ELEMENT_YOU_NEED_UPGRADE_I_BEFORE =
-            Component.text("You need Upgrade I before you can use Upgrade II abilities.", NamedTextColor.RED);
+    // Upgraders
 
-    public static Component baseElementYouNeedUpgrade(Object II) {
-        return Component.textOfChildren(
-                Component.text("You need Upgrade ", NamedTextColor.RED),
-                Component.text(String.valueOf(II), NamedTextColor.RED),
-                Component.text(" to use this ability.", NamedTextColor.RED)
-        );
+    private static Component unlocked(String upgrade) {
+        return textOfChildren(green("You have unlocked "), text(upgrade, GOLD));
     }
 
-    public static final Component UPGRADER_NO_ELEMENT_YET =
-            Component.text("You don't have an element yet.", NamedTextColor.RED);
+    public static final Component UPGRADER_NO_ELEMENT_YET = red("You don't have an element yet.");
 
-    public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I =
-            Component.text("You already have Upgrade I", NamedTextColor.RED);
+    public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I = red("You already have Upgrade I");
 
-    public static final Component UPGRADER_YOU_HAVE_UNLOCKED =
-            Component.textOfChildren(
-                    Component.text("You have unlocked ", NamedTextColor.GREEN),
-                    Component.text("Upgrade I", NamedTextColor.GOLD)
-            );
+    public static final Component UPGRADER_YOU_HAVE_UNLOCKED = unlocked("Upgrade I");
 
     public static final Component UPGRADER_YOU_NEED_UPGRADE_I_BEFORE =
-            Component.text("You need Upgrade I before you can use Upgrade II!", NamedTextColor.RED);
+            red("You need Upgrade I before you can use Upgrade II!");
 
-    public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_II =
-            Component.text("You already have Upgrade II", NamedTextColor.RED);
+    public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_II = red("You already have Upgrade II");
 
-    public static final Component UPGRADER_YOU_HAVE_UNLOCKED_2 =
-            Component.textOfChildren(
-                    Component.text("You have unlocked ", NamedTextColor.GREEN),
-                    Component.text("Upgrade II", NamedTextColor.GOLD)
-            );
+    public static final Component UPGRADER_YOU_HAVE_UNLOCKED_2 = unlocked("Upgrade II");
 
-    public static Component lifecycleYourElementReroller(Object was) {
-        return Component.textOfChildren(
-                Component.text("Your Element Reroller", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(was), NamedTextColor.YELLOW),
-                Component.text(" refunded since your last reroll got interrupted.", NamedTextColor.YELLOW)
-        );
+    // Player lifecycle / rerolling
+
+    public static Component lifecycleYourElementReroller(Object suffix) {
+        return yellow("Your Element Reroller" + suffix + " refunded since your last reroll got interrupted.");
     }
 
-    public static Component lifecycleYourForgedUpgrader(Object was) {
-        return Component.textOfChildren(
-                Component.text("Your Forged Upgrader", NamedTextColor.YELLOW),
-                Component.text(String.valueOf(was), NamedTextColor.YELLOW),
-                Component.text(" refunded since your last reroll got interrupted.", NamedTextColor.YELLOW)
-        );
+    public static Component lifecycleYourForgedUpgrader(Object suffix) {
+        return yellow("Your Forged Upgrader" + suffix + " refunded since your last reroll got interrupted.");
     }
 
-    public static Component elementManagerYourElementIsNow(Object id) {
-        return Component.textOfChildren(
-                Component.text("Your element is now ", NamedTextColor.GOLD),
-                legacy(id, NamedTextColor.AQUA)
+    public static Component elementManagerYourElementIsNow(Object displayName) {
+        return textOfChildren(
+                text("Your element is now ", GOLD),
+                legacy(displayName, AQUA)
         );
     }
 
     public static final Component ELEMENT_MANAGER_YOU_ARE_ALREADY_REROLLING =
-            Component.text("You are already rerolling!", NamedTextColor.RED);
+            red("You are already rerolling!");
 
-    public static final Component AUTOSMELT_PLAYERS_ONLY =
-            Component.text("Only players can use this command!", NamedTextColor.RED);
+    // /autosmelt, /toggle, /elementinfo
+
+    public static final Component AUTOSMELT_PLAYERS_ONLY = ONLY_PLAYERS_CAN_USE;
 
     public static final Component AUTOSMELT_WRONG_ELEMENT =
-            Component.text("Auto smelt is only available to Fire and Lava.", NamedTextColor.RED);
+            red("Auto smelt is only available to Fire and Lava.");
 
-    public static final Component AUTOSMELT_USAGE =
-            Component.text("Usage: /autosmelt [on|off]", NamedTextColor.YELLOW);
+    public static final Component AUTOSMELT_USAGE = yellow("Usage: /autosmelt [on|off]");
 
-    public static final Component AUTOSMELT_ENABLED =
-            Component.text("Auto smelt ", NamedTextColor.GRAY)
-                    .append(Component.text("enabled", NamedTextColor.GREEN))
-                    .append(Component.text(".", NamedTextColor.GRAY));
+    public static final Component AUTOSMELT_ENABLED = switched("Auto smelt", true);
 
-    public static final Component AUTOSMELT_DISABLED =
-            Component.text("Auto smelt ", NamedTextColor.GRAY)
-                    .append(Component.text("disabled", NamedTextColor.RED))
-                    .append(Component.text(".", NamedTextColor.GRAY));
+    public static final Component AUTOSMELT_DISABLED = switched("Auto smelt", false);
 
-    public static final Component TOGGLE_PLAYERS_ONLY =
-            Component.text("Only players can use this command!", NamedTextColor.RED);
+    public static final Component TOGGLE_PLAYERS_ONLY = ONLY_PLAYERS_CAN_USE;
 
     public static final Component TOGGLE_NO_ELEMENT =
-            Component.text("You don't have an element, so there are no passives to toggle.", NamedTextColor.RED);
+            red("You don't have an element, so there are no passives to toggle.");
 
     public static final Component TOGGLE_NONE_AVAILABLE =
-            Component.text("Your element has no passives that can be toggled.", NamedTextColor.YELLOW);
+            yellow("Your element has no passives that can be toggled.");
 
     public static final Component TOGGLE_USAGE =
-            Component.text("Usage: /toggle [passive] [on|off]  (run /toggle to see yours)", NamedTextColor.YELLOW);
+            yellow("Usage: /toggle [passive] [on|off]  (run /toggle to see yours)");
 
-    public static final Component TOGGLE_LIST_HEADER =
-            Component.text("Passive toggles:", NamedTextColor.GOLD);
+    public static final Component TOGGLE_LIST_HEADER = text("Passive toggles:", GOLD);
 
     public static Component toggleListEntry(String id, String displayName, boolean enabled) {
-        return Component.text(" - ", NamedTextColor.DARK_GRAY)
-                .append(Component.text(displayName, NamedTextColor.GRAY))
-                .append(Component.text(" (" + id + "): ", NamedTextColor.DARK_GRAY))
-                .append(enabled
-                        ? Component.text("on", NamedTextColor.GREEN)
-                        : Component.text("off", NamedTextColor.RED));
+        return text(" - ", DARK_GRAY)
+                .append(gray(displayName))
+                .append(text(" (" + id + "): ", DARK_GRAY))
+                .append(enabled ? green("on") : red("off"));
     }
 
     public static Component toggleUnknown(String input) {
-        return Component.text("Unknown passive '" + input + "'. Run /toggle to see the ones you can use.", NamedTextColor.RED);
+        return red("Unknown passive '" + input + "'. Run /toggle to see the ones you can use.");
     }
 
     public static Component toggleWrongElement(String displayName, String elementNames) {
-        return Component.text(displayName + " is only available to " + elementNames + ".", NamedTextColor.RED);
+        return red(displayName + " is only available to " + elementNames + ".");
     }
 
     public static Component toggleChanged(String displayName, boolean enabled) {
-        return Component.text(displayName + " ", NamedTextColor.GRAY)
-                .append(enabled
-                        ? Component.text("enabled", NamedTextColor.GREEN)
-                        : Component.text("disabled", NamedTextColor.RED))
-                .append(Component.text(".", NamedTextColor.GRAY));
+        return switched(displayName, enabled);
     }
 
-    public static final Component ELEMENT_INFO_PLAYERS_ONLY =
-            Component.text("Only players can use this command!", NamedTextColor.RED);
+    public static final Component ELEMENT_INFO_PLAYERS_ONLY = ONLY_PLAYERS_CAN_USE;
 
-    public static final Component DIMENSION_TRAVEL_DISABLED =
-            Component.text("Dimension is disabled.", NamedTextColor.RED);
+    // /dimension
+
+    public static final Component DIMENSION_TRAVEL_DISABLED = red("Dimension is disabled.");
 
     public static final Component DIMENSION_CMD_USAGE =
-            Component.text("Usage: /dimension <enable|disable|toggle> <nether|end|all> [time]  |  status  |  settings  |  set <option> <value>", NamedTextColor.YELLOW);
+            yellow("Usage: /dimension <enable|disable|toggle> <nether|end|all> [time]  |  status  |  settings  |  set <option> <value>");
 
     public static final Component DIMENSION_CMD_INVALID_TARGET =
-            Component.text("Invalid dimension! Use: nether, end, or all", NamedTextColor.RED);
+            red("Invalid dimension! Use: nether, end, or all");
 
-    public static final Component DIMENSION_CMD_INVALID_TIME =
-            Component.text("Invalid time! Use seconds or units, e.g. 90, 10m, 1h30m.", NamedTextColor.RED);
+    public static final Component DIMENSION_CMD_INVALID_TIME = INVALID_TIME;
 
     public static Component dimensionCmdToggled(String name, boolean disabled) {
-        return Component.textOfChildren(
-                Component.text(name + " travel is now ", NamedTextColor.GREEN),
-                stateWord(disabled)
-        );
+        return textOfChildren(green(name + " travel is now "), stateWord(disabled));
     }
 
     public static Component dimensionCmdToggledTimed(String name, boolean disabled, String duration) {
-        return Component.textOfChildren(
+        return textOfChildren(
                 dimensionCmdToggled(name, disabled),
-                Component.text(" for " + duration + ".", NamedTextColor.GREEN)
+                green(" for " + duration + ".")
         );
     }
 
     public static Component dimensionTimerEnded(String name, boolean disabled) {
-        return Component.textOfChildren(
-                Component.text("The timer ran out - " + name + " travel is now ", NamedTextColor.YELLOW),
+        return textOfChildren(
+                yellow("The timer ran out - " + name + " travel is now "),
                 stateWord(disabled)
         );
     }
 
     public static Component dimensionStatusLine(String name, boolean disabled, String timeLeft) {
-        Component line = Component.textOfChildren(
-                Component.text(name + ": ", NamedTextColor.YELLOW),
-                stateWord(disabled)
-        );
+        Component line = textOfChildren(yellow(name + ": "), stateWord(disabled));
         if (timeLeft != null) {
-            line = line.append(Component.text(" (flips in " + timeLeft + ")", NamedTextColor.GRAY));
+            line = line.append(gray(" (flips in " + timeLeft + ")"));
         }
         return line;
     }
 
-    private static Component stateWord(boolean disabled) {
-        return disabled
-                ? Component.text("DISABLED", NamedTextColor.RED)
-                : Component.text("ENABLED", NamedTextColor.GREEN);
-    }
+    // Shared by /grace and /dimension "set" and "settings"
 
-    // Shared by /grace and /dimension "set" and "settings".
     public static Component settingsHeader(String title) {
-        return Component.text("--- " + title + " ---", NamedTextColor.GOLD);
+        return text("--- " + title + " ---", GOLD);
     }
 
     public static Component settingLine(String name, String value) {
-        return Component.textOfChildren(
-                Component.text(name + ": ", NamedTextColor.YELLOW),
-                Component.text(value, NamedTextColor.WHITE)
-        );
+        return labelled(name + ": ", YELLOW, value, WHITE);
     }
 
     public static Component optionSet(String name, String value) {
-        return Component.textOfChildren(
-                Component.text(name + " set to ", NamedTextColor.GREEN),
-                Component.text(value, NamedTextColor.YELLOW),
-                Component.text(".", NamedTextColor.GREEN)
+        return textOfChildren(
+                green(name + " set to "),
+                yellow(value),
+                green(".")
         );
     }
 
     public static Component optionUnknown(String name, String valid) {
-        return Component.text("Unknown option '" + name + "'. Options: " + valid, NamedTextColor.RED);
+        return red("Unknown option '" + name + "'. Options: " + valid);
     }
 
     public static Component optionInvalidValue(String name, String expected) {
-        return Component.text("Invalid value for " + name + ". Expected " + expected + ".", NamedTextColor.RED);
+        return red("Invalid value for " + name + ". Expected " + expected + ".");
     }
 
     public static Component optionUsage(String command) {
-        return Component.text("Usage: /" + command + " set <option> <value>  (see /" + command + " settings)", NamedTextColor.YELLOW);
+        return yellow("Usage: /" + command + " set <option> <value>  (see /" + command + " settings)");
     }
 
+    // /grace
+
     public static Component gracePeriodBossBarTitle(String timeLeft) {
-        return Component.textOfChildren(
-                Component.text("Grace Period: ", NamedTextColor.GREEN),
-                Component.text(timeLeft, NamedTextColor.YELLOW)
-        );
+        return labelled("Grace Period: ", GREEN, timeLeft, YELLOW);
     }
 
     public static final Component GRACE_PERIOD_ENDED =
-            Component.text("The grace period has ended. PvP is now enabled!", NamedTextColor.RED);
+            red("The grace period has ended. PvP is now enabled!");
 
     public static final Component GRACE_PERIOD_PVP_DISABLED =
-            Component.text("PvP is disabled during the grace period!", NamedTextColor.RED);
+            red("PvP is disabled during the grace period!");
 
     public static final Component GRACE_CMD_USAGE =
-            Component.text("Usage: /grace <start [time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>", NamedTextColor.YELLOW);
+            yellow("Usage: /grace <start [time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>");
 
     public static final Component GRACE_CMD_ALREADY_ACTIVE =
-            Component.text("A grace period is already active! Use /grace stop first.", NamedTextColor.RED);
+            red("A grace period is already active! Use /grace stop first.");
 
-    public static final Component GRACE_CMD_NOT_ACTIVE =
-            Component.text("There is no grace period active.", NamedTextColor.RED);
+    public static final Component GRACE_CMD_NOT_ACTIVE = red("There is no grace period active.");
 
-    public static final Component GRACE_CMD_INVALID_NUMBER =
-            Component.text("Invalid time! Use seconds or units, e.g. 90, 10m, 1h30m.", NamedTextColor.RED);
+    public static final Component GRACE_CMD_INVALID_NUMBER = INVALID_TIME;
 
     public static final Component GRACE_CMD_SHORTEN_TOO_FAR =
-            Component.text("That would end the grace period - use /grace stop instead.", NamedTextColor.RED);
+            red("That would end the grace period - use /grace stop instead.");
 
     public static Component graceCmdAdjusted(String change, String timeLeft) {
-        return Component.textOfChildren(
-                Component.text("Grace period " + change + ". ", NamedTextColor.GREEN),
-                Component.text(timeLeft, NamedTextColor.YELLOW),
-                Component.text(" remaining.", NamedTextColor.GREEN)
+        return textOfChildren(
+                green("Grace period " + change + ". "),
+                yellow(timeLeft),
+                green(" remaining.")
         );
     }
+
+    public static Component graceCmdStatus(String timeLeft) {
+        return textOfChildren(
+                green("Grace period active - "),
+                yellow(timeLeft),
+                green(" remaining. PvP is disabled.")
+        );
+    }
+
+    // Cooldown action bar
 
     // Shown by CooldownActionBarTask once a second while at least one of the
     // player's two abilities is on cooldown; ability names are truncated to a
@@ -675,29 +582,27 @@ public final class Lang {
     public static Component cooldownActionBar(String ability1Name, long ability1RemainingSeconds,
                                               String ability2Name, long ability2RemainingSeconds,
                                               int upgradeLevel) {
-        return Component.textOfChildren(
+        return textOfChildren(
                 cooldownBarSegment(ability1Name, ability1RemainingSeconds, upgradeLevel < ABILITY1_REQUIRED_UPGRADE),
-                Component.text("   ", NamedTextColor.DARK_GRAY),
+                text("   ", DARK_GRAY),
                 cooldownBarSegment(ability2Name, ability2RemainingSeconds, upgradeLevel < ABILITY2_REQUIRED_UPGRADE)
         );
     }
 
     private static Component cooldownBarSegment(String abilityName, long remainingSeconds, boolean locked) {
         String label = truncateAbilityName(abilityName);
-        // Unlocked: the usual grey. Locked (upgrade not reached yet): dark grey and struck through, with a red lock.
-        Component name = locked
-                ? Component.text(label, NamedTextColor.DARK_GRAY).decoration(TextDecoration.STRIKETHROUGH, true)
-                : Component.text(label, NamedTextColor.GRAY);
-        Component gap = Component.text(" ");
 
         if (locked) {
-            return Component.textOfChildren(name, gap,
-                    Component.text(LOCK_GLYPH, NamedTextColor.RED).font(ICON_FONT));
+            // Upgrade not reached yet: dark grey and struck through, with a red lock.
+            return textOfChildren(
+                    text(label, DARK_GRAY).decoration(TextDecoration.STRIKETHROUGH, true),
+                    text(" "),
+                    text(LOCK_GLYPH, RED).font(ICON_FONT)
+            );
         }
-        if (remainingSeconds <= 0) {
-            return Component.textOfChildren(name, gap, Component.text("Ready", NamedTextColor.GREEN));
-        }
-        return Component.textOfChildren(name, gap, Component.text(remainingSeconds + "s", NamedTextColor.RED));
+
+        Component status = remainingSeconds <= 0 ? green("Ready") : red(remainingSeconds + "s");
+        return textOfChildren(gray(label), text(" "), status);
     }
 
     private static String truncateAbilityName(String abilityName) {
@@ -705,13 +610,5 @@ public final class Lang {
         return abilityName.length() <= COOLDOWN_BAR_NAME_MAX_LENGTH
                 ? abilityName
                 : abilityName.substring(0, COOLDOWN_BAR_NAME_MAX_LENGTH - 1) + "\u2026";
-    }
-
-    public static Component graceCmdStatus(String timeLeft) {
-        return Component.textOfChildren(
-                Component.text("Grace period active - ", NamedTextColor.GREEN),
-                Component.text(timeLeft, NamedTextColor.YELLOW),
-                Component.text(" remaining. PvP is disabled.", NamedTextColor.GREEN)
-        );
     }
 }

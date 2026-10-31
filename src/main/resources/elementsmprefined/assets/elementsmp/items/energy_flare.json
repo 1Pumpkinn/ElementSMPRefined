@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "elementsmp:item/energy_flare",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": 4063067
+      }
+    ]
+  }
+}

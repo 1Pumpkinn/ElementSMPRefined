@@ -3,5 +3,19 @@
     "description": "ElementSMP Refined",
     "min_format": 75,
     "max_format": 200
+  },
+  "overlays": {
+    "entries": [
+      {
+        "directory": "overlay_26_2",
+        "min_format": 88,
+        "max_format": 88
+      },
+      {
+        "directory": "overlay_26_3",
+        "min_format": 97,
+        "max_format": 97
+      }
+    ]
   }
 }

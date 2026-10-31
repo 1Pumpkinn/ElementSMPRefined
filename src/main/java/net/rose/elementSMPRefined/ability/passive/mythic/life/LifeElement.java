@@ -5,7 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.mythic.life.LifeDrainAbility;
+import net.rose.elementSMPRefined.ability.main.mythic.life.EnergyBlastAbility;
 import net.rose.elementSMPRefined.ability.main.mythic.life.LifeTotemAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
@@ -35,7 +35,7 @@ public class LifeElement extends BaseElement {
     public LifeElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.LIFE,
                 new LifeTotemAbility(plugin, configManager),
-                new LifeDrainAbility(plugin, configManager));
+                new EnergyBlastAbility(plugin, configManager));
     }
 
     @Override

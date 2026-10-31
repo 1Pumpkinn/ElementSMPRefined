@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "elementsmp:item/energy_beam",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": 4063067
+      }
+    ]
+  }
+}

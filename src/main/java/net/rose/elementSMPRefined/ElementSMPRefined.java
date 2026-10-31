@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.AbstractElementPlugin;
 import net.rose.elementSMPRefined.ability.main.mythic.life.LifeTotemAbility;
 import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
+import net.rose.elementSMPRefined.util.visual.model.EnergyBlastVisual;
 import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
 import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
@@ -31,6 +32,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         AirCutterVisual.removeAll();
         LightningSpearVisual.removeAll();
         MagmaBeamVisual.removeAll();
+        EnergyBlastVisual.removeAll();
         MetalShieldVisual.removeAll();
         ElementGemOrbitVisual.removeAll();
         MagnetarVisual.removeAll();

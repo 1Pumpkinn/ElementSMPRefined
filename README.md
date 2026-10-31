@@ -13,6 +13,24 @@ Season One element plugin for Paper, being refined.
 Each element has two abilities plus passives. Players are given a random basic element, ability 1
 needs Upgrade I and ability 2 needs Upgrade II, and rerollers change a player's element.
 
+## Resource pack
+
+`src/main/resources/elementsmprefined` is the resource pack the item-display visuals need.
+
+Life's Energy Blast (green beam, white core, star flares) also ships a core shader. Beam and flare
+vertices carry a marker tint (`61,255,91`, see `items/energy_beam.json`); the shader fullbrights them,
+maps the greyscale textures to green -> white and fades the glow at glancing angles. Core shaders are
+copies of the vanilla files, so each Minecraft version gets its own pack overlay (`pack.mcmeta`):
+
+| Overlay | Pack format | Minecraft |
+|---------|-------------|-----------|
+| `overlay_26_2` | 88 | 26.2 |
+| `overlay_26_3` | 97 | 26.3 |
+
+On other versions the overlays are skipped and the beam falls back to the plain models (still a green
+beam, just not shaded). When a new version changes `core/entity.*` or `core/item.*`, copy the new vanilla
+files into a new overlay and re-add the few `energyFacing` / `energyBeamColor` lines.
+
 ## Commands
 
 | Command | Description | Permission |

@@ -11,7 +11,7 @@ public final class LifeParticles {
 
     private static final Particle.DustOptions GREEN_DUST = new Particle.DustOptions(Color.fromRGB(90, 255, 130), 1.0f);
 
-    private static final Particle.DustOptions BEAM_DUST = new Particle.DustOptions(Color.fromRGB(70, 255, 110), 0.9f);
+    private static final Particle.DustOptions BEAM_DUST = new Particle.DustOptions(Color.fromRGB(30, 255, 70), 1.2f);
 
     private LifeParticles() {}
 

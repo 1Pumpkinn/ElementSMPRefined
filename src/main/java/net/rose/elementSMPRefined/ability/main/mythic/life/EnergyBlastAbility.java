@@ -48,12 +48,12 @@ public class EnergyBlastAbility extends BaseAbility {
     private static final double KNOCKBACK = 1.1;
     private static final double KNOCKBACK_LIFT = 0.35;
 
-    private static final float BEAM_THICKNESS = 0.9f;
-    private static final float ORB_MIN = 0.3f;
-    private static final float ORB_MAX = 1.4f;
-    private static final float FLARE_BURST = 2.6f;       // muzzle / impact flare size on release
+    private static final float BEAM_THICKNESS = 3.0f;
+    private static final float ORB_MIN = 0.6f;
+    private static final float ORB_MAX = 3.0f;
+    private static final float FLARE_BURST = 6.0f;       // muzzle / impact flare size on release
     private static final float SPIN_PER_TICK = 0.35f;
-    private static final double SPARK_STEP = 2.5;        // blocks between spark particles along the beam
+    private static final double SPARK_STEP = 1.5;        // blocks between spark particles along the beam
 
     private static final Component ALREADY_CHARGING =
             Component.text("Energy Blast is already charging!", NamedTextColor.RED);
@@ -200,7 +200,7 @@ public class EnergyBlastAbility extends BaseAbility {
 
     /** The beam starts a little ahead of and below the eyes so it doesn't blot out the caster's view. */
     private static Location muzzle(Location eye, Vector dir) {
-        return eye.clone().add(0, -0.3, 0).add(dir.clone().multiply(1.0));
+        return eye.clone().add(0, -0.6, 0).add(dir.clone().multiply(2.5));
     }
 
     private void strike(Player caster, TrustManager trust, Location eye, Vector dir, double length) {

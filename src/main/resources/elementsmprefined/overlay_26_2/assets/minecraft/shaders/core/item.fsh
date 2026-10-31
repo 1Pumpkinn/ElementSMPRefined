@@ -20,12 +20,17 @@ out vec4 fragColor;
 // fades towards the silhouette so the box-shaped beam reads as a soft cylinder of light.
 vec4 energyBeamColor(vec4 tex) {
     float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-    float core = smoothstep(0.86, 0.97, lum);
+    float core = smoothstep(0.90, 0.99, lum);          // centre of the beam (now bright green, not white)
     float body = smoothstep(0.35, 0.85, lum);
-    vec3 glow = mix(vec3(0.05, 0.62, 0.16), vec3(0.28, 1.0, 0.42), body);
-    vec3 rgb = mix(glow, vec3(1.0), core) * (1.0 + 0.35 * body);
-    float edge = pow(energyFacing, mix(1.8, 0.6, core));
-    return vec4(rgb, tex.a * edge * ColorModulator.a);
+    // Bloom look: saturated neon green (no red/blue wash) pushed past 1.0 so it blows out and clamps.
+    vec3 glow = mix(vec3(0.0, 0.70, 0.10), vec3(0.10, 1.0, 0.28), body);
+    // Overbright only the glow; the core stays a vivid green (not multiplied) so it doesn't wash out to white.
+    vec3 rgb = mix(glow * (1.0 + 0.9 * body), vec3(0.22, 1.0, 0.38), core);
+    // Softer, wider falloff so the glow bleeds out past the beam instead of cutting off.
+    float edge = pow(energyFacing, mix(0.7, 0.3, core));
+    // Denser layers: 1 - (1-a)^2 lifts the see-through glow layers (a=0.47 -> 0.72, a=0.75 -> 0.94).
+    float alpha = 1.0 - pow(1.0 - tex.a, 2.0);
+    return vec4(rgb, alpha * edge * ColorModulator.a);
 }
 
 void main() {

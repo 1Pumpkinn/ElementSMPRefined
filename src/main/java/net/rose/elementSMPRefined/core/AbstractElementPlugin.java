@@ -8,7 +8,6 @@ import net.rose.elementSMPRefined.core.initializers.RecipeInitializer;
 import net.rose.elementSMPRefined.hud.CooldownActionBarTask;
 import net.rose.elementSMPRefined.managers.*;
 import net.rose.elementSMPRefined.services.EffectService;
-import net.rose.elementSMPRefined.services.ValidationService;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.util.bukkit.MetadataHelper;
@@ -30,12 +29,10 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected ElementManager elementManager;
     protected CooldownManager cooldownManager;
     protected TrustManager trustManager;
-    protected ItemManager itemManager;
 
     protected StatusEffectManager statusEffectManager;
     protected DisarmManager disarmManager;
     protected EffectService effectService;
-    protected ValidationService validationService;
     protected CooldownActionBarTask cooldownActionBarTask;
 
     protected ReforgeAltarManager reforgeAltarManager;
@@ -112,7 +109,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.trustManager = new TrustManager(this, dataStore);
         this.cooldownManager = new CooldownManager();
         this.elementManager = new ElementManager(this, dataStore, cooldownManager, trustManager, configManager);
-        this.itemManager = new ItemManager(this);
         this.statusEffectManager = new StatusEffectManager(this);
         this.disarmManager = new DisarmManager(this);
         this.reforgeAltarManager = new ReforgeAltarManager(this);
@@ -120,7 +116,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     private void initializeServices() {
         this.effectService = new EffectService(this, elementManager);
-        this.validationService = new ValidationService(trustManager);
         this.cooldownActionBarTask = new CooldownActionBarTask(this, elementManager, cooldownManager);
     }
 
@@ -170,7 +165,6 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     public ElementManager getElementManager() { return elementManager; }
     public CooldownManager getCooldownManager() { return cooldownManager; }
     public TrustManager getTrustManager() { return trustManager; }
-    public ItemManager getItemManager() { return itemManager; }
     public StatusEffectManager getStatusEffectManager() { return statusEffectManager; }
     public DisarmManager getDisarmManager() { return disarmManager; }
     public EffectService getEffectService() { return effectService; }

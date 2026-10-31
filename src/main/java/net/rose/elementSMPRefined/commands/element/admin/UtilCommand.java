@@ -3,8 +3,7 @@ package net.rose.elementSMPRefined.commands.element.admin;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
-import net.rose.elementSMPRefined.items.recipes.Upgrader1Item;
-import net.rose.elementSMPRefined.items.recipes.Upgrader2Item;
+import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -31,10 +30,10 @@ public class UtilCommand implements CommandExecutor {
             return true;
         }
 
-        ItemStack upgrader1Stack = Upgrader1Item.make(plugin);
+        ItemStack upgrader1Stack = UpgraderItem.make(plugin, 1);
         upgrader1Stack.setAmount(64);
 
-        ItemStack upgrader2Stack = Upgrader2Item.make(plugin);
+        ItemStack upgrader2Stack = UpgraderItem.make(plugin, 2);
         upgrader2Stack.setAmount(64);
 
         ItemStack rerollerStack = RerollerItem.make(plugin);

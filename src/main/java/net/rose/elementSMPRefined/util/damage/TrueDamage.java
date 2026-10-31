@@ -183,6 +183,6 @@ public final class TrueDamage implements Listener {
         Pending pending = PENDING.get(victim.getUniqueId());
         String abilityName = pending != null ? pending.abilityName() : AbilityDamage.abilityName(victim);
         if (abilityName == null) return;
-        event.deathMessage(AbilityDeathMessage.build(victim, abilityName));
+        event.deathMessage(AbilityDamage.deathMessage(victim, abilityName));
     }
 }

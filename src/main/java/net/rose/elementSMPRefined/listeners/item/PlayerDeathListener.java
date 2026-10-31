@@ -5,6 +5,7 @@ import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
+import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -93,7 +94,7 @@ public class PlayerDeathListener implements Listener {
             return false;
         }
 
-        ItemStack drop = createUpgraderFor(level);
+        ItemStack drop = UpgraderItem.make(plugin, level);
         if (drop == null) {
             // Item couldn't be created, so don't strip the level for nothing
             plugin.getLogger().warning("Could not create upgrader for level " + level
@@ -107,14 +108,6 @@ public class PlayerDeathListener implements Listener {
         ElementType current = data.getCurrentElement();
         data.setUpgradeLevel(current, level - 1);
         return true;
-    }
-
-    private ItemStack createUpgraderFor(int level) {
-        return switch (level) {
-            case 1 -> plugin.getItemManager().createUpgrader1();
-            case 2 -> plugin.getItemManager().createUpgrader2();
-            default -> null;
-        };
     }
 
     private void scheduleUpsideReapply(Player player) {

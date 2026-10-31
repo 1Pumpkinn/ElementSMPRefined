@@ -1,7 +1,11 @@
 package net.rose.elementSMPRefined.util.damage;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +22,9 @@ import java.util.UUID;
  * </pre>
  * Like {@link TrueDamage}, the flag only exists for the duration of the synchronous
  * {@code damage()} call, which is exactly when the damage event fires.
+ * <p>
+ * Also builds the death message for a player killed by an ability, so it names the ability
+ * ("X was slain by Y using Magma Beam") instead of a generic damage-type message.
  */
 public final class AbilityDamage {
 
@@ -68,5 +75,23 @@ public final class AbilityDamage {
     public static void markBlocked(Entity entity) {
         boolean[] blocked = IN_FLIGHT.get(entity.getUniqueId());
         if (blocked != null) blocked[0] = true;
+    }
+
+    /**
+     * Death message for a player killed by an element ability. The ability name is always
+     * yellow, whatever colour the ability uses for itself elsewhere.
+     *
+     * @param abilityName the ability's display name; any colour codes in it are ignored
+     */
+    static Component deathMessage(Player victim, String abilityName) {
+        Component ability = Component.text(ChatColor.stripColor(abilityName), NamedTextColor.YELLOW);
+        Player killer = victim.getKiller();
+        if (killer != null && !killer.equals(victim)) {
+            return Component.translatable("death.attack.player.item", victim.name(), killer.name(), ability);
+        }
+        return Component.empty()
+                .append(victim.name())
+                .append(Component.text(" was killed by "))
+                .append(ability);
     }
 }

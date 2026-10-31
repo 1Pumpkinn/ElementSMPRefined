@@ -6,6 +6,7 @@
 #include <minecraft:dynamictransforms.glsl>
 #include <minecraft:projection.glsl>
 #include <minecraft:sample_lightmap.glsl>
+#include <minecraft:energy_beam_marker.glsl>
 
 layout(location = 0) in vec3 Position;
 layout(location = 1) in vec4 Color;
@@ -59,10 +60,6 @@ void main() {
     #endif
     #endif
 
-    // elementsmp: Energy Blast beam / flare vertices carry a marker tint. Flag them and pass how squarely the
-    // surface faces the camera, so the fragment shader can fade the glow out at glancing angles.
-    energyFacing = 0.0;
-    if (all(lessThan(abs(Color.rgb - vec3(61.0, 255.0, 91.0) / 255.0), vec3(0.006)))) {
-        energyFacing = clamp(abs(dot(normalize(Normal), normalize(Position))), 0.02, 1.0);
-    }
+    // elementsmp: Energy Blast beam / flare vertices are flagged by their marker tint (energy_beam_marker.glsl).
+    energyFacing = energyBeamFacing(Color.rgb, Normal, Position);
 }

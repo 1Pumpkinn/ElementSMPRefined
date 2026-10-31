@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 public class InvisibilityNameHider implements Listener {
 
-    private static final String HIDDEN_NAME = " ";
+    private static final String HIDDEN_NAME = "???";
 
     private boolean isInvisible(Player player) {
         return player.hasPotionEffect(PotionEffectType.INVISIBILITY)
@@ -31,7 +31,9 @@ public class InvisibilityNameHider implements Listener {
             return;
         }
 
-        event.renderer((source, sourceDisplayName, message, viewer) -> message);
+        // Vanilla "<name> message" format, with the name swapped for ???
+        event.renderer((source, sourceDisplayName, message, viewer) ->
+                Component.translatable("chat.type.text", Component.text(HIDDEN_NAME), message));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

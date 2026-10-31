@@ -34,7 +34,7 @@ import java.util.logging.Level;
  *   <li>Forged In Element - reforge your element into its upgraded form (Forged Upgrader)</li>
  * </ul>
  */
-public class ElementAdvancementListener implements Listener {
+public class ElementAdvancementHandler implements Listener {
     private static final String CRITERION = "crafted";
 
     /** Root advancement: its title is the tab title. Awarded silently on join so the tab shows up. */
@@ -120,7 +120,7 @@ public class ElementAdvancementListener implements Listener {
     private final NamespacedKey reforgeKey;
     private final List<NamespacedKey> allKeys;
 
-    public ElementAdvancementListener(ElementSMPRefined plugin) {
+    public ElementAdvancementHandler(ElementSMPRefined plugin) {
         this.plugin = plugin;
         this.rootKey = new NamespacedKey(plugin, "element_smp_root");
         this.upgradeKey = new NamespacedKey(plugin, "a_upgrade_of_many");

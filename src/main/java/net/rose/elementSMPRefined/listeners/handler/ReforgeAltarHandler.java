@@ -33,11 +33,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ReforgeAltarListener implements Listener {
+public class ReforgeAltarHandler implements Listener {
     private final ElementSMPRefined plugin;
     private final ReforgeAltarManager altar;
 
-    public ReforgeAltarListener(ElementSMPRefined plugin, ReforgeAltarManager altar) {
+    public ReforgeAltarHandler(ElementSMPRefined plugin, ReforgeAltarManager altar) {
         this.plugin = plugin;
         this.altar = altar;
     }

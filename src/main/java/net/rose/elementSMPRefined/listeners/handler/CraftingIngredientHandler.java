@@ -22,10 +22,10 @@ import org.bukkit.persistence.PersistentDataType;
  * <p>
  * Covers the Upgraders (I, II), Forged Upgrader and Element Reroller.
  */
-public class CraftingIngredientBlocker implements Listener {
+public class CraftingIngredientHandler implements Listener {
     private final ElementSMPRefined plugin;
 
-    public CraftingIngredientBlocker(ElementSMPRefined plugin) {
+    public CraftingIngredientHandler(ElementSMPRefined plugin) {
         this.plugin = plugin;
     }
 

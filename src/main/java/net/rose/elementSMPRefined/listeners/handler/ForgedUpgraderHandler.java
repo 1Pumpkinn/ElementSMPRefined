@@ -27,10 +27,10 @@ import java.util.Optional;
 public class ForgedUpgraderHandler implements Listener {
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
-    private final ElementAdvancementListener advancements;
+    private final ElementAdvancementHandler advancements;
 
     public ForgedUpgraderHandler(ElementSMPRefined plugin, ElementManager elementManager,
-                                 ElementAdvancementListener advancements) {
+                                 ElementAdvancementHandler advancements) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.advancements = advancements;

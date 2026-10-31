@@ -49,9 +49,14 @@ public class EnergyBlastAbility extends BaseAbility {
     private static final double KNOCKBACK_LIFT = 0.35;
 
     private static final float BEAM_THICKNESS = 3.0f;
+    // The beam's cross-section is 1.5 blocks * thickness wide and the flare texture uses the same radial
+    // profile, so a flare of that width has exactly the beam's thickness and colour (no step at the muzzle).
+    private static final float BEAM_WIDTH = 1.5f * BEAM_THICKNESS;
     private static final float ORB_MIN = 0.6f;
-    private static final float ORB_MAX = 3.0f;
-    private static final float FLARE_BURST = 4.5f;       // muzzle / impact flare size on release
+    private static final float ORB_MAX = 2.6f;           // fully charged orb (quad width in blocks)
+    private static final float FLARE_BURST = 0.7f * BEAM_WIDTH; // muzzle flare the instant the beam opens
+    private static final float ORB_PULSE = 0.06f;        // +-6% throb while charging
+    private static final double WALL_EMBED = 0.3;       // how far the beam sinks into the block it hits
     private static final float SPIN_PER_TICK = 0.35f;
     private static final double SPARK_STEP = 1.5;        // blocks between spark particles along the beam
 
@@ -132,6 +137,9 @@ public class EnergyBlastAbility extends BaseAbility {
                 double length = blockHit == null ? RANGE : blockHit.getHitPosition().distance(eye.toVector());
                 Vector end = eye.toVector().add(fireDir.clone().multiply(length));
                 fireLength = Math.max(0.0, end.clone().subtract(fireStart.toVector()).length());
+                if (blockHit != null) {
+                    fireLength += WALL_EMBED; // run the beam into the wall so it ends flush, with no fade-out gap
+                }
                 fireImpact = blockHit == null ? null : end.toLocation(w);
 
                 w.playSound(fireStart, Sound.ENTITY_WARDEN_SONIC_BOOM, 1.2f, 1.5f);
@@ -155,13 +163,12 @@ public class EnergyBlastAbility extends BaseAbility {
                 float thickness = BEAM_THICKNESS * open * Math.max(0.05f, fade);
 
                 visual.updateBeam(fireStart, fireDir, fireLength, thickness, roll);
-                float flare = FLARE_BURST * Math.max(0.05f, fade);
-                visual.updateMuzzle(fireStart, flare, -roll);
-                if (fireImpact != null) {
-                    visual.updateImpact(fireImpact, flare * 0.8f, roll);
-                } else {
-                    visual.hideImpact();
-                }
+                // The muzzle flare continues from the charged orb's size, flashes to FLARE_BURST as the beam
+                // opens, then collapses faster than the beam so it doesn't linger as a ball.
+                float flareFade = (1f - life) * (1f - life);
+                float flare = ORB_MAX + (FLARE_BURST - ORB_MAX) * open;
+                flare *= Math.max(0.05f, flareFade);
+                visual.updateMuzzle(fireStart, flare, 0f);
 
                 // A few sparks along the beam, so it still reads without the resource pack.
                 if (beamTick % 2 == 0) {
@@ -186,7 +193,11 @@ public class EnergyBlastAbility extends BaseAbility {
         Location orb = muzzle(eye, dir);
 
         double progress = (double) (tick + 1) / CHARGE_TICKS;
-        visual.updateMuzzle(orb, ORB_MIN + (ORB_MAX - ORB_MIN) * (float) progress, roll);
+        // Ease-out: swells quickly, then settles into full size. A faint throb keeps it alive. No spin:
+        // the flare is round, so rotating it only makes the star spikes wobble.
+        float eased = 1f - (float) Math.pow(1.0 - progress, 3);
+        float pulse = 1f + ORB_PULSE * (float) Math.sin(tick * 1.3);
+        visual.updateMuzzle(orb, (ORB_MIN + (ORB_MAX - ORB_MIN) * eased) * pulse, 0f);
 
         // Sparks drawn into the orb from all around.
         double radius = 2.2 * (1.0 - progress) + 0.3;

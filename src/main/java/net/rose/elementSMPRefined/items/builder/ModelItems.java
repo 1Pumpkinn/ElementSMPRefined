@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ModelItems {
     private static final Map<NamespacedKey, ItemStack> CACHE = new ConcurrentHashMap<>();
+    private static final Map<NamespacedKey, ItemStack> TRANSLUCENT_CACHE = new ConcurrentHashMap<>();
 
     private ModelItems() {}
 
@@ -27,5 +28,18 @@ public final class ModelItems {
     public static ItemStack of(NamespacedKey model) {
         return CACHE.computeIfAbsent(model,
                 key -> ItemBuilder.of(Material.STICK).itemModel(key).build());
+    }
+
+    /**
+     * Like {@link #of}, but the model is carried by a translucent block item (stained glass).
+     * <p>
+     * The client picks the render pipeline from the carrier item, not from the model: a stick is drawn through
+     * the cutout pipeline (every pixel is fully opaque or discarded, so soft glows turn into solid panels),
+     * while a translucent block item is drawn with alpha blending. Use this for models that rely on
+     * semi-transparent textures, such as the Energy Blast beam.
+     */
+    public static ItemStack translucent(NamespacedKey model) {
+        return TRANSLUCENT_CACHE.computeIfAbsent(model,
+                key -> ItemBuilder.of(Material.WHITE_STAINED_GLASS).itemModel(key).build());
     }
 }

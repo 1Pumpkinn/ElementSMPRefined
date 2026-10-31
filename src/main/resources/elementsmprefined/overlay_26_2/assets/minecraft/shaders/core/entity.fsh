@@ -32,16 +32,40 @@ in float energyFacing;
 out vec4 fragColor;
 
 // elementsmp: Energy Blast. The beam / flare textures are greyscale (brightness = energy, alpha = opacity).
-// Here the brightness is mapped to a green glow with a white-hot core, and everything except the core
-// fades towards the silhouette so the box-shaped beam reads as a soft cylinder of light.
+// Brightness is mapped onto a bloom ramp: deep green halo -> neon green body -> overbright mint -> white-hot
+// core. The mint tier is pushed past 1.0 so it clamps towards white, which is what makes the centre of the
+// beam bloom outwards. The beam is a set of crossed planes whose texture is a smooth lateral gradient, so
+// the glow is soft from every angle; the halo fades further at glancing angles via energyFacing.
+// The plugin carries these models on a translucent block item so the client blends them (see ModelItems).
 vec4 energyBeamColor(vec4 tex) {
-    float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-    float core = smoothstep(0.86, 0.97, lum);
-    float body = smoothstep(0.35, 0.85, lum);
-    vec3 glow = mix(vec3(0.05, 0.62, 0.16), vec3(0.28, 1.0, 0.42), body);
-    vec3 rgb = mix(glow, vec3(1.0), core) * (1.0 + 0.35 * body);
-    float edge = pow(energyFacing, mix(1.8, 0.6, core));
-    return vec4(rgb, tex.a * edge * ColorModulator.a);
+    float lum  = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+    float body = smoothstep(0.38, 0.54, lum);   // halo -> main green body
+    float mid  = smoothstep(0.66, 0.84, lum);   // bright inner ring
+    float core = smoothstep(0.92, 0.99, lum);   // white-hot centre
+
+    vec3 rgb = mix(vec3(0.00, 0.70, 0.10), vec3(0.05, 0.95, 0.25), body);
+    rgb = mix(rgb, vec3(0.55, 1.00, 0.65) * 1.35, mid);
+    rgb = mix(rgb, vec3(1.0), core);
+
+    float alpha = tex.a * pow(energyFacing, 1.25) * ColorModulator.a;
+
+    // The faintest tails are invisible anyway, but would still write depth and clip the planes behind them.
+    if (alpha < 0.03) {
+        discard;
+    }
+
+#ifdef ALPHA_CUTOUT
+    // Safety net for a pipeline that still does not blend: alpha can only be on/off there, so draw a crisp
+    // opaque tube (no stipple) instead of a speckled one.
+    if (ALPHA_CUTOUT > 0.05) {
+        if (alpha < 0.3) {
+            discard;
+        }
+        alpha = 1.0;
+    }
+#endif
+
+    return vec4(rgb, alpha);
 }
 
 void main() {

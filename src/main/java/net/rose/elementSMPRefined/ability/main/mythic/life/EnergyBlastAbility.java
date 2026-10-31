@@ -51,7 +51,7 @@ public class EnergyBlastAbility extends BaseAbility {
     private static final float BEAM_THICKNESS = 3.0f;
     private static final float ORB_MIN = 0.6f;
     private static final float ORB_MAX = 3.0f;
-    private static final float FLARE_BURST = 6.0f;       // muzzle / impact flare size on release
+    private static final float FLARE_BURST = 4.5f;       // muzzle / impact flare size on release
     private static final float SPIN_PER_TICK = 0.35f;
     private static final double SPARK_STEP = 1.5;        // blocks between spark particles along the beam
 

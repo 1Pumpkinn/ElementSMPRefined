@@ -24,8 +24,8 @@ import java.util.function.Consumer;
 /**
  * Green energy beam with a white core, plus a star flare at each end (muzzle / impact).
  * <p>
- * The beam is one {@link ItemDisplay} wearing {@code elementsmp:energy_beam} (three nested boxes: glow,
- * body, core) and each flare is a camera-facing {@link ItemDisplay} wearing {@code elementsmp:energy_flare}.
+ * The beam is one {@link ItemDisplay} wearing {@code elementsmp:energy_beam} (four crossed planes through
+ * the beam axis, each textured with a smooth lateral gradient so the glow is soft from every angle) and each flare is a camera-facing {@link ItemDisplay} wearing {@code elementsmp:energy_flare}.
  * Both item definitions carry a marker tint that the pack's core shader overlay recognises: with the shader
  * the beam is fullbright, soft-edged and recoloured green -> white; without it the models still render as a
  * plain green beam.
@@ -56,7 +56,7 @@ public final class EnergyBlastVisual {
     /**
      * Lays the beam out from {@code from} along {@code direction} for {@code length} blocks.
      *
-     * @param thickness scale of the beam cross-section (the outer glow is 10px wide at 1.0, i.e. 0.625 blocks)
+     * @param thickness scale of the beam cross-section (each plane is 24px wide at 1.0, i.e. 1.5 blocks; the bright body is roughly the middle third)
      * @param roll      spin around the beam's own axis, in radians
      */
     public void updateBeam(Location from, Vector direction, double length, float thickness, float roll) {
@@ -130,7 +130,7 @@ public final class EnergyBlastVisual {
         Location spot = flat(at);
 
         if (current == null || !current.isValid()) {
-            ItemStack item = ModelItems.of(model);
+            ItemStack item = ModelItems.translucent(model);
             Consumer<ItemDisplay> setup = d -> {
                 d.setItemStack(item);
                 d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);

@@ -19,7 +19,10 @@ needs Upgrade I and ability 2 needs Upgrade II, and rerollers change a player's 
 
 Life's Energy Blast (green beam, white core, star flares) also ships a core shader. Beam and flare
 vertices carry a marker tint (`61,255,91`, see `items/energy_beam.json`); the shader fullbrights them,
-maps the greyscale textures to green -> white and fades the glow at glancing angles. Core shaders are
+maps the greyscale textures onto a bloom ramp (green halo -> neon green -> mint -> white core) and
+fades the glow at glancing angles. The beam is four crossed gradient planes. The client chooses the render pipeline from the carrier
+item, and a stick is drawn cutout (no blending), so beam and flares are carried by a translucent block item
+(`ModelItems.translucent`) to get real alpha blending. Core shaders are
 copies of the vanilla files, so each Minecraft version gets its own pack overlay (`pack.mcmeta`):
 
 | Overlay | Pack format | Minecraft |

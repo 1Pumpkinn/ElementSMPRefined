@@ -391,13 +391,6 @@ public final class Lang {
 
     // Player lifecycle / rerolling
 
-    public static Component lifecycleYourElementReroller(Object suffix) {
-        return yellow("Your Element Reroller" + suffix + " refunded since your last reroll got interrupted.");
-    }
-
-    public static Component lifecycleYourForgedUpgrader(Object suffix) {
-        return yellow("Your Forged Upgrader" + suffix + " refunded since your last reroll got interrupted.");
-    }
 
     public static Component elementManagerYourElementIsNow(Object displayName) {
         return textOfChildren(

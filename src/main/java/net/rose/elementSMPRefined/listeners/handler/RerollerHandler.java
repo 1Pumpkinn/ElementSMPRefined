@@ -1,6 +1,8 @@
 package net.rose.elementSMPRefined.listeners.handler;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.altar.ForgeRecipe;
+import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -55,10 +57,13 @@ public class RerollerHandler implements Listener {
         if (!elementManager.beginRolling(player)) return;
 
         ElementType newElement = determineNewElement(player);
+        // A forged element (Lava/Metal/Frost/Storm) being rerolled away gives the Forged Upgrader back.
+        ElementType before = elementManager.getPlayerElement(player);
+        boolean wasForged = before != null && ForgeRecipe.forTarget(before).isPresent();
 
         consumeItem(player, item);
         clearOldElementEffects(player);
-        performBasicRoll(player, newElement);
+        performBasicRoll(player, newElement, wasForged);
     }
 
     private boolean isReroller(ItemStack item) {
@@ -108,7 +113,13 @@ public class RerollerHandler implements Listener {
         }
     }
 
-    private void performBasicRoll(Player player, ElementType targetElement) {
+    private void giveForgedUpgraderBack(Player player) {
+        for (ItemStack leftover : player.getInventory().addItem(ForgedUpgraderItem.make(plugin)).values()) {
+            player.getWorld().dropItemNaturally(player.getLocation(), leftover);
+        }
+    }
+
+    private void performBasicRoll(Player player, ElementType targetElement, boolean wasForged) {
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
         ElementType[] basicElements = elementManager.getBasicElements();
@@ -165,6 +176,7 @@ public class RerollerHandler implements Listener {
                 if (!assigned && visual.hasRevealed()) {
                     assigned = true;
                     elementManager.assignBasicElement(player, targetElement);
+                    if (wasForged) giveForgedUpgraderBack(player);
                 }
 
                 // Whole animation finished (survivor has burst) - release the lock.

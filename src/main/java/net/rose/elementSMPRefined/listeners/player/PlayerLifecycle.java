@@ -169,11 +169,9 @@ public class PlayerLifecycle implements Listener {
 
         if (basicCount > 0) {
             giveItemStack(player, RerollerItem.make(plugin), basicCount);
-            player.sendMessage(Lang.lifecycleYourElementReroller((basicCount > 1 ? "s were" : " was")));
         }
         if (advancedCount > 0) {
             giveItemStack(player, ForgedUpgraderItem.make(plugin), advancedCount);
-            player.sendMessage(Lang.lifecycleYourForgedUpgrader((advancedCount > 1 ? "s were" : " was")));
         }
 
         plugin.getDataStore().save(pd);

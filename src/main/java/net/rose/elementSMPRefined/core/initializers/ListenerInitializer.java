@@ -24,6 +24,7 @@ import net.rose.elementSMPRefined.listeners.status.StatusEffectListener;
 import net.rose.elementSMPRefined.util.server.DimensionDisable;
 import net.rose.elementSMPRefined.util.server.GracePeriod;
 import net.rose.elementSMPRefined.util.server.MaceCooldown;
+import net.rose.elementSMPRefined.util.server.potplugin.MaceEnchantGuard;
 import net.rose.elementSMPRefined.util.visual.ElementSmpTablist;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -62,6 +63,7 @@ public class ListenerInitializer {
 
         pluginManager.registerEvents(new DimensionDisable(plugin.getConfigManager()), plugin);
         pluginManager.registerEvents(new MaceCooldown(plugin), plugin);
+        pluginManager.registerEvents(new MaceEnchantGuard(plugin), plugin);
 
         this.gracePeriod = new GracePeriod(plugin, plugin.getConfigManager(), plugin.getTaskScheduler());
         pluginManager.registerEvents(gracePeriod, plugin);

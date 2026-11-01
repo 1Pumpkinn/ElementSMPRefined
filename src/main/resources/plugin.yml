@@ -8,6 +8,14 @@ load: STARTUP
 softdepend: [ViaVersion]
 
 commands:
+  potlimits:
+    description: Manage potion limits
+    usage: /potlimits
+
+  enchantlimits:
+    description: Manage enchantment limits
+    usage: /enchantlimits
+
   trust:
     description: Manage trust relationships
     usage: /trust <list|add|remove|accept|deny> [player]
@@ -51,6 +59,12 @@ commands:
     description: Spawn, remove or inspect the Reforge Altar
     usage: /reforgealtar <spawn|here|remove|status|tp|toggle|enable|disable>
     aliases: [ altar ]
+    permission: element.admin
+
+  enchantablemace:
+    description: Give the one mace that is allowed to keep its enchantments
+    usage: /enchantablemace [player]
+    aliases: [ emace ]
     permission: element.admin
 
   grace:

@@ -168,6 +168,25 @@ public final class Lang {
 
     public static final Component UTIL_64X_FORGED_UPGRADER = text("• 64x Forged Upgrader", DARK_PURPLE);
 
+    // /enchantablemace
+
+    public static final Component ENCHANTABLE_MACE_THIS_COMMAND_CAN_ONLY_BE = COMMAND_PLAYERS_ONLY;
+
+    public static final Component ENCHANTABLE_MACE_PLAYER_NOT_FOUND = red("Player not found.");
+
+    public static final Component ENCHANTABLE_MACE_USAGE = red("Usage: /enchantablemace [player]");
+
+    public static final Component ENCHANTABLE_MACE_YOU_DON_T_HAVE_PERMISSION =
+            red("You don't have permission to use this command.");
+
+    public static final Component ENCHANTABLE_MACE_RECEIVED = green("You have been given the enchantable mace.");
+
+    public static Component enchantableMaceGiven(String playerName) {
+        return green("Gave the enchantable mace to " + playerName + ".");
+    }
+
+    public static final Component ENCHANTABLE_MACE_INVENTORY_FULL = yellow("Inventory was full, the mace was dropped at your feet.");
+
     // /element config
 
     public static final Component CONFIG_CONFIGURATION_RELOADED_SUCCESSFULLY =

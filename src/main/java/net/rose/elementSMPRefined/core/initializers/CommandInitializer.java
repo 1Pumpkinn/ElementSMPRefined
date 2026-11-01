@@ -11,6 +11,7 @@ import net.rose.elementSMPRefined.commands.server.GraceCommand;
 import net.rose.elementSMPRefined.commands.TrustCommand;
 import net.rose.elementSMPRefined.commands.element.admin.ReforgeAltarCommand;
 import net.rose.elementSMPRefined.commands.element.admin.UtilCommand;
+import net.rose.elementSMPRefined.commands.element.admin.EnchantableMaceCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class CommandInitializer {
@@ -34,6 +35,7 @@ public class CommandInitializer {
                 .command("trust", new TrustCommand(plugin, plugin.getTrustManager()))
                 .command("element", new ElementCommand(plugin))
                 .command("util", new UtilCommand(plugin))
+                .command("enchantablemace", new EnchantableMaceCommand(plugin))
                 .command("reforgealtar", new ReforgeAltarCommand(plugin.getReforgeAltarManager()))
                 .command("grace", new GraceCommand(plugin))
                 .command("dimension", new DimensionCommand(plugin));

@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.plugin.java.JavaPlugin;
+import net.rose.elementSMPRefined.core.AbstractElementPlugin;
+import net.rose.elementSMPRefined.items.EnchantableMace;
 
 /**
  * Per-enchantment level caps, stored in config.yml as "name=maxLevel"
@@ -21,17 +22,22 @@ public final class EnchantLimits {
 
     private static final String CONFIG_PATH = "enchant-limits";
 
-    private final JavaPlugin plugin;
+    private final AbstractElementPlugin plugin;
     private final Map<String, Integer> limits = new TreeMap<>();
 
-    public EnchantLimits(JavaPlugin plugin) {
+    public EnchantLimits(AbstractElementPlugin plugin) {
         this.plugin = plugin;
     }
 
     // ---------------------------------------------------------------- storage
 
+    /** Re-reads config.yml from disk (through ConfigManager so it stays in sync), then loads. */
+    public void reloadFromDisk() {
+        plugin.getConfigManager().reload();
+        load();
+    }
+
     public void load() {
-        plugin.reloadConfig();
         limits.clear();
         for (String raw : plugin.getConfig().getStringList(CONFIG_PATH)) {
             String[] parts = raw.split("=", 2);
@@ -102,9 +108,23 @@ public final class EnchantLimits {
         return max != null && level > max;
     }
 
-    /** True if the item carries any enchantment (applied or stored in a book) over its cap. */
+    /** The one tagged mace given by {@code /enchantablemace} is exempt from every limit. */
+    public boolean isExempt(ItemStack item) {
+        return EnchantableMace.isTagged(plugin, item);
+    }
+
+    /** A mace without the enchantable tag: it can't be enchanted at the table or anvil. */
+    public boolean isLockedMace(ItemStack item) {
+        return item != null && item.getType() == Material.MACE && !isExempt(item);
+    }
+
+    /**
+     * True if the item carries an applied enchantment over its cap. Enchanted books are NOT
+     * policed: a book holding a banned enchant is harmless on its own, and the anvil check
+     * already blocks it from landing on anything except the exempt mace.
+     */
     public boolean violates(ItemStack item) {
-        if (limits.isEmpty() || item == null || item.getType().isAir()) {
+        if (limits.isEmpty() || item == null || item.getType().isAir() || isExempt(item)) {
             return false;
         }
         for (Map.Entry<Enchantment, Integer> entry : item.getEnchantments().entrySet()) {
@@ -112,19 +132,12 @@ public final class EnchantLimits {
                 return true;
             }
         }
-        if (item.hasItemMeta() && item.getItemMeta() instanceof EnchantmentStorageMeta meta) {
-            for (Map.Entry<Enchantment, Integer> entry : meta.getStoredEnchants().entrySet()) {
-                if (exceeds(entry.getKey(), entry.getValue())) {
-                    return true;
-                }
-            }
-        }
         return false;
     }
 
     /**
      * Brings the item within the limits: over-cap enchantments are lowered to
-     * the cap, disallowed ones are removed. Works on enchanted books too.
+     * the cap, disallowed ones are removed.
      * Edits the given stack in place.
      *
      * @return true if anything changed
@@ -145,23 +158,6 @@ public final class EnchantLimits {
             }
         }
 
-        if (item.getItemMeta() instanceof EnchantmentStorageMeta meta) {
-            boolean metaChanged = false;
-            for (Map.Entry<Enchantment, Integer> entry : new ArrayList<>(meta.getStoredEnchants().entrySet())) {
-                Enchantment enchantment = entry.getKey();
-                if (exceeds(enchantment, entry.getValue())) {
-                    meta.removeStoredEnchant(enchantment);
-                    int max = maxFor(enchantment);
-                    if (max > 0) {
-                        meta.addStoredEnchant(enchantment, max, true);
-                    }
-                    metaChanged = true;
-                }
-            }
-            if (metaChanged) {
-                item.setItemMeta(meta);
-            }
-        }
         return true;
     }
 

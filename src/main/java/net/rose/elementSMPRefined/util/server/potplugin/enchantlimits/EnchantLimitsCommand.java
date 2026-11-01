@@ -39,7 +39,7 @@ public final class EnchantLimitsCommand implements TabExecutor {
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "list" -> list(sender);
             case "reload" -> {
-                limits.load();
+                limits.reloadFromDisk();
                 listener.sweepAll();
                 send(sender, "Reloaded " + limits.all().size() + " enchantment limit(s).", NamedTextColor.GREEN);
             }

@@ -12,7 +12,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.plugin.java.JavaPlugin;
+import net.rose.elementSMPRefined.core.AbstractElementPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
 
@@ -28,20 +28,25 @@ public final class PotionLimits {
     private static final Set<Material> POTION_ITEMS = Set.of(
             Material.POTION, Material.SPLASH_POTION, Material.LINGERING_POTION, Material.TIPPED_ARROW);
 
-    private final JavaPlugin plugin;
+    private final AbstractElementPlugin plugin;
     private final Set<String> banned = new TreeSet<>();
 
     /** Effects (type + level) that mobs / arrows / clouds are not allowed to carry. */
     private List<PotionEffect> blockedEffects = List.of();
 
-    public PotionLimits(JavaPlugin plugin) {
+    public PotionLimits(AbstractElementPlugin plugin) {
         this.plugin = plugin;
     }
 
     // ---------------------------------------------------------------- storage
 
+    /** Re-reads config.yml from disk (through ConfigManager so it stays in sync), then loads. */
+    public void reloadFromDisk() {
+        plugin.getConfigManager().reload();
+        load();
+    }
+
     public void load() {
-        plugin.reloadConfig();
         banned.clear();
         for (String raw : plugin.getConfig().getStringList(CONFIG_PATH)) {
             String name = normalize(raw);

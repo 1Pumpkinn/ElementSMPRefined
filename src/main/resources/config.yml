@@ -68,3 +68,15 @@ reforge_altar:
   # Broadcast when an altar appears, optionally with its coordinates
   announce: true
   announce_coordinates: true
+
+# Potion limits
+# Potion types nobody can brew, hold, drink, or have applied through
+# dispensers / trial chambers. Manage in-game with /potlimits add|remove|list.
+# Use the potion type key, e.g. strong_strength, long_swiftness, poison.
+banned-potions: []
+
+# Enchantment limits
+# Level caps as "name=maxLevel"; 0 means the enchantment isn't allowed at all.
+# Manage in-game with /enchantlimits set|ban|remove|list. Example: [sharpness=3, density=0, breach=0]
+# The mace given by /enchantablemace is exempt from every limit.
+enchant-limits: []

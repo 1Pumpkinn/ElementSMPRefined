@@ -7,13 +7,12 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * The one mace that is allowed to keep its enchantments. Every other mace is stripped of
- * enchantments and can't be enchanted (see {@code MaceEnchantGuard}).
+ * The one mace that is exempt from the enchant limits. Ban the mace enchantments with
+ * {@code /enchantlimits ban <enchant>} and every other mace loses them, but a mace carrying
+ * this tag keeps whatever it has and can still be enchanted (see {@code EnchantLimits#isExempt}).
  * <p>
  * It is a plain mace with no custom name - the only difference is a persistent data tag
- * ({@link ItemKeys#enchantableMace}, i.e. {@code elementsmp:enchantable_mace} as a byte 1)
- * that the server checks for. Anything else that strips enchantments (e.g. an enchant limits
- * plugin) can exempt a mace carrying that tag.
+ * ({@link ItemKeys#enchantableMace}, i.e. {@code elementsmp:enchantable_mace} as a byte 1).
  */
 public final class EnchantableMace {
     private EnchantableMace() {}
@@ -30,10 +29,5 @@ public final class EnchantableMace {
         if (item == null || item.getType() != Material.MACE || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
         return meta.getPersistentDataContainer().has(ItemKeys.enchantableMace(plugin), PersistentDataType.BYTE);
-    }
-
-    /** True for a mace that is NOT tagged, i.e. one that must never hold enchantments. */
-    public static boolean isRestrictedMace(JavaPlugin plugin, ItemStack item) {
-        return item != null && item.getType() == Material.MACE && !isTagged(plugin, item);
     }
 }

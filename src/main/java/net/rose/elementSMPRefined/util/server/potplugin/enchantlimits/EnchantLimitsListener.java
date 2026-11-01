@@ -82,7 +82,11 @@ public final class EnchantLimitsListener implements Listener {
     /** Hides / lowers offers so the table doesn't advertise restricted enchantments. */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrepareEnchant(PrepareItemEnchantEvent event) {
-        if (limits.isEmpty() || canBypass(event.getEnchanter())) {
+        if (limits.isLockedMace(event.getItem()) && !canBypass(event.getEnchanter())) {
+            event.setCancelled(true);
+            return;
+        }
+        if (limits.isEmpty() || limits.isExempt(event.getItem()) || canBypass(event.getEnchanter())) {
             return;
         }
 
@@ -106,7 +110,12 @@ public final class EnchantLimitsListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEnchant(EnchantItemEvent event) {
         Player player = event.getEnchanter();
-        if (limits.isEmpty() || canBypass(player)) {
+        if (limits.isLockedMace(event.getItem()) && !canBypass(player)) {
+            event.setCancelled(true);
+            alert(player, "This mace can't be enchanted.");
+            return;
+        }
+        if (limits.isEmpty() || limits.isExempt(event.getItem()) || canBypass(player)) {
             return;
         }
 
@@ -122,9 +131,25 @@ public final class EnchantLimitsListener implements Listener {
 
     // ----------------------------------------------------------------- anvil
 
-    /** An anvil result carrying a restricted enchantment (too high a level, or not allowed) is blocked. */
+    /**
+     * An anvil result carrying a restricted enchantment (too high a level, or not allowed) is blocked.
+     * A mace without the enchantable tag can't gain or change enchantments here at all.
+     */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPrepareAnvil(PrepareAnvilEvent event) {
+        ItemStack result = event.getResult();
+        if (limits.isLockedMace(result)
+                && !(event.getView().getPlayer() instanceof Player p && canBypass(p))) {
+            ItemStack base = event.getInventory().getFirstItem();
+            boolean addsEnchants = base == null || !result.getEnchantments().equals(base.getEnchantments());
+            if (addsEnchants) {
+                event.setResult(null);
+                if (event.getView().getPlayer() instanceof Player player) {
+                    alert(player, "This mace can't be enchanted.");
+                }
+                return;
+            }
+        }
         if (limits.isEmpty() || !limits.violates(event.getResult())) {
             return;
         }

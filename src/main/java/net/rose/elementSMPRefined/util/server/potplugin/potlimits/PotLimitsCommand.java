@@ -36,7 +36,7 @@ public final class PotLimitsCommand implements TabExecutor {
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "list" -> list(sender);
             case "reload" -> {
-                limits.load();
+                limits.reloadFromDisk();
                 listener.sweepAll();
                 send(sender, "Reloaded " + limits.banned().size() + " restricted potion type(s).", NamedTextColor.GREEN);
             }

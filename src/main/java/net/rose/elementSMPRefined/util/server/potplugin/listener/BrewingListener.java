@@ -57,8 +57,8 @@ public final class BrewingListener implements Listener {
     }
 
     private static void logWarning(int slot, ItemStack bottle) {
-        Logger.getLogger("Potions01").warning(
-                "[Potions01] Could not build extended potion for slot " + slot
+        Logger.getLogger("ElementSMPRefined").warning(
+                "[Brewing] Could not build extended potion for slot " + slot
                         + " (type=" + bottle.getType() + "). Skipping.");
     }
 }

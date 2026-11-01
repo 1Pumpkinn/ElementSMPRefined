@@ -9,12 +9,16 @@ softdepend: [ViaVersion]
 
 commands:
   potlimits:
-    description: Manage potion limits
-    usage: /potlimits
+    description: Restrict which potions can be brewed, held, or applied
+    usage: /potlimits <add|remove|list|reload> [potion]
+    aliases: [ potlimit ]
+    permission: potplugin.potlimits
 
   enchantlimits:
-    description: Manage enchantment limits
-    usage: /enchantlimits
+    description: Cap or ban enchantments
+    usage: /enchantlimits <set|ban|remove|list|reload> [enchant] [maxLevel]
+    aliases: [ enchantlimit, enchlimits ]
+    permission: potplugin.enchantlimits
 
   trust:
     description: Manage trust relationships
@@ -80,4 +84,16 @@ commands:
 permissions:
   element.admin:
     description: Allows use of element admin commands
+    default: op
+  potplugin.potlimits:
+    description: Manage the restricted potion list
+    default: op
+  potplugin.potlimits.bypass:
+    description: Ignore all potion restrictions
+    default: op
+  potplugin.enchantlimits:
+    description: Manage enchantment limits
+    default: op
+  potplugin.enchantlimits.bypass:
+    description: Ignore all enchantment limits
     default: op

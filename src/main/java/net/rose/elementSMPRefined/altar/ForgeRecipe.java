@@ -29,7 +29,7 @@ public enum ForgeRecipe {
             new Ingredient(Material.HEAVY_CORE, 1, "Heavy Core")),
     METAL(ElementType.EARTH, ElementType.METAL,
             new Ingredient(Material.IRON_BLOCK, 64, "Iron Block"),
-            new Ingredient(Material.HEAVY_CORE, 1, "Heavy Core"),
+            new Ingredient(Material.COBBLED_DEEPSLATE, 128, "Cobbled Deepslate"),
             new Ingredient(Material.DEEPSLATE_EMERALD_ORE, 1, "Deepslate Emerald Ore"));
 
     /** One required stack: {@code amount} of plain (unrenamed) {@code material}. */

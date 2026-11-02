@@ -40,7 +40,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class TornadoAbility extends BaseAbility {
 
-    private static final int DURATION_TICKS = 6 * 20;
+    private static final int DURATION_TICKS = 4 * 20;
     private static final int GROW_TICKS = 15;
     private static final int FADE_TICKS = 15;
     private static final double CAST_RANGE = 22.0;
@@ -49,24 +49,24 @@ public class TornadoAbility extends BaseAbility {
     private static final double SPEED = 0.17;
     private static final double WANDER_JITTER = Math.toRadians(3.5);
     private static final double TURN_RATE = Math.toRadians(2.5);
-    private static final double HOMING_RANGE = 18.0;
+    private static final double HOMING_RANGE = 10.0;
     private static final double LEASH = 40.0;
     private static final double MAX_STEP_UP = 1.2;
     private static final double MAX_DROP_PER_TICK = 0.4;
     private static final double GROUND_SEARCH = 9.0;
     private static final int RETARGET_INTERVAL = 5;
 
-    private static final double PULL_RADIUS = 9.0;
-    private static final double PULL_SPEED_FAR = 0.20;    // blocks/tick at the edge of the pull...
-    private static final double PULL_SPEED_NEAR = 0.50;   // ...and right next to the funnel
+    private static final double PULL_RADIUS = 4.5;
+    private static final double PULL_SPEED_FAR = 0.16;    // blocks/tick at the edge of the pull...
+    private static final double PULL_SPEED_NEAR = 0.35;   // ...and right next to the funnel
     private static final double PULL_SWIRL = 0.22;        // sideways drift while being pulled in (reads as a spiral)
     private static final double MAX_SPEED = 0.75;
 
     private static final double INSIDE_MARGIN = 0.8;
     private static final double ORBIT_SPEED = 0.45;       // how fast they're whipped round the axis
-    private static final double LIFT_SPEED = 0.42;
-    private static final double LIFT_MAX = 5.5;
-    private static final double DAMAGE = 2.0;             // true damage per hit (1 heart)
+    private static final double LIFT_SPEED = 0.3;
+    private static final double LIFT_MAX = 2.8;      // has to stay inside the (now short) funnel
+    private static final double DAMAGE = 3.0;             // true damage per hit (1.5 hearts)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
 
     private static final Sound WIND_SOUND = Sound.ITEM_ELYTRA_FLYING;

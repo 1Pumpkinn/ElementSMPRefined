@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -31,7 +32,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * true damage dealt by a player holding a mace neither triggers nor is blocked by the cooldown.
  * <p>
  * Mace melee hits are also capped at {@link Constants.Mace#MAX_DAMAGE_HEARTS} hearts of final
- * damage (after armor/resistance, before absorption), smash bonus included.
+ * damage (after armor/resistance, counting absorption/golden hearts toward the cap), smash bonus included.
  */
 public class MaceCooldown implements Listener {
 
@@ -135,6 +136,20 @@ public class MaceCooldown implements Listener {
         }
     }
 
+    /**
+     * Damage the hit deals in total: after armor/resistance, but BEFORE absorption (golden hearts) soaks
+     * any of it up. {@link EntityDamageByEntityEvent#getFinalDamage()} already has absorption taken off,
+     * so on its own it would let a victim with golden hearts take the cap on top of their absorption.
+     */
+    @SuppressWarnings("deprecation")
+    private static double damageBeforeAbsorption(EntityDamageByEntityEvent event) {
+        double total = event.getFinalDamage();
+        if (event.isApplicable(DamageModifier.ABSORPTION)) {
+            total -= event.getDamage(DamageModifier.ABSORPTION); // the modifier is negative
+        }
+        return total;
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCapDamage(EntityDamageByEntityEvent event) {
         if (!isPlayerMelee(event)) return;
@@ -142,15 +157,16 @@ public class MaceCooldown implements Listener {
         if (!isMace(player.getInventory().getItemInMainHand())) return;
 
         double max = Constants.Mace.MAX_DAMAGE;
-        double finalDamage = event.getFinalDamage();
-        if (finalDamage <= max) return;
+        double total = damageBeforeAbsorption(event);
+        if (total <= max) return;
 
         // Armor reduction isn't perfectly linear in the base damage, so scale and re-check a few times.
+        // Setting the base damage also re-runs the absorption modifier, so the cap holds with golden hearts.
         double base = event.getDamage();
-        for (int i = 0; i < 5 && finalDamage > max + 1.0E-6; i++) {
-            base *= max / finalDamage;
+        for (int i = 0; i < 5 && total > max + 1.0E-6; i++) {
+            base *= max / total;
             event.setDamage(base);
-            finalDamage = event.getFinalDamage();
+            total = damageBeforeAbsorption(event);
         }
     }
 

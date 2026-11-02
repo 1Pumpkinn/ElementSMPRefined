@@ -67,6 +67,11 @@ public class StatusEffectListener implements Listener {
             Location locked = event.getFrom().clone();
             locked.setYaw(event.getTo().getYaw());
             locked.setPitch(event.getTo().getPitch());
+            // X/Z stay locked, but downward movement is allowed so gravity still works (e.g. a player
+            // frozen mid-air falls to the ground instead of hanging there). Upward movement stays locked.
+            if (event.getTo().getY() < event.getFrom().getY()) {
+                locked.setY(event.getTo().getY());
+            }
             event.setTo(locked);
         }
     }

@@ -56,9 +56,9 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
     private static final int CHARGE_TICKS = 14;
     private static final int SLOW_AMPLIFIER_CASTER = 2;     // Slowness III for the whole cast, like Magma Beam
-    private static final double ORB_DISTANCE = 3.0;         // how far in front of the eyes the ring floats
-    private static final double ORB_DROP = 0.2;
-    private static final double RING_RADIUS = 1.1;
+    private static final double ORB_DISTANCE = 2.2;         // how far in front of the eyes the ring floats
+    private static final double ORB_DROP = 0.15;
+    private static final double RING_RADIUS = 0.8;
     private static final float RING_SPIN_PER_TICK = 0.2f;   // radians; the ring turns around the aim
     private static final float LOADED_SCALE = 0.5f;         // size of an icicle hovering in the ring (1.0 = flying size)
     private static final int APPEAR_TICKS = 3;              // an icicle grows in over this long once loaded
@@ -72,6 +72,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private static final int LAUNCH_GROW_TICKS = 3;         // loaded size -> full size as it leaves the ring
     private static final int MAX_SMOOTHING_TICKS = 2;       // cap on ping smoothing; more makes the model trail its hitbox
     private static final double AIM_ASSIST_RADIUS = 0.3;    // how forgiving the "what am I looking at" check is
+    private static final double CROSSHAIR_CONVERGE = 24.0;  // with nothing under the crosshair, icicles still converge on the aim line this far out
 
     // Icicle model: vanilla pointed-dripstone shape with the icicle texture, stretched long and thin.
     // This is the model axis that the point faces (the sprite's point is at the bottom, so -Y); if icicles
@@ -311,17 +312,19 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             if (ic == null || !ic.inRing || !ic.display.isValid()) return;
             ic.inRing = false;
 
-            // Aim at the thing under the crosshair (entity or block), not just parallel to the eye line,
-            // because the icicle starts a little off to the side in the ring.
+            // Every icicle is steered at the exact point under the crosshair (entity or block) - the ring sits
+            // off to the side of the eye line, so a plain "same direction as the eyes" shot would miss it.
+            // The ray is cast from the eyes so the point is what the caster really sees; with nothing in
+            // sight the icicles still converge on the aim line a fixed distance out.
             Location eye = caster.getEyeLocation();
             RayTraceResult sight = world.rayTrace(eye, aim, MAX_RANGE, FluidCollisionMode.NEVER, true,
                     AIM_ASSIST_RADIUS, this::isTarget);
             Vector target = sight != null
                     ? sight.getHitPosition()
-                    : eye.toVector().add(aim.clone().multiply(MAX_RANGE));
+                    : eye.toVector().add(aim.clone().multiply(CROSSHAIR_CONVERGE));
 
             Vector dir = target.clone().subtract(ic.pos.toVector());
-            // Something right in the caster's face would send the icicle backwards - fall back to the aim line.
+            // A point right at the caster's face would send the icicle sideways/backwards - use the aim line.
             if (dir.lengthSquared() < 1.0E-4 || dir.clone().normalize().dot(aim) < 0.2) {
                 dir = aim.clone();
             }

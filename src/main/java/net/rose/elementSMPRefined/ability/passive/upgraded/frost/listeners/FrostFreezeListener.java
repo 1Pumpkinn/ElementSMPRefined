@@ -7,9 +7,7 @@ import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
 import net.rose.elementSMPRefined.util.visual.model.IceBlockVisual;
-import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,8 +15,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,9 +26,6 @@ public class FrostFreezeListener implements Listener {
     private static final double CHANCE = 0.05; // 5% (keep FrostElement's info text in sync)
     private static final int CHANCE_PERCENT = 5;
     private static final int FREEZE_TICKS = 40; // 2 seconds
-
-    private static final double MAX_GROUND_SEARCH = 64.0;
-    private static final double AIRBORNE_THRESHOLD = 0.15;
 
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
@@ -76,51 +69,22 @@ public class FrostFreezeListener implements Listener {
         UUID id = victim.getUniqueId();
         if (!frozen.add(id)) return; // already encased
 
-        // Wait one tick so the knockback from the hit that triggered this has been applied - the
-        // victim is then set down from wherever that knockback left them.
+        // Wait one tick so the knockback from the hit that triggered this has been applied. The victim is
+        // frozen where they are - no teleporting. Horizontal movement is locked by the stun, but they still
+        // fall (see StatusEffectListener), so a victim in the air drops to the ground under normal gravity.
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (!victim.isOnline() || victim.isDead() || !victim.isValid()) {
                 frozen.remove(id);
                 return;
             }
 
-            if (!settleOnGround(victim)) {
-                frozen.remove(id); // nothing to stand on (void) - no freeze
-                return;
-            }
+            // Gliding would hold them up (and carry them), so end it and let gravity take over.
+            if (victim.isGliding()) victim.setGliding(false);
 
             plugin.getStatusEffectManager().applyEffect(attacker, victim, StatusEffectType.STUN, FREEZE_TICKS, 1);
             IceBlockVisual.encase(plugin, victim, FREEZE_TICKS);
 
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> frozen.remove(id), FREEZE_TICKS);
         });
-    }
-
-    /**
-     * Makes sure the victim is standing on the ground before they're frozen: if they're in the air,
-     * they are put down on the first solid surface beneath them, with their momentum and fall
-     * distance cleared and gliding stopped.
-     *
-     * @return false if there is no ground below the victim, in which case nothing was changed
-     */
-    private boolean settleOnGround(Player victim) {
-        Location at = victim.getLocation();
-        // Start a touch above the feet so a victim standing inside a carpet/slab edge still finds their floor.
-        Location from = at.clone().add(0, 0.1, 0);
-        RayTraceResult ground = victim.getWorld().rayTraceBlocks(
-                from, new Vector(0, -1, 0), MAX_GROUND_SEARCH, FluidCollisionMode.NEVER, true);
-        if (ground == null) return false;
-
-        double groundY = ground.getHitPosition().getY();
-        boolean airborne = at.getY() - groundY > AIRBORNE_THRESHOLD;
-
-        if (airborne) {
-            if (victim.isGliding()) victim.setGliding(false);
-            Location landing = new Location(at.getWorld(), at.getX(), groundY, at.getZ(), at.getYaw(), at.getPitch());
-            victim.teleport(landing);
-        }
-        victim.setVelocity(new Vector(0, 0, 0));
-        victim.setFallDistance(0f);
-        return true;
     }
 }

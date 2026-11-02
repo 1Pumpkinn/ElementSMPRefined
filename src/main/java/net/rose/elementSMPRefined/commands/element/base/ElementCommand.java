@@ -41,6 +41,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         commands.put("data", new DataCommand(plugin.getDataStore(), plugin.getElementManager(),
                 plugin.getCooldownManager(), plugin.getDisarmManager(), plugin.getStatusEffectManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
+        commands.put("castall", new CastAllCommand(plugin));
         return commands;
     }
 
@@ -116,6 +117,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("/element set <player> <element> - Set player's element", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element data [player] - Show a player's stored data and live state (read-only)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element debug [player] - Debug a player's element data (defaults to yourself)", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("/element castall <1|2> [players...|*] [at <target>] - Fire an ability for several players on the same tick (testing)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("  reload | reset [key] | reset element <element> [key]", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("  set <key> <value> | element <element> <key> <value>", NamedTextColor.GRAY));

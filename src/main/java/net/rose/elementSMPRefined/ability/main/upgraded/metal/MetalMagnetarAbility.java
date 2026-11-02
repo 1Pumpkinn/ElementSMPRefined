@@ -49,7 +49,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double PULL_SPEED_NEAR = 0.80;     // ...and right next to the core
     private static final double MAX_SPEED = 0.9;
     private static final double ORBIT_RADIUS = 2.0;         // captured entities circle the core on a ring this wide (blocks)
-    private static final double ORBIT_SPEED = 0.3;          // blocks/tick along the ring
+    private static final double ORBIT_SPEED = 0.15;         // blocks/tick along the ring (halved: it no longer does damage, so it needn't whip them round)
     private static final double ORBIT_RADIAL_GAIN = 0.3;    // fraction of the radial / vertical error corrected per tick
     private static final double CAPTURE_RADIUS = ORBIT_RADIUS + 0.5; // "in" the core: close enough to be swept onto the ring
     private static final double APPROACH_FLOOR = 0.12;      // the pull eases off near the core: speed <= FLOOR + EASE * distance left,

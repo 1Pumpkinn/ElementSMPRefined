@@ -12,6 +12,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -29,7 +30,9 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,6 +57,14 @@ public class MagmaBeamAbility extends BaseAbility {
 
     private static final Component ALREADY_CHARGING =
             Component.text("Magma Beam is already charging!", NamedTextColor.RED);
+
+    // Only one beam may tick down a given victim at a time: victim -> the beam (caster) that holds them.
+    // The hold is refreshed by every pulse and lapses a couple of ticks after the last one, so when the
+    // holding beam moves off (or ends) another beam can take over.
+    private static final int BEAM_LOCK_TICKS = HIT_INTERVAL + 2;
+    private static final Map<UUID, BeamLock> BEAM_LOCKS = new HashMap<>();
+
+    private record BeamLock(UUID owner, int expiresAt) {}
 
     private final ElementSMPRefined plugin;
 
@@ -85,6 +96,7 @@ public class MagmaBeamAbility extends BaseAbility {
             @Override
             public synchronized void cancel() throws IllegalStateException {
                 visual.remove();
+                BEAM_LOCKS.values().removeIf(lock -> lock.owner().equals(player.getUniqueId()));
                 setActive(player, false);
                 PotionEffect slow = player.getPotionEffect(PotionEffectType.SLOWNESS);
                 if (slow != null && slow.getAmplifier() == SLOW_AMPLIFIER) {
@@ -239,6 +251,9 @@ public class MagmaBeamAbility extends BaseAbility {
 
             BoundingBox grown = e.getBoundingBox().expand(HIT_RADIUS);
             if (!grown.contains(from) && grown.rayTrace(from, dir, reach) == null) continue;
+
+            // Another beam already has this victim: it keeps ticking them, this one does nothing to them.
+            if (!claim(player, e)) continue;
             hit.add(e.getUniqueId());
 
             // A raised shield stops the pulse: no damage, no burning, and the shield takes the wear.
@@ -249,6 +264,20 @@ public class MagmaBeamAbility extends BaseAbility {
             }
             w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 8, 0.3, 0.4, 0.3, 0.03, null, true);
         }
+    }
+
+    /**
+     * Tries to take the victim for this caster's beam. Succeeds if nobody holds them, the hold has
+     * lapsed, or this caster already holds them (which also renews it).
+     */
+    private static boolean claim(Player caster, LivingEntity victim) {
+        int now = Bukkit.getCurrentTick();
+        BeamLock lock = BEAM_LOCKS.get(victim.getUniqueId());
+        if (lock != null && lock.expiresAt() > now && !lock.owner().equals(caster.getUniqueId())) {
+            return false;
+        }
+        BEAM_LOCKS.put(victim.getUniqueId(), new BeamLock(caster.getUniqueId(), now + BEAM_LOCK_TICKS));
+        return true;
     }
 
     @Override

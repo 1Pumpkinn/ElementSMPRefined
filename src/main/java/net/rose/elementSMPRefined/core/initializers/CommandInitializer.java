@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.commands.element.base.AutoSmeltCommand;
 import net.rose.elementSMPRefined.commands.element.base.ElementCommand;
 import net.rose.elementSMPRefined.commands.element.base.ElementInfoCommand;
 import net.rose.elementSMPRefined.commands.element.base.ToggleCommand;
+import net.rose.elementSMPRefined.commands.element.base.WithdrawCommand;
 import net.rose.elementSMPRefined.commands.server.DimensionCommand;
 import net.rose.elementSMPRefined.commands.server.GraceCommand;
 import net.rose.elementSMPRefined.commands.TrustCommand;
@@ -32,6 +33,7 @@ public class CommandInitializer {
                 .command("elements", new ElementInfoCommand(plugin))
                 .command("autosmelt", new AutoSmeltCommand(plugin))
                 .command("toggle", new ToggleCommand(plugin))
+                .command("withdraw", new WithdrawCommand(plugin))
                 .command("trust", new TrustCommand(plugin, plugin.getTrustManager()))
                 .command("element", new ElementCommand(plugin))
                 .command("util", new UtilCommand(plugin))

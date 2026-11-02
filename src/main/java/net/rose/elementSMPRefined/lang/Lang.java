@@ -408,8 +408,15 @@ public final class Lang {
 
     public static final Component UPGRADER_YOU_HAVE_UNLOCKED_2 = unlocked("Upgrade II");
 
-    // Player lifecycle / rerolling
+    // /withdraw
 
+    public static final Component WITHDRAW_PLAYERS_ONLY = COMMAND_PLAYERS_ONLY;
+
+    public static final Component WITHDRAW_USAGE = red("Usage: /withdraw <upgrader|forged>");
+
+    public static final Component WITHDRAW_CANCELLED = red("Something stopped the withdrawal.");
+
+    // Player lifecycle / rerolling
 
     public static Component elementManagerYourElementIsNow(Object displayName) {
         return textOfChildren(

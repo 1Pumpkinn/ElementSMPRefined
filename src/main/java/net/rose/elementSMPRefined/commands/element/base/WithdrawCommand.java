@@ -112,7 +112,7 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
         ItemStack upgrader = UpgraderItem.make(plugin, level);
         boolean dropped = upgrader != null && give(player, upgrader);
 
-        SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
+        SoundUtils.playTo(player, SoundUtils.UI.WITHDRAW);
     }
 
     private void withdrawForged(Player player, ElementType current) {
@@ -135,6 +135,10 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
                 Component.text(current.name() + " -> " + base.name()).color(color),
                 Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(2000), Duration.ofMillis(500))
         ));
+
+        // assignBasicElement() just played the success jingle - cut it and play the power-down instead.
+        player.stopSound(SoundUtils.UI.SUCCESS.sound());
+        SoundUtils.playTo(player, SoundUtils.UI.WITHDRAW);
     }
 
     /** Adds the item to the inventory, dropping whatever doesn't fit. @return true if anything was dropped */

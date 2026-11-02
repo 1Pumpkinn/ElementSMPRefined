@@ -27,7 +27,7 @@ public final class TornadoVisual {
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:tornado_wisps"));
 
     // About 2 players tall. The funnel's width scales with this too (SCALE = HEIGHT / 3).
-    public static final double HEIGHT = 3.6;
+    public static final double HEIGHT = 4.5;
 
     private static final float SCALE = (float) (HEIGHT / 3.0);
 

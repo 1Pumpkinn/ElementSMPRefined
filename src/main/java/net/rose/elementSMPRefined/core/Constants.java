@@ -22,7 +22,7 @@ public final class Constants {
 
     public static final class Mace {
         /** Most damage one mace melee hit can deal, in hearts. */
-        public static final double MAX_DAMAGE_HEARTS = 4.5;
+        public static final double MAX_DAMAGE_HEARTS = 5;
         public static final double MAX_DAMAGE = MAX_DAMAGE_HEARTS * 2.0;
 
         private Mace() {}

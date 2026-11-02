@@ -7,9 +7,11 @@ import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -25,6 +27,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -97,7 +100,32 @@ public class AirWindBurstListener implements Listener {
         return player.isOnGround() || player.isFlying() || player.isGliding()
                 || player.isInsideVehicle() || player.isClimbing() || player.isSwimming()
                 || player.isInWater() || player.isInLava()
-                || player.hasPotionEffect(PotionEffectType.SLOW_FALLING);
+                || player.hasPotionEffect(PotionEffectType.SLOW_FALLING)
+                || isInFallBreakingBlock(player);
+    }
+
+    /**
+     * Blocks that stop a fall dead (vanilla zeroes the fall distance while you're inside one): cobwebs,
+     * sweet berry bushes and powder snow. Without this the tracked peak height survives a fall into a
+     * web, so a player stuck in it was still treated as "falling" and could trigger Wind Burst.
+     */
+    private static boolean isInFallBreakingBlock(Player player) {
+        BoundingBox box = player.getBoundingBox();
+        World world = player.getWorld();
+        final double eps = 1.0E-6;
+        for (int x = (int) Math.floor(box.getMinX() + eps); x <= (int) Math.floor(box.getMaxX() - eps); x++) {
+            for (int y = (int) Math.floor(box.getMinY() + eps); y <= (int) Math.floor(box.getMaxY() - eps); y++) {
+                for (int z = (int) Math.floor(box.getMinZ() + eps); z <= (int) Math.floor(box.getMaxZ() - eps); z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    Material type = block.getType();
+                    if (type == Material.COBWEB || type == Material.SWEET_BERRY_BUSH
+                            || type == Material.POWDER_SNOW) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private double effectiveFallDistance(Player player) {
@@ -134,6 +162,13 @@ public class AirWindBurstListener implements Listener {
 
         // A real Wind Burst enchantment is handled by vanilla - never double up
         if (weapon.containsEnchantment(Enchantment.WIND_BURST)) return;
+
+        // Stuck in a web (etc.): the fall is over. Forget the old peak so leaving the web doesn't revive it.
+        if (isInFallBreakingBlock(attacker)) {
+            peakY.put(attacker.getUniqueId(), attacker.getLocation().getY());
+            debug(attacker, "inside a fall-breaking block (web/berry bush/powder snow)");
+            return;
+        }
 
         double fall = effectiveFallDistance(attacker);
         if (fall <= MIN_FALL_DISTANCE) {

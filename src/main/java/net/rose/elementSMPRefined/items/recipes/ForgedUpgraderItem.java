@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -22,6 +23,7 @@ public final class ForgedUpgraderItem {
     public static ItemStack make(JavaPlugin plugin) {
         return ItemBuilder.of(Material.ENDER_EYE)
                 .name(Component.text("Forged Upgrader", COLOR))
+                .itemModel(NamespacedKey.fromString("elementsmp:forged_upgrader"))
                 .lore(
                         "&7Forges your basic element",
                         "&7into its advanced stage")

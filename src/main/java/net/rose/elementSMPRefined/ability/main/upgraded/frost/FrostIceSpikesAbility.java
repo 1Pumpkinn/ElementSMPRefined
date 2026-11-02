@@ -51,8 +51,11 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
     private static final double DAMAGE = 6.0; // 3 hearts of true damage
     private static final double LAUNCH_UP = 0.8;
-    private static final double HIT_RADIUS_XZ = 1.2;
-    private static final double HIT_RADIUS_Y = 2.0;
+    // A spike only hurts what actually touches it: its hitbox is a cone that follows the drawn spike
+    // (wide at the base, tapering to the point), built from this many stacked slices. Each slice uses the
+    // cone's width at its bottom, so the hitbox is never thinner than the spike it covers.
+    private static final int HIT_SLICES = 4;
+    private static final double HIT_QUERY_MARGIN = 1.5; // spike base + a wide entity's half-width, for the entity query
     private static final int SLOW_TICKS = 60;
     private static final int SLOW_AMPLIFIER = 1;       // Slowness II
 
@@ -61,7 +64,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
     // Radial jitter applied to a spike (see startSpikes) and the entity query that covers every spike
     private static final double RADIUS_JITTER = 0.25;   // r +/- this
-    private static final double QUERY_XZ = RING_RADII[RING_RADII.length - 1] + RADIUS_JITTER + HIT_RADIUS_XZ + 0.5;
+    private static final double QUERY_XZ = RING_RADII[RING_RADII.length - 1] + RADIUS_JITTER + HIT_QUERY_MARGIN;
     private static final double QUERY_Y = 6.0;
     private static final int QUERY_EVERY_TICKS = 4;
 
@@ -210,23 +213,43 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
             Location base = new Location(world, origin.getX() + spike.dx(), ground.getY() + 1,
                     origin.getZ() + spike.dz());
-            IceSpikeVisual.spawn(plugin, base, spike.height());
+            double baseRadius = IceSpikeVisual.spawn(plugin, base, spike.height());
 
             if (candidates.isEmpty()) continue;
 
-            BoundingBox zone = BoundingBox.of(base, HIT_RADIUS_XZ, HIT_RADIUS_Y, HIT_RADIUS_XZ);
+            BoundingBox[] zones = spikeZones(base, baseRadius, spike.height());
             for (Iterator<LivingEntity> it = candidates.iterator(); it.hasNext(); ) {
                 LivingEntity entity = it.next();
                 if (!entity.isValid()) {
                     it.remove();
                     continue;
                 }
-                if (!entity.getBoundingBox().overlaps(zone)) continue;
+                if (!touches(entity.getBoundingBox(), zones)) continue;
 
                 it.remove(); // each entity is only hit once per cast
                 if (alreadyHit.add(entity.getUniqueId())) hit(caster, entity);
             }
         }
+    }
+
+    /** The spike's hitbox: stacked slices that narrow from the base up to the point. */
+    private static BoundingBox[] spikeZones(Location base, double baseRadius, double height) {
+        BoundingBox[] zones = new BoundingBox[HIT_SLICES];
+        double sliceHeight = height / HIT_SLICES;
+        for (int i = 0; i < HIT_SLICES; i++) {
+            double radius = baseRadius * (1.0 - (double) i / HIT_SLICES);
+            double y = base.getY() + i * sliceHeight;
+            zones[i] = new BoundingBox(base.getX() - radius, y, base.getZ() - radius,
+                    base.getX() + radius, y + sliceHeight, base.getZ() + radius);
+        }
+        return zones;
+    }
+
+    private static boolean touches(BoundingBox entityBox, BoundingBox[] zones) {
+        for (BoundingBox zone : zones) {
+            if (entityBox.overlaps(zone)) return true;
+        }
+        return false;
     }
 
     private List<LivingEntity> collectCandidates(Player caster, TrustManager trust, Location origin,
@@ -262,6 +285,6 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Ice spikes burst out in rings around you, damaging, launching and slowing enemies.";
+        return "Ice spikes burst out in rings around you, damaging, launching and slowing enemies they actually hit.";
     }
 }

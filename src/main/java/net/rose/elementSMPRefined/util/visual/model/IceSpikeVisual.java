@@ -77,10 +77,12 @@ public final class IceSpikeVisual {
      *
      * @param base   where the spike's bottom touches the ground
      * @param height how tall the visible spike should be, in blocks (ground to point)
+     * @return the radius of the spike's base, in blocks, so a hitbox can follow the visible shape
+     *         (0 if nothing was spawned)
      */
-    public static void spawn(JavaPlugin plugin, Location base, double height) {
+    public static double spawn(JavaPlugin plugin, Location base, double height) {
         World world = base.getWorld();
-        if (world == null) return;
+        if (world == null) return 0.0;
 
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
 
@@ -117,6 +119,9 @@ public final class IceSpikeVisual {
                 PACKED_ICE, true);
         fx.setY(base.getY() + 0.5);
         world.spawnParticle(Particle.SNOWFLAKE, fx, 6, 0.3, 0.4, 0.3, 0.02, null, true);
+
+        // The visible sprite fills SPRITE_FILL of the model's width, so that is the base we draw.
+        return sw * 0.5 * SPRITE_FILL;
     }
 
     private static void ensureTicker(JavaPlugin plugin) {

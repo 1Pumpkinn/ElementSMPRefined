@@ -66,7 +66,7 @@ public class TornadoAbility extends BaseAbility {
     private static final double ORBIT_SPEED = 0.45;       // how fast they're whipped round the axis
     private static final double LIFT_SPEED = 0.3;
     private static final double LIFT_MAX = 2.8;      // has to stay inside the (now short) funnel
-    private static final double DAMAGE = 3.0;             // true damage per hit (1.5 hearts)
+    private static final double DAMAGE = 2.0;             // true damage per hit (1 hearts)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
 
     private static final Sound WIND_SOUND = Sound.ITEM_ELYTRA_FLYING;

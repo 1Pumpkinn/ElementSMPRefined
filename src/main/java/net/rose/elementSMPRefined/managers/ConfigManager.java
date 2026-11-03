@@ -218,6 +218,17 @@ public class ConfigManager {
         return getIntSafe("grace_period.duration_seconds", DEFAULT_GRACE_PERIOD_DURATION_SECONDS);
     }
 
+    // Team limits - read live, so /element config changes apply immediately.
+    /** Most players on one team, owner included (at least 1). */
+    public int getTeamMaxMembers() {
+        return Math.max(1, getIntSafe("team.max_members", Constants.Team.DEFAULT_MAX_MEMBERS));
+    }
+
+    /** Most teams one team can be allied with (0 turns alliances off). */
+    public int getTeamMaxAllies() {
+        return Math.max(0, getIntSafe("team.max_allies", Constants.Team.DEFAULT_MAX_ALLIES));
+    }
+
     // Extra dimension options - how the block behaves, not just whether it's on.
     public boolean isDimensionWarnPlayers() {
         return getBooleanSafe("dimensions.warn_players", Constants.Dimension.DEFAULT_WARN_PLAYERS);

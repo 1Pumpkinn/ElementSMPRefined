@@ -8,7 +8,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
 import org.bukkit.ChatColor;
@@ -84,7 +84,7 @@ public class TornadoAbility extends BaseAbility {
         final World world;
         final Location pos;
         final TornadoVisual visual;
-        final TrustManager trust;
+        final TeamManager team;
         double heading;
         int ticks = 0;
         Player chasing;
@@ -92,11 +92,11 @@ public class TornadoAbility extends BaseAbility {
         BukkitRunnable task;
         final Set<UUID> windListeners = new HashSet<>();
 
-        Tornado(World world, Location pos, TornadoVisual visual, TrustManager trust, double heading) {
+        Tornado(World world, Location pos, TornadoVisual visual, TeamManager team, double heading) {
             this.world = world;
             this.pos = pos;
             this.visual = visual;
-            this.trust = trust;
+            this.team = team;
             this.heading = heading;
         }
     }
@@ -126,7 +126,7 @@ public class TornadoAbility extends BaseAbility {
         double heading = Math.atan2(look.getZ(), look.getX());
 
         Tornado tornado = new Tornado(start.getWorld(), start, new TornadoVisual(start, caster),
-                context.getTrustManager(), heading);
+                context.getTeamManager(), heading);
         tornadoes.put(caster.getUniqueId(), tornado);
         setActive(caster, true);
 
@@ -466,27 +466,27 @@ public class TornadoAbility extends BaseAbility {
         // never scanned, but never treat one as a target even if one is ever passed in.
         if (target instanceof Projectile projectile
                 && projectile.getShooter() instanceof Player shooter
-                && (shooter.getUniqueId().equals(caster.getUniqueId()) || isTrusted(t, caster, shooter.getUniqueId()))) {
+                && (shooter.getUniqueId().equals(caster.getUniqueId()) || isFriendly(t, caster, shooter.getUniqueId()))) {
             return false;
         }
 
         if (target instanceof Player player) {
             GameMode mode = player.getGameMode();
             if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) return false;
-            return !isTrusted(t, caster, player.getUniqueId());
+            return !isFriendly(t, caster, player.getUniqueId());
         }
 
-        // Mobs are fair game, but not mounts carrying the caster / a trusted player, and not the
-        // caster's (or their trusted friends') tamed pets.
+        // Mobs are fair game, but not mounts carrying the caster / a teammate or ally, and not the
+        // caster's (or their teammates'/allies') tamed pets.
         for (Entity passenger : target.getPassengers()) {
             if (passenger instanceof Player rider
-                    && (rider.getUniqueId().equals(caster.getUniqueId()) || isTrusted(t, caster, rider.getUniqueId()))) {
+                    && (rider.getUniqueId().equals(caster.getUniqueId()) || isFriendly(t, caster, rider.getUniqueId()))) {
                 return false;
             }
         }
         if (target instanceof Tameable pet && pet.getOwnerUniqueId() != null) {
             UUID owner = pet.getOwnerUniqueId();
-            return !owner.equals(caster.getUniqueId()) && !isTrusted(t, caster, owner);
+            return !owner.equals(caster.getUniqueId()) && !isFriendly(t, caster, owner);
         }
         return true;
     }
@@ -501,8 +501,8 @@ public class TornadoAbility extends BaseAbility {
         return targetVehicle != null && targetVehicle.getUniqueId().equals(caster.getUniqueId());
     }
 
-    private boolean isTrusted(Tornado t, Player caster, UUID other) {
-        return t.trust != null && t.trust.isTrusted(caster.getUniqueId(), other);
+    private boolean isFriendly(Tornado t, Player caster, UUID other) {
+        return t.team != null && t.team.isFriendly(caster.getUniqueId(), other);
     }
 
     private void end(UUID casterId, boolean collapsed) {

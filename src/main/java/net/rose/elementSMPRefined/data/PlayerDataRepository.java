@@ -1,6 +1,5 @@
 package net.rose.elementSMPRefined.data;
 
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -25,8 +24,4 @@ public interface PlayerDataRepository {
     void invalidateCache(UUID uuid);
 
     void flushAll();
-
-    Set<UUID> getTrusted(UUID owner);
-
-    void setTrusted(UUID owner, Set<UUID> trusted);
 }

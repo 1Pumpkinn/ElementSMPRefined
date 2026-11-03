@@ -9,7 +9,7 @@ import net.rose.elementSMPRefined.commands.element.base.ToggleCommand;
 import net.rose.elementSMPRefined.commands.element.base.WithdrawCommand;
 import net.rose.elementSMPRefined.commands.server.DimensionCommand;
 import net.rose.elementSMPRefined.commands.server.GraceCommand;
-import net.rose.elementSMPRefined.commands.TrustCommand;
+import net.rose.elementSMPRefined.commands.TeamCommand;
 import net.rose.elementSMPRefined.commands.element.admin.ReforgeAltarCommand;
 import net.rose.elementSMPRefined.commands.element.admin.UtilCommand;
 import net.rose.elementSMPRefined.commands.element.admin.EnchantableMaceCommand;
@@ -34,7 +34,7 @@ public class CommandInitializer {
                 .command("autosmelt", new AutoSmeltCommand(plugin))
                 .command("toggle", new ToggleCommand(plugin))
                 .command("withdraw", new WithdrawCommand(plugin))
-                .command("trust", new TrustCommand(plugin, plugin.getTrustManager()))
+                .command("team", new TeamCommand(plugin.getTeamManager()))
                 .command("element", new ElementCommand(plugin))
                 .command("util", new UtilCommand(plugin))
                 .command("enchantablemace", new EnchantableMaceCommand(plugin))

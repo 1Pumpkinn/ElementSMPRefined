@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import org.bukkit.*;
@@ -35,7 +35,7 @@ public class AirCutterAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
-        TrustManager trust = context.getTrustManager();
+        TeamManager team = context.getTeamManager();
 
         World w = player.getWorld();
         Vector aim = player.getLocation().getDirection().normalize();
@@ -55,7 +55,7 @@ public class AirCutterAbility extends BaseAbility {
             // Offsets are centred on the aim: for 3 blades that's -7deg, 0deg, +7deg.
             double offset = (i - (CUTTER_COUNT - 1) / 2.0) * SPREAD_DEGREES;
             Vector direction = aim.clone().rotateAroundAxis(fanAxis, Math.toRadians(offset)).normalize();
-            launchCutter(player, trust, origin, direction, hitEntities);
+            launchCutter(player, team, origin, direction, hitEntities);
         }
 
         return true;
@@ -73,7 +73,7 @@ public class AirCutterAbility extends BaseAbility {
         return right.clone().crossProduct(aim).normalize();
     }
 
-    private void launchCutter(Player player, TrustManager trust, Location origin, Vector direction,
+    private void launchCutter(Player player, TeamManager team, Location origin, Vector direction,
                               java.util.Set<java.util.UUID> hitEntities) {
         World w = origin.getWorld();
 
@@ -134,7 +134,7 @@ public class AirCutterAbility extends BaseAbility {
 
                 for (LivingEntity e : slice.getNearbyLivingEntities(hitboxWidth)) {
                     if (e.equals(player)) continue;
-                    if (e instanceof Player other && trust.isTrusted(player.getUniqueId(), other.getUniqueId())) continue;
+                    if (e instanceof Player other && team.isFriendly(player.getUniqueId(), other.getUniqueId())) continue;
                     if (!bladeHit.add(e.getUniqueId())) continue;
 
                     // A raised shield stops the blade: no damage, no knockback, and the shield takes the wear.

@@ -7,7 +7,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.particles.element.LifeParticles;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import org.bukkit.Bukkit;
@@ -135,7 +135,7 @@ public class LifeTotemAbility extends BaseAbility {
         });
 
         Totem totem = new Totem(world, display, start, velocity, player.getUniqueId(),
-                context.getTrustManager(), eye.getYaw());
+                context.getTeamManager(), eye.getYaw());
         ACTIVE.add(totem);
         totem.runTaskTimer(plugin, 1L, 1L);
 
@@ -236,7 +236,7 @@ public class LifeTotemAbility extends BaseAbility {
         private final Vector pos;
         private final Vector vel;
         private final UUID ownerId;
-        private final TrustManager trust;
+        private final TeamManager team;
         private final float yaw;
 
         private boolean planted = false;
@@ -252,13 +252,13 @@ public class LifeTotemAbility extends BaseAbility {
         private Interaction hitbox;  // invisible entity players actually hit
         private int hits = 0;        // critical hits taken so far
 
-        Totem(World world, ItemDisplay display, Vector pos, Vector vel, UUID ownerId, TrustManager trust, float yawDegrees) {
+        Totem(World world, ItemDisplay display, Vector pos, Vector vel, UUID ownerId, TeamManager team, float yawDegrees) {
             this.world = world;
             this.display = display;
             this.pos = pos.clone();
             this.vel = vel.clone();
             this.ownerId = ownerId;
-            this.trust = trust;
+            this.team = team;
             this.yaw = (float) Math.toRadians(-yawDegrees + 180.0);
         }
 
@@ -397,8 +397,8 @@ public class LifeTotemAbility extends BaseAbility {
         private void pulse() {
             for (Player other : world.getNearbyPlayers(base, RADIUS)) {
                 boolean owner = other.getUniqueId().equals(ownerId);
-                boolean trusted = trust != null && trust.isTrusted(ownerId, other.getUniqueId());
-                if (!owner && !trusted) continue;
+                boolean friendly = team != null && team.isFriendly(ownerId, other.getUniqueId());
+                if (!owner && !friendly) continue;
 
                 other.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, REGEN_TICKS,
                         REGEN_AMPLIFIER, true, true, true));
@@ -455,7 +455,7 @@ public class LifeTotemAbility extends BaseAbility {
 
         void onHit(Player attacker, boolean crit) {
             UUID id = attacker.getUniqueId();
-            if (id.equals(ownerId) || (trust != null && trust.isTrusted(ownerId, id))) return;
+            if (id.equals(ownerId) || (team != null && team.isFriendly(ownerId, id))) return;
 
             Location centre = base.clone().add(0, HITBOX_HEIGHT * 0.5, 0);
 
@@ -566,6 +566,6 @@ public class LifeTotemAbility extends BaseAbility {
     }
 
     public String getDescription() {
-        return "Launch a totem that plants in the ground and regenerates you and trusted players nearby.";
+        return "Launch a totem that plants in the ground and regenerates you and your teammates and allies nearby.";
     }
 }

@@ -31,7 +31,7 @@ public class DeathElement extends BaseElement implements ListenerProvider {
         this.nightInvisibilityListener = new DeathNightInvisibilityListener(elementPlugin, elementPlugin.getElementManager());
         return List.of(
                 nightInvisibilityListener,
-                new DeathWitherOnHitListener(elementPlugin.getElementManager(), elementPlugin.getTrustManager())
+                new DeathWitherOnHitListener(elementPlugin.getElementManager(), elementPlugin.getTeamManager())
         );
     }
 

@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import org.bukkit.ChatColor;
@@ -96,7 +96,7 @@ public class ShockwaveAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player caster = context.getPlayer();
-        TrustManager trust = context.getTrustManager();
+        TeamManager team = context.getTeamManager();
         UUID casterId = caster.getUniqueId();
 
         if (!activeCasters.add(casterId)) return false;
@@ -161,7 +161,7 @@ public class ShockwaveAbility extends BaseAbility {
                     cancel();
                     activeCasters.remove(casterId);
                     caster.setFallDistance(0f);
-                    startShockwave(caster, trust, caster.getLocation());
+                    startShockwave(caster, team, caster.getLocation());
                 }
             }
         }.runTaskTimer(plugin, 1L, 1L);
@@ -173,7 +173,7 @@ public class ShockwaveAbility extends BaseAbility {
         return player.getLocation().subtract(0, 0.2, 0).getBlock().getType().isSolid();
     }
 
-    private void startShockwave(Player caster, TrustManager trust, Location origin) {
+    private void startShockwave(Player caster, TeamManager team, Location origin) {
         World world = origin.getWorld();
         world.spawnParticle(Particle.EXPLOSION, origin, 3, 0.5, 0.2, 0.5, 0.0);
         world.playSound(origin, Sound.ENTITY_GENERIC_EXPLODE, 1.6f, 0.6f);
@@ -238,7 +238,7 @@ public class ShockwaveAbility extends BaseAbility {
                         toRaise.add(new WaveBlock(spawnBlock(ground), raised, now));
                     }
 
-                    if (candidates == null) candidates = collectCandidates(caster, trust, origin, radius, alreadyHit);
+                    if (candidates == null) candidates = collectCandidates(caster, team, origin, radius, alreadyHit);
                     if (!candidates.isEmpty()) {
                         launchNearby(caster, origin, candidates, ground, dirX, dirZ, alreadyHit);
                     }
@@ -313,7 +313,7 @@ public class ShockwaveAbility extends BaseAbility {
                 new Vector3f(CUBE_SCALE, CUBE_SCALE, CUBE_SCALE), new Quaternionf());
     }
 
-    private List<LivingEntity> collectCandidates(Player caster, TrustManager trust, Location origin,
+    private List<LivingEntity> collectCandidates(Player caster, TeamManager team, Location origin,
                                                  double radius, Set<UUID> alreadyHit) {
         double reachXZ = radius + STEP_PER_TICK + HIT_RADIUS_XZ + 1.0;
         double reachY = SCAN_UP + SCAN_DOWN + 1 + HIT_RADIUS_Y + 1.0;
@@ -322,8 +322,8 @@ public class ShockwaveAbility extends BaseAbility {
         for (LivingEntity entity : origin.getNearbyLivingEntities(reachXZ, reachY, reachXZ)) {
             if (entity.equals(caster)) continue;
             if (entity instanceof ArmorStand) continue;
-            if (trust != null && entity instanceof Player other
-                    && trust.isTrusted(caster.getUniqueId(), other.getUniqueId())) continue;
+            if (team != null && entity instanceof Player other
+                    && team.isFriendly(caster.getUniqueId(), other.getUniqueId())) continue;
             if (alreadyHit.contains(entity.getUniqueId())) continue;
             out.add(entity);
         }

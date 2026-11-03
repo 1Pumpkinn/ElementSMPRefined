@@ -8,7 +8,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.particles.element.LifeParticles;
 import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
@@ -73,7 +73,7 @@ public class EnergyBlastAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
-        TrustManager trust = context.getTrustManager();
+        TeamManager team = context.getTeamManager();
 
         if (isActiveFor(player)) {
             player.sendMessage(ALREADY_CHARGING);
@@ -113,7 +113,7 @@ public class EnergyBlastAbility extends BaseAbility {
                     charge(player, visual, tick, roll);
                 } else {
                     if (tick == CHARGE_TICKS) {
-                        release(player, trust);
+                        release(player, team);
                     }
                     int beamTick = tick - CHARGE_TICKS;
                     if (beamTick >= BEAM_TICKS) {
@@ -127,7 +127,7 @@ public class EnergyBlastAbility extends BaseAbility {
                 roll += SPIN_PER_TICK;
             }
 
-            private void release(Player caster, TrustManager trust) {
+            private void release(Player caster, TeamManager team) {
                 World w = caster.getWorld();
                 Location eye = caster.getEyeLocation();
                 fireDir = eye.getDirection().normalize();
@@ -150,7 +150,7 @@ public class EnergyBlastAbility extends BaseAbility {
                     w.playSound(fireImpact, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.6f);
                 }
 
-                strike(caster, trust, eye, fireDir, length);
+                strike(caster, team, eye, fireDir, length);
             }
 
             private void drawBeam(World w, EnergyBlastVisual visual, int beamTick, float roll) {
@@ -214,7 +214,7 @@ public class EnergyBlastAbility extends BaseAbility {
         return eye.clone().add(0, -0.6, 0).add(dir.clone().multiply(2.5));
     }
 
-    private void strike(Player caster, TrustManager trust, Location eye, Vector dir, double length) {
+    private void strike(Player caster, TeamManager team, Location eye, Vector dir, double length) {
         if (length < 1.0) return;
         World w = caster.getWorld();
 
@@ -227,7 +227,7 @@ public class EnergyBlastAbility extends BaseAbility {
         Set<UUID> hit = new HashSet<>();
         for (Entity nearby : w.getNearbyEntities(corridor, candidate -> candidate instanceof LivingEntity)) {
             LivingEntity e = (LivingEntity) nearby;
-            if (!AbilityTargets.isValid(caster, e, trust) || hit.contains(e.getUniqueId())) continue;
+            if (!AbilityTargets.isValid(caster, e, team) || hit.contains(e.getUniqueId())) continue;
 
             BoundingBox grown = e.getBoundingBox().expand(HIT_RADIUS);
             if (!grown.contains(from) && grown.rayTrace(from, dir, reach) == null) continue;

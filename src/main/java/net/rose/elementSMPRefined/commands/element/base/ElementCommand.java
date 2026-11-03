@@ -34,9 +34,10 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         commands.put("set", new SetCommand(plugin.getElementManager()));
         commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager(),
                 plugin.getCooldownManager(), plugin.getDisarmManager(),
-                plugin.getStatusEffectManager(), plugin.getTrustManager()));
+                plugin.getStatusEffectManager(), plugin.getTeamManager()));
         commands.put("data", new DataCommand(plugin.getDataStore(), plugin.getElementManager(),
-                plugin.getCooldownManager(), plugin.getDisarmManager(), plugin.getStatusEffectManager()));
+                plugin.getCooldownManager(), plugin.getDisarmManager(), plugin.getStatusEffectManager(),
+                plugin.getTeamManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
         commands.put("castall", new CastAllCommand(plugin));
         return commands;

@@ -8,7 +8,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
@@ -65,7 +65,7 @@ public class LightningSpearAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
-        TrustManager trust = context.getTrustManager();
+        TeamManager team = context.getTeamManager();
         World world = player.getWorld();
 
         Vector direction = player.getEyeLocation().getDirection().normalize();
@@ -136,7 +136,7 @@ public class LightningSpearAbility extends BaseAbility {
 
     private boolean isTargetable(ElementContext context, Entity entity) {
         return entity instanceof LivingEntity living
-                && AbilityTargets.isValid(context.getPlayer(), living, context.getTrustManager());
+                && AbilityTargets.isValid(context.getPlayer(), living, context.getTeamManager());
     }
 
     private void drawSpear(World world, Location head, Vector direction) {

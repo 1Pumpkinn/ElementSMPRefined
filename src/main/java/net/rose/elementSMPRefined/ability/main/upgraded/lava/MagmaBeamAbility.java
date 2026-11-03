@@ -9,7 +9,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
 import org.bukkit.Bukkit;
@@ -78,7 +78,7 @@ public class MagmaBeamAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
-        TrustManager trust = context.getTrustManager();
+        TeamManager team = context.getTeamManager();
 
         if (isActiveFor(player)) {
             player.sendMessage(ALREADY_CHARGING);
@@ -131,7 +131,7 @@ public class MagmaBeamAbility extends BaseAbility {
                         w.spawnParticle(Particle.FLAME, start, MUZZLE_FLAMES, 0.3, 0.3, 0.3, 0.12, null, true);
                         w.spawnParticle(Particle.LAVA, start, MUZZLE_LAVA, 0.3, 0.3, 0.3, 0.0, null, true);
                     }
-                    fire(player, trust, visual, eye, start, dir, tick - CHARGE_TICKS, roll);
+                    fire(player, team, visual, eye, start, dir, tick - CHARGE_TICKS, roll);
                     if (tick >= CHARGE_TICKS + BEAM_TICKS) {
                         cancel();
                         return;
@@ -168,7 +168,7 @@ public class MagmaBeamAbility extends BaseAbility {
         }
     }
 
-    private void fire(Player player, TrustManager trust, MagmaBeamVisual visual,
+    private void fire(Player player, TeamManager team, MagmaBeamVisual visual,
                       Location eye, Location start, Vector dir, int beamTick, float roll) {
         World w = player.getWorld();
 
@@ -249,7 +249,7 @@ public class MagmaBeamAbility extends BaseAbility {
         Set<UUID> hit = new HashSet<>();
         for (Entity nearby : w.getNearbyEntities(corridor, candidate -> candidate instanceof LivingEntity)) {
             LivingEntity e = (LivingEntity) nearby;
-            if (!AbilityTargets.isValid(player, e, trust) || hit.contains(e.getUniqueId())) continue;
+            if (!AbilityTargets.isValid(player, e, team) || hit.contains(e.getUniqueId())) continue;
 
             BoundingBox grown = e.getBoundingBox().expand(HIT_RADIUS);
             if (!grown.contains(from) && grown.rayTrace(from, dir, reach) == null) continue;

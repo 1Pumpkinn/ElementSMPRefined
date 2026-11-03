@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -98,21 +98,21 @@ public class StarFallAbility extends BaseAbility {
         world.playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.6f);
         drawRing(world, center, ZONE_RADIUS, ZONE_POINTS);
 
-        new Barrage(player, context.getTrustManager(), center).runTaskTimer(plugin, 0L, 1L);
+        new Barrage(player, context.getTeamManager(), center).runTaskTimer(plugin, 0L, 1L);
         return true;
     }
 
     private final class Barrage extends BukkitRunnable {
         private final Player player;
-        private final TrustManager trust;
+        private final TeamManager team;
         private final World world;
         private final Location center;
         private final List<Meteor> meteors = new ArrayList<>();
         private int ticks = 0;
 
-        Barrage(Player player, TrustManager trust, Location center) {
+        Barrage(Player player, TeamManager team, Location center) {
             this.player = player;
-            this.trust = trust;
+            this.team = team;
             this.world = center.getWorld();
             this.center = center;
         }
@@ -192,7 +192,7 @@ public class StarFallAbility extends BaseAbility {
 
         private void detonate(Location impact) {
             try {
-                explode(player, trust, impact);
+                explode(player, team, impact);
             } catch (RuntimeException e) {
                 plugin.getLogger().log(Level.WARNING, "Starfall impact failed", e);
             }
@@ -205,7 +205,7 @@ public class StarFallAbility extends BaseAbility {
         }
     }
 
-    private static void explode(Player caster, TrustManager trust, Location impact) {
+    private static void explode(Player caster, TeamManager team, Location impact) {
         World world = impact.getWorld();
 
         world.spawnParticle(Particle.EXPLOSION, impact, 1, 0, 0, 0, 0, null, true);
@@ -217,8 +217,8 @@ public class StarFallAbility extends BaseAbility {
         // Damage is applied manually instead of World#createExplosion to avoid block damage and double hits
         for (LivingEntity entity : impact.getNearbyLivingEntities(IMPACT_RADIUS)) {
             if (entity.equals(caster)) continue;
-            if (trust != null && entity instanceof Player other
-                    && trust.isTrusted(caster.getUniqueId(), other.getUniqueId())) continue;
+            if (team != null && entity instanceof Player other
+                    && team.isFriendly(caster.getUniqueId(), other.getUniqueId())) continue;
 
             TrueDamage.of(IMPACT_DAMAGE).attacker(caster).ability(NAME).ignoreIFrames(false).apply(entity);
             entity.setFireTicks(Math.max(entity.getFireTicks(), IMPACT_FIRE_TICKS));

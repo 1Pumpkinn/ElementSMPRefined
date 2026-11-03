@@ -8,7 +8,7 @@ import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
@@ -33,10 +33,8 @@ import java.util.UUID;
  * <ul>
  *     <li><b>Persisted Data</b> - element ElementManager reports before and
  *     after a forced cache reload (the original point of this command),
- *     display name, upgrade level, trust list (cross-checked between
- *     {@link TrustManager}'s live cache and the raw stored data - a
- *     mismatch here is a real cache-drift bug), and pending reroller
- *     refunds. All of this comes straight from disk-backed storage, so
+ *     display name, upgrade level, team (via {@link TeamManager}), and
+ *     pending reroller refunds. All of this comes straight from disk-backed storage, so
  *     it's available even if the target isn't online right now.</li>
  *     <li><b>Live State</b> - both abilities' cooldown state (READY or
  *     seconds remaining, straight from {@link CooldownManager} - the same
@@ -62,24 +60,22 @@ public class DebugCommand implements ElementSubCommand {
 
     private static final int ELEMENT_PASSIVE_DURATION_THRESHOLD_TICKS = 1_000_000;
 
-    private static final int MAX_TRUST_NAMES_SHOWN = 10;
-
     private final DataStore dataStore;
     private final ElementManager elementManager;
     private final CooldownManager cooldownManager;
     private final DisarmManager disarmManager;
     private final StatusEffectManager statusEffectManager;
-    private final TrustManager trustManager;
+    private final TeamManager teamManager;
 
     public DebugCommand(DataStore dataStore, ElementManager elementManager,
                         CooldownManager cooldownManager, DisarmManager disarmManager,
-                        StatusEffectManager statusEffectManager, TrustManager trustManager) {
+                        StatusEffectManager statusEffectManager, TeamManager teamManager) {
         this.dataStore = dataStore;
         this.elementManager = elementManager;
         this.cooldownManager = cooldownManager;
         this.disarmManager = disarmManager;
         this.statusEffectManager = statusEffectManager;
-        this.trustManager = trustManager;
+        this.teamManager = teamManager;
     }
 
     @Override
@@ -149,7 +145,7 @@ public class DebugCommand implements ElementSubCommand {
         PlayerData pd = elementManager.data(uuid);
         sender.sendMessage(Lang.debugUpgradeLevel(pd.getCurrentElementUpgradeLevel()));
 
-        sendTrustInfo(sender, uuid, pd);
+        sendTeamInfo(sender, uuid);
 
         sender.sendMessage(Lang.debugPendingRefunds(pd.getPendingRerollerRefunds(), pd.getPendingAdvancedRerollerRefunds()));
     }
@@ -214,24 +210,15 @@ public class DebugCommand implements ElementSubCommand {
         return name.substring(0, 1).toUpperCase(Locale.ROOT) + name.substring(1);
     }
 
-    private void sendTrustInfo(CommandSender sender, UUID uuid, PlayerData pd) {
-        List<String> liveNames = trustManager.getTrustedNames(uuid);
-        sender.sendMessage(Lang.debugTrustedNames(joinCapped(liveNames, MAX_TRUST_NAMES_SHOWN), liveNames.size()));
-
-        int storedCount = pd.getTrustedPlayers().size();
-        if (storedCount != liveNames.size()) {
-            sender.sendMessage(Lang.debugTrustCacheMismatch(liveNames.size(), storedCount));
+    private void sendTeamInfo(CommandSender sender, UUID uuid) {
+        TeamManager.Team team = teamManager.getTeam(uuid);
+        if (team == null) {
+            sender.sendMessage(Lang.debugTeam("None"));
+            return;
         }
-    }
-
-    private String joinCapped(List<String> names, int max) {
-        if (names.isEmpty()) {
-            return "None";
-        }
-        if (names.size() <= max) {
-            return String.join(", ", names);
-        }
-        return String.join(", ", names.subList(0, max)) + " (+" + (names.size() - max) + " more)";
+        sender.sendMessage(Lang.debugTeam(team.getName() + " (" + team.getSize() + "/" + teamManager.getMaxMembers()
+                + " members, " + team.getAllyIds().size() + "/" + teamManager.getMaxAllies() + " allies"
+                + (team.isOwner(uuid) ? ", owner" : "") + ")"));
     }
 
     @Override

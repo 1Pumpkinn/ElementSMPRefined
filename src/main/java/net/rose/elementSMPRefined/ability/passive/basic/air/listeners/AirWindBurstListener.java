@@ -4,7 +4,7 @@ import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.PassiveToggle;
 import net.rose.elementSMPRefined.managers.ElementManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -46,14 +46,14 @@ public class AirWindBurstListener implements Listener {
 
     private final JavaPlugin plugin;
     private final ElementManager elementManager;
-    private final TrustManager trustManager;
+    private final TeamManager teamManager;
 
     private final Map<UUID, Double> peakY = new HashMap<>();
 
-    public AirWindBurstListener(JavaPlugin plugin, ElementManager elementManager, TrustManager trustManager) {
+    public AirWindBurstListener(JavaPlugin plugin, ElementManager elementManager, TeamManager teamManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
-        this.trustManager = trustManager;
+        this.teamManager = teamManager;
     }
 
     private static boolean hasAirPassives(ElementType type) {
@@ -185,7 +185,7 @@ public class AirWindBurstListener implements Listener {
         }
 
         if (target instanceof Player victim
-                && trustManager.isTrusted(attacker.getUniqueId(), victim.getUniqueId())) {
+                && teamManager.isFriendly(attacker.getUniqueId(), victim.getUniqueId())) {
             return;
         }
 
@@ -222,7 +222,7 @@ public class AirWindBurstListener implements Listener {
             if (entity.equals(attacker)) continue;
             if (!(entity instanceof LivingEntity living)) continue;
             if (living instanceof Player other
-                    && trustManager.isTrusted(attacker.getUniqueId(), other.getUniqueId())) {
+                    && teamManager.isFriendly(attacker.getUniqueId(), other.getUniqueId())) {
                 continue;
             }
 

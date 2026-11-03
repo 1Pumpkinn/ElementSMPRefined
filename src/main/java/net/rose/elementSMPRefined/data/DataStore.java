@@ -10,7 +10,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -233,17 +232,5 @@ public class DataStore implements PlayerDataRepository {
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save players.yml to disk", e);
         }
-    }
-
-    @Override
-    public Set<UUID> getTrusted(UUID owner) {
-        return getPlayerData(owner).getTrustedPlayers();
-    }
-
-    @Override
-    public void setTrusted(UUID owner, Set<UUID> trusted) {
-        PlayerData data = getPlayerData(owner);
-        data.setTrustedPlayers(trusted);
-        save(data);
     }
 }

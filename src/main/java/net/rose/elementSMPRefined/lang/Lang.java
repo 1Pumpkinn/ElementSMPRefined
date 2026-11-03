@@ -88,67 +88,38 @@ public final class Lang {
         return red("You need Upgrade " + level + " to use this ability.");
     }
 
-    // /trust
+    // /team
 
-    public static final Component TRUST_PLAYERS_ONLY = text("Players only");
+    public static final Component TEAM_PLAYERS_ONLY = text("Players only");
 
-    public static final Component TRUST_USAGE_TRUST_LIST_ADD_REMOVE =
-            yellow("Usage: /trust <list|add|remove> [player]");
+    public static final Component TEAM_USAGE =
+            yellow("Usage: /team <create|invite|accept|deny|leave|kick|transfer|disband|info|ally>");
 
-    public static final Component TRUST_TRUSTED = labelled("Trusted: ", AQUA, "(none)", WHITE);
+    public static final Component TEAM_NOT_IN_TEAM = red("You are not in a team.");
 
-    public static Component trustTrustedList(Object displayNames) {
-        return labelled("Trusted: ", AQUA, displayNames, WHITE);
+    public static final Component TEAM_OWNER_ONLY = red("Only the team owner can do that.");
+
+    public static Component teamUsage(String usage) {
+        return red("Usage: " + usage);
     }
 
-    public static Component trustUnknownPlayers(Object unknownUUIDs) {
-        return gray("Unknown players: " + unknownUUIDs);
+    // The /team command has a lot of short one-off messages, so they share three colours
+    // instead of getting a constant each.
+    public static Component teamOk(String message) {
+        return green(message);
     }
 
-    public static final Component TRUST_USE_TRUST_REMOVE_UUID_CLEAN =
-            gray("Use '/trust remove <uuid>' to clean up invalid entries");
-
-    public static final Component TRUST_USAGE_TRUST_ADD_PLAYER = red("Usage: /trust add <player>");
-
-    public static final Component TRUST_PLAYER_NOT_FOUND = red("Player not found");
-
-    public static final Component TRUST_YOU_CANNOT_TRUST_YOURSELF = red("You cannot trust yourself");
-
-    public static final Component TRUST_YOU_ARE_ALREADY_MUTUALLY_TRUSTED =
-            yellow("You are already mutually trusted.");
-
-    public static Component trustSentTrustRequest(Object name) {
-        return green("Sent trust request to " + name);
+    public static Component teamError(String message) {
+        return red(message);
     }
 
-    public static final Component TRUST_USAGE_TRUST_ACCEPT_PLAYER_UUID =
-            red("Usage: /trust accept <player|uuid>");
-
-    public static final Component TRUST_NO_PENDING_REQUEST_FROM_THAT =
-            yellow("No pending request from that player.");
-
-    public static final Component TRUST_YOU_ARE_NOW_MUTUALLY_TRUSTED =
-            green("You are now mutually trusted.");
-
-    public static Component trustAcceptedYourTrustRequest(Object name) {
-        return green(name + " accepted your trust request.");
+    public static Component teamNote(String message) {
+        return yellow(message);
     }
 
-    public static final Component TRUST_USAGE_TRUST_DENY_PLAYER_UUID =
-            red("Usage: /trust deny <player|uuid>");
-
-    public static final Component TRUST_DENIED_TRUST_REQUEST = yellow("Denied trust request.");
-
-    public static Component trustDeniedYourTrustRequest(Object name) {
-        return red(name + " denied your trust request.");
+    public static Component teamInfoLine(String label, String value) {
+        return labelled(label + ": ", AQUA, value, WHITE);
     }
-
-    public static final Component TRUST_USAGE_TRUST_REMOVE_PLAYER = red("Usage: /trust remove <player>");
-
-    public static final Component TRUST_PLAYER_MUST_BE_ONLINE_OR =
-            red("Player must be online or provide UUID");
-
-    public static final Component TRUST_REMOVED_MUTUAL_TRUST = yellow("Removed mutual trust.");
 
     // /util
 
@@ -298,12 +269,8 @@ public final class Lang {
         return yellow("Active passive effects: " + summary);
     }
 
-    public static Component debugTrustedNames(String joined, int liveCount) {
-        return yellow("Trusted players (" + liveCount + "): " + joined);
-    }
-
-    public static Component debugTrustCacheMismatch(int liveCount, int storedCount) {
-        return red("WARNING: TrustManager cache (" + liveCount + ") disagrees with stored data (" + storedCount + ")!");
+    public static Component debugTeam(String summary) {
+        return yellow("Team: " + summary);
     }
 
     public static Component debugPendingRefunds(int basic, int advanced) {

@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.listeners.combat;
 
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -9,10 +9,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 public class CombatListener implements Listener {
-    private final TrustManager trust;
+    private final TeamManager team;
 
-    public CombatListener(TrustManager trust) {
-        this.trust = trust;
+    public CombatListener(TeamManager team) {
+        this.team = team;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -27,7 +27,7 @@ public class CombatListener implements Listener {
             return;
         }
 
-        if (trust.isTrusted(victim.getUniqueId(), damager.getUniqueId())) {
+        if (team.isFriendly(victim.getUniqueId(), damager.getUniqueId())) {
             event.setCancelled(true);
         }
     }

@@ -10,6 +10,7 @@ import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
@@ -22,7 +23,6 @@ import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -33,7 +33,7 @@ import java.util.UUID;
  * invalidates or reloads any cache, so it's safe to run at any time.
  * <p>
  * Sections: identity, element + upgrade progress + passives,
- * trusted players, pending reroller refunds, and (online only) ability cooldowns,
+ * team, pending reroller refunds, and (online only) ability cooldowns,
  * disarm state, applied passive potion effects, combat status effects and reroll state.
  * <p>
  * No player given = yourself (console must name one). A name that isn't online
@@ -48,14 +48,16 @@ public class DataCommand implements ElementSubCommand {
     private final CooldownManager cooldownManager;
     private final DisarmManager disarmManager;
     private final StatusEffectManager statusEffectManager;
+    private final TeamManager teamManager;
 
     public DataCommand(DataStore dataStore, ElementManager elementManager, CooldownManager cooldownManager,
-                       DisarmManager disarmManager, StatusEffectManager statusEffectManager) {
+                       DisarmManager disarmManager, StatusEffectManager statusEffectManager, TeamManager teamManager) {
         this.dataStore = dataStore;
         this.elementManager = elementManager;
         this.cooldownManager = cooldownManager;
         this.disarmManager = disarmManager;
         this.statusEffectManager = statusEffectManager;
+        this.teamManager = teamManager;
     }
 
     @Override
@@ -102,7 +104,7 @@ public class DataCommand implements ElementSubCommand {
         sender.sendMessage(row("Status", live != null ? "Online" : "Offline"));
 
         sendElement(sender, pd);
-        sendTrusted(sender, pd);
+        sendTeam(sender, uuid);
         sender.sendMessage(row("Pending refunds",
                 "reroller x" + pd.getPendingRerollerRefunds()
                         + ", advanced reroller x" + pd.getPendingAdvancedRerollerRefunds()));
@@ -143,18 +145,19 @@ public class DataCommand implements ElementSubCommand {
         }
     }
 
-    private void sendTrusted(CommandSender sender, PlayerData pd) {
-        List<String> names = new ArrayList<>();
-        for (UUID trusted : pd.getTrustedPlayers()) {
-            String n = Bukkit.getOfflinePlayer(trusted).getName();
-            names.add(n != null ? n : trusted.toString());
+    private void sendTeam(CommandSender sender, UUID uuid) {
+        TeamManager.Team team = teamManager.getTeam(uuid);
+        if (team == null) {
+            sender.sendMessage(row("Team", "None"));
+            return;
         }
-        names.sort(Comparator.comparing(String::toLowerCase));
-
-        String shown = names.isEmpty() ? "None"
-                : names.size() <= MAX_NAMES_SHOWN ? String.join(", ", names)
+        List<String> names = teamManager.getMemberNames(team);
+        String shown = names.size() <= MAX_NAMES_SHOWN ? String.join(", ", names)
                 : String.join(", ", names.subList(0, MAX_NAMES_SHOWN)) + " (+" + (names.size() - MAX_NAMES_SHOWN) + " more)";
-        sender.sendMessage(row("Trusted (" + names.size() + ")", shown));
+        List<String> allies = teamManager.getAllies(team).stream().map(TeamManager.Team::getName).toList();
+        sender.sendMessage(row("Team", team.getName() + (team.isOwner(uuid) ? " (owner)" : "")));
+        sender.sendMessage(row("Team members (" + names.size() + ")", shown));
+        sender.sendMessage(row("Team allies (" + allies.size() + ")", allies.isEmpty() ? "None" : String.join(", ", allies)));
     }
 
     private void sendLive(CommandSender sender, Player live, PlayerData pd) {

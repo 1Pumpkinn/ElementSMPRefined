@@ -41,7 +41,7 @@ files into a new overlay and re-add the few `energyFacing` / `energyBeamColor` l
 | `/ability1`, `/a1` | Use your first ability (needs Upgrade I) | |
 | `/ability2`, `/a2` | Use your second ability (needs Upgrade II) | |
 | `/elements [name]` | Info about all elements, or one | |
-| `/trust <list\|add\|remove\|accept\|deny> [player]` | Manage trusted players | |
+| `/team <create\|invite\|accept\|deny\|leave\|kick\|transfer\|disband\|info\|ally>` | Manage your team and allies (teammates and allies can't damage each other; limits in `team.max_members` / `team.max_allies`) | |
 | `/autosmelt [on\|off]` | Toggle Fire/Lava auto smelt | |
 | `/element <set\|data\|debug\|castall\|config>` | Admin tools | `element.admin` |
 | `/util` | Get upgraders and rerollers | `element.admin` |

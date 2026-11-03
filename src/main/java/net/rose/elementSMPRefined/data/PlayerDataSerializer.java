@@ -34,17 +34,6 @@ public final class PlayerDataSerializer {
             data.setToggleEnabled(toggle, section.getBoolean(toggle.configKey(), true));
         }
 
-        ConfigurationSection trust = section.getConfigurationSection("trust");
-        if (trust != null) {
-            for (String key : trust.getKeys(false)) {
-                try {
-                    data.addTrustedPlayer(UUID.fromString(key));
-                } catch (IllegalArgumentException ignored) {
-                    // Corrupt UUID entry - skip rather than fail the whole load.
-                }
-            }
-        }
-
         return data;
     }
 
@@ -61,12 +50,6 @@ public final class PlayerDataSerializer {
 
         section.set("items", null); // element cores were removed - drop the old owned-items list
 
-        section.set("trust", null); // clear stale entries before rewriting
-        if (!data.getTrustedPlayers().isEmpty()) {
-            ConfigurationSection trust = section.createSection("trust");
-            for (UUID trusted : data.getTrustedPlayers()) {
-                trust.set(trusted.toString(), true);
-            }
-        }
+        section.set("trust", null); // the old /trust lists are gone - teams live in teams.yml now
     }
 }

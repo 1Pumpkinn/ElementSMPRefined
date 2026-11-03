@@ -43,17 +43,17 @@ public class ElementManager {
     private final ElementSMPRefined plugin;
     private final DataStore store;
     private final CooldownManager cooldownManager;
-    private final TrustManager trustManager;
+    private final TeamManager teamManager;
     private final ConfigManager configManager;
     private final ElementRegistry elementRegistry;
     private final Set<UUID> currentlyRolling = new HashSet<>();
 
     public ElementManager(JavaPlugin plugin, DataStore store, CooldownManager cooldownManager,
-                          TrustManager trustManager, ConfigManager configManager) {
+                          TeamManager teamManager, ConfigManager configManager) {
         this.plugin = (ElementSMPRefined) plugin;
         this.store = store;
         this.cooldownManager = cooldownManager;
-        this.trustManager = trustManager;
+        this.teamManager = teamManager;
         this.configManager = configManager;
         this.elementRegistry = new ElementRegistry(plugin);
         registerAllElements();
@@ -264,7 +264,7 @@ public class ElementManager {
                 .upgradeLevel(pd.getUpgradeLevel(type))
                 .elementType(type)
                 .cooldownManager(cooldownManager)
-                .trustManager(trustManager)
+                .teamManager(teamManager)
                 .configManager(configManager)
                 .plugin(plugin)
                 .build();

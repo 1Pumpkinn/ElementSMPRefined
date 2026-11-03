@@ -7,7 +7,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import org.bukkit.ChatColor;
@@ -109,17 +109,17 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final class Core {
         final Location centre;
         final MagnetarVisual visual;
-        final TrustManager trust;
+        final TeamManager team;
         final double radiusH;
         final double radiusV;
         final Map<UUID, Integer> captured = new HashMap<>();
         int ticks = 0;
         BukkitRunnable task;
 
-        Core(Location centre, MagnetarVisual visual, TrustManager trust, double radiusH, double radiusV) {
+        Core(Location centre, MagnetarVisual visual, TeamManager team, double radiusH, double radiusV) {
             this.centre = centre;
             this.visual = visual;
-            this.trust = trust;
+            this.team = team;
             this.radiusH = radiusH;
             this.radiusV = radiusV;
         }
@@ -143,7 +143,7 @@ public class MetalMagnetarAbility extends BaseAbility {
         Placement placement = findPlacement(caster);
         Location centre = placement.location();
         boolean air = placement.airborne();
-        Core core = new Core(centre, new MagnetarVisual(centre), context.getTrustManager(),
+        Core core = new Core(centre, new MagnetarVisual(centre), context.getTeamManager(),
                 air ? AIR_PULL_HORIZONTAL : PULL_RADIUS,
                 air ? AIR_PULL_VERTICAL : PULL_RADIUS);
         cores.put(caster.getUniqueId(), core);
@@ -337,18 +337,18 @@ public class MetalMagnetarAbility extends BaseAbility {
     }
 
     private boolean isValidTarget(Core core, Player caster, LivingEntity target) {
-        if (!AbilityTargets.isValid(caster, target, core.trust)) return false;
+        if (!AbilityTargets.isValid(caster, target, core.team)) return false;
 
-        // Mobs are fair game, but leave the caster's (and their trusted friends') tamed pets alone.
+        // Mobs are fair game, but leave the caster's (and their teammates'/allies') tamed pets alone.
         if (target instanceof Tameable pet && pet.getOwnerUniqueId() != null) {
             UUID owner = pet.getOwnerUniqueId();
-            return !owner.equals(caster.getUniqueId()) && !isTrusted(core, caster, owner);
+            return !owner.equals(caster.getUniqueId()) && !isFriendly(core, caster, owner);
         }
         return true;
     }
 
-    private boolean isTrusted(Core core, Player caster, UUID other) {
-        return core.trust != null && core.trust.isTrusted(caster.getUniqueId(), other);
+    private boolean isFriendly(Core core, Player caster, UUID other) {
+        return core.team != null && core.team.isFriendly(caster.getUniqueId(), other);
     }
 
     private void spawnSuctionParticles(Core core) {

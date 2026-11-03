@@ -64,6 +64,15 @@ public final class Constants {
         private Distance() {}
     }
 
+    public static final class Team {
+        /** Default {@code team.max_members}: most players on one team, owner included. */
+        public static final int DEFAULT_MAX_MEMBERS = 5;
+        /** Default {@code team.max_allies}: most allied teams one team can have. */
+        public static final int DEFAULT_MAX_ALLIES = 1;
+
+        private Team() {}
+    }
+
     public static final class GracePeriod {
         public static final int DEFAULT_DURATION_SECONDS = 600;
         public static final String DEFAULT_BOSS_BAR_COLOR = "GREEN";

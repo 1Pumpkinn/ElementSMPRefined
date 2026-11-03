@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.core.API.element;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.CooldownManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -15,7 +15,7 @@ public class ElementContext {
     private final Player player;
     private final int upgradeLevel;
     private final CooldownManager cooldownManager;
-    private final TrustManager trustManager;
+    private final TeamManager teamManager;
     private final ConfigManager configManager;
     private final ElementType elementType;
     private final ElementSMPRefined plugin;
@@ -25,7 +25,7 @@ public class ElementContext {
         this.upgradeLevel = builder.upgradeLevel;
         this.elementType = builder.elementType;
         this.cooldownManager = builder.cooldownManager;
-        this.trustManager = builder.trustManager;
+        this.teamManager = builder.teamManager;
         this.configManager = builder.configManager;
         this.plugin = builder.plugin;
     }
@@ -34,7 +34,7 @@ public class ElementContext {
     public int getUpgradeLevel() { return upgradeLevel; }
     public ElementType getElementType() { return elementType; }
     public CooldownManager getCooldownManager() { return cooldownManager; }
-    public TrustManager getTrustManager() { return trustManager; }
+    public TeamManager getTeamManager() { return teamManager; }
     public ConfigManager getConfigManager() { return configManager; }
 
     public static Builder builder() {
@@ -46,7 +46,7 @@ public class ElementContext {
         private int upgradeLevel;
         private ElementType elementType;
         private CooldownManager cooldownManager;
-        private TrustManager trustManager;
+        private TeamManager teamManager;
         private ConfigManager configManager;
         private ElementSMPRefined plugin;
 
@@ -70,8 +70,8 @@ public class ElementContext {
             return this;
         }
 
-        public Builder trustManager(TrustManager manager) {
-            this.trustManager = manager;
+        public Builder teamManager(TeamManager manager) {
+            this.teamManager = manager;
             return this;
         }
 

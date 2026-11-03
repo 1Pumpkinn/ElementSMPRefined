@@ -4,7 +4,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
 import net.rose.elementSMPRefined.util.visual.model.IceBlockVisual;
 import org.bukkit.GameMode;
@@ -29,13 +29,13 @@ public class FrostFreezeListener implements Listener {
 
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
-    private final TrustManager trustManager;
+    private final TeamManager teamManager;
     private final Set<UUID> frozen = new HashSet<>();
 
-    public FrostFreezeListener(ElementSMPRefined plugin, ElementManager elementManager, TrustManager trustManager) {
+    public FrostFreezeListener(ElementSMPRefined plugin, ElementManager elementManager, TeamManager teamManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
-        this.trustManager = trustManager;
+        this.teamManager = teamManager;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -60,7 +60,7 @@ public class FrostFreezeListener implements Listener {
 
         GameMode mode = victim.getGameMode();
         if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) return;
-        if (trustManager.isTrusted(attacker.getUniqueId(), victim.getUniqueId())) return;
+        if (teamManager.isFriendly(attacker.getUniqueId(), victim.getUniqueId())) return;
 
         freeze(attacker, victim);
     }

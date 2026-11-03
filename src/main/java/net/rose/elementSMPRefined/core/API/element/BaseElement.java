@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.core.API.element;
 import net.rose.elementSMPRefined.core.API.ability.Ability;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.CooldownManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -111,13 +111,13 @@ public abstract class BaseElement implements Element {
         return false;
     }
 
-    protected boolean isValidTarget(Player player, LivingEntity target, TrustManager trust) {
+    protected boolean isValidTarget(Player player, LivingEntity target, TeamManager team) {
         if (target.equals(player)) return false;
-        return !(target instanceof Player other) || !trust.isTrusted(player.getUniqueId(), other.getUniqueId());
+        return !(target instanceof Player other) || !team.isFriendly(player.getUniqueId(), other.getUniqueId());
     }
 
     protected boolean isValidTarget(ElementContext context, LivingEntity target) {
-        return isValidTarget(context.getPlayer(), target, context.getTrustManager());
+        return isValidTarget(context.getPlayer(), target, context.getTeamManager());
     }
 
     /**

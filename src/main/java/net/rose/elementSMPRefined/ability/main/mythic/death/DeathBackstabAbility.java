@@ -84,7 +84,7 @@ public class DeathBackstabAbility extends BaseAbility {
         for (LivingEntity entity : eyeLoc.getNearbyLivingEntities(RANGE)) {
             if (entity.equals(player)) continue;
             if (entity instanceof Player targetPlayer
-                    && context.getTrustManager().isTrusted(player.getUniqueId(), targetPlayer.getUniqueId())) {
+                    && context.getTeamManager().isFriendly(player.getUniqueId(), targetPlayer.getUniqueId())) {
                 continue;
             }
 

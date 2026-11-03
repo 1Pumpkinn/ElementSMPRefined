@@ -9,7 +9,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -67,19 +67,19 @@ public class EruptionAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player player = context.getPlayer();
-        TrustManager trust = context.getTrustManager();
+        TeamManager team = context.getTeamManager();
 
-        LivingEntity target = findTarget(player, trust);
+        LivingEntity target = findTarget(player, team);
         if (target == null) {
             player.sendMessage(NO_TARGET);
             return false; // failed cast stays free (no cooldown)
         }
 
-        startEruption(player, trust, groundBelow(target.getLocation()), target.getUniqueId());
+        startEruption(player, team, groundBelow(target.getLocation()), target.getUniqueId());
         return true;
     }
 
-    private LivingEntity findTarget(Player player, TrustManager trust) {
+    private LivingEntity findTarget(Player player, TeamManager team) {
         World world = player.getWorld();
         Location eye = player.getEyeLocation();
         Vector dir = eye.getDirection();
@@ -88,7 +88,7 @@ public class EruptionAbility extends BaseAbility {
         double maxDistance = blocks == null ? RANGE : blocks.getHitPosition().distance(eye.toVector());
 
         RayTraceResult hit = world.rayTraceEntities(eye, dir, maxDistance, RAY_SIZE,
-                e -> e instanceof LivingEntity living && AbilityTargets.isValid(player, living, trust));
+                e -> e instanceof LivingEntity living && AbilityTargets.isValid(player, living, team));
         return hit == null ? null : (LivingEntity) hit.getHitEntity();
     }
 
@@ -103,7 +103,7 @@ public class EruptionAbility extends BaseAbility {
         return ground;
     }
 
-    private void startEruption(Player caster, TrustManager trust, Location center, UUID mainTarget) {
+    private void startEruption(Player caster, TeamManager team, Location center, UUID mainTarget) {
         World world = center.getWorld();
         world.playSound(center, Sound.BLOCK_LAVA_AMBIENT, 1.5f, 0.7f);
         world.playSound(center, Sound.BLOCK_LAVA_POP, 1.2f, 0.6f);
@@ -123,7 +123,7 @@ public class EruptionAbility extends BaseAbility {
             @Override
             public void run() {
                 if (ticks >= WARNING_TICKS) {
-                    erupt(caster, trust, center, mainTarget);
+                    erupt(caster, team, center, mainTarget);
                     cancel();
                     return;
                 }
@@ -170,7 +170,7 @@ public class EruptionAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    private void erupt(Player caster, TrustManager trust, Location center, UUID mainTarget) {
+    private void erupt(Player caster, TeamManager team, Location center, UUID mainTarget) {
         World world = center.getWorld();
         Location mid = center.clone().add(0, 1.0, 0);
 
@@ -191,7 +191,7 @@ public class EruptionAbility extends BaseAbility {
         // as the fountain. Anyone who has stepped out of the particles and spikes is not hit.
         Location column = center.clone().add(0, COLUMN_HEIGHT / 2, 0);
         for (LivingEntity e : column.getNearbyLivingEntities(RADIUS + 1.0, COLUMN_HEIGHT / 2 + 1.0, RADIUS + 1.0)) {
-            if (!AbilityTargets.isValid(caster, e, trust)) continue;
+            if (!AbilityTargets.isValid(caster, e, team)) continue;
             if (!insideBlast(center, e)) continue;
 
             double damage = e.getUniqueId().equals(mainTarget) ? DAMAGE : SPLASH_DAMAGE;

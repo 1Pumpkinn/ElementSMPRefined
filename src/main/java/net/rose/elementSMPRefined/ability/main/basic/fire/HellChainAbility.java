@@ -8,7 +8,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
 import org.bukkit.ChatColor;
@@ -146,7 +146,7 @@ public class HellChainAbility extends BaseAbility {
         RayTraceResult result = player.getWorld().rayTrace(
                 eyeLoc, direction, RANGE,
                 FluidCollisionMode.NEVER, true, RAY_SIZE,
-                entity -> isHookable(entity, player, context.getTrustManager())
+                entity -> isHookable(entity, player, context.getTeamManager())
         );
 
         if (result == null) {
@@ -155,10 +155,10 @@ public class HellChainAbility extends BaseAbility {
 
         LivingEntity hookedEntity = result.getHitEntity() instanceof LivingEntity le ? le : null;
         Projectile hookedProjectile = result.getHitEntity() instanceof Projectile pr ? pr : null;
-        TrustManager trust = context.getTrustManager();
+        TeamManager team = context.getTeamManager();
 
         if (hookedEntity instanceof Player hookedPlayer
-                && trust.isTrusted(player.getUniqueId(), hookedPlayer.getUniqueId())) {
+                && team.isFriendly(player.getUniqueId(), hookedPlayer.getUniqueId())) {
             return false;
         }
 
@@ -172,7 +172,7 @@ public class HellChainAbility extends BaseAbility {
         } else if (hookedProjectile != null) {
             latchOntoProjectile(player, hookedProjectile);
         } else {
-            grappleToPoint(player, hookLocation, hitFace, trust);
+            grappleToPoint(player, hookLocation, hitFace, team);
         }
 
         return true;
@@ -258,14 +258,14 @@ public class HellChainAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    private static boolean isHookable(Entity entity, Player caster, TrustManager trust) {
+    private static boolean isHookable(Entity entity, Player caster, TeamManager team) {
         if (entity.equals(caster)) return false;
         if (entity instanceof LivingEntity) return true;
         if (!(entity instanceof Projectile projectile)) return false;
         if (!projectile.isValid() || projectile.isDead()) return false;
         if (projectile instanceof AbstractArrow arrow && (arrow.isInBlock() || arrow.isOnGround())) return false;
         return !(projectile.getShooter() instanceof Player shooter
-                && trust.isTrusted(caster.getUniqueId(), shooter.getUniqueId()));
+                && team.isFriendly(caster.getUniqueId(), shooter.getUniqueId()));
     }
 
     private void latchOntoProjectile(Player player, Projectile projectile) {
@@ -335,7 +335,7 @@ public class HellChainAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    private void grappleToPoint(Player player, Location hookLocation, BlockFace hitFace, TrustManager trust) {
+    private void grappleToPoint(Player player, Location hookLocation, BlockFace hitFace, TeamManager team) {
         boolean wallHit = isWallFace(hitFace);
         // Direction from the caster INTO the wall - the opposite of the hit face's own outward
         // normal, since the face that was hit points back out toward whoever hit it.
@@ -399,7 +399,7 @@ public class HellChainAbility extends BaseAbility {
                     if (!aheadHead.getBlock().getType().isSolid()) {
                         // Cleared the top of the wall - vault onto the ledge instead of just
                         // stopping mid-climb.
-                        mantleOntoLedge(player, currentLoc, intoWall, trust);
+                        mantleOntoLedge(player, currentLoc, intoWall, team);
                         cancel();
                         return;
                     }
@@ -411,7 +411,7 @@ public class HellChainAbility extends BaseAbility {
                         player.setVelocity(player.getVelocity().multiply(0.2));
                         player.setFallDistance(0f);
                         player.getWorld().playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
-                        burnNearby(player, currentLoc, trust);
+                        burnNearby(player, currentLoc, team);
                         cancel();
                         return;
                     }
@@ -476,7 +476,7 @@ public class HellChainAbility extends BaseAbility {
                     player.getWorld().playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
                     player.getWorld().spawnParticle(Particle.LAVA, hookLocation, 20,
                             BURN_RADIUS / 2, 0.3, BURN_RADIUS / 2, 0.05);
-                    burnNearby(player, hookLocation, trust);
+                    burnNearby(player, hookLocation, team);
                     cancel();
                     return;
                 }
@@ -558,21 +558,21 @@ public class HellChainAbility extends BaseAbility {
                 || face == BlockFace.EAST || face == BlockFace.WEST;
     }
 
-    private void mantleOntoLedge(Player player, Location at, Vector intoWall, TrustManager trust) {
+    private void mantleOntoLedge(Player player, Location at, Vector intoWall, TeamManager team) {
         Vector boost = intoWall.clone().multiply(MANTLE_FORWARD_VELOCITY);
         boost.setY(MANTLE_UPWARD_VELOCITY);
         player.setVelocity(boost);
         player.setFallDistance(0f);
         player.getWorld().playSound(at, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
         player.getWorld().spawnParticle(Particle.LAVA, at, 15, 0.4, 0.2, 0.4, 0.05);
-        burnNearby(player, at, trust);
+        burnNearby(player, at, team);
     }
 
-    private void burnNearby(Player player, Location at, TrustManager trust) {
+    private void burnNearby(Player player, Location at, TeamManager team) {
         for (LivingEntity nearby : at.getNearbyLivingEntities(BURN_RADIUS)) {
             if (nearby.equals(player)) continue;
             if (nearby instanceof Player nearbyPlayer
-                    && trust.isTrusted(player.getUniqueId(), nearbyPlayer.getUniqueId())) continue;
+                    && team.isFriendly(player.getUniqueId(), nearbyPlayer.getUniqueId())) continue;
             nearby.setFireTicks(Math.max(nearby.getFireTicks(), BURN_FIRE_TICKS));
         }
     }

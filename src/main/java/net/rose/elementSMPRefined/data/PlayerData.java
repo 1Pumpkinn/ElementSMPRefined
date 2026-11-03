@@ -5,7 +5,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import java.util.*;
 
 /**
- * A player's element progress, owned items, and trust list.
+ * A player's element progress and owned items.
  * <p>
  * This class is a plain data holder with no knowledge of how it gets
  * persisted - see {@link PlayerDataSerializer} for the YAML mapping and
@@ -20,7 +20,6 @@ public final class PlayerData {
     private final UUID uuid;
     private ElementType currentElement;
     private int currentElementUpgradeLevel;
-    private final Set<UUID> trustedPlayers;
     private int pendingRerollerRefunds;
     private int pendingAdvancedRerollerRefunds;
     private final EnumSet<PassiveToggle> disabledToggles = EnumSet.noneOf(PassiveToggle.class);
@@ -28,7 +27,6 @@ public final class PlayerData {
     public PlayerData(UUID uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
         this.currentElementUpgradeLevel = 0;
-        this.trustedPlayers = new HashSet<>();
     }
 
     public UUID getUuid() {
@@ -41,10 +39,6 @@ public final class PlayerData {
 
     public int getCurrentElementUpgradeLevel() {
         return currentElementUpgradeLevel;
-    }
-
-    public Set<UUID> getTrustedPlayers() {
-        return new HashSet<>(trustedPlayers);
     }
 
     /** Sets the current element and resets its upgrade level to 0. */
@@ -78,22 +72,6 @@ public final class PlayerData {
     public void setUpgradeLevel(ElementType type, int level) {
         if (type != null && type == currentElement) {
             setCurrentElementUpgradeLevel(level);
-        }
-    }
-
-    public boolean isTrusted(UUID uuid) {
-        return trustedPlayers.contains(uuid);
-    }
-
-    public void addTrustedPlayer(UUID uuid) {
-        trustedPlayers.add(uuid);
-    }
-
-    public void setTrustedPlayers(Set<UUID> trusted) {
-        trustedPlayers.clear();
-
-        if (trusted != null) {
-            trustedPlayers.addAll(trusted);
         }
     }
 

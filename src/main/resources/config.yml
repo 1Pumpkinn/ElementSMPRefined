@@ -5,6 +5,16 @@
 #   /dimension set <option> <value>   /dimension settings
 # Times accept plain seconds (90) or units: 30s, 10m, 1h30m, 2d.
 
+# Team Settings
+# Players make teams with /team. Everyone on a team can't damage each other, and abilities skip
+# them. Allied teams (/team ally) are protected from each other the same way.
+# Lowering a limit never removes anyone who is already in - it only stops new members/allies.
+team:
+  # Most players on one team, owner included
+  max_members: 5
+  # Most teams one team can be allied with (0 turns alliances off)
+  max_allies: 1
+
 # Dimension Settings
 dimensions:
   # When true the dimension will not allow anyone to enter

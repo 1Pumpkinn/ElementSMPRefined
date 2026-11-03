@@ -185,8 +185,8 @@ public class PlayerLifecycle implements Listener {
         // this, DataStore's cache grows for every unique player who has
         // ever joined and never shrinks for the life of the server.
         plugin.getDataStore().invalidateCache(playerUuid);
-        // Same cache-growth issue as DataStore above, applied to the trusted-set cache.
-        plugin.getTrustManager().onPlayerQuit(playerUuid);
+        // Same cache-growth issue as DataStore above, applied to the pending team invites.
+        plugin.getTeamManager().onPlayerQuit(playerUuid);
         plugin.getCooldownManager().pruneExpired();
         if (metalMagnetarAbility != null) {
             metalMagnetarAbility.onPlayerQuit(playerUuid);

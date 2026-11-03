@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.model.IceSpikeVisual;
@@ -79,7 +79,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
     @Override
     public boolean execute(ElementContext context) {
         Player caster = context.getPlayer();
-        TrustManager trust = context.getTrustManager();
+        TeamManager team = context.getTeamManager();
         UUID casterId = caster.getUniqueId();
 
         if (!activeCasters.add(casterId)) return false;
@@ -123,7 +123,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
                 cancel();
                 activeCasters.remove(casterId);
-                startSpikes(caster, trust, feet);
+                startSpikes(caster, team, feet);
             }
         }.runTaskTimer(plugin, 0L, 1L);
 
@@ -132,7 +132,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
     private record PlannedSpike(double dx, double dz, double height) {}
 
-    private void startSpikes(Player caster, TrustManager trust, Location origin) {
+    private void startSpikes(Player caster, TeamManager team, Location origin) {
         World world = origin.getWorld();
         Location fx = origin.clone();
         fx.setY(origin.getY() + 0.3);
@@ -191,7 +191,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
                 List<PlannedSpike> now = tick < byTick.length ? byTick[tick] : null;
                 if (now != null) {
                     if (candidates == null || tick % QUERY_EVERY_TICKS == 0) {
-                        candidates = collectCandidates(caster, trust, origin, alreadyHit);
+                        candidates = collectCandidates(caster, team, origin, alreadyHit);
                     }
                     spawnBatch(caster, origin, startY, now, candidates, alreadyHit);
                 }
@@ -252,14 +252,14 @@ public class FrostIceSpikesAbility extends BaseAbility {
         return false;
     }
 
-    private List<LivingEntity> collectCandidates(Player caster, TrustManager trust, Location origin,
+    private List<LivingEntity> collectCandidates(Player caster, TeamManager team, Location origin,
                                                  Set<UUID> alreadyHit) {
         List<LivingEntity> out = new ArrayList<>();
         for (LivingEntity entity : origin.getNearbyLivingEntities(QUERY_XZ, QUERY_Y, QUERY_XZ)) {
             if (entity.equals(caster)) continue;
             if (entity instanceof ArmorStand) continue;
-            if (trust != null && entity instanceof Player other
-                    && trust.isTrusted(caster.getUniqueId(), other.getUniqueId())) continue;
+            if (team != null && entity instanceof Player other
+                    && team.isFriendly(caster.getUniqueId(), other.getUniqueId())) continue;
             if (alreadyHit.contains(entity.getUniqueId())) continue;
             out.add(entity);
         }

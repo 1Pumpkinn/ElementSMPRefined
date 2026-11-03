@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.mythic.death.listeners;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,11 +21,11 @@ public class DeathWitherOnHitListener implements Listener {
     private static final int WITHER_TICKS = 100;       // 5 seconds
 
     private final ElementManager elementManager;
-    private final TrustManager trustManager;
+    private final TeamManager teamManager;
 
-    public DeathWitherOnHitListener(ElementManager elementManager, TrustManager trustManager) {
+    public DeathWitherOnHitListener(ElementManager elementManager, TeamManager teamManager) {
         this.elementManager = elementManager;
-        this.trustManager = trustManager;
+        this.teamManager = teamManager;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -39,7 +39,7 @@ public class DeathWitherOnHitListener implements Listener {
         if (playerData.getUpgradeLevel(ElementType.DEATH) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
 
         if (victim instanceof Player targetPlayer &&
-                trustManager.isTrusted(attacker.getUniqueId(), targetPlayer.getUniqueId())) {
+                teamManager.isFriendly(attacker.getUniqueId(), targetPlayer.getUniqueId())) {
             return;
         }
 

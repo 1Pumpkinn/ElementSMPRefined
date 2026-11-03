@@ -101,8 +101,8 @@ public abstract class BaseAbility implements Ability {
     protected boolean isValidTarget(ElementContext context, org.bukkit.entity.LivingEntity target) {
         Player caster = context.getPlayer();
         if (target.equals(caster)) return false;
-        if (target instanceof Player other && context.getTrustManager() != null) {
-            return !context.getTrustManager().isTrusted(caster.getUniqueId(), other.getUniqueId());
+        if (target instanceof Player other && context.getTeamManager() != null) {
+            return !context.getTeamManager().isFriendly(caster.getUniqueId(), other.getUniqueId());
         }
         return true;
     }

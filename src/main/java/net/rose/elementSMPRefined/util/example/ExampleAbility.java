@@ -38,7 +38,7 @@ public class ExampleAbility extends BaseAbility {
 
         setActive(player, true);
         // Ability logic goes here: deal damage, apply effects, spawn particles,
-        // etc. context also gives you managers (cooldown, trust, config) and the
+        // etc. context also gives you managers (cooldown, team, config) and the
         // caster's upgrade level via context.getUpgradeLevel().
 
         return true;

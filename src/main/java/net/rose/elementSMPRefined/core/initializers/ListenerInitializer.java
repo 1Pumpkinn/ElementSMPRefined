@@ -56,7 +56,7 @@ public class ListenerInitializer {
     private void registerCoreListeners() {
         pluginManager.registerEvents(new InvisibilityNameHider(), plugin);
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
-        pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.CombatListener(plugin.getTrustManager()), plugin);
+        pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.CombatListener(plugin.getTeamManager()), plugin);
 
         pluginManager.registerEvents(new StatusEffectListener(plugin), plugin);
 
@@ -100,7 +100,7 @@ public class ListenerInitializer {
         this.airAntiFallDmgListener = new AirAntiFallDmgListener(plugin.getElementManager());
         pluginManager.registerEvents(airAntiFallDmgListener, plugin);
         pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.LifeTotemListener(), plugin);
-        pluginManager.registerEvents(new AirWindBurstListener(plugin, plugin.getElementManager(), plugin.getTrustManager()), plugin);
+        pluginManager.registerEvents(new AirWindBurstListener(plugin, plugin.getElementManager(), plugin.getTeamManager()), plugin);
 
         var airElement = plugin.getElementManager().get(ElementType.AIR);
         if (airElement instanceof AirElement airElementImpl) {

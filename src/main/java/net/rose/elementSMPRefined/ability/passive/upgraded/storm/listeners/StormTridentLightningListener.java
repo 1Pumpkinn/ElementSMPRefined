@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.upgraded.storm.listeners;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -29,13 +29,13 @@ public class StormTridentLightningListener implements Listener {
 
     private final JavaPlugin plugin;
     private final ElementManager elementManager;
-    private final TrustManager trustManager;
+    private final TeamManager teamManager;
     private final Map<UUID, UUID> strikes = new HashMap<>();
 
-    public StormTridentLightningListener(JavaPlugin plugin, ElementManager elementManager, TrustManager trustManager) {
+    public StormTridentLightningListener(JavaPlugin plugin, ElementManager elementManager, TeamManager teamManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
-        this.trustManager = trustManager;
+        this.teamManager = teamManager;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -100,6 +100,6 @@ public class StormTridentLightningListener implements Listener {
     private boolean isProtected(LightningStrike strike, UUID victimId) {
         UUID thrower = strikes.get(strike.getUniqueId());
         if (thrower == null) return false; // not one of ours
-        return thrower.equals(victimId) || trustManager.isTrusted(thrower, victimId);
+        return thrower.equals(victimId) || teamManager.isFriendly(thrower, victimId);
     }
 }

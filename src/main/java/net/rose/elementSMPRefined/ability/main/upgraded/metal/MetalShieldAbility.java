@@ -103,12 +103,12 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         Shield shield = shields.get(victim.getUniqueId());
         if (shield == null || event.getDamage() <= 0) return; // 0-damage hits (snowballs...) cost nothing
 
-        // Self-damage and trusted allies never spend a charge (trust would cancel the hit anyway).
+        // Self-damage and teammates/allies never spend a charge (the team check would cancel the hit anyway).
         DamageSource damageSource = event.getDamageSource();
         Entity source = damageSource.getCausingEntity();
         if (source instanceof Player attacker
                 && (attacker.equals(victim)
-                || plugin.getTrustManager().isTrusted(victim.getUniqueId(), attacker.getUniqueId()))) {
+                || plugin.getTeamManager().isFriendly(victim.getUniqueId(), attacker.getUniqueId()))) {
             return;
         }
 

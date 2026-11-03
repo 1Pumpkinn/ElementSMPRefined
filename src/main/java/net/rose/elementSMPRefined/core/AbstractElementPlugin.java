@@ -42,7 +42,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected ConfigManager configManager;
     protected ElementManager elementManager;
     protected CooldownManager cooldownManager;
-    protected TrustManager trustManager;
+    protected TeamManager teamManager;
 
     protected StatusEffectManager statusEffectManager;
     protected DisarmManager disarmManager;
@@ -149,14 +149,14 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     }
 
     private void initializeManagers() {
-        this.trustManager = new TrustManager(this, dataStore);
+        this.teamManager = new TeamManager(this, configManager);
         this.cooldownManager = new CooldownManager();
 
         this.elementManager = new ElementManager(
                 this,
                 dataStore,
                 cooldownManager,
-                trustManager,
+                teamManager,
                 configManager
         );
 
@@ -321,8 +321,8 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         return cooldownManager;
     }
 
-    public TrustManager getTrustManager() {
-        return trustManager;
+    public TeamManager getTeamManager() {
+        return teamManager;
     }
 
     public StatusEffectManager getStatusEffectManager() {

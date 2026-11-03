@@ -34,7 +34,7 @@ public class FrostElement extends BaseElement implements ListenerProvider {
     @Override
     public List<Listener> getListeners(JavaPlugin plugin) {
         ElementSMPRefined main = (ElementSMPRefined) plugin;
-        return List.of(new FrostFreezeListener(main, main.getElementManager(), main.getTrustManager()));
+        return List.of(new FrostFreezeListener(main, main.getElementManager(), main.getTeamManager()));
     }
 
     @Override

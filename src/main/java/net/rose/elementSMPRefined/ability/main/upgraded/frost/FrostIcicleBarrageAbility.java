@@ -9,7 +9,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.managers.TrustManager;
+import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 import org.bukkit.Bukkit;
@@ -135,7 +135,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         caster.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, slowTicks,
                 SLOW_AMPLIFIER_CASTER, false, false, true));
 
-        new Cast(caster, context.getTrustManager()).runTaskTimer(plugin, 0L, 1L);
+        new Cast(caster, context.getTeamManager()).runTaskTimer(plugin, 0L, 1L);
         return true;
     }
 
@@ -158,7 +158,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
     private final class Cast extends BukkitRunnable {
         private final Player caster;
-        private final TrustManager trust;
+        private final TeamManager team;
         private final World world;
         private final ItemStack icicleItem = ModelItems.of(ICICLE_MODEL);
         private final Icicle[] slots = new Icicle[ICICLE_COUNT];
@@ -169,9 +169,9 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         private int launched = 0;
         private float spin = 0f;
 
-        Cast(Player caster, TrustManager trust) {
+        Cast(Player caster, TeamManager team) {
             this.caster = caster;
-            this.trust = trust;
+            this.team = team;
             this.world = caster.getWorld();
         }
 
@@ -461,7 +461,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             if (entity.equals(caster) || entity instanceof ArmorStand) return false;
             if (entity instanceof Player other) {
                 if (other.getGameMode() == GameMode.SPECTATOR) return false;
-                if (trust != null && trust.isTrusted(caster.getUniqueId(), other.getUniqueId())) return false;
+                if (team != null && team.isFriendly(caster.getUniqueId(), other.getUniqueId())) return false;
             }
             return living.isValid();
         }

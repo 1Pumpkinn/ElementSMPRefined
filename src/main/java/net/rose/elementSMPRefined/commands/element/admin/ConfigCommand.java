@@ -18,6 +18,11 @@ import java.util.List;
  * see {@link ConfigManager#resetToDefault}.
  */
 public class ConfigCommand implements ElementSubCommand {
+    // Settings that already have their own command (/grace set, /dimension set, /potlimits,
+    // /enchantlimits, /reforgealtar enable|disable) - not suggested here so there is one place to change each.
+    private static final List<String> HANDLED_ELSEWHERE = List.of(
+            "dimensions.", "grace_period.", "banned-potions", "enchant-limits", "reforge_altar.enabled");
+
     private final ElementSMPRefined plugin;
     private final ConfigManager configManager;
 
@@ -103,7 +108,10 @@ public class ConfigCommand implements ElementSubCommand {
         String action = args[1].toLowerCase();
 
         if (args.length == 3 && (action.equals("set") || action.equals("reset"))) {
-            return CommandSupport.getConfigKeys(args[2]);
+            List<String> keys = configManager.getConfigKeys().stream()
+                    .filter(key -> HANDLED_ELSEWHERE.stream().noneMatch(key::startsWith))
+                    .toList();
+            return CommandSupport.filterStartingWith(keys, args[2]);
         }
 
         if (args.length == 4 && action.equals("set")) {

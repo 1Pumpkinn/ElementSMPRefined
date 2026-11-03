@@ -326,41 +326,6 @@ public final class Lang {
 
     public static final Component DEBUG_FOOTER = text("=== End Debug ===", GOLD);
 
-    // /element particles
-
-    public static final Component PARTICLES_THIS_COMMAND_CAN_ONLY_BE = COMMAND_PLAYERS_ONLY;
-
-    public static Component particlesPlayingParticlePreset(Object key) {
-        return labelled("Playing particle preset: ", GREEN, key, AQUA);
-    }
-
-    public static final Component PARTICLES_ELEMENT_PARTICLE_PRESETS =
-            text("=== Element Particle Presets ===", GOLD);
-
-    public static Component particlesAvailable(Object names) {
-        return yellow("Available: " + names);
-    }
-
-    public static Component particlesPlayingAbilityEffect(Object key) {
-        return labelled("Playing ability particles: ", GREEN, key, AQUA);
-    }
-
-    public static Component particlesAbilityEffects(Object names) {
-        return yellow("Ability effects: " + names);
-    }
-
-    public static final Component PARTICLES_USAGE_ABILITY_EFFECT =
-            gray("Usage: /element particles <ability effect>");
-
-    public static final Component PARTICLES_USAGE_ELEMENT_PARTICLES_PRESET_SIZE =
-            gray("Usage: /element particles <preset> [size] [length] [width] [color] [particle]");
-
-    public static final Component PARTICLES_ALSO_SUPPORTED_SIZE_2_5 =
-            gray("Also supported: size=2.5 length=0 width=36 color=red particle=dust");
-
-    public static final Component PARTICLES_EXAMPLE_ELEMENT_PARTICLES_CIRCLE_2 =
-            gray("Example: /element particles circle 2.5 0 36 red dust");
-
     // /element set
 
     public static final Component SET_USAGE_ELEMENT_SET_PLAYER_ELEMENT =

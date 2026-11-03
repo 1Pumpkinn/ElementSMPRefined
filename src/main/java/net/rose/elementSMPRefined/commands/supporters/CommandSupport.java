@@ -2,10 +2,8 @@ package net.rose.elementSMPRefined.commands.supporters;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import org.bukkit.Bukkit;
-import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -45,24 +43,5 @@ public final class CommandSupport {
 
     public static Optional<ElementType> parseElementType(String input) {
         return ElementType.parse(input).filter(ElementType::isPlayable);
-    }
-
-    /** Every settable config key, in dotted-path form (e.g. "recipes.advanced_reroller_enabled"). */
-    public static final List<String> GLOBAL_CONFIG_KEYS = List.of("recipes.advanced_reroller_enabled");
-
-    public static List<String> getConfigKeys(String prefix) {
-        return filterStartingWith(GLOBAL_CONFIG_KEYS, prefix);
-    }
-
-    public static List<String> getParticleNameSuggestions() {
-        List<String> suggestions = new ArrayList<>();
-        for (Particle particle : Particle.values()) {
-            suggestions.add(particle.name().toLowerCase(Locale.ROOT).replace('_', '-'));
-        }
-        suggestions.add("dust");
-        suggestions.add("glow");
-        suggestions.add("soul-fire-flame");
-        suggestions.add("dripping-lava");
-        return suggestions.stream().distinct().toList();
     }
 }

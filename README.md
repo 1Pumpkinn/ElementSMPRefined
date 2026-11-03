@@ -43,7 +43,7 @@ files into a new overlay and re-add the few `energyFacing` / `energyBeamColor` l
 | `/elements [name]` | Info about all elements, or one | |
 | `/trust <list\|add\|remove\|accept\|deny> [player]` | Manage trusted players | |
 | `/autosmelt [on\|off]` | Toggle Fire/Lava auto smelt | |
-| `/element <set\|data\|debug\|config\|particles>` | Admin tools | `element.admin` |
+| `/element <set\|data\|debug\|castall\|config>` | Admin tools | `element.admin` |
 | `/util` | Get upgraders and rerollers | `element.admin` |
 | `/grace <start\|stop\|status\|extend\|shorten\|settings\|set>` | Server grace period (times like `10m`, `1h30m`; `/grace settings` lists every option) | `element.admin` |
 | `/dimension <enable\|disable\|toggle\|status\|settings\|set> <nether\|end\|all> [time]` | Toggle portal travel, optionally for a set time | `element.admin` |

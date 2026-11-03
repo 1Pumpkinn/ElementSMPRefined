@@ -10,7 +10,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -21,8 +20,7 @@ import java.util.Map;
  * /element dispatcher. Each subcommand is its own class under
  * {@code commands.element}, owning both its execution and its own tab
  * completion - see {@link ElementSubCommand}. This class just routes to them
- * and holds the two pieces of behavior ("particles" needs no admin
- * permission, everything else does) that apply across all of them.
+ * and applies the admin permission check to all of them.
  */
 public class ElementCommand implements CommandExecutor, TabCompleter {
     private final Map<String, ElementSubCommand> subCommands;
@@ -33,7 +31,6 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
 
     private Map<String, ElementSubCommand> initializeSubCommands(ElementSMPRefined plugin) {
         Map<String, ElementSubCommand> commands = new LinkedHashMap<>();
-        commands.put("particles", new ParticlesCommand(plugin));
         commands.put("set", new SetCommand(plugin.getElementManager()));
         commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager(),
                 plugin.getCooldownManager(), plugin.getDisarmManager(),
@@ -45,22 +42,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         return commands;
     }
 
-    private static boolean isParticles(String arg) {
-        return arg.equalsIgnoreCase("particles") || arg.equalsIgnoreCase("particle");
-    }
-
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // Particles is the one subcommand any player can use - it's a cosmetic
-        // preview, not an admin action - so it's dispatched before the
-        // permission gate below rather than being gated by it.
-        if (args.length > 0 && isParticles(args[0])) {
-            ElementSubCommand particles = subCommands.get("particles");
-            if (particles != null) {
-                return particles.execute(sender, args);
-            }
-        }
-
         if (!sender.hasPermission("element.admin")) {
             sender.sendMessage(Component.text("You don't have permission to use this command.", NamedTextColor.RED));
             return true;
@@ -87,16 +70,10 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 1) {
-            if (sender.hasPermission("element.admin") || sender.hasPermission("element.particles") || sender instanceof Player) {
+            if (sender.hasPermission("element.admin")) {
                 return CommandSupport.filterStartingWith(subCommands.keySet(), args[0]);
             }
             return Collections.emptyList();
-        }
-
-        // Same bypass as onCommand: particles tab-completes for everyone.
-        if (isParticles(args[0])) {
-            ElementSubCommand particles = subCommands.get("particles");
-            return particles != null ? particles.tabComplete(sender, args) : Collections.emptyList();
         }
 
         if (!sender.hasPermission("element.admin")) {
@@ -113,13 +90,11 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(Component.text("=== Element Admin Commands ===", NamedTextColor.GOLD));
-        sender.sendMessage(Component.text("/element particles <preset> - Preview a particle pattern at your feet", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element set <player> <element> - Set player's element", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element data [player] - Show a player's stored data and live state (read-only)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element debug [player] - Debug a player's element data (defaults to yourself)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element castall <1|2> [players...|*] [at <target>] - Fire an ability for several players on the same tick (testing)", NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("  reload | reset [key] | reset element <element> [key]", NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("  set <key> <value> | element <element> <key> <value>", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("  reload | reset [key] | set <key> <value>", NamedTextColor.GRAY));
     }
 }

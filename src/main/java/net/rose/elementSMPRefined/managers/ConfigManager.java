@@ -22,7 +22,6 @@ public class ConfigManager {
 
     // Defaults - named so they're not scattered as unexplained numbers
     // through every getter below.
-    private static final boolean DEFAULT_ADVANCED_REROLLER_RECIPE_ENABLED = true;
     private static final boolean DEFAULT_NETHER_DISABLED = Constants.Dimension.DEFAULT_NETHER_DISABLED;
     private static final boolean DEFAULT_END_DISABLED = Constants.Dimension.DEFAULT_END_DISABLED;
     private static final int DEFAULT_GRACE_PERIOD_DURATION_SECONDS = Constants.GracePeriod.DEFAULT_DURATION_SECONDS;
@@ -96,6 +95,15 @@ public class ConfigManager {
             }
         }
         return defaultConfig;
+    }
+
+    /** Every setting in the shipped config.yml, as dotted paths (e.g. "grace_period.duration_seconds"). */
+    public java.util.List<String> getConfigKeys() {
+        FileConfiguration defaults = getDefaultConfig();
+        return defaults.getKeys(true).stream()
+                .filter(key -> !defaults.isConfigurationSection(key))
+                .sorted()
+                .toList();
     }
 
     /** The shipped default value for a dotted config path, or null if the path has no default. */
@@ -181,15 +189,6 @@ public class ConfigManager {
             plugin.getLogger().log(Level.WARNING, "Error reading " + path + " from config, using default value " + fallback, e);
             return fallback;
         }
-    }
-
-    public boolean isAdvancedRerollerRecipeEnabled() {
-        return getBooleanSafe("recipes.advanced_reroller_enabled", DEFAULT_ADVANCED_REROLLER_RECIPE_ENABLED);
-    }
-
-    public void setAdvancedRerollerRecipeEnabled(boolean enabled) {
-        config.set("recipes.advanced_reroller_enabled", enabled);
-        plugin.saveConfig();
     }
 
     // Dimension settings - each dimension can be individually enabled/disabled,

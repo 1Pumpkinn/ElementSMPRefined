@@ -41,7 +41,7 @@ public final class SoundUtils {
         public static final SoundConfig CLICK = SoundConfig.of(Sound.UI_BUTTON_CLICK, 0.5f);
         public static final SoundConfig SUCCESS = SoundConfig.of(Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
         /** Beacon powering up - played when an Upgrader I/II is applied. */
-        public static final SoundConfig UPGRADE = SoundConfig.of(Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.0f);
+        public static final SoundConfig UPGRADE = SoundConfig.of(Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.0f);
         public static final SoundConfig ROLL = SoundConfig.of(Sound.UI_TOAST_IN, 1.0f, 1.2f);
         /** Beacon powering down - played by /withdraw. */
         public static final SoundConfig WITHDRAW = SoundConfig.of(Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 1.0f);

@@ -196,6 +196,7 @@ public class ElementManager {
         plugin.getServer().getPluginManager().callEvent(new ElementAssignEvent(player, type, old));
     }
 
+    /** Admin set (/element set). The player's upgrade level is kept. */
     public void setElement(Player player, ElementType type) {
         PlayerData pd = data(player.getUniqueId());
         ElementType old = pd.getCurrentElement();
@@ -204,7 +205,9 @@ public class ElementManager {
             handleElementSwitch(player, old);
         }
 
-        pd.setCurrentElement(type);
+        int currentUpgrade = pd.getCurrentElementUpgradeLevel();
+        pd.setCurrentElementWithoutReset(type);
+        pd.setCurrentElementUpgradeLevel(currentUpgrade);
         store.save(pd);
 
         player.sendMessage(Lang.elementManagerYourElementIsNow(displayNameOf(type)));

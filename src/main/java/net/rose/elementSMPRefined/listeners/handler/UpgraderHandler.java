@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
 import net.rose.elementSMPRefined.lang.Lang;
+import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -114,6 +115,7 @@ public class UpgraderHandler implements Listener {
         elementManager.applyUpsides(player);
 
         consumeItem(player, item, hand);
+        SoundUtils.playTo(player, SoundUtils.UI.UPGRADE);
         return true;
     }
 

@@ -39,10 +39,12 @@ import java.util.UUID;
 public class MagmaBeamAbility extends BaseAbility {
 
     private static final int CHARGE_TICKS = 30;
-    private static final int BEAM_TICKS = 30;
+    private static final int BEAM_TICKS = 60; // 3 seconds
     private static final double RANGE = 25.0;
     private static final int HIT_INTERVAL = 5;
-    private static final double DAMAGE_PER_PULSE = 2.0;
+    // Damage decays over the beam: hearts per second at the start -> at the very end.
+    private static final double START_HEARTS_PER_SECOND = 1.0;
+    private static final double END_HEARTS_PER_SECOND = 0.75;
     private static final double HIT_RADIUS = 1.0;
     private static final int BURN_TICKS = 60;
     private static final int SLOW_AMPLIFIER = 2;
@@ -257,13 +259,20 @@ public class MagmaBeamAbility extends BaseAbility {
             hit.add(e.getUniqueId());
 
             // A raised shield stops the pulse: no damage, no burning, and the shield takes the wear.
-            boolean landed = TrueDamage.of(DAMAGE_PER_PULSE).attacker(player).ability(getName()).ignoreIFrames(true)
+            boolean landed = TrueDamage.of(pulseDamage(beamTick)).attacker(player).ability(getName()).ignoreIFrames(true)
                     .blockableByShield(dir).apply(e);
             if (landed) {
                 e.setFireTicks(BURN_TICKS);
             }
             w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 8, 0.3, 0.4, 0.3, 0.03, null, true);
         }
+    }
+
+    /** Damage for one pulse: the per-second rate falls linearly over the beam (1 heart = 2 health). */
+    private static double pulseDamage(int beamTick) {
+        double t = Math.min(1.0, (double) beamTick / BEAM_TICKS);
+        double heartsPerSecond = START_HEARTS_PER_SECOND + (END_HEARTS_PER_SECOND - START_HEARTS_PER_SECOND) * t;
+        return heartsPerSecond * 2.0 * HIT_INTERVAL / 20.0;
     }
 
     /**

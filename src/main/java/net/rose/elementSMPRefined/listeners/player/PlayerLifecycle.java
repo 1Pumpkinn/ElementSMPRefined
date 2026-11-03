@@ -13,12 +13,8 @@ import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
-import net.rose.elementSMPRefined.util.visual.ElementColours;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.lang.Lang;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.title.Title;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -30,7 +26,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.time.Duration;
 import java.util.Random;
 import java.util.UUID;
 
@@ -106,16 +101,6 @@ public class PlayerLifecycle implements Listener {
 
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
-        String[] names = java.util.Arrays.stream(basicElements)
-                .map(Enum::name)
-                .toArray(String[]::new);
-        NamedTextColor[] colors = java.util.Arrays.stream(basicElements)
-                .map(type -> {
-                    var element = elementManager.get(type);
-                    return element != null ? ElementColours.fromLegacy(element.getDisplayName()) : NamedTextColor.AQUA;
-                })
-                .toArray(NamedTextColor[]::new);
-
         final int steps = Constants.Animation.ROLL_STEPS;
         final long interval = Constants.Animation.ROLL_DELAY_TICKS;
 
@@ -149,13 +134,6 @@ public class PlayerLifecycle implements Listener {
                     return;
                 }
 
-                String name = names[tick % names.length];
-                NamedTextColor color = colors[tick % colors.length];
-                player.showTitle(Title.title(
-                        Component.text("Rolling...").color(NamedTextColor.GOLD),
-                        Component.text(name).color(color),
-                        Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ZERO)
-                ));
                 tick++;
             }
         }.runTaskTimer(plugin, 0L, interval);

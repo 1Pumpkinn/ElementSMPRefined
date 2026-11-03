@@ -21,17 +21,11 @@ import net.rose.elementSMPRefined.ability.passive.upgraded.storm.StormElement;
 import net.rose.elementSMPRefined.ability.passive.basic.water.WaterElement;
 import net.rose.elementSMPRefined.core.registry.ElementRegistry;
 import net.rose.elementSMPRefined.services.EffectService;
-import net.rose.elementSMPRefined.util.visual.ElementColours;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.lang.Lang;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.title.Title;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.time.Duration;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -196,7 +190,6 @@ public class ElementManager {
         // that cost scales with total player count/history, not with this one
         // reroll, and was the cause of the reroll lag spikes.
         store.saveAsync(pd);
-        showElementTitle(player, type, "Element Assigned!");
         applyUpsides(player);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
 
@@ -272,27 +265,6 @@ public class ElementManager {
                 .configManager(configManager)
                 .plugin(plugin)
                 .build();
-    }
-
-    private void showElementTitle(Player player, ElementType type, String title) {
-        // getDisplayName() carries legacy '&'/ChatColor codes for chat-message use;
-        // Adventure's Component.text() doesn't parse those, so strip them for the
-        // displayed text but pull the actual color out first via ElementColours so
-        // the title shows this element's real color instead of one fixed color.
-        String rawName = displayNameOf(type);
-        String plainName = ChatColor.stripColor(rawName);
-        NamedTextColor nameColor = ElementColours.fromLegacy(rawName);
-
-        var titleObj = Title.title(
-                Component.text(title).color(NamedTextColor.GOLD),
-                Component.text(plainName).color(nameColor),
-                Title.Times.times(
-                        Duration.ofMillis(500),
-                        Duration.ofMillis(2000),
-                        Duration.ofMillis(500)
-                )
-        );
-        player.showTitle(titleObj);
     }
 
     private boolean beginRoll(Player player) {

@@ -3,18 +3,13 @@ package net.rose.elementSMPRefined.listeners.handler;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
-import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
-    import net.rose.elementSMPRefined.util.visual.ElementColours;
 import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.title.Title;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,7 +20,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Random;
 
@@ -123,25 +117,9 @@ public class RerollerHandler implements Listener {
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
         ElementType[] basicElements = elementManager.getBasicElements();
-        String[] names = java.util.Arrays.stream(basicElements)
-                .map(Enum::name)
-                .toArray(String[]::new);
-        // Parallel array, same order as `names` - each element's own real color
-        // (pulled from that element's getDisplayName()) instead of one fixed color
-        // for every name shown during the animation.
-        NamedTextColor[] colors = java.util.Arrays.stream(basicElements)
-                .map(type -> {
-                    var element = elementManager.get(type);
-                    return element != null ? ElementColours.fromLegacy(element.getDisplayName()) : NamedTextColor.AQUA;
-                })
-                .toArray(NamedTextColor[]::new);
-
-        final long titleEveryTicks = Constants.Animation.ROLL_DELAY_TICKS;
         final ElementGemOrbitVisual visual = new ElementGemOrbitVisual(player, basicElements, targetElement);
 
         new BukkitRunnable() {
-            int tick = 0;
-            int titleStep = 0;
             boolean assigned = false;
 
             @Override
@@ -172,7 +150,7 @@ public class RerollerHandler implements Listener {
                 visual.tick();
 
                 // The survivor has landed in front of the player: hand out the element now, so
-                // the "Element Assigned!" title lines up with the gem appearing.
+                // the element lines up with the gem appearing.
                 if (!assigned && visual.hasRevealed()) {
                     assigned = true;
                     elementManager.assignBasicElement(player, targetElement);
@@ -185,16 +163,6 @@ public class RerollerHandler implements Listener {
                     elementManager.endRolling(player);
                     return;
                 }
-
-                if (!assigned && tick % titleEveryTicks == 0) {
-                    int i = titleStep++;
-                    player.showTitle(Title.title(
-                            Component.text("Rolling...").color(NamedTextColor.GOLD),
-                            Component.text(names[i % names.length]).color(colors[i % colors.length]),
-                            Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ZERO)
-                    ));
-                }
-                tick++;
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }

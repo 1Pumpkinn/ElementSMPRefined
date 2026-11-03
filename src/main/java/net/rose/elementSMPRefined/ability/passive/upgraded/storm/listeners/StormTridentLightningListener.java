@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TrustManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Trident;
@@ -60,6 +61,11 @@ public class StormTridentLightningListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onStrikeDamage(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof LightningStrike strike)) return;
+        // Our strikes never destroy dropped items (vanilla lightning does).
+        if (event.getEntity() instanceof Item && strikes.containsKey(strike.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
         if (isProtected(strike, event.getEntity().getUniqueId())) {
             event.setCancelled(true);
             return;

@@ -1,0 +1,38 @@
+# Event Villagers
+# Each entry under "villagers" is a villager TYPE with its own name, outfit and trades.
+# Spawn one with /eventvillager spawn <type> [name]; every villager remembers its type, so you
+# can have as many different ones as you like. Reload this file with /eventvillager reload.
+# Trades are re-read from here whenever a villager's trade window opens, so edits apply to
+# villagers that are already placed (name and profession are set when spawned).
+#
+# Per type:
+#   name:        name above the head (& colour codes work); /eventvillager spawn <type> <name> overrides it
+#   profession:  vanilla profession key (librarian, cleric, armorer, butcher, ...)
+#   trades:      every trade is unlimited and ignores discounts
+#     - cost:    required, "ITEM" or "ITEM:amount"
+#       cost2:   optional second cost
+#       result:  required
+# ITEM is a Material name or one of: upgrader_1, upgrader_2, reroller, forged_upgrader
+
+villagers:
+  element_shop:
+    name: "&6&lElement Trader"
+    profession: librarian
+    trades:
+      - cost: "DIAMOND_BLOCK:8"
+        result: "upgrader_1"
+      - cost: "NETHERITE_INGOT:2"
+        cost2: "DIAMOND_BLOCK:8"
+        result: "upgrader_2"
+      - cost: "EMERALD_BLOCK:16"
+        result: "reroller"
+
+  supply_shop:
+    name: "&a&lSupply Trader"
+    profession: butcher
+    trades:
+      - cost: "GOLD_BLOCK:32"
+        cost2: "DIAMOND:8"
+        result: "ENCHANTED_GOLDEN_APPLE:1"
+      - cost: "EMERALD:16"
+        result: "GOLDEN_APPLE:4"

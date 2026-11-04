@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.altar.ReforgeAltarManager;
 import net.rose.elementSMPRefined.core.initializers.ListenerInitializer;
 import net.rose.elementSMPRefined.core.initializers.RecipeInitializer;
 import net.rose.elementSMPRefined.hud.CooldownActionBarTask;
+import net.rose.elementevents.CustomEventVilager;
 import net.rose.elementSMPRefined.managers.*;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.status.DisarmManager;
@@ -50,6 +51,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected CooldownActionBarTask cooldownActionBarTask;
 
     protected ReforgeAltarManager reforgeAltarManager;
+    protected CustomEventVilager eventVillager;
     protected TaskScheduler taskScheduler;
     protected MetadataHelper metadataHelper;
     protected TrueDamage trueDamage;
@@ -163,6 +165,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.statusEffectManager = new StatusEffectManager(this);
         this.disarmManager = new DisarmManager(this);
         this.reforgeAltarManager = new ReforgeAltarManager(this);
+        this.eventVillager = new CustomEventVilager((net.rose.elementSMPRefined.ElementSMPRefined) this);
     }
 
     private void initializeServices() {
@@ -343,6 +346,10 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     public ReforgeAltarManager getReforgeAltarManager() {
         return reforgeAltarManager;
+    }
+
+    public CustomEventVilager getEventVillager() {
+        return eventVillager;
     }
 
     public TaskScheduler getTaskScheduler() {

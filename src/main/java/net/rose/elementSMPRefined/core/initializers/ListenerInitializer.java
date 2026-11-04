@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementevents.EventVillagerListener;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
@@ -82,6 +83,7 @@ public class ListenerInitializer {
         pluginManager.registerEvents(new UpgraderHandler(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new CraftingIngredientHandler(plugin), plugin);
         pluginManager.registerEvents(advancements, plugin);
+        pluginManager.registerEvents(new EventVillagerListener(plugin, plugin.getEventVillager()), plugin);
     }
 
     private void registerElementListeners() {

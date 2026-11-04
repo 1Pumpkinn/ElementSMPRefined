@@ -45,6 +45,7 @@ files into a new overlay and re-add the few `energyFacing` / `energyBeamColor` l
 | `/autosmelt [on\|off]` | Toggle Fire/Lava auto smelt | |
 | `/element <set\|data\|debug\|castall\|config>` | Admin tools | `element.admin` |
 | `/util` | Get upgraders and rerollers | `element.admin` |
+| `/eventvillager <spawn <type> [name]\|settype\|remove\|list\|types\|reload>` | Unkillable event villagers; each type has its own name, outfit and trades in `event_villagers.yml` | `element.eventvillager` (op) |
 | `/grace <start\|stop\|status\|extend\|shorten\|settings\|set>` | Server grace period (times like `10m`, `1h30m`; `/grace settings` lists every option) | `element.admin` |
 | `/dimension <enable\|disable\|toggle\|status\|settings\|set> <nether\|end\|all> [time]` | Toggle portal travel, optionally for a set time | `element.admin` |
 

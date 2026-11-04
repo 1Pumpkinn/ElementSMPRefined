@@ -69,6 +69,12 @@ commands:
     aliases: [ altar ]
     permission: element.admin
 
+  eventvillager:
+    description: Spawn and manage unkillable event villagers with their own trades
+    usage: /eventvillager <spawn <type> [name]|settype <type>|remove|list|types|reload>
+    aliases: [ evillager ]
+    permission: element.eventvillager
+
   enchantablemace:
     description: Give the one mace that is allowed to keep its enchantments
     usage: /enchantablemace [player]
@@ -100,4 +106,7 @@ permissions:
     default: op
   potplugin.enchantlimits.bypass:
     description: Ignore all enchantment limits
+    default: op
+  element.eventvillager:
+    description: Spawn and manage event villagers
     default: op

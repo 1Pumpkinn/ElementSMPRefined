@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementevents.EventVillagerCommand;
 import net.rose.elementSMPRefined.commands.element.base.AbilityCommand;
 import net.rose.elementSMPRefined.commands.element.base.AutoSmeltCommand;
 import net.rose.elementSMPRefined.commands.element.base.ElementCommand;
@@ -39,6 +40,7 @@ public class CommandInitializer {
                 .command("util", new UtilCommand(plugin))
                 .command("enchantablemace", new EnchantableMaceCommand(plugin))
                 .command("reforgealtar", new ReforgeAltarCommand(plugin.getReforgeAltarManager()))
+                .command("eventvillager", new EventVillagerCommand(plugin, plugin.getEventVillager()))
                 .command("grace", new GraceCommand(plugin))
                 .command("dimension", new DimensionCommand(plugin));
     }

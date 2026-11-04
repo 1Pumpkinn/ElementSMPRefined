@@ -9,7 +9,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,6 +59,6 @@ public class SetCommand implements ElementSubCommand {
         if (args.length == 3) {
             return CommandSupport.filterStartingWith(CommandSupport.getElementNames(), args[2]);
         }
-        return Collections.emptyList();
+        return List.of();
     }
 }

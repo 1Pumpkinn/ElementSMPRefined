@@ -91,7 +91,7 @@ public class EruptionAbility extends BaseAbility {
 
         RayTraceResult hit = world.rayTraceEntities(eye, dir, maxDistance, RAY_SIZE,
                 e -> e instanceof LivingEntity living && AbilityTargets.isValid(player, living, team));
-        return hit == null ? null : (LivingEntity) hit.getHitEntity();
+        return hit != null && hit.getHitEntity() instanceof LivingEntity living ? living : null;
     }
 
     private Location groundBelow(Location from) {

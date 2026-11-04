@@ -29,8 +29,6 @@ public final class EnchantLimits {
         this.plugin = plugin;
     }
 
-    // ---------------------------------------------------------------- storage
-
     /** Re-reads config.yml from disk (through ConfigManager so it stays in sync), then loads. */
     public void reloadFromDisk() {
         plugin.getConfigManager().reload();
@@ -57,8 +55,6 @@ public final class EnchantLimits {
         plugin.getConfig().set(CONFIG_PATH, entries);
         plugin.saveConfig();
     }
-
-    // ---------------------------------------------------------------- editing
 
     public void set(String name, int maxLevel) {
         limits.put(name, maxLevel);
@@ -94,8 +90,6 @@ public final class EnchantLimits {
         }
         return names;
     }
-
-    // ----------------------------------------------------------------- checks
 
     /** The cap for this enchantment (0 = not allowed), or null if it has no limit. */
     public Integer maxFor(Enchantment enchantment) {
@@ -183,8 +177,6 @@ public final class EnchantLimits {
         }
         return changed;
     }
-
-    // ---------------------------------------------------------------- helpers
 
     private static String nameOf(Enchantment enchantment) {
         NamespacedKey key = enchantment.getKey();

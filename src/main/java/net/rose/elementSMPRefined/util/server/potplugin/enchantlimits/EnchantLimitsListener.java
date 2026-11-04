@@ -77,8 +77,6 @@ public final class EnchantLimitsListener implements Listener {
         }
     }
 
-    // ------------------------------------------------------ enchanting table
-
     /** Hides / lowers offers so the table doesn't advertise restricted enchantments. */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrepareEnchant(PrepareItemEnchantEvent event) {
@@ -129,8 +127,6 @@ public final class EnchantLimitsListener implements Listener {
         }
     }
 
-    // ----------------------------------------------------------------- anvil
-
     /**
      * An anvil result carrying a restricted enchantment (too high a level, or not allowed) is blocked.
      * A mace without the enchantable tag can't gain or change enchantments here at all.
@@ -162,8 +158,6 @@ public final class EnchantLimitsListener implements Listener {
             alert(player, "That combination would create a restricted enchantment.");
         }
     }
-
-    // ---------------------------------------------------------------- utils
 
     private static boolean canBypass(Player player) {
         return player.hasPermission(BYPASS_PERMISSION);

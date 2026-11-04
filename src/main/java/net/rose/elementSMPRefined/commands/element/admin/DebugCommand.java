@@ -21,7 +21,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
@@ -226,6 +225,6 @@ public class DebugCommand implements ElementSubCommand {
         if (args.length == 2) {
             return CommandSupport.getOnlinePlayerNames(args[1]);
         }
-        return Collections.emptyList();
+        return List.of();
     }
 }

@@ -137,7 +137,7 @@ public final class ReforgeAltarManager {
         floorColumns.clear();
         List<Palette> palettes = altarStructure.getPalettes();
         if (palettes.isEmpty()) return;
-        for (BlockState state : palettes.get(0).getBlocks()) {
+        for (BlockState state : palettes.getFirst().getBlocks()) {
             BlockData data = state.getBlockData();
             if (data.getMaterial().isAir()) continue;
             pieces.add(new Piece(state.getX(), state.getY(), state.getZ(), data));

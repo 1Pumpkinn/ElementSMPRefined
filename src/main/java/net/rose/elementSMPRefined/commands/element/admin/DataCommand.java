@@ -22,7 +22,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -217,6 +216,6 @@ public class DataCommand implements ElementSubCommand {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
-        return args.length == 2 ? CommandSupport.getOnlinePlayerNames(args[1]) : Collections.emptyList();
+        return args.length == 2 ? CommandSupport.getOnlinePlayerNames(args[1]) : List.of();
     }
 }

@@ -85,28 +85,24 @@ public final class ConfigOption {
 
     /** Parses raw input into the value to store in config.yml, or null if it isn't valid for this option. */
     public Object parse(String raw) {
-        switch (type) {
-            case BOOLEAN:
-                return ParseUtil.parseBoolean(raw);
-            case DURATION:
-                return ParseUtil.parseSeconds(raw, false);
-            case DURATION_OR_ZERO:
-                return ParseUtil.parseSeconds(raw, true);
-            case DECIMAL:
-                try {
-                    double value = Double.parseDouble(raw);
-                    if (Double.isNaN(value) || value < min || value > max) {
-                        return null;
-                    }
-                    return value;
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-            case CHOICE:
+        return switch (type) {
+            case BOOLEAN -> ParseUtil.parseBoolean(raw);
+            case DURATION -> ParseUtil.parseSeconds(raw, false);
+            case DURATION_OR_ZERO -> ParseUtil.parseSeconds(raw, true);
+            case DECIMAL -> parseDecimal(raw);
+            case CHOICE -> {
                 String upper = raw.toUpperCase(Locale.ROOT);
-                return choices.contains(upper) ? upper : null;
-            default:
-                return null;
+                yield choices.contains(upper) ? upper : null;
+            }
+        };
+    }
+
+    private Double parseDecimal(String raw) {
+        try {
+            double value = Double.parseDouble(raw);
+            return Double.isNaN(value) || value < min || value > max ? null : value;
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

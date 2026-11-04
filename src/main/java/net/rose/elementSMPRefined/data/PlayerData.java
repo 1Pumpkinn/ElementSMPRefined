@@ -2,7 +2,9 @@ package net.rose.elementSMPRefined.data;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 
-import java.util.*;
+import java.util.EnumSet;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A player's element progress and owned items.

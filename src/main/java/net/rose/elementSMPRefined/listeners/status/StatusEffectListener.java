@@ -105,8 +105,6 @@ public class StatusEffectListener implements Listener {
         }
     }
 
-    // ---- Disarm ----
-
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player player && isMainHandDisarmed(player)) {

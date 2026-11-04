@@ -70,7 +70,7 @@ public class CastAllCommand implements ElementSubCommand {
         }
 
         List<Player> casters = new ArrayList<>();
-        if (names.isEmpty() || (names.size() == 1 && names.get(0).equals("*"))) {
+        if (names.isEmpty() || (names.size() == 1 && names.getFirst().equals("*"))) {
             for (Player online : Bukkit.getOnlinePlayers()) {
                 if (!online.equals(target)) casters.add(online);
             }

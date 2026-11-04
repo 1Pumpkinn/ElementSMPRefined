@@ -540,7 +540,7 @@ public class HellChainAbility extends BaseAbility {
     private void debug(Player player, String reason, int ticks, double distance) {
         if (!DEBUG) return;
         plugin.getLogger().info("[HellChain] " + player.getName() + ": " + reason
-                + " (tick " + ticks + ", " + String.format("%.1f", distance) + " blocks from hook)");
+                + " (tick " + ticks + ", " + "%.1f".formatted(distance) + " blocks from hook)");
     }
 
     private int pingTicks(Player player) {

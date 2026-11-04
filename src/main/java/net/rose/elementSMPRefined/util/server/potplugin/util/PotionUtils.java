@@ -103,8 +103,6 @@ public final class PotionUtils {
         return result;
     }
 
-    // ---------------------------------------------------------------------
-
     /**
      * The vanilla type this potion started as: the stored origin for potions
      * this plugin extended (their base type is reset to WATER), otherwise the

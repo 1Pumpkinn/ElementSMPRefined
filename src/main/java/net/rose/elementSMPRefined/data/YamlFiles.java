@@ -80,7 +80,7 @@ public final class YamlFiles {
                 : Arrays.stream(existing).sorted(Comparator.comparingLong(File::lastModified).reversed()).toList();
 
         if (!backups.isEmpty()) {
-            long ageMillis = System.currentTimeMillis() - backups.get(0).lastModified();
+            long ageMillis = System.currentTimeMillis() - backups.getFirst().lastModified();
             if (ageMillis < minAgeMinutes * 60_000L) return;
         }
 

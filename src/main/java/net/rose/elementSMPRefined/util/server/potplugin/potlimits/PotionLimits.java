@@ -38,8 +38,6 @@ public final class PotionLimits {
         this.plugin = plugin;
     }
 
-    // ---------------------------------------------------------------- storage
-
     /** Re-reads config.yml from disk (through ConfigManager so it stays in sync), then loads. */
     public void reloadFromDisk() {
         plugin.getConfigManager().reload();
@@ -63,8 +61,6 @@ public final class PotionLimits {
         plugin.getConfig().set(CONFIG_PATH, new ArrayList<>(banned));
         plugin.saveConfig();
     }
-
-    // ---------------------------------------------------------------- editing
 
     /** @return true if it was newly added */
     public boolean ban(String name) {
@@ -121,8 +117,6 @@ public final class PotionLimits {
         return names;
     }
 
-    // ----------------------------------------------------------------- checks
-
     public boolean isBanned(PotionType type) {
         return type != null && banned.contains(type.getKey().getKey());
     }
@@ -152,8 +146,6 @@ public final class PotionLimits {
         }
         return false;
     }
-
-    // ---------------------------------------------------------------- helpers
 
     private void rebuildEffects() {
         List<PotionEffect> effects = new ArrayList<>();

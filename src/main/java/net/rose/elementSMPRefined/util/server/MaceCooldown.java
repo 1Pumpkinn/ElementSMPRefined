@@ -59,11 +59,11 @@ public class MaceCooldown implements Listener {
         }
     }
 
-    private static boolean isPlayerMelee(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player)) return false;
-        if (event.getCause() != DamageCause.ENTITY_ATTACK) return false;
-        if (ignoreDepth > 0) return false;
-        return !AbilityDamage.isAbilityDamage(event.getEntity());
+    private static Player meleeAttacker(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player player)) return null;
+        if (event.getCause() != DamageCause.ENTITY_ATTACK) return null;
+        if (ignoreDepth > 0) return null;
+        return AbilityDamage.isAbilityDamage(event.getEntity()) ? null : player;
     }
 
     private final JavaPlugin plugin;
@@ -127,8 +127,8 @@ public class MaceCooldown implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onAttack(EntityDamageByEntityEvent event) {
-        if (!isPlayerMelee(event)) return;
-        Player player = (Player) event.getDamager();
+        Player player = meleeAttacker(event);
+        if (player == null) return;
         if (!isMace(player.getInventory().getItemInMainHand())) return;
 
         if (isOnCooldown(player)) {
@@ -152,8 +152,8 @@ public class MaceCooldown implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCapDamage(EntityDamageByEntityEvent event) {
-        if (!isPlayerMelee(event)) return;
-        Player player = (Player) event.getDamager();
+        Player player = meleeAttacker(event);
+        if (player == null) return;
         if (!isMace(player.getInventory().getItemInMainHand())) return;
 
         double max = Constants.Mace.MAX_DAMAGE;
@@ -172,8 +172,8 @@ public class MaceCooldown implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHit(EntityDamageByEntityEvent event) {
-        if (!isPlayerMelee(event)) return;
-        Player player = (Player) event.getDamager();
+        Player player = meleeAttacker(event);
+        if (player == null) return;
         if (!(event.getEntity() instanceof LivingEntity victim) || victim instanceof ArmorStand) return;
         if (!isMace(player.getInventory().getItemInMainHand())) return;
 

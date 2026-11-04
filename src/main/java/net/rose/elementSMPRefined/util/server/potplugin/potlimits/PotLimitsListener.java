@@ -84,8 +84,6 @@ public final class PotLimitsListener implements Listener {
         }
     }
 
-    // ------------------------------------------------------------ can't brew
-
     /** HIGHEST so it runs after BrewingListener has rewritten the results. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBrew(BrewEvent event) {
@@ -96,8 +94,6 @@ public final class PotLimitsListener implements Listener {
             }
         }
     }
-
-    // ------------------------------------------------- can't hold or drink
 
     @EventHandler(ignoreCancelled = true)
     public void onPickup(EntityPickupItemEvent event) {
@@ -146,8 +142,6 @@ public final class PotLimitsListener implements Listener {
             deny(event.getPlayer(), "That potion is restricted on this server.");
         }
     }
-
-    // ------------------------------------- never applies (dispensers, mobs)
 
     @EventHandler(ignoreCancelled = true)
     public void onDispense(BlockDispenseEvent event) {
@@ -199,8 +193,6 @@ public final class PotLimitsListener implements Listener {
         }
     }
 
-    // ------------------------------------------------------- trial chambers
-
     /** Trial spawner mobs spawn with their effects already on; strip the restricted ones. */
     @EventHandler(ignoreCancelled = true)
     public void onTrialSpawn(CreatureSpawnEvent event) {
@@ -243,8 +235,6 @@ public final class PotLimitsListener implements Listener {
             event.setLoot(loot);
         }
     }
-
-    // ---------------------------------------------------------------- utils
 
     private static boolean canBypass(Player player) {
         return player.hasPermission(BYPASS_PERMISSION);

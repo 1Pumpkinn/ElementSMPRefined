@@ -7,7 +7,6 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.lang.Lang;
 import org.bukkit.command.CommandSender;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -118,13 +117,13 @@ public class ConfigCommand implements ElementSubCommand {
             return defaultValueSuggestion(args[2]);
         }
 
-        return Collections.emptyList();
+        return List.of();
     }
 
     private List<String> defaultValueSuggestion(String path) {
         Object def = configManager.getDefaultValue(path);
         if (def == null) {
-            return Collections.emptyList();
+            return List.of();
         }
         if (def instanceof Boolean b) {
             return List.of(def.toString(), String.valueOf(!b));

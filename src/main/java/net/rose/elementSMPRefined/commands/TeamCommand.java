@@ -135,7 +135,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         } else {
             List<Team> pending = teams.getInvites(me);
             if (pending.size() != 1) { p.sendMessage(Lang.teamUsage(usage)); return null; }
-            team = pending.get(0);
+            team = pending.getFirst();
         }
         if (team == null || !teams.hasInvite(me, team)) {
             p.sendMessage(Lang.teamError("No pending invite from that team."));

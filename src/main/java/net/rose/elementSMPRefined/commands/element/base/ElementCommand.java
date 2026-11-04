@@ -1,7 +1,11 @@
 package net.rose.elementSMPRefined.commands.element.base;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.commands.element.admin.*;
+import net.rose.elementSMPRefined.commands.element.admin.CastAllCommand;
+import net.rose.elementSMPRefined.commands.element.admin.ConfigCommand;
+import net.rose.elementSMPRefined.commands.element.admin.DataCommand;
+import net.rose.elementSMPRefined.commands.element.admin.DebugCommand;
+import net.rose.elementSMPRefined.commands.element.admin.SetCommand;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.kyori.adventure.text.Component;
@@ -11,7 +15,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,18 +70,18 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         if (args.length == 1) {
             if (sender.hasPermission("element.admin")) {
                 return CommandSupport.filterStartingWith(subCommands.keySet(), args[0]);
             }
-            return Collections.emptyList();
+            return List.of();
         }
 
         if (!sender.hasPermission("element.admin")) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         ElementSubCommand subCommand = subCommands.get(args[0].toLowerCase());
@@ -86,7 +89,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
             return subCommand.tabComplete(sender, args);
         }
 
-        return Collections.emptyList();
+        return List.of();
     }
 
     private void sendHelp(CommandSender sender) {

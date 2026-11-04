@@ -16,7 +16,6 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -117,6 +116,6 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
             }
             return completions;
         }
-        return Collections.emptyList();
+        return List.of();
     }
 }

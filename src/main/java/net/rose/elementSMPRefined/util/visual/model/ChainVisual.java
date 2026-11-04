@@ -122,7 +122,7 @@ public final class ChainVisual {
                 new Quaternionf());
 
         while (segments.size() > count) {
-            removeSegment(segments.remove(segments.size() - 1));
+            removeSegment(segments.removeLast());
         }
 
         for (int i = 0; i < count; i++) {

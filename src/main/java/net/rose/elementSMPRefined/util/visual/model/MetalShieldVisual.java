@@ -95,7 +95,7 @@ public final class MetalShieldVisual {
     public Location popNearest(Location from) {
         if (orbiters.isEmpty()) return null;
 
-        Orbiter pick = orbiters.get(0);
+        Orbiter pick = orbiters.getFirst();
         if (from != null) {
             double best = Double.MAX_VALUE;
             for (Orbiter o : orbiters) {

@@ -226,8 +226,9 @@ public class EnergyBlastAbility extends BaseAbility {
 
         Set<UUID> hit = new HashSet<>();
         for (Entity nearby : w.getNearbyEntities(corridor, candidate -> candidate instanceof LivingEntity)) {
-            LivingEntity e = (LivingEntity) nearby;
-            if (!AbilityTargets.isValid(caster, e, team) || hit.contains(e.getUniqueId())) continue;
+            if (!(nearby instanceof LivingEntity e)
+                    || !AbilityTargets.isValid(caster, e, team)
+                    || hit.contains(e.getUniqueId())) continue;
 
             BoundingBox grown = e.getBoundingBox().expand(HIT_RADIUS);
             if (!grown.contains(from) && grown.rayTrace(from, dir, reach) == null) continue;

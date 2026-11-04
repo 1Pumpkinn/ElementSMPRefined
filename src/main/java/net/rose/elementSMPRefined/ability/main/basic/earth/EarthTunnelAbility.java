@@ -29,6 +29,7 @@ public class EarthTunnelAbility extends BaseAbility {
     private final MetadataHelper metadataHelper;
 
     private final Map<UUID, ItemStack> tunnelTools = new HashMap<>();
+    private final Map<UUID, Long> tunnelStartTimes = new HashMap<>();
 
     public EarthTunnelAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("earth_tunnel", ElementType.EARTH, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
@@ -44,12 +45,15 @@ public class EarthTunnelAbility extends BaseAbility {
         if (metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
             metadataHelper.remove(player, EarthElement.META_TUNNELING);
             tunnelTools.remove(player.getUniqueId());
+            applyEarlyCancelCooldown(player, context);
             player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_CANCELLED);
             setActive(player, false);
             return true;
         }
 
-        metadataHelper.setLong(player, EarthElement.META_TUNNELING, System.currentTimeMillis() + Constants.Duration.EARTH_TUNNEL_MS);
+        long now = System.currentTimeMillis();
+        metadataHelper.setLong(player, EarthElement.META_TUNNELING, now + Constants.Duration.EARTH_TUNNEL_MS);
+        tunnelStartTimes.put(player.getUniqueId(), now);
 
         // If a pickaxe is in hand right now, lock it in for the whole tunnel (Fortune / Silk Touch included).
         ItemStack started = player.getInventory().getItemInMainHand();
@@ -67,6 +71,7 @@ public class EarthTunnelAbility extends BaseAbility {
         Bukkit.getScheduler().runTaskTimer(plugin, task -> {
             if (!player.isOnline() || !metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
                 tunnelTools.remove(player.getUniqueId());
+                tunnelStartTimes.remove(player.getUniqueId());
                 setActive(player, false);
                 task.cancel();
                 return;
@@ -77,6 +82,7 @@ public class EarthTunnelAbility extends BaseAbility {
                 metadataHelper.remove(player, EarthElement.META_TUNNELING);
                 player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_ENDED);
                 tunnelTools.remove(player.getUniqueId());
+                tunnelStartTimes.remove(player.getUniqueId());
                 setActive(player, false);
                 task.cancel();
                 return;
@@ -96,6 +102,28 @@ public class EarthTunnelAbility extends BaseAbility {
         }, 0L, 2L);
 
         return true;
+    }
+
+    /**
+     * Cancelling early shortens the cooldown. The full cooldown started when the tunnel
+     * did; on cancel it is replaced by a fresh one scaled by how much of the tunnel
+     * duration was used (cancel instantly = the minimum, run the full time = the full
+     * cooldown). Letting the tunnel run out on its own keeps the normal cooldown.
+     */
+    private void applyEarlyCancelCooldown(Player player, ElementContext context) {
+        Long startedAt = tunnelStartTimes.remove(player.getUniqueId());
+        if (startedAt == null) return;
+
+        double usedFraction = (System.currentTimeMillis() - startedAt) / (double) Constants.Duration.EARTH_TUNNEL_MS;
+        usedFraction = Math.max(0.0, Math.min(1.0, usedFraction));
+
+        int full = getCooldownSeconds();
+        int scaled = (int) Math.round(full * usedFraction);
+        int cooldown = Math.max(Constants.Cooldown.EARTH_TUNNEL_MIN_CANCEL_SECONDS, scaled);
+        if (cooldown >= full) return;
+
+        context.getCooldownManager().clear(player, getAbilityId());
+        context.getCooldownManager().startCooldown(player, getAbilityId(), cooldown);
     }
 
     private void breakTunnel(Location center, Player player) {

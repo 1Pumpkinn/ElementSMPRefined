@@ -16,6 +16,8 @@ public final class Constants {
         public static final int ABILITY_1_SECONDS = 60;
         /** Every ability2 (slot 2) cooldown, in seconds. */
         public static final int ABILITY_2_SECONDS = 120;
+        /** Earth Tunnel: shortest cooldown left after cancelling it right away, in seconds. */
+        public static final int EARTH_TUNNEL_MIN_CANCEL_SECONDS = 10;
 
         private Cooldown() {}
     }

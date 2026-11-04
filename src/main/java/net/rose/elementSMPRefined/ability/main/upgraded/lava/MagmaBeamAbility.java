@@ -43,8 +43,8 @@ public class MagmaBeamAbility extends BaseAbility {
     private static final double RANGE = 25.0;
     private static final int HIT_INTERVAL = 5;
     // Damage decays over the beam: hearts per second at the start -> at the very end.
-    private static final double START_HEARTS_PER_SECOND = 1.0;
-    private static final double END_HEARTS_PER_SECOND = 0.75;
+    private static final double START_HEARTS_PER_SECOND = 1.5;
+    private static final double END_HEARTS_PER_SECOND = 1.25;
     private static final double HIT_RADIUS = 1.0;
     private static final int BURN_TICKS = 60;
     private static final int SLOW_AMPLIFIER = 2;

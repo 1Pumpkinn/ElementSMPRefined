@@ -134,6 +134,10 @@ public class ListenerInitializer {
     }
 
     public void cleanup() {
+        if (plugin.getElementManager() != null
+                && plugin.getElementManager().get(ElementType.WATER) instanceof net.rose.elementSMPRefined.ability.passive.basic.water.WaterElement water) {
+            water.shutdown();
+        }
         if (gracePeriod != null) {
             gracePeriod.cleanup();
         }

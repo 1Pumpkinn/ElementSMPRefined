@@ -20,6 +20,8 @@ import java.util.List;
 
 public class WaterElement extends BaseElement implements ListenerProvider {
 
+    private WaterInvisibilityListener invisibilityListener;
+
     public WaterElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.WATER,
                 new WaterDashAbility(plugin, configManager),
@@ -35,7 +37,15 @@ public class WaterElement extends BaseElement implements ListenerProvider {
     @Override
     public List<Listener> getListeners(JavaPlugin plugin) {
         // 'this.plugin' is already the typed ElementSMPRefined held by BaseElement.
-        return List.of(new WaterInvisibilityListener(this.plugin, this.plugin.getElementManager()));
+        invisibilityListener = new WaterInvisibilityListener(this.plugin, this.plugin.getElementManager());
+        return List.of(invisibilityListener);
+    }
+
+    /** Plugin shutdown: removes the passive's invisibility from everyone still online. */
+    public void shutdown() {
+        if (invisibilityListener != null) {
+            invisibilityListener.cleanup();
+        }
     }
 
     @Override

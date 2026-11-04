@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.visual.PassiveInvisibility;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,6 +16,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -46,6 +48,9 @@ public class WaterInvisibilityListener implements Listener {
 
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
+    // Stored on the player (survives restarts/crashes/hot-swaps) so a leftover infinite invisibility
+    // from this passive can be recognised and removed later.
+    private final NamespacedKey markerKey;
 
     private final Map<UUID, Integer> idleChecks = new ConcurrentHashMap<>();
     private final Map<UUID, org.bukkit.Location> lastLocation = new ConcurrentHashMap<>();
@@ -56,7 +61,10 @@ public class WaterInvisibilityListener implements Listener {
     public WaterInvisibilityListener(ElementSMPRefined plugin, ElementManager elementManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
+        this.markerKey = new NamespacedKey(plugin, "water_invisible");
         startMonitor();
+        // Plugin (re)enabled with players already online: clear any invisibility left by a previous run.
+        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getOnlinePlayers().forEach(this::clearStaleInvisibility));
     }
 
     private void startMonitor() {
@@ -105,7 +113,8 @@ public class WaterInvisibilityListener implements Listener {
             if (checks >= IDLE_CHECKS_REQUIRED && !trulyInvisible.contains(uuid)) {
                 concealPlayer(player);
             } else if (trulyInvisible.contains(uuid)) {
-                hidePlayerFromAll(player);
+                // Re-blank every period so observers who just started tracking them don't see real gear.
+                sendEquipment(player, blankEquipment());
             }
         } else {
             idleChecks.remove(uuid);
@@ -130,42 +139,53 @@ public class WaterInvisibilityListener implements Listener {
     private void concealPlayer(Player player) {
         trulyInvisible.add(player.getUniqueId());
         PassiveInvisibility.mark(player);
+        player.getPersistentDataContainer().set(markerKey, PersistentDataType.BYTE, (byte) 1);
         player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 0, false, false));
-        hidePlayerFromAll(player);
+        // Deliberately NOT hideEntity: a hidden entity can't be targeted by other players' clients, so
+        // nobody could ever hit them. Invisibility + blank equipment keeps them unseen but hittable.
+        sendEquipment(player, blankEquipment());
     }
 
     private void revealPlayer(Player player) {
         UUID uuid = player.getUniqueId();
         trulyInvisible.remove(uuid);
         PassiveInvisibility.unmark(player);
+        removeOwnInvisibility(player);
+        showPlayerToAll(player);
+    }
 
+    /** Removes the passive's infinite invisibility and the persistent marker. */
+    private void removeOwnInvisibility(Player player) {
+        player.getPersistentDataContainer().remove(markerKey);
         PotionEffect current = player.getPotionEffect(PotionEffectType.INVISIBILITY);
         if (current != null && (current.getDuration() > 1000000 || current.getDuration() == PotionEffect.INFINITE_DURATION)) {
             player.removePotionEffect(PotionEffectType.INVISIBILITY);
         }
-
-        showPlayerToAll(player);
     }
 
-    private void hidePlayerFromAll(Player subject) {
-        for (Player observer : Bukkit.getOnlinePlayers()) {
-            if (observer.equals(subject)) {
-                continue;
-            }
-            hideFrom(observer, subject);
-        }
-        // Belt and braces: the potion effect alone leaves armor and held items visible, so if the
-        // entity is ever still tracked by an observer (hide not applied yet, another plugin re-showing
-        // it...) it must at least be bare. Harmless for observers the entity is already hidden from.
-        sendEquipment(subject, blankEquipment());
-    }
+    /**
+     * Clears invisibility this passive left behind in an earlier run (server stop/crash, plugin reload
+     * or hot-swap) - nothing tracks it any more, so without this it would last forever. Recognised by
+     * the persistent marker, or - for players stuck from before the marker existed - by the exact
+     * signature of this passive's effect on a Water/Frost player.
+     */
+    private void clearStaleInvisibility(Player player) {
+        if (!player.isOnline() || trulyInvisible.contains(player.getUniqueId())) return;
 
-    private void hideFrom(Player observer, Player subject) {
-        try {
-            observer.hideEntity(plugin, subject);
-        } catch (RuntimeException ignored) {
-            // never let one observer break the others
+        boolean marked = player.getPersistentDataContainer().has(markerKey, PersistentDataType.BYTE);
+        boolean legacy = false;
+        if (!marked) {
+            ElementType type = elementManager.getPlayerElement(player);
+            PotionEffect effect = player.getPotionEffect(PotionEffectType.INVISIBILITY);
+            legacy = (type == ElementType.WATER || type == ElementType.FROST)
+                    && effect != null
+                    && effect.getDuration() == PotionEffect.INFINITE_DURATION
+                    && !effect.isAmbient() && !effect.hasParticles();
         }
+        if (!marked && !legacy) return;
+
+        PassiveInvisibility.unmark(player);
+        removeOwnInvisibility(player);
     }
 
     private static Map<EquipmentSlot, ItemStack> blankEquipment() {
@@ -195,16 +215,6 @@ public class WaterInvisibilityListener implements Listener {
     }
 
     private void showPlayerToAll(Player subject) {
-        for (Player observer : Bukkit.getOnlinePlayers()) {
-            if (observer.equals(subject)) {
-                continue;
-            }
-            try {
-                observer.showEntity(plugin, subject);
-            } catch (RuntimeException ignored) {
-                // keep going for the remaining observers
-            }
-        }
         // Put the real armor / held items back for anyone who was sent the blank set.
         sendEquipment(subject, realEquipment(subject));
     }
@@ -215,7 +225,7 @@ public class WaterInvisibilityListener implements Listener {
             return;
         }
         if (trulyInvisible.contains(player.getUniqueId())) {
-            hidePlayerFromAll(player);
+            sendEquipment(player, blankEquipment());
             // Vanilla broadcasts the new item right after this event, so blank it again a tick later.
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (player.isOnline() && trulyInvisible.contains(player.getUniqueId())) {
@@ -230,10 +240,10 @@ public class WaterInvisibilityListener implements Listener {
         Player observer = event.getPlayer();
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!observer.isOnline()) return;
+            clearStaleInvisibility(observer); // left over from a crash / unclean shutdown
             for (UUID id : trulyInvisible) {
                 Player subject = Bukkit.getPlayer(id);
                 if (subject != null && !subject.equals(observer)) {
-                    hideFrom(observer, subject);
                     observer.sendEquipmentChange(subject, blankEquipment());
                 }
             }
@@ -251,10 +261,7 @@ public class WaterInvisibilityListener implements Listener {
         lastLocation.remove(uuid);
         if (trulyInvisible.remove(uuid)) {
             PassiveInvisibility.unmark(player);
-            PotionEffect current = player.getPotionEffect(PotionEffectType.INVISIBILITY);
-            if (current != null && (current.getDuration() > 1000000 || current.getDuration() == PotionEffect.INFINITE_DURATION)) {
-                player.removePotionEffect(PotionEffectType.INVISIBILITY);
-            }
+            removeOwnInvisibility(player);
             if (player.isOnline()) {
                 showPlayerToAll(player);
             }
@@ -265,9 +272,11 @@ public class WaterInvisibilityListener implements Listener {
         if (monitorTask != null) {
             monitorTask.cancel();
         }
+        // Server stop / plugin disable: actually take the invisibility off everyone, otherwise the
+        // infinite potion effect is saved with the player and never ends.
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (trulyInvisible.contains(player.getUniqueId())) {
-                showPlayerToAll(player);
+                revealPlayer(player);
             }
         }
         trulyInvisible.forEach(PassiveInvisibility::unmark);

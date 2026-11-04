@@ -46,8 +46,10 @@ public class EruptionAbility extends BaseAbility {
     private static final double RAY_SIZE = 0.8;
     private static final int WARNING_TICKS = 14;
     private static final double RADIUS = 6.0;
+    // Centre of the blast hits for 3 hearts, everyone else caught in it takes 2 hearts.
     private static final double DAMAGE = 6.0;
-    private static final double SPLASH_DAMAGE = 3.0;
+    private static final double SPLASH_DAMAGE = 4.0;
+    private static final double CORE_RADIUS = 1.5;
     private static final double LAUNCH_VELOCITY = 1.0;
     private static final int BURN_TICKS = 80;
 
@@ -194,7 +196,10 @@ public class EruptionAbility extends BaseAbility {
             if (!AbilityTargets.isValid(caster, e, team)) continue;
             if (!insideBlast(center, e)) continue;
 
-            double damage = e.getUniqueId().equals(mainTarget) ? DAMAGE : SPLASH_DAMAGE;
+            double dx = e.getLocation().getX() - center.getX();
+            double dz = e.getLocation().getZ() - center.getZ();
+            boolean inCore = dx * dx + dz * dz <= CORE_RADIUS * CORE_RADIUS;
+            double damage = inCore ? DAMAGE : SPLASH_DAMAGE;
             TrueDamage.of(damage).attacker(caster).ability(getName()).ignoreIFrames(false).apply(e);
             e.setFireTicks(BURN_TICKS);
             e.setVelocity(new Vector(0, LAUNCH_VELOCITY, 0));

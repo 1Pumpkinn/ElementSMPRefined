@@ -27,8 +27,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WaterInvisibilityListener implements Listener {
 
-    private static final int IDLE_CHECKS_REQUIRED = 8;
     private static final long MONITOR_PERIOD_TICKS = 4L;
+    private static final int IDLE_SECONDS_REQUIRED = 10;
+    private static final int IDLE_CHECKS_REQUIRED = (int) (IDLE_SECONDS_REQUIRED * 20L / MONITOR_PERIOD_TICKS);
 
     // "Standing still" is judged per monitor period. Water constantly pushes a motionless player
     // (they sink ~0.1 blocks per period and bob at the surface), so a plain 3D distance check

@@ -18,6 +18,7 @@ import java.util.UUID;
 public final class PlayerData {
 
     public static final int MAX_UPGRADE_LEVEL = 2;
+    public static final int MAX_WIND_BURST_LEVEL = 3;
 
     private final UUID uuid;
     private ElementType currentElement;
@@ -25,6 +26,7 @@ public final class PlayerData {
     private int pendingRerollerRefunds;
     private int pendingAdvancedRerollerRefunds;
     private final EnumSet<PassiveToggle> disabledToggles = EnumSet.noneOf(PassiveToggle.class);
+    private int windBurstLevel = 1;
 
     public PlayerData(UUID uuid) {
         this.uuid = Objects.requireNonNull(uuid, "uuid cannot be null");
@@ -134,6 +136,15 @@ public final class PlayerData {
         } else {
             disabledToggles.add(toggle);
         }
+    }
+
+    /** Air/Storm Wind Burst strength chosen with /toggle windburst (1-3, like the enchantment). */
+    public int getWindBurstLevel() {
+        return windBurstLevel;
+    }
+
+    public void setWindBurstLevel(int level) {
+        this.windBurstLevel = Math.max(1, Math.min(MAX_WIND_BURST_LEVEL, level));
     }
 
     /** Fire/Lava auto smelt toggle (/toggle firesmelt, or the old /autosmelt). On by default. */

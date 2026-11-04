@@ -68,6 +68,11 @@ public class ToggleCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (toggle == PassiveToggle.WIND_BURST) {
+            handleWindBurst(player, data, args);
+            return true;
+        }
+
         boolean enable;
         if (args.length == 1) {
             enable = !data.isToggleEnabled(toggle);
@@ -88,6 +93,47 @@ public class ToggleCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /**
+     * Wind Burst has three strengths. {@code /toggle windburst} steps off > I > II > III > off;
+     * {@code /toggle windburst 1|2|3} picks one, {@code on}/{@code off} keep the chosen level.
+     */
+    private void handleWindBurst(Player player, PlayerData data, String[] args) {
+        if (args.length == 1) {
+            if (!data.isToggleEnabled(PassiveToggle.WIND_BURST)) {
+                data.setToggleEnabled(PassiveToggle.WIND_BURST, true);
+                data.setWindBurstLevel(1);
+            } else if (data.getWindBurstLevel() < PlayerData.MAX_WIND_BURST_LEVEL) {
+                data.setWindBurstLevel(data.getWindBurstLevel() + 1);
+            } else {
+                data.setToggleEnabled(PassiveToggle.WIND_BURST, false);
+            }
+        } else {
+            switch (args[1].toLowerCase(Locale.ROOT)) {
+                case "1", "i" -> setWindBurstLevel(data, 1);
+                case "2", "ii" -> setWindBurstLevel(data, 2);
+                case "3", "iii" -> setWindBurstLevel(data, 3);
+                case "on", "enable", "true" -> data.setToggleEnabled(PassiveToggle.WIND_BURST, true);
+                case "off", "disable", "false" -> data.setToggleEnabled(PassiveToggle.WIND_BURST, false);
+                default -> {
+                    player.sendMessage(Lang.TOGGLE_WINDBURST_USAGE);
+                    return;
+                }
+            }
+        }
+
+        plugin.getDataStore().saveAsync(data);
+        if (data.isToggleEnabled(PassiveToggle.WIND_BURST)) {
+            player.sendMessage(Lang.windBurstLevelChanged(data.getWindBurstLevel()));
+        } else {
+            player.sendMessage(Lang.toggleChanged(PassiveToggle.WIND_BURST.displayName(), false));
+        }
+    }
+
+    private static void setWindBurstLevel(PlayerData data, int level) {
+        data.setToggleEnabled(PassiveToggle.WIND_BURST, true);
+        data.setWindBurstLevel(level);
+    }
+
     private void sendList(Player player, PlayerData data, ElementType current) {
         List<PassiveToggle> available = availableFor(current);
         if (available.isEmpty()) {
@@ -96,7 +142,12 @@ public class ToggleCommand implements CommandExecutor, TabCompleter {
         }
         player.sendMessage(Lang.TOGGLE_LIST_HEADER);
         for (PassiveToggle toggle : available) {
-            player.sendMessage(Lang.toggleListEntry(toggle.id(), toggle.displayName(), data.isToggleEnabled(toggle)));
+            if (toggle == PassiveToggle.WIND_BURST) {
+                player.sendMessage(Lang.toggleListEntryLevel(toggle.id(), toggle.displayName(),
+                        data.isToggleEnabled(toggle), data.getWindBurstLevel()));
+            } else {
+                player.sendMessage(Lang.toggleListEntry(toggle.id(), toggle.displayName(), data.isToggleEnabled(toggle)));
+            }
         }
     }
 
@@ -119,7 +170,10 @@ public class ToggleCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 2) {
             String prefix = args[1].toLowerCase(Locale.ROOT);
-            return List.of("on", "off").stream().filter(s -> s.startsWith(prefix)).toList();
+            List<String> options = PassiveToggle.parse(args[0]).filter(t -> t == PassiveToggle.WIND_BURST).isPresent()
+                    ? List.of("1", "2", "3", "on", "off")
+                    : List.of("on", "off");
+            return options.stream().filter(s -> s.startsWith(prefix)).toList();
         }
         return List.of();
     }

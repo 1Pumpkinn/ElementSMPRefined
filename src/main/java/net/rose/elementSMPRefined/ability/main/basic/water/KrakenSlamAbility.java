@@ -8,7 +8,6 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.particles.element.WaterParticles;
-import net.rose.elementSMPRefined.status.StatusEffectType;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
@@ -31,8 +30,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
@@ -57,8 +54,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
     private static final double DAMAGE = 8.0;               // 4 hearts of true damage
     private static final double KNOCKBACK_OUT = 0.7;
     private static final double KNOCKBACK_UP = 0.65;
-    private static final int SLOW_TICKS = 40;               // 2 seconds
-    private static final int SLOW_AMPLIFIER = 1;
 
     private static final int RISE_TICKS = 10;               // tentacle grows out of the ground
     private static final int SLAM_START_TICK = 16;          // winds up until here, then swings down
@@ -245,13 +240,6 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
             double outX = horizontal < 0.1 ? state.dirX : dx / horizontal;
             double outZ = horizontal < 0.1 ? state.dirZ : dz / horizontal;
             target.setVelocity(new Vector(outX * KNOCKBACK_OUT, KNOCKBACK_UP, outZ * KNOCKBACK_OUT));
-
-            if (target instanceof Player tp) {
-                plugin.getStatusEffectManager().applyEffect(state.caster, tp, StatusEffectType.SLOW,
-                        SLOW_TICKS, SLOW_AMPLIFIER);
-            } else {
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, SLOW_TICKS, SLOW_AMPLIFIER));
-            }
         }
     }
 

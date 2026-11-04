@@ -56,7 +56,7 @@ commands:
 
   toggle:
     description: Switch your element's passives on or off
-    usage: /toggle [firesmelt|windburst] [on|off]
+    usage: /toggle [firesmelt|windburst] [on|off|1|2|3]
     aliases: [ toggles ]
 
   withdraw:

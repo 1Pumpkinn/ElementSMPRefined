@@ -384,6 +384,9 @@ public final class Lang {
     public static final Component TOGGLE_USAGE =
             yellow("Usage: /toggle [passive] [on|off]  (run /toggle to see yours)");
 
+    public static final Component TOGGLE_WINDBURST_USAGE =
+            yellow("Usage: /toggle windburst [1|2|3|on|off]  (no argument cycles I > II > III > off)");
+
     public static final Component TOGGLE_LIST_HEADER = text("Passive toggles:", GOLD);
 
     public static Component toggleListEntry(String id, String displayName, boolean enabled) {
@@ -391,6 +394,25 @@ public final class Lang {
                 .append(gray(displayName))
                 .append(text(" (" + id + "): ", DARK_GRAY))
                 .append(enabled ? green("on") : red("off"));
+    }
+
+    public static Component toggleListEntryLevel(String id, String displayName, boolean enabled, int level) {
+        return text(" - ", DARK_GRAY)
+                .append(gray(displayName))
+                .append(text(" (" + id + "): ", DARK_GRAY))
+                .append(enabled ? green("on, level " + roman(level)) : red("off"));
+    }
+
+    public static Component windBurstLevelChanged(int level) {
+        return text("Wind Burst set to level ", GOLD).append(green(roman(level)));
+    }
+
+    private static String roman(int level) {
+        return switch (level) {
+            case 1 -> "I";
+            case 2 -> "II";
+            default -> "III";
+        };
     }
 
     public static Component toggleUnknown(String input) {

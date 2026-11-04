@@ -50,12 +50,14 @@ public class MagmaBeamAbility extends BaseAbility {
     private static final int SLOW_AMPLIFIER = 2;
     private static final float SPIN_PER_TICK = 0.45f;
     private static final double HELIX_RADIUS = 0.6;
-    private static final double HELIX_STEP = 2.0;
-    private static final double SHEATH_STEP = 3.0;
+    private static final double HELIX_STEP = 5.0;
+    private static final double SHEATH_STEP = 7.0;
+    // No beam particles this close to the caster, so nothing clutters the crosshair.
+    private static final double PARTICLE_START_DISTANCE = 3.0;
     private static final int CHARGE_SPARK_INTERVAL = 3;
     private static final int CHARGE_LAVA_INTERVAL = 10;
-    private static final int MUZZLE_FLAMES = 30;
-    private static final int MUZZLE_LAVA = 4;
+    private static final int MUZZLE_FLAMES = 8;
+    private static final int MUZZLE_LAVA = 1;
 
     private static final Component ALREADY_CHARGING =
             Component.text("Magma Beam is already charging!", NamedTextColor.RED);
@@ -196,7 +198,7 @@ public class MagmaBeamAbility extends BaseAbility {
             Location p = start.clone();
             double sx = start.getX(), sy = start.getY(), sz = start.getZ();
 
-            for (double d = 0; d < visualLength; d += HELIX_STEP) {
+            for (double d = PARTICLE_START_DISTANCE; d < visualLength; d += HELIX_STEP) {
                 double angle = roll + d * 0.9;
                 double bx = sx + step.getX() * d;
                 double by = sy + step.getY() * d;
@@ -212,12 +214,12 @@ public class MagmaBeamAbility extends BaseAbility {
                 }
             }
 
-            for (double d = 0; d < visualLength; d += SHEATH_STEP) {
+            for (double d = PARTICLE_START_DISTANCE; d < visualLength; d += SHEATH_STEP) {
                 p.setX(sx + step.getX() * d);
                 p.setY(sy + step.getY() * d);
                 p.setZ(sz + step.getZ() * d);
                 w.spawnParticle(Particle.FLAME, p, 1, 0.12, 0.12, 0.12, 0.0, null, true);
-                if (((int) (d / SHEATH_STEP) + beamTick) % 3 == 0) {
+                if (((int) (d / SHEATH_STEP) + beamTick) % 6 == 0) {
                     w.spawnParticle(Particle.LAVA, p, 1, 0.2, 0.2, 0.2, 0.0, null, true);
                 }
             }
@@ -225,8 +227,8 @@ public class MagmaBeamAbility extends BaseAbility {
 
         if (blockHit != null) {
             Location impact = blockHit.getHitPosition().toLocation(w);
-            w.spawnParticle(Particle.LAVA, impact, 2, 0.2, 0.2, 0.2, 0.0, null, true);
-            w.spawnParticle(Particle.SMOKE, impact, 3, 0.2, 0.2, 0.2, 0.02, null, true);
+            w.spawnParticle(Particle.LAVA, impact, 1, 0.2, 0.2, 0.2, 0.0, null, true);
+            w.spawnParticle(Particle.SMOKE, impact, 1, 0.2, 0.2, 0.2, 0.02, null, true);
         }
 
         if (beamTick % 6 == 0) {
@@ -265,7 +267,7 @@ public class MagmaBeamAbility extends BaseAbility {
             if (landed) {
                 e.setFireTicks(BURN_TICKS);
             }
-            w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 8, 0.3, 0.4, 0.3, 0.03, null, true);
+            w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 3, 0.3, 0.4, 0.3, 0.03, null, true);
         }
     }
 

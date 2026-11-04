@@ -33,6 +33,7 @@ public final class PlayerDataSerializer {
         for (PassiveToggle toggle : PassiveToggle.values()) {
             data.setToggleEnabled(toggle, section.getBoolean(toggle.configKey(), true));
         }
+        data.setWindBurstLevel(section.getInt("windBurstLevel", 1));
 
         return data;
     }
@@ -47,6 +48,7 @@ public final class PlayerDataSerializer {
         for (PassiveToggle toggle : PassiveToggle.values()) {
             section.set(toggle.configKey(), data.isToggleEnabled(toggle));
         }
+        section.set("windBurstLevel", data.getWindBurstLevel());
 
         section.set("items", null); // element cores were removed - drop the old owned-items list
 

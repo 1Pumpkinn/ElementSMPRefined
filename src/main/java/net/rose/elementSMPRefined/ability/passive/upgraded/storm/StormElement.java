@@ -44,7 +44,7 @@ public class StormElement extends BaseElement implements ListenerProvider {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "No fall damage",
-                "Wind Burst (Upgrade II, toggle with /toggle windburst)",
+                "Wind Burst on any weapon (Upgrade II, enable/disable with /toggle windburst)",
                 "Thrown tridents summon lightning (Upgrade II)");
     }
 }

@@ -37,10 +37,11 @@ import java.util.UUID;
 public class AirWindBurstListener implements Listener {
 
     private static final double MIN_FALL_DISTANCE = 1.5;
-    private static final double LEVEL_MULTIPLIER = 1.2;
-    private static final double LAUNCH_VELOCITY_Y = 0.75 * LEVEL_MULTIPLIER;
+    // Same strengths as the Wind Burst enchantment: level I / II / III.
+    private static final double[] LEVEL_MULTIPLIERS = {1.2, 1.5, 1.75};
+    private static final double BASE_LAUNCH_VELOCITY_Y = 0.75;
     private static final double BURST_RADIUS = 3.5;
-    private static final double BURST_STRENGTH = 0.6 * LEVEL_MULTIPLIER;
+    private static final double BASE_BURST_STRENGTH = 0.6;
 
     private static final boolean DEBUG = false;
 
@@ -191,11 +192,12 @@ public class AirWindBurstListener implements Listener {
 
         // Captured now: the hit may kill the target, and a dead target has no valid position to burst from
         Location center = target.getLocation().add(0, target.getHeight() / 2.0, 0);
+        int level = data.getWindBurstLevel();
 
         // Let vanilla finish the hit (damage, hit sound, mace smash sound) before launching
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (!attacker.isOnline() || attacker.isDead()) return;
-            burst(attacker, center);
+            burst(attacker, center, level);
         });
     }
 
@@ -205,13 +207,17 @@ public class AirWindBurstListener implements Listener {
         }
     }
 
-    private void burst(Player attacker, Location center) {
+    private void burst(Player attacker, Location center, int level) {
         World world = center.getWorld();
         if (world == null) return;
 
+        double multiplier = LEVEL_MULTIPLIERS[Math.max(1, Math.min(LEVEL_MULTIPLIERS.length, level)) - 1];
+        double launchVelocityY = BASE_LAUNCH_VELOCITY_Y * multiplier;
+        double burstStrength = BASE_BURST_STRENGTH * multiplier;
+
         // Launch the attacker and cancel the fall they just spent
         Vector velocity = attacker.getVelocity();
-        velocity.setY(LAUNCH_VELOCITY_Y);
+        velocity.setY(launchVelocityY);
         attacker.setVelocity(velocity);
         attacker.setFallDistance(0f);
         // The fall was just spent: restart the tracked drop from here so the next hit needs a new fall
@@ -232,7 +238,7 @@ public class AirWindBurstListener implements Listener {
                 offset = attacker.getLocation().getDirection().setY(0); // fallback: push the way the attacker faces
                 if (offset.lengthSquared() < 1.0E-4) offset = new Vector(0, 0, 1);
             }
-            Vector push = offset.normalize().multiply(BURST_STRENGTH);
+            Vector push = offset.normalize().multiply(burstStrength);
             push.setY(0.3);
             living.setVelocity(living.getVelocity().add(push));
         }

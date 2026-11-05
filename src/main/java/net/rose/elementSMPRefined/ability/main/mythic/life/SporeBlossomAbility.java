@@ -45,8 +45,9 @@ import java.util.Set;
 /**
  * Life ability 2: a spore blossom blooms where you aim, bursts in poison and splits.
  * <p>
- * Generation 0 is one big blossom. When it bursts it throws out 2 smaller blossoms, each of those bursts into
- * 4 smaller ones again, and the last generation just bursts. Every generation is smaller, does less damage
+ * Generation 0 is one big blossom. When it bursts it throws out 4 smaller blossoms, each of those bursts into
+ * 8 smaller ones again, and the last generation just bursts. Every blossom, the big one included, falls
+ * under gravity. Every generation is smaller, does less damage
  * and poisons for less time (see the per-generation tables below - they are the knobs to tune).
  * Damage is small and true damage; the poison is the main part of it.
  * <p>
@@ -55,13 +56,13 @@ import java.util.Set;
  */
 public class SporeBlossomAbility extends BaseAbility {
 
-    // ---- Per generation: index 0 = the big blossom, 1 = its 2 halves, 2 = the final 8 ----
+    // ---- Per generation: index 0 = the big blossom, 1 = its 4 children, 2 = the 8 grandchildren of each ----
     private static final float[] SIZE = {2.2f, 1.3f, 0.75f};          // display scale in blocks
     private static final double[] RADIUS = {3.5, 2.4, 1.6};           // burst radius
     private static final double[] DAMAGE = {2.0, 1.0, 0.5};           // true damage per burst (1.0 = half a heart)
     private static final int[] POISON_TICKS = {120, 80, 40};          // poison length per burst
-    private static final int[] SPLIT_INTO = {2, 4, 0};                // children a burst throws out
-    private static final int[] MAX_FLIGHT_TICKS = {0, 12, 10};       // children burst on landing or after this long
+    private static final int[] SPLIT_INTO = {4, 8, 0};                // children a burst throws out
+    private static final int[] MAX_FLIGHT_TICKS = {0, 80, 80};      // children burst when they land; this is only a safety net
     private static final double[] FLIGHT_SPEED = {0.0, 0.45, 0.40};   // horizontal blocks per tick
 
     private static final int POISON_AMPLIFIER = 0;
@@ -244,13 +245,15 @@ public class SporeBlossomAbility extends BaseAbility {
 
         /** @return true once it has burst and can be dropped */
         boolean tick() {
+            // Gravity applies to every generation; the big blossom descends and bursts in the air, the children fall and burst on landing.
+            fly();
             if (generation == 0) {
+                // The big blossom descends while it grows and bursts in the air when its fuse runs out.
                 if (age >= FIRST_FUSE_TICKS) {
                     burst();
                     return true;
                 }
             } else {
-                fly();
                 boolean timeUp = age >= MAX_FLIGHT_TICKS[generation];
                 if ((landed || timeUp) && age >= MIN_FUSE_TICKS) {
                     burst();
@@ -271,7 +274,9 @@ public class SporeBlossomAbility extends BaseAbility {
             if (speed < 1.0E-6) return;
             Vector dir = velocity.clone().multiply(1.0 / speed);
 
-            RayTraceResult hit = pos.getWorld().rayTraceBlocks(pos, dir, speed + 0.2,
+            // Look ahead by this blossom's own clearance, not a flat 0.2: the landing spot is a full clearance
+            // above the surface, so a shorter ray lets it sink into the ground first and then snap back up.
+            RayTraceResult hit = pos.getWorld().rayTraceBlocks(pos, dir, speed + clearance(generation),
                     FluidCollisionMode.NEVER, true);
             if (hit != null) {
                 Vector at = hit.getHitPosition();
@@ -440,7 +445,7 @@ public class SporeBlossomAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Bloom a spore blossom where you aim. It bursts in poison, splits into 2 smaller blossoms that "
-                + "each burst and split into 4 more.";
+        return "Bloom a spore blossom where you aim. It bursts in poison, splits into 4 smaller blossoms that "
+                + "each burst and split into 8 more.";
     }
 }

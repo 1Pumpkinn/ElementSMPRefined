@@ -11,16 +11,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
- * Life passive 1: every leaf block a Life player breaks drops exactly one golden apple.
- * <p>
- * The golden apple is guaranteed (no chance roll). Vanilla apple drops from the same break are removed so
- * the player doesn't get a regular apple on top; saplings and sticks still drop as normal.
+ * Life passive 1: every leaf block a Life player breaks has a {@link #GOLDEN_APPLE_CHANCE} chance to drop a
+ * golden apple, on top of the normal leaf drops (saplings, sticks, apples).
  */
 public class LifeLeafGoldenAppleListener implements Listener {
+    /** Chance (0.0 - 1.0) per leaf block broken. 0.005 = 0.5%. */
+    private static final double GOLDEN_APPLE_CHANCE = 0.005;
+
     private final ElementManager elementManager;
 
     public LifeLeafGoldenAppleListener(ElementManager elementManager) {
@@ -35,19 +37,10 @@ public class LifeLeafGoldenAppleListener implements Listener {
         if (!event.isDropItems()) return;
         if (!Tag.LEAVES.isTagged(block.getType())) return;
         if (!isLife(player)) return;
+        if (ThreadLocalRandom.current().nextDouble() >= GOLDEN_APPLE_CHANCE) return;
 
         block.getWorld().dropItemNaturally(block.getLocation().add(0.5, 0.5, 0.5),
                 new ItemStack(Material.GOLDEN_APPLE, 1));
-    }
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onLeafDrop(BlockDropItemEvent event) {
-        Player player = event.getPlayer();
-        if (player.getGameMode() == GameMode.CREATIVE) return;
-        if (!Tag.LEAVES.isTagged(event.getBlockState().getType())) return;
-        if (!isLife(player)) return;
-
-        event.getItems().removeIf(drop -> drop.getItemStack().getType() == Material.APPLE);
     }
 
     private boolean isLife(Player player) {

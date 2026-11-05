@@ -27,9 +27,7 @@ public final class LifeParticles {
     public static void sporeBurst(World world, Location loc, int generation) {
         double spread = 1.1 - 0.3 * generation;
         int spores = 22 - 6 * generation;
-        if (generation == 0) {
-            world.spawnParticle(Particle.EXPLOSION, loc, 1, 0, 0, 0, 0, null, true);
-        } else {
+        if (generation != 0) {
             world.spawnParticle(Particle.POOF, loc, 4, 0.2, 0.2, 0.2, 0.04, null, true);
         }
         world.spawnParticle(Particle.SPORE_BLOSSOM_AIR, loc, spores, spread, spread * 0.8, spread, 0, null, true);

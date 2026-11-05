@@ -66,7 +66,9 @@ public class SporeBlossomAbility extends BaseAbility {
 
     private static final int POISON_AMPLIFIER = 0;
 
-    private static final double RANGE = 14.0;                         // how far away the first blossom can bloom
+    private static final double RANGE = 20.0;                         // how far away the first blossom can bloom
+    private static final double MAX_HEIGHT_ABOVE_GROUND = 8.0;        // the first blossom can hover in the air, but never higher than this
+    private static final double GROUND_SEARCH = 48.0;                 // how far down to look for ground under the aim point
     private static final int FIRST_FUSE_TICKS = 14;                   // the big blossom grows, then bursts
     private static final int MIN_FUSE_TICKS = 4;                      // a child that lands at once still waits this long
     private static final double POP_SPEED = 0.2;                      // upward pop when a child is thrown out
@@ -76,6 +78,9 @@ public class SporeBlossomAbility extends BaseAbility {
 
     private static final Random RANDOM = new Random();
     private static final Set<Cast> ACTIVE = new HashSet<>();
+
+    private static final Component NO_GROUND =
+            Component.text("There's no ground there for a blossom to bloom on!", NamedTextColor.RED);
 
     private static final Component ALREADY_ACTIVE =
             Component.text("Spore Blossom is already blooming!", NamedTextColor.RED);
@@ -97,6 +102,10 @@ public class SporeBlossomAbility extends BaseAbility {
         }
 
         Location bloom = findBloomPoint(player);
+        if (bloom == null) {
+            player.sendMessage(NO_GROUND);
+            return false;
+        }
         if (!GroundScan.isLoaded(bloom)) return false;
 
         setActive(player, true);
@@ -120,7 +129,7 @@ public class SporeBlossomAbility extends BaseAbility {
         RayTraceResult hit = w.rayTrace(eye, dir, RANGE, FluidCollisionMode.NEVER, true, 0.3,
                 e -> e instanceof LivingEntity le && !le.equals(player));
         if (hit == null) {
-            return eye.clone().add(dir.clone().multiply(RANGE));
+            return limitHeight(eye.clone().add(dir.clone().multiply(RANGE)));
         }
 
         Vector at = hit.getHitPosition();
@@ -129,7 +138,7 @@ public class SporeBlossomAbility extends BaseAbility {
             // half-size (a flat 0.6 left it sunk into the ground when you aimed down).
             at = at.clone().add(hit.getHitBlockFace().getDirection().multiply(clearance(0)));
         }
-        return liftOffGround(at.toLocation(w), 0);
+        return limitHeight(at.toLocation(w));
     }
 
     /** Distance from a surface a blossom's centre must keep so its largest (throbbing) size doesn't clip into it. */
@@ -137,14 +146,24 @@ public class SporeBlossomAbility extends BaseAbility {
         return SIZE[generation] * (0.5 + THROB) + 0.05;
     }
 
-    /** If there's a block under {@code at} closer than the blossom's half-size, raise it to sit on top. */
-    private static Location liftOffGround(Location at, int generation) {
-        double need = clearance(generation);
-        RayTraceResult down = at.getWorld().rayTraceBlocks(at, new Vector(0, -1, 0), need,
+    /**
+     * Keeps the first blossom within {@link #MAX_HEIGHT_ABOVE_GROUND} of the ground under the aim point (and
+     * never sunk into it), so aiming at the sky or across a gap blooms it low instead of leaving it floating.
+     *
+     * @return the adjusted point, or null if there is no ground within {@link #GROUND_SEARCH} blocks below it
+     */
+    private static Location limitHeight(Location at) {
+        at.setYaw(0f);
+        at.setPitch(0f);
+
+        RayTraceResult down = at.getWorld().rayTraceBlocks(at, new Vector(0, -1, 0), GROUND_SEARCH,
                 FluidCollisionMode.NEVER, true);
-        if (down != null) {
-            at.setY(down.getHitPosition().getY() + need);
-        }
+        if (down == null) return null;
+
+        double groundY = down.getHitPosition().getY();
+        double minY = groundY + clearance(0);
+        double maxY = Math.max(minY, groundY + MAX_HEIGHT_ABOVE_GROUND);
+        at.setY(Math.max(minY, Math.min(maxY, at.getY())));
         return at;
     }
 

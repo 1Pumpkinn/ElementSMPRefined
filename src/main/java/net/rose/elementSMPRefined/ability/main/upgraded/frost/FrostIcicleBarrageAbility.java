@@ -99,7 +99,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             + (int) (MAX_RANGE / SPEED) + STUCK_TICKS + 40;
 
     // Trail left behind a flying icicle
-    private static final double TRAIL_SPACING = 0.4;        // blocks between trail particles
+    private static final double TRAIL_SPACING = 0.6;        // blocks between trail particles
     private static final Particle.DustOptions TRAIL_DUST =
             new Particle.DustOptions(org.bukkit.Color.fromRGB(150, 220, 255), 1.0f);
 
@@ -325,8 +325,8 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             ic.display.setInterpolationDuration(LAUNCH_GROW_TICKS);
             ic.display.setTransformation(pose(ic.velocity, 1.0f));
 
-            world.spawnParticle(Particle.CLOUD, ic.pos, 3, 0.15, 0.15, 0.15, 0.04, null, true);
-            world.spawnParticle(Particle.BLOCK, ic.pos, 4, 0.15, 0.15, 0.15, 0.0, PACKED_ICE_DATA, true);
+            world.spawnParticle(Particle.CLOUD, ic.pos, 2, 0.15, 0.15, 0.15, 0.04, null, true);
+            world.spawnParticle(Particle.BLOCK, ic.pos, 3, 0.15, 0.15, 0.15, 0.0, PACKED_ICE_DATA, true);
             world.playSound(ic.pos, Sound.BLOCK_GLASS_BREAK, 1.2f, 0.9f);
             world.playSound(ic.pos, Sound.ENTITY_PLAYER_HURT_FREEZE, 1.0f, 1.1f);
             world.playSound(ic.pos, Sound.BLOCK_AMETHYST_CLUSTER_BREAK, 1.0f, 1.4f);
@@ -436,7 +436,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
             Location puff = new Location(world, at.getX(), at.getY(), at.getZ());
             if (face != null) puff.add(face.getDirection().multiply(0.1));
-            world.spawnParticle(Particle.BLOCK, puff, 6, 0.15, 0.15, 0.15, 0.0, ICE_DATA, true);
+            world.spawnParticle(Particle.BLOCK, puff, 4, 0.15, 0.15, 0.15, 0.0, ICE_DATA, true);
             world.playSound(puff, Sound.BLOCK_GLASS_HIT, 0.8f, 1.3f);
         }
 
@@ -451,8 +451,8 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             }
 
             Location spot = new Location(world, at.getX(), at.getY(), at.getZ());
-            world.spawnParticle(Particle.SNOWFLAKE, spot, 14, 0.25, 0.25, 0.25, 0.05, null, true);
-            world.spawnParticle(Particle.BLOCK, spot, 8, 0.2, 0.2, 0.2, 0.0, ICE_DATA, true);
+            world.spawnParticle(Particle.SNOWFLAKE, spot, 10, 0.25, 0.25, 0.25, 0.05, null, true);
+            world.spawnParticle(Particle.BLOCK, spot, 6, 0.2, 0.2, 0.2, 0.0, ICE_DATA, true);
             world.playSound(spot, Sound.BLOCK_GLASS_BREAK, 1.0f, 1.2f);
         }
 

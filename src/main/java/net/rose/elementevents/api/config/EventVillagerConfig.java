@@ -1,4 +1,4 @@
-package net.rose.elementevents;
+package net.rose.elementevents.api.config;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.YamlFiles;

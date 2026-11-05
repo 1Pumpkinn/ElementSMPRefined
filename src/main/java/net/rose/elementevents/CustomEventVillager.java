@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
+import net.rose.elementevents.api.config.EventVillagerConfig;
 import net.rose.elementevents.command.EventVillagerCommand;
 import net.rose.elementevents.listener.EventVillagerListener;
 import org.bukkit.Location;

@@ -29,12 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LifeElement extends BaseElement {
 
-    private static final int CROP_AURA_RADIUS = 5;
-    private static final int CROP_AURA_HEIGHT = 1;
-    private static final long CROP_AURA_INTERVAL_TICKS = 40L; // every 2 seconds
-
-    private final Map<UUID, BukkitTask> passiveTasks = new ConcurrentHashMap<>();
-
     public LifeElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.LIFE,
                 new LifeTotemAbility(plugin, configManager),
@@ -43,90 +37,7 @@ public class LifeElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        // Cancel previous task to prevent stacking
-        cancelPassiveTask(player);
 
-        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, 0, true, false));
-
-        if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
-            BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-                if (!player.isOnline()) {
-                    cancelPassiveTask(player);
-                    return;
-                }
-
-                if (player.isDead()) {
-                    return;
-                }
-
-                growCropsAround(player);
-
-            }, 0L, CROP_AURA_INTERVAL_TICKS);
-
-            passiveTasks.put(player.getUniqueId(), task);
-        }
-    }
-
-    private void growCropsAround(Player player) {
-        Location origin = player.getLocation();
-        World world = origin.getWorld();
-        int ox = origin.getBlockX();
-        int oy = origin.getBlockY();
-        int oz = origin.getBlockZ();
-
-        for (int dx = -CROP_AURA_RADIUS; dx <= CROP_AURA_RADIUS; dx++) {
-            for (int dz = -CROP_AURA_RADIUS; dz <= CROP_AURA_RADIUS; dz++) {
-                for (int dy = -CROP_AURA_HEIGHT; dy <= CROP_AURA_HEIGHT; dy++) {
-                    growIfCrop(world.getBlockAt(ox + dx, oy + dy, oz + dz));
-                }
-            }
-        }
-    }
-
-    /**
-     * Only real crops. Matching every {@link Ageable} would also age fire, frosted ice, kelp,
-     * cactus, sugar cane and friends.
-     */
-    private static boolean isGrowable(Material type) {
-        return Tag.CROPS.isTagged(type)
-                || type == Material.NETHER_WART
-                || type == Material.COCOA
-                || type == Material.SWEET_BERRY_BUSH;
-    }
-
-    private boolean growIfCrop(Block block) {
-        if (!isGrowable(block.getType())) return false;
-        if (block.getBlockData() instanceof Ageable ageable) {
-            if (ageable.getAge() < ageable.getMaximumAge()) {
-                ageable.setAge(ageable.getMaximumAge());
-                block.setBlockData(ageable);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void cancelPassiveTask(Player player) {
-        BukkitTask task = passiveTasks.remove(player.getUniqueId());
-        if (task != null && !task.isCancelled()) {
-            task.cancel();
-        }
-    }
-
-    @Override
-    public void clearEffects(Player player) {
-        super.clearEffects(player);
-
-        cancelPassiveTask(player);
-        EffectService.removeElementPotionEffect(player, PotionEffectType.REGENERATION);
-
-        var attr = player.getAttribute(Attribute.MAX_HEALTH);
-        if (attr != null) {
-            attr.setBaseValue(Constants.Health.NORMAL_MAX);
-            if (player.getHealth() > Constants.Health.NORMAL_MAX) {
-                player.setHealth(Constants.Health.NORMAL_MAX);
-            }
-        }
     }
 
     @Override
@@ -137,8 +48,6 @@ public class LifeElement extends BaseElement {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Regeneration I",
-                "Crops within 5 blocks grow fully every 2s (Upgrade II)",
                 "Breaking leaves drops golden apples instead of apples",
                 "Axes chop down the whole tree",
                 "Golden apples give extra Absorption");

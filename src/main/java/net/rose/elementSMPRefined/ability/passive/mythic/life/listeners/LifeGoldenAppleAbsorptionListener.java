@@ -22,8 +22,6 @@ import org.bukkit.potion.PotionEffectType;
 public class LifeGoldenAppleAbsorptionListener implements Listener {
     /** Absorption II = 4 hearts. */
     private static final int GOLDEN_APPLE_AMPLIFIER = 1;
-    /** Absorption VI = 12 hearts. */
-    private static final int ENCHANTED_GOLDEN_APPLE_AMPLIFIER = 5;
     private static final int DURATION_TICKS = 2400; // 2 minutes, same as vanilla
 
     private final JavaPlugin plugin;
@@ -40,8 +38,6 @@ public class LifeGoldenAppleAbsorptionListener implements Listener {
         int amplifier;
         if (item == Material.GOLDEN_APPLE) {
             amplifier = GOLDEN_APPLE_AMPLIFIER;
-        } else if (item == Material.ENCHANTED_GOLDEN_APPLE) {
-            amplifier = ENCHANTED_GOLDEN_APPLE_AMPLIFIER;
         } else {
             return;
         }

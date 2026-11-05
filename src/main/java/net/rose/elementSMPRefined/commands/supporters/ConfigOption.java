@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.commands.supporters;
 
-import net.rose.elementSMPRefined.util.server.ParseUtil;
+import net.rose.elementSMPRefined.util.parse.ParseUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;

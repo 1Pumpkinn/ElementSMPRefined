@@ -5,60 +5,58 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ElementTypeTest {
 
     @Test
     void parseIsCaseInsensitiveAndTrimsWhitespace() {
-        assertEquals(Optional.of(ElementType.FIRE), ElementType.parse("fire"));
-        assertEquals(Optional.of(ElementType.FIRE), ElementType.parse("FIRE"));
-        assertEquals(Optional.of(ElementType.STORM), ElementType.parse("  Storm \n"));
+        assertEquals(Optional.of(net.rose.elementSMPRefined.core.API.element.ElementType.FIRE), net.rose.elementSMPRefined.core.API.element.ElementType.parse("fire"));
+        assertEquals(Optional.of(net.rose.elementSMPRefined.core.API.element.ElementType.FIRE), net.rose.elementSMPRefined.core.API.element.ElementType.parse("FIRE"));
+        assertEquals(Optional.of(net.rose.elementSMPRefined.core.API.element.ElementType.STORM), net.rose.elementSMPRefined.core.API.element.ElementType.parse("  Storm \n"));
     }
 
     @Test
     void parseRejectsNullBlankAndUnknownNames() {
-        assertTrue(ElementType.parse(null).isEmpty());
-        assertTrue(ElementType.parse("").isEmpty());
-        assertTrue(ElementType.parse("   ").isEmpty());
-        assertTrue(ElementType.parse("plasma").isEmpty());
+        assertTrue(net.rose.elementSMPRefined.core.API.element.ElementType.parse(null).isEmpty());
+        assertTrue(net.rose.elementSMPRefined.core.API.element.ElementType.parse("").isEmpty());
+        assertTrue(net.rose.elementSMPRefined.core.API.element.ElementType.parse("   ").isEmpty());
+        assertTrue(net.rose.elementSMPRefined.core.API.element.ElementType.parse("plasma").isEmpty());
     }
 
     @Test
     void legacyNamespacedFormatIsNoLongerReadable() {
-        assertTrue(ElementType.parse("elements:fire").isEmpty());
+        assertTrue(net.rose.elementSMPRefined.core.API.element.ElementType.parse("elements:fire").isEmpty());
     }
 
     @Test
     void parseRoundTripsEveryTypeName() {
-        for (ElementType type : ElementType.values()) {
-            assertEquals(Optional.of(type), ElementType.parse(type.name()));
+        for (net.rose.elementSMPRefined.core.API.element.ElementType type : net.rose.elementSMPRefined.core.API.element.ElementType.values()) {
+            assertEquals(Optional.of(type), net.rose.elementSMPRefined.core.API.element.ElementType.parse(type.name()));
         }
     }
 
     @Test
     void exampleIsNotPlayable() {
-        assertFalse(ElementType.EXAMPLE.isPlayable());
-        assertFalse(ElementType.playable().contains(ElementType.EXAMPLE));
+        assertFalse(net.rose.elementSMPRefined.core.API.element.ElementType.EXAMPLE.isPlayable());
+        assertFalse(net.rose.elementSMPRefined.core.API.element.ElementType.playable().contains(net.rose.elementSMPRefined.core.API.element.ElementType.EXAMPLE));
     }
 
     @Test
     void everyOtherTypeIsPlayable() {
-        for (ElementType type : ElementType.values()) {
-            if (type != ElementType.EXAMPLE) {
+        for (net.rose.elementSMPRefined.core.API.element.ElementType type : net.rose.elementSMPRefined.core.API.element.ElementType.values()) {
+            if (type != net.rose.elementSMPRefined.core.API.element.ElementType.EXAMPLE) {
                 assertTrue(type.isPlayable(), type + " should be playable");
             }
         }
-        assertEquals(ElementType.values().length - 1, ElementType.playable().size());
+        assertEquals(net.rose.elementSMPRefined.core.API.element.ElementType.values().length - 1, net.rose.elementSMPRefined.core.API.element.ElementType.playable().size());
     }
 
     @Test
     void allEightCoreElementsAreRegisteredTypes() {
-        Set<ElementType> expected = Set.of(
-                ElementType.AIR, ElementType.WATER, ElementType.FIRE, ElementType.EARTH,
-                ElementType.METAL, ElementType.FROST, ElementType.LIFE, ElementType.DEATH);
-        assertTrue(ElementType.playable().containsAll(expected));
+        Set<net.rose.elementSMPRefined.core.API.element.ElementType> expected = Set.of(
+                net.rose.elementSMPRefined.core.API.element.ElementType.AIR, net.rose.elementSMPRefined.core.API.element.ElementType.WATER, net.rose.elementSMPRefined.core.API.element.ElementType.FIRE, net.rose.elementSMPRefined.core.API.element.ElementType.EARTH,
+                net.rose.elementSMPRefined.core.API.element.ElementType.METAL, net.rose.elementSMPRefined.core.API.element.ElementType.FROST, net.rose.elementSMPRefined.core.API.element.ElementType.LIFE, net.rose.elementSMPRefined.core.API.element.ElementType.DEATH);
+        assertTrue(net.rose.elementSMPRefined.core.API.element.ElementType.playable().containsAll(expected));
     }
 }

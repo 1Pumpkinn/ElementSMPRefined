@@ -1,8 +1,9 @@
-package net.rose.elementevents;
+package net.rose.elementevents.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementevents.CustomEventVillager;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -27,9 +28,9 @@ public class EventVillagerCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS = List.of("spawn", "settype", "remove", "list", "types", "reload");
     private static final double REMOVE_RANGE = 6.0;
 
-    private final CustomEventVilager villagers;
+    private final CustomEventVillager villagers;
 
-    public EventVillagerCommand(ElementSMPRefined plugin, CustomEventVilager villagers) {
+    public EventVillagerCommand(ElementSMPRefined plugin, CustomEventVillager villagers) {
         this.villagers = villagers;
     }
 

@@ -1,6 +1,7 @@
-package net.rose.elementevents;
+package net.rose.elementevents.listener;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementevents.CustomEventVillager;
 import org.bukkit.Material;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
@@ -16,9 +17,9 @@ import org.bukkit.inventory.ItemStack;
 /** Keeps event villagers unkillable, frozen in place, and serving fresh trades from the config. */
 public class EventVillagerListener implements Listener {
 
-    private final CustomEventVilager villagers;
+    private final CustomEventVillager villagers;
 
-    public EventVillagerListener(ElementSMPRefined plugin, CustomEventVilager villagers) {
+    public EventVillagerListener(ElementSMPRefined plugin, CustomEventVillager villagers) {
         this.villagers = villagers;
     }
 

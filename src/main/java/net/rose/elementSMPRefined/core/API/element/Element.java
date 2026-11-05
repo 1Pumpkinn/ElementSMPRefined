@@ -15,9 +15,9 @@ public interface Element {
 
     void applyUpsides(Player player, int upgradeLevel);
 
-    boolean ability1(ElementContext context);
+    boolean ability1(net.rose.elementSMPRefined.core.API.element.ElementContext context);
 
-    boolean ability2(ElementContext context);
+    boolean ability2(net.rose.elementSMPRefined.core.API.element.ElementContext context);
 
     void clearEffects(Player player);
 

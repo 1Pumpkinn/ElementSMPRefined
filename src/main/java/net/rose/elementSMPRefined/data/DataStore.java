@@ -120,8 +120,11 @@ public class DataStore implements PlayerDataRepository {
         }
 
         PlayerData loaded = loadPlayerDataFromFile(uuid);
-        playerDataCache.put(uuid, loaded);
-        return loaded;
+        // putIfAbsent (not computeIfAbsent): the loader takes the synchronized save() lock, and
+        // computing inside the map could deadlock against a save() that is touching the cache.
+        // If another thread won the race, hand back its instance so everyone shares one object.
+        PlayerData existing = playerDataCache.putIfAbsent(uuid, loaded);
+        return existing != null ? existing : loaded;
     }
 
     @Override

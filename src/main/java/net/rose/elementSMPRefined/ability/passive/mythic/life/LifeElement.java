@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.mythic.life;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.mythic.life.EnergyBlastAbility;
@@ -10,6 +11,8 @@ import net.rose.elementSMPRefined.ability.main.mythic.life.LifeTotemAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
@@ -47,7 +50,7 @@ public class LifeElement extends BaseElement {
 
         var attr = player.getAttribute(Attribute.MAX_HEALTH);
         if (attr != null) {
-            if (attr.getBaseValue() < 30.0) attr.setBaseValue(30.0);
+            if (attr.getBaseValue() < Constants.Health.LIFE_MAX) attr.setBaseValue(Constants.Health.LIFE_MAX);
             if (player.getHealth() > attr.getBaseValue()) {
                 player.setHealth(attr.getBaseValue());
             }
@@ -88,7 +91,19 @@ public class LifeElement extends BaseElement {
         }
     }
 
+    /**
+     * Only real crops. Matching every {@link Ageable} would also age fire, frosted ice, kelp,
+     * cactus, sugar cane and friends.
+     */
+    private static boolean isGrowable(Material type) {
+        return Tag.CROPS.isTagged(type)
+                || type == Material.NETHER_WART
+                || type == Material.COCOA
+                || type == Material.SWEET_BERRY_BUSH;
+    }
+
     private boolean growIfCrop(Block block) {
+        if (!isGrowable(block.getType())) return false;
         if (block.getBlockData() instanceof Ageable ageable) {
             if (ageable.getAge() < ageable.getMaximumAge()) {
                 ageable.setAge(ageable.getMaximumAge());
@@ -115,9 +130,9 @@ public class LifeElement extends BaseElement {
 
         var attr = player.getAttribute(Attribute.MAX_HEALTH);
         if (attr != null) {
-            attr.setBaseValue(20.0);
-            if (player.getHealth() > 20.0) {
-                player.setHealth(20.0);
+            attr.setBaseValue(Constants.Health.NORMAL_MAX);
+            if (player.getHealth() > Constants.Health.NORMAL_MAX) {
+                player.setHealth(Constants.Health.NORMAL_MAX);
             }
         }
     }

@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ShockwaveAbility extends BaseAbility {
 
@@ -85,6 +86,17 @@ public class ShockwaveAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
     private final Set<UUID> activeCasters = new HashSet<>();
+
+    /** Every wave display currently alive, so a plugin disable / reload can sweep them. */
+    private static final Set<BlockDisplay> LIVE = ConcurrentHashMap.newKeySet();
+
+    /** Removes every wave display still in the world. Call from the plugin's disable hook. */
+    public static void removeAll() {
+        for (BlockDisplay d : LIVE) {
+            if (d.isValid()) d.remove();
+        }
+        LIVE.clear();
+    }
 
     private record WaveBlock(BlockDisplay display, Transformation raised, int born) {}
 
@@ -258,6 +270,7 @@ public class ShockwaveAbility extends BaseAbility {
 
         while ((b = toRemove.peekFirst()) != null && now >= b.born() + REMOVE_AT) {
             toRemove.pollFirst();
+            LIVE.remove(b.display());
             if (b.display().isValid()) b.display().remove();
         }
 
@@ -296,6 +309,7 @@ public class ShockwaveAbility extends BaseAbility {
             d.setViewRange(VIEW_RANGE);
             d.setTransformation(RESTING);
         });
+        LIVE.add(display);
 
         // Checkerboard: dust on every other column only.
         if (((ground.getX() + ground.getZ()) & 1) == 0) {

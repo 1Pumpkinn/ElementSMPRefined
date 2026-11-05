@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.listeners.combat;
+package net.rose.elementSMPRefined.ability.passive.mythic.life.listeners;
 
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import net.rose.elementSMPRefined.ability.main.mythic.life.LifeTotemAbility;

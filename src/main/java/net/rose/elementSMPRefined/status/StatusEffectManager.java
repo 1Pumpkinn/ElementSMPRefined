@@ -174,7 +174,7 @@ public class StatusEffectManager {
             }
             // Stack for stackable effects, otherwise just refresh the duration
             StatusEffectInstance updated = data.isStackable()
-                    ? existing.stacked(amplifier).extended(actualDuration)
+                    ? existing.stacked(amplifier).extended(actualDuration, data.maxDuration())
                     : existing.refreshed(actualDuration);
             // Most recent caster takes over credit for future ticks, for any
             // effect that cares about a source.
@@ -494,9 +494,11 @@ public class StatusEffectManager {
                     amplifier, lastDamageTime, source);
         }
 
-        StatusEffectInstance extended(int additionalTicks) {
-            return new StatusEffectInstance(type, expiryTime + additionalTicks * MS_PER_TICK,
-                    amplifier, lastDamageTime, source);
+        /** Adds time but never lets the remaining duration exceed {@code maxTicks}. */
+        StatusEffectInstance extended(int additionalTicks, int maxTicks) {
+            long cap = System.currentTimeMillis() + maxTicks * MS_PER_TICK;
+            long newExpiry = Math.min(expiryTime + additionalTicks * MS_PER_TICK, cap);
+            return new StatusEffectInstance(type, newExpiry, amplifier, lastDamageTime, source);
         }
 
         StatusEffectInstance stacked(int additionalAmplifier) {

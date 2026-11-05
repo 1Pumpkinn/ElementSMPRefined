@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.listeners.item;
+package net.rose.elementSMPRefined.listeners.player;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;

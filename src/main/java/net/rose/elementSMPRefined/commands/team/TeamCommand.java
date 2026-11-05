@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.commands;
+package net.rose.elementSMPRefined.commands.team;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;

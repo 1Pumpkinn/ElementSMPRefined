@@ -41,6 +41,7 @@ import org.joml.Vector3f;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -82,6 +83,17 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
     private final ElementSMPRefined plugin;
     private final Map<UUID, SlamState> slams = new ConcurrentHashMap<>();
+
+    /** Every tentacle display currently alive, so a plugin disable / reload can sweep them. */
+    private static final Set<ItemDisplay> LIVE = ConcurrentHashMap.newKeySet();
+
+    /** Removes every tentacle display still in the world. Call from the plugin's disable hook. */
+    public static void removeAll() {
+        for (ItemDisplay d : LIVE) {
+            if (d.isValid()) d.remove();
+        }
+        LIVE.clear();
+    }
 
     public KrakenSlamAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("kraken_slam", ElementType.WATER, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
@@ -192,6 +204,7 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
         // Unloaded or removed from under us: bring it back at the right point of the animation.
         if ((state.display == null || !state.display.isValid()) && t % 10 == 0) {
+            if (state.display != null) LIVE.remove(state.display);
             state.display = spawnTentacle(state, t);
         }
         animate(state, t);
@@ -245,7 +258,7 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
     private ItemDisplay spawnTentacle(SlamState state, int tick) {
         Transformation initial = transformFor(state, tick);
-        return state.base.getWorld().spawn(state.base, ItemDisplay.class, d -> {
+        ItemDisplay spawned = state.base.getWorld().spawn(state.base, ItemDisplay.class, d -> {
             d.setItemStack(ModelItems.of(TENTACLE_MODEL));
             d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
             d.setBillboard(Display.Billboard.FIXED);
@@ -255,6 +268,8 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
             d.setInvulnerable(true);
             d.setTransformation(initial);
         });
+        LIVE.add(spawned);
+        return spawned;
     }
 
     private void animate(SlamState state, int tick) {
@@ -335,7 +350,10 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         SlamState state = slams.remove(casterId);
         if (state == null) return;
         if (state.task != null) state.task.cancel();
-        if (state.display != null) state.display.remove();
+        if (state.display != null) {
+            LIVE.remove(state.display);
+            state.display.remove();
+        }
         super.setActive(state.caster, false);
     }
 

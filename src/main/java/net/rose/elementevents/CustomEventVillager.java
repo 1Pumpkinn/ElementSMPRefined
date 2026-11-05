@@ -6,6 +6,8 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
+import net.rose.elementevents.command.EventVillagerCommand;
+import net.rose.elementevents.listener.EventVillagerListener;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -40,7 +42,7 @@ import java.util.logging.Level;
  * Trades are rebuilt from the type's config every time a player opens the trade window, so
  * editing event_villagers.yml and reloading takes effect on villagers that are already placed.
  */
-public class CustomEventVilager {
+public class CustomEventVillager {
 
     public static final String KEY = "event_villager";
     public static final String TYPE_KEY = "event_villager_type";
@@ -51,7 +53,7 @@ public class CustomEventVilager {
     private final NamespacedKey typeKey;
     private final EventVillagerConfig config;
 
-    public CustomEventVilager(ElementSMPRefined plugin) {
+    public CustomEventVillager(ElementSMPRefined plugin) {
         this.plugin = plugin;
         this.key = new NamespacedKey(plugin, KEY);
         this.typeKey = new NamespacedKey(plugin, TYPE_KEY);

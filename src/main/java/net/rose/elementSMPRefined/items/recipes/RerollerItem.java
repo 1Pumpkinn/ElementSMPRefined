@@ -46,4 +46,8 @@ public final class RerollerItem {
             plugin.getLogger().severe("Error registering Element Reroller recipe: " + e.getMessage());
         }
     }
+
+    public static void unregisterRecipe(JavaPlugin plugin) {
+        plugin.getServer().removeRecipe(new NamespacedKey(plugin, KEY));
+    }
 }

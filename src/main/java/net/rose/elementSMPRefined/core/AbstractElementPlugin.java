@@ -7,7 +7,7 @@ import net.rose.elementSMPRefined.altar.ReforgeAltarManager;
 import net.rose.elementSMPRefined.core.initializers.ListenerInitializer;
 import net.rose.elementSMPRefined.core.initializers.RecipeInitializer;
 import net.rose.elementSMPRefined.hud.CooldownActionBarTask;
-import net.rose.elementevents.CustomEventVilager;
+import net.rose.elementevents.CustomEventVillager;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
@@ -54,7 +54,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     protected CooldownActionBarTask cooldownActionBarTask;
 
     protected ReforgeAltarManager reforgeAltarManager;
-    protected CustomEventVilager eventVillager;
+    protected CustomEventVillager eventVillager;
     protected TaskScheduler taskScheduler;
     protected MetadataHelper metadataHelper;
     protected TrueDamage trueDamage;
@@ -105,19 +105,26 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     @Override
     public final void onDisable() {
+        // Each step is isolated: one failure must not skip the rest (the data flush and the
+        // entity / recipe sweeps all still have to run).
+        runShutdownStep("cleanup", this::cleanup);
+        runShutdownStep("data save", this::saveAllData);
+        runShutdownStep("potion recipe unregister", ExtensionRecipes::unregister);
+        runShutdownStep("item recipe unregister", () -> {
+            if (recipeInitializer != null) {
+                recipeInitializer.unregisterRecipes();
+            }
+        });
+        runShutdownStep("plugin disable hook", this::onPluginDisable);
+
+        getLogger().info("ElementPlugin disabled successfully!");
+    }
+
+    private void runShutdownStep(String name, Runnable step) {
         try {
-            cleanup();
-            saveAllData();
-
-            // Unregister custom potion recipes
-            ExtensionRecipes.unregister();
-
-            onPluginDisable();
-
-            getLogger().info("ElementPlugin disabled successfully!");
-
+            step.run();
         } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "Error during plugin shutdown", e);
+            getLogger().log(Level.SEVERE, "Error during plugin shutdown (" + name + ")", e);
         }
     }
 
@@ -168,7 +175,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.statusEffectManager = new StatusEffectManager(this);
         this.disarmManager = new DisarmManager(this);
         this.reforgeAltarManager = new ReforgeAltarManager(this);
-        this.eventVillager = new CustomEventVilager((net.rose.elementSMPRefined.ElementSMPRefined) this);
+        this.eventVillager = new CustomEventVillager((net.rose.elementSMPRefined.ElementSMPRefined) this);
     }
 
     private void initializeServices() {
@@ -351,7 +358,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         return reforgeAltarManager;
     }
 
-    public CustomEventVilager getEventVillager() {
+    public CustomEventVillager getEventVillager() {
         return eventVillager;
     }
 

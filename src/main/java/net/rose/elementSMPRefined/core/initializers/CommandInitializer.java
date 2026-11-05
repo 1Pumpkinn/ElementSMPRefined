@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementevents.EventVillagerCommand;
+import net.rose.elementevents.command.EventVillagerCommand;
 import net.rose.elementSMPRefined.commands.element.base.AbilityCommand;
 import net.rose.elementSMPRefined.commands.element.base.AutoSmeltCommand;
 import net.rose.elementSMPRefined.commands.element.base.ElementCommand;
@@ -10,10 +10,10 @@ import net.rose.elementSMPRefined.commands.element.base.ToggleCommand;
 import net.rose.elementSMPRefined.commands.element.base.WithdrawCommand;
 import net.rose.elementSMPRefined.commands.server.DimensionCommand;
 import net.rose.elementSMPRefined.commands.server.GraceCommand;
-import net.rose.elementSMPRefined.commands.TeamCommand;
+import net.rose.elementSMPRefined.commands.team.TeamCommand;
 import net.rose.elementSMPRefined.commands.element.admin.ReforgeAltarCommand;
 import net.rose.elementSMPRefined.commands.element.admin.UtilCommand;
-import net.rose.elementSMPRefined.commands.element.admin.EnchantableMaceCommand;
+import net.rose.elementSMPRefined.commands.server.EnchantableMaceCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class CommandInitializer {

@@ -36,6 +36,10 @@ public class EarthTunnelAbility extends BaseAbility {
 
     private final Map<UUID, ItemStack> tunnelTools = new HashMap<>();
     private final Map<UUID, Long> tunnelStartTimes = new HashMap<>();
+    // One token per running tunnel. A timer whose token no longer matches is stale (the tunnel was
+    // cancelled and recast before it noticed) and must stop WITHOUT touching the new run's state,
+    // otherwise two timers run at once and double the mining speed.
+    private final Map<UUID, Object> tunnelTokens = new HashMap<>();
 
     public EarthTunnelAbility(JavaPlugin plugin, ConfigManager configManager) {
         super("earth_tunnel", ElementType.EARTH, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
@@ -51,11 +55,15 @@ public class EarthTunnelAbility extends BaseAbility {
         if (metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
             metadataHelper.remove(player, EarthElement.META_TUNNELING);
             tunnelTools.remove(player.getUniqueId());
+            tunnelTokens.remove(player.getUniqueId());
             applyEarlyCancelCooldown(player, context);
             player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_CANCELLED);
             setActive(player, false);
             return true;
         }
+
+        final Object token = new Object();
+        tunnelTokens.put(player.getUniqueId(), token);
 
         long now = System.currentTimeMillis();
         metadataHelper.setLong(player, EarthElement.META_TUNNELING, now + Constants.Duration.EARTH_TUNNEL_MS);
@@ -75,9 +83,16 @@ public class EarthTunnelAbility extends BaseAbility {
         setActive(player, true);
 
         Bukkit.getScheduler().runTaskTimer(plugin, task -> {
+            if (tunnelTokens.get(player.getUniqueId()) != token) {
+                // Superseded by a newer tunnel (or cancelled): just die quietly.
+                task.cancel();
+                return;
+            }
+
             if (!player.isOnline() || !metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
                 tunnelTools.remove(player.getUniqueId());
                 tunnelStartTimes.remove(player.getUniqueId());
+                tunnelTokens.remove(player.getUniqueId());
                 setActive(player, false);
                 task.cancel();
                 return;
@@ -89,6 +104,7 @@ public class EarthTunnelAbility extends BaseAbility {
                 player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_ENDED);
                 tunnelTools.remove(player.getUniqueId());
                 tunnelStartTimes.remove(player.getUniqueId());
+                tunnelTokens.remove(player.getUniqueId());
                 setActive(player, false);
                 task.cancel();
                 return;
@@ -168,7 +184,7 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.GRAVEL, Material.SAND, Material.RED_SAND, Material.SANDSTONE,
             Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK,
 
-            Material.BLACKSTONE, Material.CRIMSON_NYLIUM, Material.WARPED_HYPHAE,
+            Material.BLACKSTONE, Material.CRIMSON_NYLIUM, Material.WARPED_NYLIUM,
             Material.SOUL_SAND, Material.BASALT,  Material.SMOOTH_BASALT, Material.SOUL_SOIL,
 
             Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,

@@ -7,7 +7,7 @@ import net.rose.elementSMPRefined.commands.supporters.ConfigOption;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.server.GracePeriod;
-import net.rose.elementSMPRefined.util.server.ParseUtil;
+import net.rose.elementSMPRefined.util.parse.ParseUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

@@ -88,8 +88,17 @@ public class MagmaBeamAbility extends BaseAbility {
         }
 
         setActive(player, true);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,
-                CHARGE_TICKS + BEAM_TICKS + 5, SLOW_AMPLIFIER, false, false, false));
+        // Don't stomp a slowness that something else put on the caster (a stun / root / slow status
+        // is infinite and may be stronger); only apply, and later remove, our own.
+        final int slowTicks = CHARGE_TICKS + BEAM_TICKS + 5;
+        PotionEffect existingSlow = player.getPotionEffect(PotionEffectType.SLOWNESS);
+        final boolean ownsSlow = existingSlow == null
+                || (existingSlow.getDuration() != PotionEffect.INFINITE_DURATION
+                && existingSlow.getAmplifier() < SLOW_AMPLIFIER);
+        if (ownsSlow) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,
+                    slowTicks, SLOW_AMPLIFIER, false, false, false));
+        }
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WARDEN_SONIC_CHARGE, 1.0f, 1.2f);
 
         new BukkitRunnable() {
@@ -103,7 +112,10 @@ public class MagmaBeamAbility extends BaseAbility {
                 BEAM_LOCKS.values().removeIf(lock -> lock.owner().equals(player.getUniqueId()));
                 setActive(player, false);
                 PotionEffect slow = player.getPotionEffect(PotionEffectType.SLOWNESS);
-                if (slow != null && slow.getAmplifier() == SLOW_AMPLIFIER) {
+                // Ours is finite and no longer than the cast; an infinite one belongs to a status effect.
+                if (ownsSlow && slow != null && slow.getAmplifier() == SLOW_AMPLIFIER
+                        && slow.getDuration() != PotionEffect.INFINITE_DURATION
+                        && slow.getDuration() <= slowTicks) {
                     player.removePotionEffect(PotionEffectType.SLOWNESS);
                 }
                 super.cancel();

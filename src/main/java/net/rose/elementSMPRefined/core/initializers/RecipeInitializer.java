@@ -19,4 +19,9 @@ public class RecipeInitializer {
             RerollerItem.registerRecipe(plugin);
         }, 1);
     }
+
+    public void unregisterRecipes() {
+        UpgraderItem.unregisterRecipes(plugin);
+        RerollerItem.unregisterRecipe(plugin);
+    }
 }

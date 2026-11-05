@@ -49,12 +49,12 @@ public abstract class BaseElement implements Element {
     }
 
     @Override
-    public final boolean ability1(ElementContext context) {
+    public final boolean ability1(net.rose.elementSMPRefined.core.API.element.ElementContext context) {
         return activate(context, ability1, 1, this::canCancelAbility1);
     }
 
     @Override
-    public final boolean ability2(ElementContext context) {
+    public final boolean ability2(net.rose.elementSMPRefined.core.API.element.ElementContext context) {
         Player player = context.getPlayer();
         if (context.getUpgradeLevel() < 1) {
             player.sendMessage(Lang.BASE_ELEMENT_YOU_NEED_UPGRADE_I_BEFORE);
@@ -63,8 +63,8 @@ public abstract class BaseElement implements Element {
         return activate(context, ability2, 2, this::canCancelAbility2);
     }
 
-    private boolean activate(ElementContext context, Ability ability, int requiredLevel,
-                             Predicate<ElementContext> canCancel) {
+    private boolean activate(net.rose.elementSMPRefined.core.API.element.ElementContext context, Ability ability, int requiredLevel,
+                             Predicate<net.rose.elementSMPRefined.core.API.element.ElementContext> canCancel) {
         Player player = context.getPlayer();
         if (!checkUpgradeLevel(player, context.getUpgradeLevel(), requiredLevel)) return false;
 

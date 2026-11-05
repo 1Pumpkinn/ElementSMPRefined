@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementevents.EventVillagerListener;
+import net.rose.elementevents.listener.EventVillagerListener;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
@@ -14,8 +14,8 @@ import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners.MetalChainStunListener;
 import net.rose.elementSMPRefined.listeners.handler.CraftingIngredientHandler;
 import net.rose.elementSMPRefined.listeners.handler.ForgedUpgraderHandler;
-import net.rose.elementSMPRefined.listeners.handler.ReforgeAltarHandler;
-import net.rose.elementSMPRefined.listeners.item.PlayerDeathListener;
+import net.rose.elementSMPRefined.altar.ReforgeAltarHandler;
+import net.rose.elementSMPRefined.listeners.player.PlayerDeathListener;
 import net.rose.elementSMPRefined.listeners.handler.RerollerHandler;
 import net.rose.elementSMPRefined.listeners.handler.ElementAdvancementHandler;
 import net.rose.elementSMPRefined.listeners.handler.UpgraderHandler;
@@ -101,7 +101,7 @@ public class ListenerInitializer {
     private void registerCoreElementListeners() {
         this.airAntiFallDmgListener = new AirAntiFallDmgListener(plugin.getElementManager());
         pluginManager.registerEvents(airAntiFallDmgListener, plugin);
-        pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.LifeTotemListener(), plugin);
+        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeTotemListener(), plugin);
         pluginManager.registerEvents(new AirWindBurstListener(plugin, plugin.getElementManager(), plugin.getTeamManager()), plugin);
 
         var airElement = plugin.getElementManager().get(ElementType.AIR);

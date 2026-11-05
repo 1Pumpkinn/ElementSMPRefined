@@ -61,4 +61,8 @@ public final class UpgraderItem {
             }
         });
     }
+
+    public static void unregisterRecipes(JavaPlugin plugin) {
+        TIERS.values().forEach(tier -> plugin.getServer().removeRecipe(new NamespacedKey(plugin, tier.key())));
+    }
 }

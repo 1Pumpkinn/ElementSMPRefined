@@ -6,8 +6,9 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
-import net.rose.elementSMPRefined.util.damage.AbilityDamage;
+import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.DarkBladeVisual;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -36,10 +37,13 @@ import java.util.UUID;
 public class DeathVoidAbility extends BaseAbility {
 
     private static final int CHARGE_TICKS = 10;
-    private static final double CHARGE_RADIUS = 2.2;
+    private static final double CHARGE_RADIUS = 1.3;
+    private static final double CHARGE_DISTANCE = 3.5;       // how far in front of the eyes the energy gathers
+    private static final double MIN_PARTICLE_DISTANCE = 2.5; // charge particles closer than this to the eyes are skipped
 
     private static final double SPEED = 1.5;            // blocks per tick
     private static final double MAX_DISTANCE = 24.0;
+    private static final double TRAIL_START_DISTANCE = 4.0; // no trail particles right in the caster's face
     private static final double HIT_RADIUS = 2.4;
     private static final float BLADE_SCALE = 4.0f;
 
@@ -69,8 +73,7 @@ public class DeathVoidAbility extends BaseAbility {
         Player player = context.getPlayer();
         TeamManager teams = context.getTeamManager();
 
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 0.8f, 0.6f);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 0.5f);
+        playCastSound(player.getWorld(), player.getLocation());
 
         new BukkitRunnable() {
             private int tick = 0;
@@ -94,22 +97,22 @@ public class DeathVoidAbility extends BaseAbility {
         return true;
     }
 
-    /** Dark energy spirals in toward the caster's hands. */
+    /** Dark energy gathers a few blocks out in front of the caster, never near their face. */
     private void charge(Player player, int tick) {
         World world = player.getWorld();
-        Location center = player.getEyeLocation().add(player.getEyeLocation().getDirection().multiply(0.9))
-                .subtract(0, 0.4, 0);
+        Location eye = player.getEyeLocation();
+        Location center = eye.clone().add(eye.getDirection().multiply(CHARGE_DISTANCE)).subtract(0, 0.3, 0);
         double progress = (double) tick / CHARGE_TICKS;
         double radius = CHARGE_RADIUS * (1.0 - progress) + 0.2;
         double angle = tick * 0.9;
-        for (int arm = 0; arm < 3; arm++) {
-            double a = angle + arm * (Math.PI * 2 / 3);
+        for (int arm = 0; arm < 2; arm++) {
+            double a = angle + arm * Math.PI;
             Location p = center.clone().add(Math.cos(a) * radius, Math.sin(a * 1.3) * radius * 0.5, Math.sin(a) * radius);
+            if (p.distanceSquared(eye) < MIN_PARTICLE_DISTANCE * MIN_PARTICLE_DISTANCE) continue;
             world.spawnParticle(Particle.DUST, p, 1, 0, 0, 0, 0, arm == 0 ? DARK_DUST : PURPLE_DUST, true);
         }
-        world.spawnParticle(Particle.PORTAL, center, 6, 0.4, 0.4, 0.4, 0.4, null, true);
         if (tick % 3 == 0) {
-            world.playSound(center, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.7f, 0.5f + (float) progress);
+            playChargeNote(world, center, tick / 3);
         }
     }
 
@@ -119,8 +122,7 @@ public class DeathVoidAbility extends BaseAbility {
         Vector dir = eye.getDirection().normalize();
         Location start = eye.clone().add(dir.clone().multiply(2.5)).subtract(0, 0.3, 0);
 
-        world.playSound(start, Sound.ENTITY_WITHER_SHOOT, 1f, 0.6f);
-        world.playSound(start, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1f, 0.5f);
+        playLaunchSound(world, start);
 
         DarkBladeVisual visual = new DarkBladeVisual(start, dir, BLADE_SCALE);
         Set<UUID> alreadyHit = new HashSet<>();
@@ -128,6 +130,7 @@ public class DeathVoidAbility extends BaseAbility {
 
         new BukkitRunnable() {
             private double travelled = 0;
+            private int flightTicks = 0;
 
             @Override
             public void run() {
@@ -147,7 +150,10 @@ public class DeathVoidAbility extends BaseAbility {
                 }
 
                 visual.tick(pos);
-                trail(world, pos);
+                if (travelled > TRAIL_START_DISTANCE) trail(world, pos);
+                if (flightTicks++ % 5 == 0) {
+                    playFlightHum(world, pos, flightTicks / 5);
+                }
                 sweep(player, teams, pos, dir, alreadyHit);
 
                 if (blocked || travelled >= MAX_DISTANCE) {
@@ -160,9 +166,8 @@ public class DeathVoidAbility extends BaseAbility {
     }
 
     private void trail(World world, Location pos) {
-        world.spawnParticle(Particle.DUST, pos, 6, 1.0, 1.0, 1.0, 0, PURPLE_DUST, true);
-        world.spawnParticle(Particle.DUST, pos, 4, 1.3, 1.3, 1.3, 0, DARK_DUST, true);
-        world.spawnParticle(Particle.SQUID_INK, pos, 1, 0.3, 0.3, 0.3, 0.01, null, true);
+        world.spawnParticle(Particle.DUST, pos, 1, 0.6, 0.6, 0.6, 0, PURPLE_DUST, true);
+        world.spawnParticle(Particle.DUST, pos, 1, 0.8, 0.8, 0.8, 0, DARK_DUST, true);
     }
 
     private void sweep(Player player, TeamManager teams, Location pos, Vector dir, Set<UUID> alreadyHit) {
@@ -170,8 +175,7 @@ public class DeathVoidAbility extends BaseAbility {
             if (!isValidTarget(player, teams, target)) continue;
             if (!alreadyHit.add(target.getUniqueId())) continue;
 
-            target.setNoDamageTicks(0);
-            AbilityDamage.deal(target, getName(), () -> target.damage(BLADE_DAMAGE, player));
+            TrueDamage.of(BLADE_DAMAGE).attacker(player).ability(getName()).apply(target);
             debuff(target);
 
             Vector push = dir.clone().setY(0);
@@ -190,8 +194,7 @@ public class DeathVoidAbility extends BaseAbility {
     /** Dark Pulse: a purple burst where the blades end. */
     private void pulse(Player player, TeamManager teams, Location at) {
         World world = at.getWorld();
-        world.playSound(at, Sound.ENTITY_WITHER_BREAK_BLOCK, 0.8f, 0.7f);
-        world.playSound(at, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 0.6f);
+        playPulseSound(world, at);
         world.spawnParticle(Particle.DUST, at, 80, PULSE_RADIUS * 0.5, PULSE_RADIUS * 0.4, PULSE_RADIUS * 0.5, 0, PURPLE_DUST, true);
         world.spawnParticle(Particle.DUST, at, 60, PULSE_RADIUS * 0.5, PULSE_RADIUS * 0.4, PULSE_RADIUS * 0.5, 0, DARK_DUST, true);
         world.spawnParticle(Particle.EXPLOSION, at, 1, 0, 0, 0, 0, null, true);
@@ -206,8 +209,7 @@ public class DeathVoidAbility extends BaseAbility {
         for (LivingEntity target : at.getNearbyLivingEntities(PULSE_RADIUS)) {
             if (!isValidTarget(player, teams, target)) continue;
 
-            target.setNoDamageTicks(0);
-            AbilityDamage.deal(target, getName(), () -> target.damage(PULSE_DAMAGE, player));
+            TrueDamage.of(PULSE_DAMAGE).attacker(player).ability(getName()).apply(target);
             debuff(target);
 
             Vector away = target.getLocation().toVector().subtract(at.toVector()).setY(0);
@@ -215,6 +217,70 @@ public class DeathVoidAbility extends BaseAbility {
                 away.normalize().multiply(PULSE_KNOCKBACK).setY(0.35);
                 target.setVelocity(target.getVelocity().add(away));
             }
+        }
+    }
+
+    // ---- Sounds -------------------------------------------------------------------------------------------
+    // Same idea as Spore Blossom: stack unrelated vanilla sounds into one signature sound, then play a short
+    // scheduled note run. Spore Blossom blooms up a pleasant pentatonic scale; the Void falls down a dissonant one
+    // (a tritone against a fifth), on bells and bass.
+
+    /** Falling, uneasy notes (pitch multipliers). 1.41 vs 1.5 is the tritone-ish clash that makes it eerie. */
+    private static final float[] VOID_NOTES = {1.89f, 1.5f, 1.41f, 1.19f, 1.0f, 0.71f, 0.59f};
+
+    private void playCastSound(World w, Location at) {
+        w.playSound(at, Sound.BLOCK_BELL_RESONATE, 0.9f, 0.5f);
+        w.playSound(at, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 0.8f, 0.6f);
+        w.playSound(at, Sound.BLOCK_SCULK_SENSOR_CLICKING, 1.0f, 0.5f);
+    }
+
+    /** Light, high charge notes (flute, no bass) - still sinking, just airier than the rest of the Void. */
+    private static final float[] CHARGE_NOTES = {2.0f, 1.78f, 1.5f, 1.41f};
+    /** Swap for BLOCK_NOTE_BLOCK_BIT, _HARP, _PLING, _XYLOPHONE, _IRON_XYLOPHONE, _GUITAR... to taste. */
+    private static final Sound CHARGE_INSTRUMENT = Sound.BLOCK_NOTE_BLOCK_FLUTE;
+
+    /** One falling note per call, so the charge-up sinks as it gathers. */
+    private void playChargeNote(World w, Location at, int index) {
+        float pitch = CHARGE_NOTES[Math.min(index, CHARGE_NOTES.length - 1)];
+        w.playSound(at, CHARGE_INSTRUMENT, 0.5f, pitch);
+    }
+
+    private void playLaunchSound(World w, Location at) {
+        w.playSound(at, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.9f, 0.6f);
+        w.playSound(at, Sound.ENTITY_GHAST_SHOOT, 0.5f, 0.5f);
+        w.playSound(at, Sound.BLOCK_BELL_USE, 0.8f, 0.5f);
+        w.playSound(at, Sound.ITEM_TRIDENT_THROW, 1.0f, 0.5f);
+        // The fall: bells sinking away from the caster as the blades leave.
+        for (int i = 0; i < 5; i++) {
+            final float pitch = VOID_NOTES[i];
+            final float vol = 0.6f - 0.08f * i;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BELL, vol, pitch);
+                w.playSound(at, Sound.BLOCK_AMETHYST_CLUSTER_BREAK, vol * 0.5f, pitch * 0.5f);
+            }, 2L * (i + 1));
+        }
+    }
+
+    /** A soft, wobbling hum that follows the blades. */
+    private void playFlightHum(World w, Location at, int index) {
+        float pitch = VOID_NOTES[index % VOID_NOTES.length] * 0.5f;
+        w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BASS, 0.5f, Math.max(0.5f, pitch));
+        w.playSound(at, Sound.ENTITY_VEX_AMBIENT, 0.3f, 0.5f);
+    }
+
+    private void playPulseSound(World w, Location at) {
+        w.playSound(at, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1.0f, 0.5f);
+        w.playSound(at, Sound.BLOCK_BELL_RESONATE, 1.0f, 0.5f);
+        w.playSound(at, Sound.BLOCK_END_PORTAL_FRAME_FILL, 1.0f, 0.5f);
+        w.playSound(at, Sound.ENTITY_GENERIC_EXPLODE, 0.4f, 0.5f);
+        // Collapse: the run falls all the way down.
+        for (int i = 0; i < VOID_NOTES.length; i++) {
+            final float pitch = VOID_NOTES[i];
+            final float vol = 0.7f - 0.07f * i;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BELL, vol, pitch);
+                w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BASS, vol, pitch * 0.6f);
+            }, 2L * (i + 1));
         }
     }
 

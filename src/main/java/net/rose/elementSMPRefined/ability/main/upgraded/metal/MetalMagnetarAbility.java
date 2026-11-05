@@ -61,7 +61,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     // Magnetar visuals: a glowing core wrapped in dipole magnetic field loops (they bunch together at the two
     // poles and balloon out around the equator), and a few faint streams of sparks curling in from the pull field so the suction still reads.
     // The whole field is tilted off vertical and its axis slowly sweeps around, like a pulsar's beam.
-    private static final double[] LOOP_RADIUS = {2.0, 3.1, 4.4}; // how far each loop bulges out at the equator (blocks)
+    private static final double[] LOOP_RADIUS = {1.6, 2.2, 2.8}; // how far each loop bulges out at the equator (blocks), kept around the orbit ring
     private static final int LOOPS_PER_SHELL = 6;               // field lines spread evenly around the axis
     private static final int LOOP_POINTS = 4;                   // particles per field line per tick
     private static final double LOOP_FLOW = 0.02;               // fraction of a loop the sparks travel per tick (pole to pole)
@@ -75,6 +75,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final int STREAMS = 6;
     private static final int STREAM_POINTS = 2;             // particles per stream per tick
     private static final double STREAM_MIN_RADIUS = 1.8;
+    private static final double STREAM_MAX_RADIUS = ORBIT_RADIUS + 1.5; // streams only reach a little past the orbit ring
     private static final double STREAM_CURL = 0.30;         // radians of swirl per block of radius
     private static final double STREAM_SWIRL_WIDTH = 0.20;  // how far a stream bows off its straight line (fraction of its radius)
     private static final double STREAM_FLOW = 0.03;         // fraction of the stream that flows inward per tick
@@ -404,7 +405,6 @@ public class MetalMagnetarAbility extends BaseAbility {
     private void spawnInflow(Core core, World world) {
         double flow = (core.ticks * STREAM_FLOW) % 1.0;
         double spin = core.ticks * FIELD_SPIN;
-        Vector fieldScale = new Vector(core.radiusH / PULL_RADIUS, core.radiusV / PULL_RADIUS, core.radiusH / PULL_RADIUS);
         Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB(110, 170, 255), 0.5f);
 
         for (int s = 0; s < STREAMS; s++) {
@@ -412,15 +412,14 @@ public class MetalMagnetarAbility extends BaseAbility {
             for (int i = 0; i < STREAM_POINTS; i++) {
                 // fraction along the stream, drifting inward over time; squared so points bunch up near the core
                 double f = ((double) i / STREAM_POINTS - flow + phase + 2.0) % 1.0;
-                double radius = STREAM_MIN_RADIUS + f * f * (PULL_RADIUS - STREAM_MIN_RADIUS);
+                double radius = STREAM_MIN_RADIUS + f * f * (STREAM_MAX_RADIUS - STREAM_MIN_RADIUS);
 
                 double swirl = radius * STREAM_CURL + s * 0.5;
                 double bow = radius * STREAM_SWIRL_WIDTH;
                 Vector offset = STREAM_DIR[s].clone().multiply(radius)
                         .add(STREAM_U[s].clone().multiply(Math.cos(swirl) * bow))
                         .add(STREAM_V[s].clone().multiply(Math.sin(swirl) * bow))
-                        .rotateAroundY(spin)
-                        .multiply(fieldScale);
+                        .rotateAroundY(spin);
                 world.spawnParticle(Particle.DUST, core.centre.clone().add(offset), 1, 0, 0, 0, 0, dust);
             }
         }

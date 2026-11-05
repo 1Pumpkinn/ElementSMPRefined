@@ -263,7 +263,7 @@ public class EruptionAbility extends BaseAbility {
                     return;
                 }
 
-                // Shockwave: a bright ring plus a trailing smoke ring racing out along the ground.
+                // Shockwave: a bright ring racing out along the ground.
                 if (t < 7) {
                     double ringRadius = RADIUS * (t + 1) / 7.0;
                     for (int i = 0; i < RING_POINTS; i++) {
@@ -275,8 +275,14 @@ public class EruptionAbility extends BaseAbility {
                         if (i % 5 == 0) {
                             world.spawnParticle(Particle.SMALL_FLAME, p, 1, 0, 0.03, 0, 0.01, null, true);
                         }
-                        if (t > 1 && i % 8 == 0) {
-                            Location inner = center.clone().add(cos * ringRadius * 0.7, 0.2, sin * ringRadius * 0.7);
+                    }
+
+                    // Smoke only rises from the middle of the blast, not around the whole ring.
+                    if (t > 1) {
+                        for (int s = 0; s < 4; s++) {
+                            double a = rng.nextDouble() * Math.PI * 2;
+                            double r = rng.nextDouble() * CORE_RADIUS;
+                            Location inner = center.clone().add(Math.cos(a) * r, 0.2, Math.sin(a) * r);
                             world.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, inner, 0, 0, 0.06, 0, 1.0, null, true);
                         }
                     }

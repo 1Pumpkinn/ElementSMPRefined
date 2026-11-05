@@ -17,7 +17,7 @@ import net.rose.elementSMPRefined.util.visual.model.IceSpikeVisual;
 import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBarrageAbility;
 import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
-import net.rose.elementSMPRefined.util.visual.model.BlackSlashVisual;
+import net.rose.elementSMPRefined.util.visual.model.DarkBladeVisual;
 import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
 
 public final class ElementSMPRefined extends AbstractElementPlugin {
@@ -41,7 +41,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         sweep("ElementGemOrbit", ElementGemOrbitVisual::removeAll);
         sweep("Magnetar", MagnetarVisual::removeAll);
         sweep("Tornado", TornadoVisual::removeAll);
-        sweep("BlackSlash", BlackSlashVisual::removeAll);
+        sweep("DarkBlade", DarkBladeVisual::removeAll);
         sweep("IceSpike", IceSpikeVisual::removeAll);
         sweep("IceBlock", IceBlockVisual::removeAll);
         sweep("FrostIcicleBarrage", FrostIcicleBarrageAbility::removeAll);

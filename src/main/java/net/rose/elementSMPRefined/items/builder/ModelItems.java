@@ -36,7 +36,7 @@ public final class ModelItems {
      * The client picks the render pipeline from the carrier item, not from the model: a stick is drawn through
      * the cutout pipeline (every pixel is fully opaque or discarded, so soft glows turn into solid panels),
      * while a translucent block item is drawn with alpha blending. Use this for models that rely on
-     * semi-transparent textures, such as the Black Slash.
+     * semi-transparent textures, such as soft glows.
      */
     public static ItemStack translucent(NamespacedKey model) {
         return TRANSLUCENT_CACHE.computeIfAbsent(model,

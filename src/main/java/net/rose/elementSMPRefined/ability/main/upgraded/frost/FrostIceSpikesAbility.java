@@ -111,8 +111,8 @@ public class FrostIceSpikesAbility extends BaseAbility {
                         scratch.setX(feet.getX() + Math.cos(angle) * r);
                         scratch.setY(feet.getY() + 0.15);
                         scratch.setZ(feet.getZ() + Math.sin(angle) * r);
-                        world.spawnParticle(Particle.SNOWFLAKE, scratch,
-                                1, 0.05, 0.05, 0.05, 0.0, null, true);
+                        world.spawnParticle(Particle.BLOCK, scratch,
+                                1, 0.05, 0.05, 0.05, 0.0, Material.PACKED_ICE.createBlockData(), true);
                     }
                     if (ticks % 3 == 0) {
                         world.playSound(feet, Sound.BLOCK_GLASS_BREAK, 0.6f, 0.5f + ticks * 0.06f);
@@ -134,10 +134,6 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
     private void startSpikes(Player caster, TeamManager team, Location origin) {
         World world = origin.getWorld();
-        Location fx = origin.clone();
-        fx.setY(origin.getY() + 0.3);
-        world.spawnParticle(Particle.SNOWFLAKE, fx, 60, 1.0, 0.2, 1.0, 0.1, null, true);
-        world.spawnParticle(Particle.CLOUD, fx, 20, 0.8, 0.1, 0.8, 0.05, null, true);
         world.spawnParticle(Particle.BLOCK, origin.clone().add(0, 0.2, 0), 30, 0.8, 0.1, 0.8, 0.0,
                 Material.PACKED_ICE.createBlockData(), true);
         world.playSound(origin, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.5f);
@@ -274,8 +270,6 @@ public class FrostIceSpikesAbility extends BaseAbility {
         entity.setVelocity(new Vector(0, LAUNCH_UP, 0));
         entity.setFreezeTicks(entity.getMaxFreezeTicks());
         entity.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, SLOW_TICKS, SLOW_AMPLIFIER, false, true, true));
-
-        entity.getWorld().spawnParticle(Particle.SNOWFLAKE, entity.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.05, null, true);
     }
 
     @Override

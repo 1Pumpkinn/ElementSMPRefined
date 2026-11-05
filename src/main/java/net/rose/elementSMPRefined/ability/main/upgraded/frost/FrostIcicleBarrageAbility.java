@@ -62,7 +62,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private static final float RING_SPIN_PER_TICK = 0.2f;   // radians; the ring turns around the aim
     private static final float LOADED_SCALE = 0.5f;         // size of an icicle hovering in the ring (1.0 = flying size)
     private static final int APPEAR_TICKS = 3;              // an icicle grows in over this long once loaded
-    private static final int CHARGE_SPARKS = 1;             // frost pulled towards the ring each tick
 
     private static final int ICICLE_COUNT = 6;
     private static final int FIRE_INTERVAL_TICKS = 8;       // ticks between icicles (20 = 1 second)
@@ -98,6 +97,11 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     // Hard stop so a cast can never run forever
     private static final int MAX_TASK_TICKS = CHARGE_TICKS + (ICICLE_COUNT - 1) * FIRE_INTERVAL_TICKS
             + (int) (MAX_RANGE / SPEED) + STUCK_TICKS + 40;
+
+    // Trail left behind a flying icicle
+    private static final double TRAIL_SPACING = 0.4;        // blocks between trail particles
+    private static final Particle.DustOptions TRAIL_DUST =
+            new Particle.DustOptions(org.bukkit.Color.fromRGB(150, 220, 255), 1.0f);
 
     // Block data for the particle bursts, built once instead of on every hit / launch / stick.
     private static final org.bukkit.block.data.BlockData PACKED_ICE_DATA = Material.PACKED_ICE.createBlockData();
@@ -197,8 +201,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
                 if (ticks < CHARGE_TICKS) {
                     chargeEffects(orb);
-                } else {
-                    ringAura(orb);
                 }
 
                 // Load the next icicle into the ring whenever its turn comes up.
@@ -234,22 +236,8 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         private void chargeEffects(Location orb) {
             double progress = (double) ticks / CHARGE_TICKS;
 
-            // Kept sparse (and close in) so the ring stays easy to see through.
-            if (ticks % 2 == 0) {
-                double r = 1.8 * (1.0 - progress) + 0.4;
-                for (int i = 0; i < CHARGE_SPARKS; i++) {
-                    Vector offset = Vector.getRandom().subtract(new Vector(0.5, 0.5, 0.5)).normalize().multiply(r);
-                    world.spawnParticle(Particle.SNOWFLAKE, orb.clone().add(offset), 1, 0, 0, 0, 0.0, null, true);
-                }
-            }
             if (ticks % 4 == 0) {
                 world.playSound(orb, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.7f, (float) (0.5 + progress * 1.2));
-            }
-        }
-
-        private void ringAura(Location orb) {
-            if (ticks % 4 == 0) {
-                world.spawnParticle(Particle.SNOWFLAKE, orb, 1, 0.3, 0.3, 0.3, 0.0, null, true);
             }
         }
 
@@ -271,7 +259,6 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             slots[slot] = new Icicle(display, pos, ticks);
 
             double progress = Math.min(1.0, (double) ticks / CHARGE_TICKS);
-            world.spawnParticle(Particle.SNOWFLAKE, pos, 2, 0.1, 0.1, 0.1, 0.02, null, true);
             world.playSound(pos, Sound.BLOCK_GLASS_PLACE, 0.8f, (float) (0.6 + progress * 0.9));
         }
 
@@ -387,18 +374,31 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
                 }
             }
 
+            Location from = ic.pos.clone();
             ic.pos.add(ic.velocity);
             ic.travelled += step;
 
             ic.display.teleport(ic.pos);
 
-            world.spawnParticle(Particle.SNOWFLAKE, ic.pos, 1, 0.05, 0.05, 0.05, 0.0, null, true);
+            trail(from, ic.velocity);
 
             if (ic.travelled >= MAX_RANGE) {
                 remove(ic);
                 return true;
             }
             return false;
+        }
+
+        /** Frost left behind along the path the icicle just flew (it moves several blocks a tick, so fill the gap). */
+        private void trail(Location from, Vector step) {
+            double length = step.length();
+            int points = Math.max(1, (int) Math.ceil(length / TRAIL_SPACING));
+            Vector inc = step.clone().multiply(1.0 / points);
+            Location at = from.clone();
+            for (int i = 0; i < points; i++) {
+                at.add(inc);
+                world.spawnParticle(Particle.SNOWFLAKE, at, 1, 0.04, 0.04, 0.04, 0.0, null, true);
+            }
         }
 
         private void remove(Icicle ic) {

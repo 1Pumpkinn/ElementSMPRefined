@@ -113,12 +113,10 @@ public final class IceSpikeVisual {
         ACTIVE.add(new Spike(display, base, sw, sy, yaw));
         ensureTicker(plugin);
 
-        // One reusable Location for both particle bursts.
+        // Block-crack burst at the base.
         Location fx = new Location(world, base.getX(), base.getY() + 0.1, base.getZ());
         world.spawnParticle(Particle.BLOCK, fx, 6, 0.3, 0.1, 0.3, 0.0,
                 PACKED_ICE, true);
-        fx.setY(base.getY() + 0.5);
-        world.spawnParticle(Particle.SNOWFLAKE, fx, 6, 0.3, 0.4, 0.3, 0.02, null, true);
 
         // The visible sprite fills SPRITE_FILL of the model's width, so that is the base we draw.
         return sw * 0.5 * SPRITE_FILL;

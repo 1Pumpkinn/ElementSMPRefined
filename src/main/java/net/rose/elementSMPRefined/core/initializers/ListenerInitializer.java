@@ -103,7 +103,9 @@ public class ListenerInitializer {
         pluginManager.registerEvents(airAntiFallDmgListener, plugin);
         pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeTotemListener(), plugin);
         pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeLeafGoldenAppleListener(plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeTreeChopListener(plugin.getElementManager()), plugin);
+        var placedLogTracker = new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.PlacedLogTracker(plugin);
+        pluginManager.registerEvents(placedLogTracker, plugin);
+        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeTreeChopListener(plugin.getElementManager(), placedLogTracker), plugin);
         pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeGoldenAppleAbsorptionListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new AirWindBurstListener(plugin, plugin.getElementManager(), plugin.getTeamManager()), plugin);
 

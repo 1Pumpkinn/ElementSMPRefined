@@ -25,17 +25,20 @@ import java.util.Set;
 /**
  * Life passive 2: breaking a log of a tree with an axe chops down the whole tree.
  * <p>
- * Only trees count: the connected logs must touch leaves that grew naturally (not player-placed), so a
- * log cabin or a stack of logs is left alone. Every extra log costs the axe durability like a normal break.
+ * Only trees count: the connected logs must touch leaves that grew naturally (not player-placed), and logs
+ * a player placed (tracked by {@link PlacedLogTracker}) are never chopped, so a log cabin or a stack of
+ * logs built next to a tree is left alone. Every extra log costs the axe durability like a normal break.
  */
 public class LifeTreeChopListener implements Listener {
     private static final int MAX_LOGS = 256;
     private static final int MAX_HORIZONTAL_RADIUS = 12;
 
     private final ElementManager elementManager;
+    private final PlacedLogTracker placedLogs;
 
-    public LifeTreeChopListener(ElementManager elementManager) {
+    public LifeTreeChopListener(ElementManager elementManager, PlacedLogTracker placedLogs) {
         this.elementManager = elementManager;
+        this.placedLogs = placedLogs;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -46,6 +49,8 @@ public class LifeTreeChopListener implements Listener {
         // Creative drops nothing for the first block but breakNaturally() would drop the rest.
         if (player.getGameMode() == GameMode.CREATIVE) return;
         if (!Tag.LOGS.isTagged(origin.getType())) return;
+        // A log a player placed is just a block they built with, not a tree.
+        if (placedLogs.isPlaced(origin)) return;
 
         ItemStack tool = player.getInventory().getItemInMainHand();
         if (!Tag.ITEMS_AXES.isTagged(tool.getType())) return;
@@ -92,6 +97,8 @@ public class LifeTreeChopListener implements Listener {
                             continue;
                         }
                         if (next.getType() != type) continue;
+                        // Player-placed logs are never chopped, nor used to reach logs beyond them.
+                        if (placedLogs.isPlaced(next)) continue;
                         if (Math.abs(next.getX() - origin.getX()) > MAX_HORIZONTAL_RADIUS
                                 || Math.abs(next.getZ() - origin.getZ()) > MAX_HORIZONTAL_RADIUS) continue;
 

@@ -14,6 +14,7 @@ import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -124,9 +125,27 @@ public class SporeBlossomAbility extends BaseAbility {
 
         Vector at = hit.getHitPosition();
         if (hit.getHitBlockFace() != null) {
-            at = at.clone().add(hit.getHitBlockFace().getDirection().multiply(0.6));
+            // The blossom is centred on this point and grows to SIZE[0] blocks, so back off by its full
+            // half-size (a flat 0.6 left it sunk into the ground when you aimed down).
+            at = at.clone().add(hit.getHitBlockFace().getDirection().multiply(clearance(0)));
         }
-        return at.toLocation(w);
+        return liftOffGround(at.toLocation(w), 0);
+    }
+
+    /** Distance from a surface a blossom's centre must keep so its largest (throbbing) size doesn't clip into it. */
+    private static double clearance(int generation) {
+        return SIZE[generation] * (0.5 + THROB) + 0.05;
+    }
+
+    /** If there's a block under {@code at} closer than the blossom's half-size, raise it to sit on top. */
+    private static Location liftOffGround(Location at, int generation) {
+        double need = clearance(generation);
+        RayTraceResult down = at.getWorld().rayTraceBlocks(at, new Vector(0, -1, 0), need,
+                FluidCollisionMode.NEVER, true);
+        if (down != null) {
+            at.setY(down.getHitPosition().getY() + need);
+        }
+        return at;
     }
 
     /** One cast: every blossom in flight, advanced together by a single task. */
@@ -238,7 +257,7 @@ public class SporeBlossomAbility extends BaseAbility {
             if (hit != null) {
                 Vector at = hit.getHitPosition();
                 if (hit.getHitBlockFace() != null) {
-                    at = at.clone().add(hit.getHitBlockFace().getDirection().multiply(0.25));
+                    at = at.clone().add(hit.getHitBlockFace().getDirection().multiply(clearance(generation)));
                 }
                 pos = at.toLocation(pos.getWorld());
                 velocity.zero();
@@ -254,11 +273,39 @@ public class SporeBlossomAbility extends BaseAbility {
             discard();
 
             LifeParticles.sporeBurst(w, at, generation);
-            w.playSound(at, Sound.ENTITY_GENERIC_EXPLODE, 0.7f - 0.15f * generation, 1.4f + 0.3f * generation);
-            w.playSound(at, Sound.BLOCK_SPORE_BLOSSOM_BREAK, 1.2f, 0.8f + 0.3f * generation);
+            playBurstSound(w, at);
 
             hitNearby(at);
             split(at);
+        }
+
+        /**
+         * Blossom-spreading burst: a soft puff and berry-pop, rustling petals, a glassy shimmer, and a quick
+         * rising chime run (pentatonic, so it always sounds pleasant) that "blooms" outward over a few ticks.
+         * Smaller generations are quieter, higher and play a shorter run.
+         */
+        private void playBurstSound(World w, Location at) {
+            float lift = 0.25f * generation;
+            float vol = 1.0f - 0.2f * generation;
+
+            // Initial bloom: puff of spores + a juicy pop.
+            w.playSound(at, Sound.ENTITY_PUFFER_FISH_BLOW_OUT, 0.5f * vol, 1.7f + lift * 0.3f);
+            w.playSound(at, Sound.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, 1.2f * vol, 0.9f + lift);
+            w.playSound(at, Sound.BLOCK_SPORE_BLOSSOM_BREAK, 1.3f * vol, 0.9f + lift);
+            w.playSound(at, Sound.BLOCK_CHERRY_LEAVES_BREAK, 0.9f * vol, 1.2f + lift);
+            w.playSound(at, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f * vol, 1.2f + lift);
+
+            // Petals unfurling: a rising chime run, one note every other tick.
+            final float[] notes = {1.0f, 1.26f, 1.5f, 1.68f, 2.0f};
+            int count = Math.max(2, notes.length - generation * 2);
+            for (int i = 0; i < count; i++) {
+                final float pitch = Math.min(2.0f, notes[i] * (1f + 0.12f * generation));
+                final float noteVol = (0.55f - 0.1f * generation) * (0.8f + 0.05f * i);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    w.playSound(at, Sound.BLOCK_NOTE_BLOCK_CHIME, noteVol, pitch);
+                    w.playSound(at, Sound.BLOCK_AMETHYST_CLUSTER_BREAK, noteVol * 0.6f, pitch);
+                }, 2L * (i + 1));
+            }
         }
 
         private void hitNearby(Location at) {

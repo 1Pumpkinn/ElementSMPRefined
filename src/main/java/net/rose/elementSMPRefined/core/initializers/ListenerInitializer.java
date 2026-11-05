@@ -102,6 +102,9 @@ public class ListenerInitializer {
         this.airAntiFallDmgListener = new AirAntiFallDmgListener(plugin.getElementManager());
         pluginManager.registerEvents(airAntiFallDmgListener, plugin);
         pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeTotemListener(), plugin);
+        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeLeafGoldenAppleListener(plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeTreeChopListener(plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeGoldenAppleAbsorptionListener(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new AirWindBurstListener(plugin, plugin.getElementManager(), plugin.getTeamManager()), plugin);
 
         var airElement = plugin.getElementManager().get(ElementType.AIR);

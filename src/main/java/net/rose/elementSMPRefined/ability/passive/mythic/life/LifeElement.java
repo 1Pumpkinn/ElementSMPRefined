@@ -48,14 +48,6 @@ public class LifeElement extends BaseElement {
 
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, 0, true, false));
 
-        var attr = player.getAttribute(Attribute.MAX_HEALTH);
-        if (attr != null) {
-            if (attr.getBaseValue() < Constants.Health.LIFE_MAX) attr.setBaseValue(Constants.Health.LIFE_MAX);
-            if (player.getHealth() > attr.getBaseValue()) {
-                player.setHealth(attr.getBaseValue());
-            }
-        }
-
         if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
             BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
                 if (!player.isOnline()) {
@@ -145,8 +137,10 @@ public class LifeElement extends BaseElement {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "15 hearts",
                 "Regeneration I",
-                "Crops within 5 blocks grow fully every 2s (Upgrade II)");
+                "Crops within 5 blocks grow fully every 2s (Upgrade II)",
+                "Breaking leaves drops golden apples instead of apples",
+                "Axes chop down the whole tree",
+                "Golden apples give extra Absorption");
     }
 }

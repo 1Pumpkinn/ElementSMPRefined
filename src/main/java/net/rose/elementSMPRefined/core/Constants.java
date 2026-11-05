@@ -32,7 +32,6 @@ public final class Constants {
 
     public static final class Health {
         public static final double NORMAL_MAX = 20.0;
-        public static final double LIFE_MAX = 30.0;
 
         private Health() {}
     }

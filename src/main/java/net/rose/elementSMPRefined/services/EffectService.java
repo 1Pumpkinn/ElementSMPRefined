@@ -118,8 +118,9 @@ public class EffectService implements Listener {
         var attr = player.getAttribute(Attribute.MAX_HEALTH);
         if (attr == null) return;
 
-        double targetHealth = elementType == ElementType.LIFE ?
-                Constants.Health.LIFE_MAX : Constants.Health.NORMAL_MAX;
+        // No element changes max health any more (Life used to have 15 hearts), so this also
+        // pulls Life players who still have the old 30 max health back to normal.
+        double targetHealth = Constants.Health.NORMAL_MAX;
 
         if (attr.getBaseValue() != targetHealth) {
             attr.setBaseValue(targetHealth);

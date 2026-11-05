@@ -11,7 +11,7 @@ public final class LifeParticles {
 
     private static final Particle.DustOptions GREEN_DUST = new Particle.DustOptions(Color.fromRGB(90, 255, 130), 1.0f);
 
-    private static final Particle.DustOptions BEAM_DUST = new Particle.DustOptions(Color.fromRGB(30, 255, 70), 1.2f);
+    private static final Particle.DustOptions POISON_DUST = new Particle.DustOptions(Color.fromRGB(120, 200, 60), 1.2f);
 
     private LifeParticles() {}
 
@@ -23,29 +23,17 @@ public final class LifeParticles {
         world.spawnParticle(Particle.DUST, loc, 1, 0.1, 0.1, 0.1, 0, RED_DUST, true);
     }
 
-    /** One spark of the lingering energy beam: a green mote and the odd white fleck. */
-    public static void energyBlastSpark(World world, Location pt) {
-        world.spawnParticle(Particle.DUST, pt, 2, 0.35, 0.35, 0.35, 0, BEAM_DUST, true);
-        world.spawnParticle(Particle.END_ROD, pt, 1, 0.3, 0.3, 0.3, 0.01, null, true);
-    }
-
-    /** Sparks drawn in towards the charging orb. */
-    public static void energyBlastCharge(World world, Location pt) {
-        world.spawnParticle(Particle.DUST, pt, 1, 0, 0, 0, 0, BEAM_DUST, true);
-    }
-
-    public static void energyBlastMuzzle(World world, Location loc) {
-        world.spawnParticle(Particle.END_ROD, loc, 14, 0.25, 0.25, 0.25, 0.12, null, true);
-        world.spawnParticle(Particle.DUST, loc, 10, 0.3, 0.3, 0.3, 0, BEAM_DUST, true);
-    }
-
-    public static void energyBlastImpact(World world, Location loc) {
-        world.spawnParticle(Particle.END_ROD, loc, 18, 0.3, 0.3, 0.3, 0.15, null, true);
-        world.spawnParticle(Particle.DUST, loc, 16, 0.5, 0.5, 0.5, 0, BEAM_DUST, true);
-    }
-
-    public static void energyBlastHit(World world, Location loc) {
-        world.spawnParticle(Particle.END_ROD, loc, 10, 0.3, 0.4, 0.3, 0.1, null, true);
-        world.spawnParticle(Particle.DUST, loc, 12, 0.4, 0.5, 0.4, 0, BEAM_DUST, true);
+    /** Burst of a spore blossom. {@code generation} 0 is the big one; each later generation is smaller. */
+    public static void sporeBurst(World world, Location loc, int generation) {
+        double spread = 1.1 - 0.3 * generation;
+        int spores = 22 - 6 * generation;
+        if (generation == 0) {
+            world.spawnParticle(Particle.EXPLOSION, loc, 1, 0, 0, 0, 0, null, true);
+        } else {
+            world.spawnParticle(Particle.POOF, loc, 4, 0.2, 0.2, 0.2, 0.04, null, true);
+        }
+        world.spawnParticle(Particle.SPORE_BLOSSOM_AIR, loc, spores, spread, spread * 0.8, spread, 0, null, true);
+        world.spawnParticle(Particle.FALLING_SPORE_BLOSSOM, loc, spores / 2, spread, spread * 0.8, spread, 0, null, true);
+        world.spawnParticle(Particle.DUST, loc, spores, spread * 0.8, spread * 0.6, spread * 0.8, 0, POISON_DUST, true);
     }
 }

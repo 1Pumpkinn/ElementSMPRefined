@@ -25,7 +25,7 @@ public class DeathBlackSlashAbility extends BaseAbility {
     private static final double RANGE = 5.0;
     private static final double CONE_DOT_THRESHOLD = 0.45;
     private static final double SLASH_DISTANCE = 2.6;
-    private static final double SLASH_DROP = 0.3;
+    private static final double SLASH_DROP = 0.6;
     private static final float SLASH_SCALE = 1.7f;
     private static final double KNOCKBACK = 0.45;
     private static final double FINISHER_KNOCKBACK = 1.1;
@@ -35,9 +35,9 @@ public class DeathBlackSlashAbility extends BaseAbility {
             new Particle.DustOptions(Color.fromRGB(5, 5, 5), 1.5F);
 
     private static final Slash[] COMBO = {
-            new Slash(3.0, -45f, 0.9f),
-            new Slash(3.0, 45f, 1.0f),
-            new Slash(4.0, 90f, 0.7f)
+            new Slash(3.0, -40f, 0.9f),
+            new Slash(3.0, 40f, 1.0f),
+            new Slash(4.0, 0f, 0.7f)
     };
 
     private record Slash(double damage, float roll, float pitch) {}
@@ -79,8 +79,8 @@ public class DeathBlackSlashAbility extends BaseAbility {
         Location center = eye.clone().add(look.clone().multiply(SLASH_DISTANCE)).subtract(0, SLASH_DROP, 0);
 
         BlackSlashVisual.play(plugin, center, look, slash.roll(), SLASH_SCALE);
-        world.spawnParticle(Particle.DUST, center, 25, 0.9, 0.9, 0.9, 0, BLACK_DUST, true);
-        world.spawnParticle(Particle.SQUID_INK, center, 4, 0.6, 0.6, 0.6, 0.02, null, true);
+//        world.spawnParticle(Particle.DUST, center, 25, 0.9, 0.9, 0.9, 0, BLACK_DUST, true);
+//        world.spawnParticle(Particle.SQUID_INK, center, 4, 0.6, 0.6, 0.6, 0.02, null, true);
         world.playSound(center, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1f, slash.pitch());
         world.playSound(center, Sound.ENTITY_WITHER_SHOOT, 0.4f, 1.8f);
 
@@ -112,7 +112,7 @@ public class DeathBlackSlashAbility extends BaseAbility {
 
         Location hitLoc = target.getLocation().add(0, target.getHeight() * 0.6, 0);
         target.getWorld().spawnParticle(Particle.CRIT, hitLoc, 14, 0.3, 0.4, 0.3, 0.2, null, true);
-        target.getWorld().spawnParticle(Particle.DUST, hitLoc, 12, 0.3, 0.4, 0.3, 0, BLACK_DUST, true);
+//        target.getWorld().spawnParticle(Particle.DUST, hitLoc, 12, 0.3, 0.4, 0.3, 0, BLACK_DUST, true);
         target.getWorld().playSound(hitLoc, Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.8f, finisher ? 0.7f : 1.0f);
     }
 

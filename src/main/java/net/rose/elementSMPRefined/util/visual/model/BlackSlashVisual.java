@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * A single black slash arc. The whole animation lives in one texture strip
+ * A single black slash arc, lying flat (horizontal) and sweeping out in front of the caster. The whole animation lives in one texture strip
  * ({@code black_slash.png} + its {@code .mcmeta}), so this is one model and one entity per slash.
  * The display removes itself once the animation has played through.
  */
@@ -28,25 +28,24 @@ public final class BlackSlashVisual {
     public static final NamespacedKey BLACK_SLASH =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:black_slash"));
 
-    private static final int FRAME_COUNT = 7;
+    private static final int FRAME_COUNT = 4;
     private static final int TICKS_PER_FRAME = 2;
     private static final int LIFETIME_TICKS = FRAME_COUNT * TICKS_PER_FRAME + 1;
-    private static final Vector3f MODEL_FORWARD = new Vector3f(0f, 0f, 1f);
 
     private static final Set<BlackSlashVisual> ACTIVE = new HashSet<>();
 
     private final ItemDisplay display;
 
     private BlackSlashVisual(Location at, Vector direction, float rollDegrees, float scale) {
-        Vector3f dir = new Vector3f(
-                (float) direction.getX(), (float) direction.getY(), (float) direction.getZ());
-        if (dir.lengthSquared() < 1.0E-6f) {
-            dir.set(MODEL_FORWARD);
-        }
-        dir.normalize();
+        // Lay the arc flat (horizontal plane), bulging toward the way the player faces.
+        // Only the horizontal heading of 'direction' is used; rollDegrees swings the arc around the vertical axis.
+        double dx = direction.getX();
+        double dz = direction.getZ();
+        float heading = (dx * dx + dz * dz < 1.0E-6) ? 0f : (float) Math.atan2(dx, dz);
 
-        Quaternionf orientation = new Quaternionf().rotationTo(MODEL_FORWARD, dir);
-        orientation = new Quaternionf().rotateAxis((float) Math.toRadians(rollDegrees), dir).mul(orientation);
+        Quaternionf orientation = new Quaternionf()
+                .rotateY(heading + (float) Math.toRadians(rollDegrees))
+                .rotateX((float) Math.toRadians(90));
 
         Transformation transformation = new Transformation(
                 new Vector3f(),
@@ -73,8 +72,8 @@ public final class BlackSlashVisual {
      * Plays one slash.
      *
      * @param at          center of the slash
-     * @param direction   the way the slash faces (the arc's plane is perpendicular to this)
-     * @param rollDegrees tilt of the arc around {@code direction}
+     * @param direction   the way the slash heads (only its horizontal part is used; the arc lies flat)
+     * @param rollDegrees horizontal swing of the arc around the vertical axis
      * @param scale       size multiplier (1 = about 2.4 blocks wide)
      */
     public static void play(JavaPlugin plugin, Location at, Vector direction, float rollDegrees, float scale) {

@@ -17,22 +17,7 @@ needs Upgrade I and ability 2 needs Upgrade II, and rerollers change a player's 
 
 `src/main/resources/elementsmprefined` is the resource pack the item-display visuals need.
 
-Life's Energy Blast (green beam, white core, star flares) also ships a core shader. Beam and flare
-vertices carry a marker tint (`61,255,91`, see `items/energy_beam.json`); the shader fullbrights them,
-maps the greyscale textures onto a bloom ramp (green halo -> neon green -> mint -> white core) and
-fades the glow at glancing angles. The beam is four crossed gradient planes. The client chooses the render pipeline from the carrier
-item, and a stick is drawn cutout (no blending), so beam and flares are carried by a translucent block item
-(`ModelItems.translucent`) to get real alpha blending. Core shaders are
-copies of the vanilla files, so each Minecraft version gets its own pack overlay (`pack.mcmeta`):
-
-| Overlay | Pack format | Minecraft |
-|---------|-------------|-----------|
-| `overlay_26_2` | 88 | 26.2 |
-| `overlay_26_3` | 97 | 26.3 |
-
-On other versions the overlays are skipped and the beam falls back to the plain models (still a green
-beam, just not shaded). When a new version changes `core/entity.*` or `core/item.*`, copy the new vanilla
-files into a new overlay and re-add the few `energyFacing` / `energyBeamColor` lines.
+Life's Spore Blossom uses vanilla block displays and needs nothing from the pack.
 
 ## Commands
 

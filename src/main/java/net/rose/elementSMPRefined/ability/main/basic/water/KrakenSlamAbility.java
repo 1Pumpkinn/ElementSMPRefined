@@ -52,7 +52,8 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
     public static final double HIT_RADIUS = 3.5;
     private static final double HIT_HALF_HEIGHT = 3.0;      // vertical reach above/below the impact point
-    private static final double DAMAGE = 8.0;               // 4 hearts of true damage
+    private static final double CENTER_DAMAGE = 6.0;        // 3 hearts of true damage right under the impact point
+    private static final double EDGE_DAMAGE = 3.0;          // 1.5 hearts at the very edge of the slam
     private static final double KNOCKBACK_OUT = 0.7;
     private static final double KNOCKBACK_UP = 0.65;
 
@@ -245,11 +246,15 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
             double reach = HIT_RADIUS + target.getWidth() / 2.0;
             if (dx * dx + dz * dz > reach * reach) continue;
 
-            boolean landed = TrueDamage.of(DAMAGE).attacker(state.caster).ability(getName()).apply(target);
+            // Damage falls off in a straight line from the centre of the slam to its edge.
+            double horizontal = Math.hypot(dx, dz);
+            double falloff = Math.min(1.0, horizontal / HIT_RADIUS);
+            double damage = CENTER_DAMAGE + (EDGE_DAMAGE - CENTER_DAMAGE) * falloff;
+
+            boolean landed = TrueDamage.of(damage).attacker(state.caster).ability(getName()).apply(target);
             if (!landed || target.isDead()) continue; // an ability shield soaked it up
 
             // Thrown outward from the impact point (straight back along the swing if dead centre).
-            double horizontal = Math.hypot(dx, dz);
             double outX = horizontal < 0.1 ? state.dirX : dx / horizontal;
             double outZ = horizontal < 0.1 ? state.dirZ : dz / horizontal;
             target.setVelocity(new Vector(outX * KNOCKBACK_OUT, KNOCKBACK_UP, outZ * KNOCKBACK_OUT));
@@ -388,7 +393,7 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return "A giant tentacle slams down crushing anything under it.";
+        return "A giant tentacle slams down, crushing everything in the area. Damage is highest in the centre and weaker towards the edge.";
     }
 
     private static final class SlamState {

@@ -25,6 +25,7 @@ public final class IceBlockVisual {
     private static final Set<IceBlockVisual> ACTIVE = new HashSet<>();
 
     private final BlockDisplay display;
+    private final BlockDisplay inside;
     private final LivingEntity target;
     private boolean removed = false;
 
@@ -36,21 +37,25 @@ public final class IceBlockVisual {
         float height = (float) (box.getHeight() + PADDING);
 
         Location feet = fixedRotation(target.getLocation());
-        this.display = feet.getWorld().spawn(feet, BlockDisplay.class, d -> {
-            d.setBlock(Material.ICE.createBlockData());
-            d.setBrightness(new Display.Brightness(15, 15));
-            // A block display's origin is the block's corner, so shift it back by half its width to
-            // centre it on the target, and down by half the padding so it surrounds the feet too.
-            d.setTransformation(new Transformation(
-                    new Vector3f(-width / 2f, (float) (-PADDING / 2.0), -width / 2f),
-                    new Quaternionf(),
-                    new Vector3f(width, height, width),
-                    new Quaternionf()));
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setTeleportDuration(1);
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        // A block display's origin is the block's corner, so shift it back by half its width to
+        // centre it on the target, and down by half the padding so it surrounds the feet too.
+        this.display = spawnBox(feet, new Transformation(
+                new Vector3f(-width / 2f, (float) (-PADDING / 2.0), -width / 2f),
+                new Quaternionf(),
+                new Vector3f(width, height, width),
+                new Quaternionf()));
+
+        // Blocks are only drawn from the outside, so the frozen player's own camera (inside the box)
+        // would see nothing. A second, slightly smaller box with negative scale is turned inside out,
+        // so its faces point inwards and are drawn from the inside. With a negative scale the box
+        // extends the other way from its origin, so the translation is flipped to land on the same spot.
+        float innerWidth = width - 0.02f;
+        float innerHeight = height - 0.02f;
+        this.inside = spawnBox(feet, new Transformation(
+                new Vector3f(innerWidth / 2f, innerHeight - (float) (PADDING / 2.0) + 0.01f, innerWidth / 2f),
+                new Quaternionf(),
+                new Vector3f(-innerWidth, -innerHeight, -innerWidth),
+                new Quaternionf()));
         ACTIVE.add(this);
 
         target.getWorld().playSound(feet, Sound.ENTITY_PLAYER_HURT_FREEZE, 1.0f, 1.0f);
@@ -69,10 +74,24 @@ public final class IceBlockVisual {
                     cancel();
                     return;
                 }
-                display.teleport(fixedRotation(target.getLocation()));
+                Location at = fixedRotation(target.getLocation());
+                display.teleport(at);
+                inside.teleport(at);
                 age++;
             }
         }.runTaskTimer(plugin, 1L, 1L);
+    }
+
+    private static BlockDisplay spawnBox(Location at, Transformation transformation) {
+        return at.getWorld().spawn(at, BlockDisplay.class, d -> {
+            d.setBlock(Material.ICE.createBlockData());
+            d.setBrightness(new Display.Brightness(15, 15));
+            d.setTransformation(transformation);
+            d.setBillboard(Display.Billboard.FIXED);
+            d.setTeleportDuration(1);
+            d.setPersistent(false);
+            d.setInvulnerable(true);
+        });
     }
 
     private static Location fixedRotation(Location loc) {
@@ -98,6 +117,7 @@ public final class IceBlockVisual {
     public void remove() {
         removed = true;
         if (display.isValid()) display.remove();
+        if (inside.isValid()) inside.remove();
         ACTIVE.remove(this);
     }
 

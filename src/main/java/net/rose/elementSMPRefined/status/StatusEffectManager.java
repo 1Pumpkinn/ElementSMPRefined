@@ -1,6 +1,10 @@
 package net.rose.elementSMPRefined.status;
 
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -24,6 +28,9 @@ public class StatusEffectManager {
     private final JavaPlugin plugin;
     private final Map<UUID, Map<StatusEffectType, StatusEffectInstance>> activeEffects = new ConcurrentHashMap<>();
     private final Map<StatusEffectType, StatusEffectData> effectData = new EnumMap<>(StatusEffectType.class);
+
+    // Stun/Root/Freeze zero out jump strength so the player can't hop around. Transient, so it is never saved with the player.
+    private static final NamespacedKey JUMP_LOCK_KEY = new NamespacedKey("elementsmp", "status_jump_lock");
 
     private BukkitTask monitorTask;
 
@@ -56,7 +63,7 @@ public class StatusEffectManager {
         registerEffectData(StatusEffectType.STUN, StatusEffectData.builder()
                 .displayName("Stun")
                 .description("Unable to move, but can look and interact")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 5, false, false))
+                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 6, false, false))
                 .isStackable(false)
                 .maxDuration(400) // 8 seconds max
                 .build());
@@ -65,7 +72,7 @@ public class StatusEffectManager {
         registerEffectData(StatusEffectType.ROOT, StatusEffectData.builder()
                 .displayName("Root")
                 .description("Rooted in place")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 5, false, false))
+                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 6, false, false))
                 .isStackable(false)
                 .maxDuration(400) // 8 seconds max
                 .build());
@@ -260,6 +267,30 @@ public class StatusEffectManager {
         for (PotionEffect effect : strongest.values()) {
             player.addPotionEffect(effect);
         }
+        setJumpLock(player, active.containsKey(StatusEffectType.STUN)
+                || active.containsKey(StatusEffectType.ROOT)
+                || active.containsKey(StatusEffectType.FREEZE));
+    }
+
+    /** Adds/removes a transient -100% jump strength modifier. Safe to call repeatedly. */
+    private void setJumpLock(Player player, boolean on) {
+        AttributeInstance attribute = player.getAttribute(Attribute.JUMP_STRENGTH);
+        if (attribute == null) return;
+
+        AttributeModifier existing = null;
+        for (AttributeModifier modifier : attribute.getModifiers()) {
+            if (JUMP_LOCK_KEY.equals(modifier.getKey())) {
+                existing = modifier;
+                break;
+            }
+        }
+
+        if (on && existing == null) {
+            attribute.addTransientModifier(new AttributeModifier(
+                    JUMP_LOCK_KEY, -1.0, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
+        } else if (!on && existing != null) {
+            attribute.removeModifier(existing);
+        }
     }
 
     private void removePotionEffects(Player player, StatusEffectType type) {
@@ -286,6 +317,7 @@ public class StatusEffectManager {
         for (StatusEffectType type : removed.keySet()) {
             removePotionEffects(player, type);
         }
+        setJumpLock(player, false);
     }
 
     private void startEffectMonitor() {

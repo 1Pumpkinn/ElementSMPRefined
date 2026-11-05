@@ -61,7 +61,9 @@ public class StatusEffectListener implements Listener {
                 return;
             }
 
-            // Stun / Root / Freeze: they can't move but may still look around. Cancelling the event would
+            // Stun / Root / Freeze: they can't move but may still look around. Slowness 7 + the jump lock make
+            // voluntary movement impossible, so this only fires for knockback/velocity - rotation-only events
+            // never reach here, which is what keeps free look working. Cancelling the event would
             // also snap their camera back (the rollback restores the old yaw/pitch), so instead keep the
             // old position and carry over the new rotation.
             Location locked = event.getFrom().clone();

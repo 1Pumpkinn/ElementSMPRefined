@@ -23,9 +23,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class FrostFreezeListener implements Listener {
 
-    private static final double CHANCE = 0.05; // 5% (keep FrostElement's info text in sync)
-    private static final int CHANCE_PERCENT = 5;
-    private static final int FREEZE_TICKS = 40; // 2 seconds
+    private static final double CHANCE = 100.0; // 5% (keep FrostElement's info text in sync)
+    private static final int CHANCE_PERCENT = 100;
+    private static final int FREEZE_TICKS = 30; // 1.5 seconds
 
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;

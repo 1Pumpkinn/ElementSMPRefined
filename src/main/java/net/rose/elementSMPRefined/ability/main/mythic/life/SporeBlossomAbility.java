@@ -196,6 +196,10 @@ public class SporeBlossomAbility extends BaseAbility {
             this.cast = cast;
             this.generation = generation;
             this.pos = pos.clone();
+            // The bloom point can be a clone of the caster's eye location; it must never carry their yaw/pitch,
+            // or the display entity itself tilts to wherever they were looking.
+            this.pos.setYaw(0f);
+            this.pos.setPitch(0f);
             this.velocity = velocity.clone();
             this.smoothing = PingCompensation.smoothingTicks(cast.caster);
         }
@@ -306,7 +310,13 @@ public class SporeBlossomAbility extends BaseAbility {
                 size *= 1f + THROB * (float) Math.sin(age * 1.6 + spinOffset);
             }
 
-            Quaternionf rotation = new Quaternionf().rotateY(spinOffset + age * SPIN_PER_TICK);
+            // The spore blossom block model hangs from a ceiling (flower pointing down), so flip it 180 degrees
+            // around X first to make the flower face up, then spin around the world's vertical axis.
+            // Entity yaw/pitch is always 0 and billboarding is off, so this is the only rotation applied
+            // and the blossom looks the same no matter where the caster is looking.
+            Quaternionf rotation = new Quaternionf()
+                    .rotateY(spinOffset + age * SPIN_PER_TICK)
+                    .rotateX((float) Math.PI);
             // Scale and spin both happen around the block's corner, so shift it back to keep the centre on pos.
             Vector3f shift = new Vector3f(size / 2f).rotate(rotation).negate();
             Transformation transformation = new Transformation(
@@ -319,6 +329,8 @@ public class SporeBlossomAbility extends BaseAbility {
                 final Transformation initial = transformation;
                 display = w.spawn(pos, BlockDisplay.class, d -> {
                     d.setBlock(Material.SPORE_BLOSSOM.createBlockData());
+                    d.setBillboard(Display.Billboard.FIXED);
+                    d.setRotation(0f, 0f);
                     d.setBrightness(new Display.Brightness(15, 15));
                     d.setTransformation(initial);
                     d.setTeleportDuration(smoothing);
@@ -330,6 +342,7 @@ public class SporeBlossomAbility extends BaseAbility {
             }
 
             display.teleport(pos);
+            display.setRotation(0f, 0f);
             display.setTransformation(transformation);
             display.setInterpolationDelay(0);
         }

@@ -38,9 +38,6 @@ public final class Constants {
     }
 
     public static final class Animation {
-        public static final int ROLL_STEPS = 16;
-        public static final long ROLL_DELAY_TICKS = 3L;
-
         // Gem orbit shown during a reroll
         public static final int ORBIT_GEMS_PER_ELEMENT = 1;
         public static final int ORBIT_SPIN_TICKS = 50;

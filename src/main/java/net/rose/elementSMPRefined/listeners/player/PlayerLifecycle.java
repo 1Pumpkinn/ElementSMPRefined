@@ -14,6 +14,7 @@ import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
+import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -66,8 +67,8 @@ public class PlayerLifecycle implements Listener {
 
         if (pd.getCurrentElement() == null) {
             // First join: skip ElementSelectionGUI entirely and roll the
-            // player's starter element the same way the basic reroller
-            // item does (title animation, then a random basic element).
+            // player's starter element with the same gem orbit animation
+            // the basic reroller item plays.
             scheduler.runAfterPlayerLoad(() -> {
                 if (player.isOnline()) {
                     rollStarterElement(player);
@@ -100,42 +101,35 @@ public class PlayerLifecycle implements Listener {
 
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
-        final int steps = Constants.Animation.ROLL_STEPS;
-        final long interval = Constants.Animation.ROLL_DELAY_TICKS;
+        final ElementGemOrbitVisual visual = new ElementGemOrbitVisual(player, basicElements, targetElement);
 
         new BukkitRunnable() {
-            int tick = 0;
+            boolean assigned = false;
 
             @Override
             public void run() {
-                if (!player.isOnline()) {
-                    // Player disconnected mid-roll - nothing was consumed
-                    // (this isn't an item use), so just stop; they'll roll
-                    // again next join since getCurrentElement() is still null.
+                // Nothing was consumed on first join, so an aborted roll needs no refund:
+                // current element is still null and they simply roll again next join.
+                if (!player.isOnline() || player.isDead() || !elementManager.isCurrentlyRolling(player)) {
+                    visual.remove();
                     cancel();
                     elementManager.endRolling(player);
                     return;
                 }
 
-                if (!elementManager.isCurrentlyRolling(player)) {
+                visual.tick();
+
+                if (!assigned && visual.hasRevealed()) {
+                    assigned = true;
+                    elementManager.assignBasicElement(player, targetElement);
+                }
+
+                if (visual.isDone()) {
                     cancel();
                     elementManager.endRolling(player);
-                    return;
                 }
-
-                if (tick >= steps) {
-                    cancel();
-                    try {
-                        elementManager.assignBasicElement(player, targetElement);
-                    } finally {
-                        elementManager.endRolling(player);
-                    }
-                    return;
-                }
-
-                tick++;
             }
-        }.runTaskTimer(plugin, 0L, interval);
+        }.runTaskTimer(plugin, 0L, 1L);
     }
 
     private void refundPendingRerollers(Player player, PlayerData pd) {

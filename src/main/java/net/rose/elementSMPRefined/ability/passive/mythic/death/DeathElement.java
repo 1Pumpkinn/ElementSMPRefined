@@ -4,7 +4,7 @@ import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.mythic.death.DeathBackstabAbility;
-import net.rose.elementSMPRefined.ability.main.mythic.death.DeathSideStepAbility;
+import net.rose.elementSMPRefined.ability.main.mythic.death.DeathBlackSlashAbility;
 import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathNightInvisibilityListener;
 import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathWitherOnHitListener;
 import net.rose.elementSMPRefined.ElementSMPRefined;
@@ -21,7 +21,7 @@ public class DeathElement extends BaseElement implements ListenerProvider {
 
     public DeathElement(JavaPlugin plugin, ConfigManager configManager) {
         super(plugin, ElementType.DEATH,
-                new DeathSideStepAbility(plugin, configManager),
+                new DeathBlackSlashAbility(plugin, configManager),
                 new DeathBackstabAbility(plugin, configManager));
     }
 

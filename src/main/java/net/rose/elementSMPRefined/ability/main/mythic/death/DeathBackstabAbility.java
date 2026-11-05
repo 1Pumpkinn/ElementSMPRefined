@@ -107,7 +107,7 @@ public class DeathBackstabAbility extends BaseAbility {
         Location targetLoc = target.getLocation();
 
         // Horizontal-only facing direction (yaw alone), so looking straight up/down
-        // can't collapse this into a zero vector - same trick as DeathSideStepAbility.
+        // can't collapse this into a zero vector.
         double yawRad = Math.toRadians(targetLoc.getYaw());
         Vector facing = new Vector(-Math.sin(yawRad), 0, Math.cos(yawRad));
         Vector behindDir = facing.clone().multiply(-1);

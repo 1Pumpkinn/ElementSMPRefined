@@ -59,8 +59,8 @@ public class SporeBlossomAbility extends BaseAbility {
     // ---- Per generation: index 0 = the big blossom, 1 = its 4 children, 2 = the 8 grandchildren of each ----
     private static final float[] SIZE = {2.2f, 1.3f, 0.75f};          // display scale in blocks
     private static final double[] RADIUS = {3.5, 2.4, 1.6};           // burst radius
-    private static final double[] DAMAGE = {2.0, 1.0, 0.5};           // true damage per burst (1.0 = half a heart)
-    private static final int[] POISON_TICKS = {120, 80, 40};          // poison length per burst
+    private static final double[] DAMAGE = {8.0, 5.0, 3.0};           // true damage per burst (1.0 = half a heart)
+    private static final int[] POISON_TICKS = {180, 120, 60};         // poison length per burst
     private static final int[] SPLIT_INTO = {4, 8, 0};                // children a burst throws out
     private static final int[] MAX_FLIGHT_TICKS = {0, 80, 80};      // children burst when they land; this is only a safety net
     private static final double[] FLIGHT_SPEED = {0.0, 0.45, 0.40};   // horizontal blocks per tick

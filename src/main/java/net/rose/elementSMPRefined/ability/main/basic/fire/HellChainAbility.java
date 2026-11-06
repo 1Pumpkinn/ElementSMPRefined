@@ -9,6 +9,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+import net.rose.elementSMPRefined.util.bukkit.WebUtil;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.visual.model.HellsChainVisual;
 
@@ -302,7 +303,7 @@ public class HellChainAbility extends BaseAbility {
                     vy = Math.max(vy, DRAG_GROUND_LIFT);
                 }
 
-                target.setVelocity(new Vector(vx, vy, vz));
+                target.setVelocity(WebUtil.compensate(target, new Vector(vx, vy, vz)));
 
                 playChainStep(player, casterEye, ticks);
                 ticks++;
@@ -387,7 +388,7 @@ public class HellChainAbility extends BaseAbility {
                 }
                 applyStepAssist(player, velocity);
 
-                player.setVelocity(velocity);
+                player.setVelocity(WebUtil.compensate(player, velocity));
                 player.setFallDistance(0f);
 
                 playChainStep(player, eye, ticks);
@@ -535,10 +536,12 @@ public class HellChainAbility extends BaseAbility {
                     // stays pressed against it rather than drifting off and falling away
                     // mid-climb.
                     player.setVelocity(
-                            new Vector(
-                                    intoWall.getX() * CLIMB_STICK_STRENGTH,
-                                    CLIMB_SPEED,
-                                    intoWall.getZ() * CLIMB_STICK_STRENGTH));
+                            WebUtil.compensate(
+                                    player,
+                                    new Vector(
+                                            intoWall.getX() * CLIMB_STICK_STRENGTH,
+                                            CLIMB_SPEED,
+                                            intoWall.getZ() * CLIMB_STICK_STRENGTH)));
                     player.setFallDistance(0f);
 
                     // Keep the chain anchored where it hit the wall while that anchor is still
@@ -636,7 +639,7 @@ public class HellChainAbility extends BaseAbility {
                 if (newVelocity.length() > MAX_SPEED) {
                     newVelocity = newVelocity.normalize().multiply(MAX_SPEED);
                 }
-                player.setVelocity(newVelocity);
+                player.setVelocity(WebUtil.compensate(player, newVelocity));
                 player.setFallDistance(0f);
 
                 playChainStep(player, currentLoc, ticks);
@@ -688,7 +691,7 @@ public class HellChainAbility extends BaseAbility {
     private void mantleOntoLedge(Player player, Location at, Vector intoWall, TeamManager team) {
         Vector boost = intoWall.clone().multiply(MANTLE_FORWARD_VELOCITY);
         boost.setY(MANTLE_UPWARD_VELOCITY);
-        player.setVelocity(boost);
+        player.setVelocity(WebUtil.compensate(player, boost));
         player.setFallDistance(0f);
         player.getWorld().playSound(at, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
         player.getWorld().spawnParticle(Particle.LAVA, at, 15, 0.4, 0.2, 0.4, 0.05);

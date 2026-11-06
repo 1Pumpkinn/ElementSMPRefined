@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.util.bukkit.WebUtil;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -42,10 +43,20 @@ public class AirDashAbility extends BaseAbility {
 
         Vector direction = player.getLocation().getDirection();
         direction.setY(Math.max(direction.getY(), 0.5));
-        player.setVelocity(direction.multiply(dashPower));
+        final Vector dashVelocity = direction.multiply(dashPower);
+        // In a web the dash is driven by teleport steps (see the runnable) - setting velocity
+        // there only makes the server rubber-band the player.
+        if (!WebUtil.isInWeb(player)) {
+            player.setVelocity(dashVelocity);
+        }
 
         new BukkitRunnable() {
             int ticks = 0;
+            // The velocity the dash "should" currently have, decayed like vanilla air movement.
+            // Webs wipe the player's real momentum every tick, so while inside one the player is
+            // moved by this much per tick directly instead.
+            final Vector intended = dashVelocity.clone();
+            boolean wasInWeb = WebUtil.isInWeb(player);
 
             @Override
             public void run() {
@@ -53,6 +64,21 @@ public class AirDashAbility extends BaseAbility {
                     cancel();
                     return;
                 }
+
+                boolean inWeb = WebUtil.isInWeb(player);
+                if (inWeb) {
+                    WebUtil.moveThrough(player, intended);
+                    player.setVelocity(new Vector(0, 0, 0));
+                } else if (wasInWeb) {
+                    // Just broke out of the web: the web wiped the real momentum, so hand the
+                    // dash back its full velocity instead of letting it fizzle at the edge.
+                    player.setVelocity(intended.clone());
+                }
+                wasInWeb = inWeb;
+
+                intended.setX(intended.getX() * 0.91);
+                intended.setZ(intended.getZ() * 0.91);
+                intended.setY((intended.getY() - 0.08) * 0.98);
 
                 Location loc = player.getLocation();
                 player.getWorld()

@@ -25,7 +25,7 @@ import java.util.UUID;
  */
 public class TeamCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS =
-            List.of("create", "invite", "accept", "deny", "leave", "kick", "transfer", "disband", "info", "ally");
+            List.of("create", "invite", "accept", "deny", "leave", "kick", "transfer", "disband", "info", "ally", "chat");
     private static final List<String> ALLY_SUBCOMMANDS = List.of("add", "accept", "deny", "remove");
 
     private final TeamManager teams;
@@ -56,6 +56,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             case "disband" -> disband(p);
             case "info", "list" -> info(p, args);
             case "ally" -> ally(p, args);
+            case "chat", "c" -> chat(p, args);
             default -> p.sendMessage(Lang.TEAM_USAGE);
         }
         return true;
@@ -221,6 +222,37 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                 allyNames.isEmpty() ? "(none)" : String.join(", ", allyNames)));
     }
 
+    private void chat(Player p, String[] args) {
+        UUID me = p.getUniqueId();
+        Team team = teams.getTeam(me);
+        if (team == null) { p.sendMessage(Lang.TEAM_NOT_IN_TEAM); return; }
+
+        if (args.length >= 2) {
+            String arg = args[1].toLowerCase();
+            if (args.length == 2 && (arg.equals("on") || arg.equals("off"))) {
+                boolean enable = arg.equals("on");
+                teams.setTeamChat(me, enable);
+                p.sendMessage(Lang.teamNote(enable ? "Team chat on. Only your team can see your messages."
+                        : "Team chat off. Your messages go to everyone again."));
+                return;
+            }
+            String message = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
+            sendTeamMessage(team, p, message);
+            return;
+        }
+
+        boolean enabled = teams.toggleTeamChat(me);
+        p.sendMessage(Lang.teamNote(enabled ? "Team chat on. Only your team can see your messages. Use /team chat to turn it off."
+                : "Team chat off. Your messages go to everyone again."));
+    }
+
+    /** Sends a one-off message to the team without changing the sender's chat mode. */
+    private void sendTeamMessage(Team team, Player sender, String message) {
+        Component line = Lang.teamChatMessage(team.getName(), sender.getName(), message);
+        broadcast(team, line, null);
+        Bukkit.getConsoleSender().sendMessage(line);
+    }
+
     // Alliances
 
     private void ally(Player p, String[] args) {
@@ -370,6 +402,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                 case "accept", "deny" -> teams.getInvites(me).forEach(t -> suggestions.add(t.getName()));
                 case "info", "list" -> teams.getAllTeams().forEach(t -> suggestions.add(t.getName()));
                 case "ally" -> suggestions.addAll(ALLY_SUBCOMMANDS);
+                case "chat" -> suggestions.addAll(List.of("on", "off"));
                 default -> { }
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("ally") && mine != null) {

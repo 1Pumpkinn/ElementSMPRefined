@@ -80,6 +80,7 @@ public class TeamManager {
     private final Map<UUID, String> memberTeam = new ConcurrentHashMap<>();      // player -> team id
     private final Map<UUID, Map<String, Long>> invites = new ConcurrentHashMap<>();          // invitee -> team id -> expiry
     private final Map<String, Map<String, Long>> allyRequests = new ConcurrentHashMap<>();   // target team id -> requesting team id -> expiry
+    private final Set<UUID> teamChat = ConcurrentHashMap.newKeySet();                       // players whose chat goes to their team only
     private boolean loadFailed = false;
 
     public TeamManager(JavaPlugin plugin, ConfigManager config) {
@@ -178,6 +179,7 @@ public class TeamManager {
         teams.remove(team.id);
         for (UUID member : team.members) {
             memberTeam.remove(member, team.id);
+            teamChat.remove(member);
         }
         for (Team other : teams.values()) {
             other.allies.remove(team.id);
@@ -202,6 +204,7 @@ public class TeamManager {
     public boolean removeMember(Team team, UUID player) {
         if (team.isOwner(player) || !team.members.remove(player)) return false;
         memberTeam.remove(player, team.id);
+        teamChat.remove(player);
         save();
         return true;
     }
@@ -305,6 +308,24 @@ public class TeamManager {
     /** Invites only make sense while the player is around, so drop theirs when they leave. */
     public void onPlayerQuit(UUID uuid) {
         invites.remove(uuid);
+        teamChat.remove(uuid);
+    }
+
+    /** True while the player's normal chat messages are sent to their team only. */
+    public boolean isTeamChat(UUID player) {
+        return player != null && teamChat.contains(player);
+    }
+
+    public void setTeamChat(UUID player, boolean enabled) {
+        if (enabled) teamChat.add(player);
+        else teamChat.remove(player);
+    }
+
+    /** Flips team chat for the player and returns the new state. Team chat is not saved across restarts. */
+    public boolean toggleTeamChat(UUID player) {
+        if (teamChat.remove(player)) return false;
+        teamChat.add(player);
+        return true;
     }
 
     // Names

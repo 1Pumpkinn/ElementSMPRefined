@@ -93,7 +93,7 @@ public final class Lang {
     public static final Component TEAM_PLAYERS_ONLY = text("Players only");
 
     public static final Component TEAM_USAGE =
-            yellow("Usage: /team <create|invite|accept|deny|leave|kick|transfer|disband|info|ally>");
+            yellow("Usage: /team <create|invite|accept|deny|leave|kick|transfer|disband|info|ally|chat>");
 
     public static final Component TEAM_NOT_IN_TEAM = red("You are not in a team.");
 
@@ -115,6 +115,22 @@ public final class Lang {
 
     public static Component teamNote(String message) {
         return yellow(message);
+    }
+
+    public static Component teamChatMessage(String team, String player, String message) {
+        return textOfChildren(
+                text("[Team " + team + "] ", AQUA),
+                text(player, WHITE),
+                text(": ", GRAY),
+                text(message, WHITE));
+    }
+
+    public static Component teamChatMessage(String team, String player, Component message) {
+        return textOfChildren(
+                text("[Team " + team + "] ", AQUA),
+                text(player, WHITE),
+                text(": ", GRAY),
+                message);
     }
 
     public static Component teamInfoLine(String label, String value) {

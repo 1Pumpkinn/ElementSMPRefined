@@ -59,6 +59,8 @@ public class ListenerInitializer {
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
         pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.CombatListener(plugin.getTeamManager()), plugin);
 
+        pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.player.TeamChatListener(plugin.getTeamManager()), plugin);
+
         pluginManager.registerEvents(new StatusEffectListener(plugin), plugin);
 
         pluginManager.registerEvents(new DimensionDisable(plugin.getConfigManager()), plugin);

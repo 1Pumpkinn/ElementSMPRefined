@@ -22,7 +22,7 @@ commands:
 
   team:
     description: Create and manage your team and its allies
-    usage: /team <create|invite|accept|deny|leave|kick|transfer|disband|info|ally> [args]
+    usage: /team <create|invite|accept|deny|leave|kick|transfer|disband|info|ally|chat> [args]
 
   ability1:
     description: Use your element's first ability

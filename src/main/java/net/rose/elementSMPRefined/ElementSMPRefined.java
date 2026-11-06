@@ -32,7 +32,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         // Sweep up any entities on plugin disable / restart. Each sweep is isolated so one
         // failure can't leave the others' entities behind.
         sweep("StarFall", StarFallAbility::removeAll);
-        sweep("Chain", HellsChainVisual::removeAll);
+        sweep("Hell's Chain", HellsChainVisual::removeAll);
         sweep("AirCutter", AirCutterVisual::removeAll);
         sweep("LightningSpear", LightningSpearVisual::removeAll);
         sweep("MagmaBeam", MagmaBeamVisual::removeAll);
@@ -41,7 +41,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         sweep("ElementGemOrbit", ElementGemOrbitVisual::removeAll);
         sweep("Magnetar", MagnetarVisual::removeAll);
         sweep("Tornado", TornadoVisual::removeAll);
-        sweep("DarkBlade", DeathsVoidVisual::removeAll);
+        sweep("Death's Void", DeathsVoidVisual::removeAll);
         sweep("IceSpike", IceSpikeVisual::removeAll);
         sweep("FreezeEffect", FreezeEffectVisual::removeAll);
         sweep("FrostIcicleBarrage", FrostIcicleBarrageAbility::removeAll);

@@ -10,6 +10,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.particles.element.LifeParticles;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
+import net.rose.elementSMPRefined.util.visual.PingCompensation;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -62,6 +63,8 @@ public class LifeTotemAbility extends BaseAbility {
     private static final double LAUNCH_LIFT = 0.12; // extra upward push so the throw arcs
     private static final double GRAVITY = 0.05; // blocks per tick^2
     private static final int MAX_FLIGHT_TICKS = 60;
+    // Thrown projectile: every extra tick of smoothing makes the totem trail its real position.
+    private static final int MAX_SMOOTHING_TICKS = 2;
     private static final float SPIN_PER_TICK = 0.5f; // radians, end over end
     private static final float FLIGHT_SCALE = 1.2f;
 
@@ -269,6 +272,7 @@ public class LifeTotemAbility extends BaseAbility {
 
         private boolean planted = false;
         private int flightTicks = 0;
+        private int smoothing = 1;
         private float spin = 0f;
 
         private Location base; // where the totem's base touches the ground
@@ -333,6 +337,12 @@ public class LifeTotemAbility extends BaseAbility {
 
             pos.add(vel);
             Location loc = pos.toLocation(world);
+            int wanted =
+                    PingCompensation.smoothingTicks(Bukkit.getPlayer(ownerId), MAX_SMOOTHING_TICKS);
+            if (wanted != smoothing) {
+                smoothing = wanted;
+                display.setTeleportDuration(wanted);
+            }
             display.teleport(loc);
 
             spin += SPIN_PER_TICK;

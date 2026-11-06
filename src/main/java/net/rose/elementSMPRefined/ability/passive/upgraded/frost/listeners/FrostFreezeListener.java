@@ -91,22 +91,27 @@ public class FrostFreezeListener implements Listener {
                                 return;
                             }
 
-                            // Gliding would hold them up (and carry them), so end it and let
-                            // gravity take over.
-                            if (victim.isGliding()) victim.setGliding(false);
+                            try {
+                                // Gliding would hold them up (and carry them), so end it and let
+                                // gravity take over.
+                                if (victim.isGliding()) victim.setGliding(false);
 
-                            plugin.getStatusEffectManager()
-                                    .applyEffect(
-                                            attacker,
-                                            victim,
-                                            StatusEffectType.STUN,
-                                            FREEZE_TICKS,
-                                            1);
-                            FreezeEffectVisual.encase(plugin, victim, FREEZE_TICKS);
+                                plugin.getStatusEffectManager()
+                                        .applyEffect(
+                                                attacker,
+                                                victim,
+                                                StatusEffectType.STUN,
+                                                FREEZE_TICKS,
+                                                1);
+                                FreezeEffectVisual.encase(plugin, victim, FREEZE_TICKS);
 
-                            plugin.getServer()
-                                    .getScheduler()
-                                    .runTaskLater(plugin, () -> frozen.remove(id), FREEZE_TICKS);
+                                plugin.getServer()
+                                        .getScheduler()
+                                        .runTaskLater(plugin, () -> frozen.remove(id), FREEZE_TICKS);
+                            } catch (RuntimeException e) {
+                                frozen.remove(id); // never leave the victim un-freezable
+                                throw e;
+                            }
                         });
     }
 }

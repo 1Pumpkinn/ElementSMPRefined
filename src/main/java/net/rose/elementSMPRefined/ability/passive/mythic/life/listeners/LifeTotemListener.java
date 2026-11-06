@@ -1,7 +1,9 @@
 package net.rose.elementSMPRefined.ability.passive.mythic.life.listeners;
 
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
+
 import net.rose.elementSMPRefined.ability.main.mythic.life.LifeTotemAbility;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

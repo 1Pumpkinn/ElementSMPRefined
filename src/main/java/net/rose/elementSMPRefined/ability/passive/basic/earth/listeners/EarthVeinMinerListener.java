@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.basic.earth.listeners;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
+
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -22,18 +23,27 @@ import java.util.Set;
 public class EarthVeinMinerListener implements Listener {
     private final ElementManager elementManager;
 
-    private static final Set<Material> ORES = EnumSet.of(
-            Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
-            Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE,
-            Material.COPPER_ORE, Material.DEEPSLATE_COPPER_ORE,
-            Material.GOLD_ORE, Material.DEEPSLATE_GOLD_ORE,
-            Material.REDSTONE_ORE, Material.DEEPSLATE_REDSTONE_ORE,
-            Material.LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE,
-            Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
-            Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE,
-            Material.NETHER_GOLD_ORE, Material.NETHER_QUARTZ_ORE,
-            Material.ANCIENT_DEBRIS
-    );
+    private static final Set<Material> ORES =
+            EnumSet.of(
+                    Material.COAL_ORE,
+                    Material.DEEPSLATE_COAL_ORE,
+                    Material.IRON_ORE,
+                    Material.DEEPSLATE_IRON_ORE,
+                    Material.COPPER_ORE,
+                    Material.DEEPSLATE_COPPER_ORE,
+                    Material.GOLD_ORE,
+                    Material.DEEPSLATE_GOLD_ORE,
+                    Material.REDSTONE_ORE,
+                    Material.DEEPSLATE_REDSTONE_ORE,
+                    Material.LAPIS_ORE,
+                    Material.DEEPSLATE_LAPIS_ORE,
+                    Material.DIAMOND_ORE,
+                    Material.DEEPSLATE_DIAMOND_ORE,
+                    Material.EMERALD_ORE,
+                    Material.DEEPSLATE_EMERALD_ORE,
+                    Material.NETHER_GOLD_ORE,
+                    Material.NETHER_QUARTZ_ORE,
+                    Material.ANCIENT_DEBRIS);
 
     public EarthVeinMinerListener(ElementManager elementManager) {
         this.elementManager = elementManager;
@@ -63,7 +73,8 @@ public class EarthVeinMinerListener implements Listener {
             return;
         }
 
-        // Wrong tool (e.g. bare hands): the first ore yields nothing, so don't also destroy 15 neighbours for free.
+        // Wrong tool (e.g. bare hands): the first ore yields nothing, so don't also destroy 15
+        // neighbours for free.
         if (!block.isPreferredTool(player.getInventory().getItemInMainHand())) {
             return;
         }

@@ -5,7 +5,9 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.util.parse.ParseUtil;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
+
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -19,7 +21,6 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import net.rose.elementSMPRefined.util.parse.ParseUtil;
 
 /**
  * Grace period: a countdown boss bar shown to everyone while active, during
@@ -46,7 +47,8 @@ public class GracePeriod implements Listener {
     private int remainingSeconds;
     private boolean active;
 
-    public GracePeriod(ElementSMPRefined plugin, ConfigManager configManager, TaskScheduler scheduler) {
+    public GracePeriod(
+            ElementSMPRefined plugin, ConfigManager configManager, TaskScheduler scheduler) {
         this.plugin = plugin;
         this.configManager = configManager;
         this.scheduler = scheduler;
@@ -66,22 +68,27 @@ public class GracePeriod implements Listener {
         this.remainingSeconds = totalDurationSeconds;
         this.active = true;
 
-        this.bossBar = BossBar.bossBar(
-                Lang.gracePeriodBossBarTitle(ParseUtil.formatClock(remainingSeconds)),
-                1.0f,
-                configManager.getGracePeriodBossBarColor(),
-                BossBar.Overlay.PROGRESS
-        );
+        this.bossBar =
+                BossBar.bossBar(
+                        Lang.gracePeriodBossBarTitle(ParseUtil.formatClock(remainingSeconds)),
+                        1.0f,
+                        configManager.getGracePeriodBossBarColor(),
+                        BossBar.Overlay.PROGRESS);
         plugin.getServer().getOnlinePlayers().forEach(player -> player.showBossBar(bossBar));
 
         closeDimensionsOnStart();
 
-        this.task = scheduler.runTimer(this::tick, Constants.Timing.TICKS_PER_SECOND, Constants.Timing.TICKS_PER_SECOND);
+        this.task =
+                scheduler.runTimer(
+                        this::tick,
+                        Constants.Timing.TICKS_PER_SECOND,
+                        Constants.Timing.TICKS_PER_SECOND);
         return true;
     }
 
     private void closeDimensionsOnStart() {
-        if (configManager.isGracePeriodDisableNetherOnStart() && !configManager.isNetherDisabled()) {
+        if (configManager.isGracePeriodDisableNetherOnStart()
+                && !configManager.isNetherDisabled()) {
             configManager.setNetherDisabled(true);
             plugin.getServer().broadcast(Lang.dimensionCmdToggled("Nether", true));
         }
@@ -142,7 +149,8 @@ public class GracePeriod implements Listener {
             return;
         }
         bossBar.name(Lang.gracePeriodBossBarTitle(ParseUtil.formatClock(remainingSeconds)));
-        bossBar.progress(Math.max(0f, Math.min(1f, (float) remainingSeconds / totalDurationSeconds)));
+        bossBar.progress(
+                Math.max(0f, Math.min(1f, (float) remainingSeconds / totalDurationSeconds)));
     }
 
     /** @param natural true when the timer ran out by itself, false when it was stopped early. */
@@ -240,7 +248,8 @@ public class GracePeriod implements Listener {
         if (event.getDamager() instanceof Player player) {
             return player;
         }
-        if (event.getDamager() instanceof Projectile projectile && projectile.getShooter() instanceof Player player) {
+        if (event.getDamager() instanceof Projectile projectile
+                && projectile.getShooter() instanceof Player player) {
             return player;
         }
         return null;

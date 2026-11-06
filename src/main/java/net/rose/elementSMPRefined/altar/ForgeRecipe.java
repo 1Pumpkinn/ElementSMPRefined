@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.altar;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+
 import org.bukkit.Material;
 
 import java.util.List;
@@ -15,23 +16,30 @@ import java.util.Optional;
  * (see {@link #forBase(ElementType)}).
  */
 public enum ForgeRecipe {
-
-    FROST(ElementType.WATER, ElementType.FROST,
+    FROST(
+            ElementType.WATER,
+            ElementType.FROST,
             new Ingredient(Material.BLUE_ICE, 128, "Blue Ice"),
             new Ingredient(Material.POWDER_SNOW_BUCKET, 4, "Powdered Snow Bucket"),
             new Ingredient(Material.HEART_OF_THE_SEA, 1, "Heart of the Sea")),
 
-    LAVA(ElementType.FIRE, ElementType.LAVA,
+    LAVA(
+            ElementType.FIRE,
+            ElementType.LAVA,
             new Ingredient(Material.MAGMA_BLOCK, 128, "Magma Block"),
             new Ingredient(Material.MAGMA_CREAM, 64, "Magma Cream"),
             new Ingredient(Material.NETHERITE_INGOT, 1, "Netherite Ingot")),
 
-    STORM(ElementType.AIR, ElementType.STORM,
+    STORM(
+            ElementType.AIR,
+            ElementType.STORM,
             new Ingredient(Material.BREEZE_ROD, 64, "Breeze Rod"),
             new Ingredient(Material.COPPER_BLOCK, 128, "Copper Block"),
             new Ingredient(Material.HEAVY_CORE, 1, "Heavy Core")),
 
-    METAL(ElementType.EARTH, ElementType.METAL,
+    METAL(
+            ElementType.EARTH,
+            ElementType.METAL,
             new Ingredient(Material.IRON_BLOCK, 64, "Iron Block"),
             new Ingredient(Material.COBBLED_DEEPSLATE, 128, "Cobbled Deepslate"),
             new Ingredient(Material.DEEPSLATE_EMERALD_ORE, 1, "Deepslate Emerald Ore"));
@@ -54,11 +62,17 @@ public enum ForgeRecipe {
     }
 
     /** The basic element a Forged Upgrader turns into {@link #target()}. */
-    public ElementType base() { return base; }
+    public ElementType base() {
+        return base;
+    }
 
-    public ElementType target() { return target; }
+    public ElementType target() {
+        return target;
+    }
 
-    public List<Ingredient> ingredients() { return ingredients; }
+    public List<Ingredient> ingredients() {
+        return ingredients;
+    }
 
     /** The recipe that produces {@code element} (e.g. LAVA for a Lava player); empty for basic/mythic elements. */
     public static Optional<ForgeRecipe> forTarget(ElementType element) {

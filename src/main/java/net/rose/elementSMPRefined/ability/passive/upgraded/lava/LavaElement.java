@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,7 +21,9 @@ public class LavaElement extends BaseElement {
     private final LavaBurningDamagePassive burningDamage;
 
     public LavaElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.LAVA,
+        super(
+                plugin,
+                ElementType.LAVA,
                 new EruptionAbility(plugin, configManager),
                 new MagmaBeamAbility(plugin, configManager));
         this.burningDamage = new LavaBurningDamagePassive((ElementSMPRefined) plugin);
@@ -29,7 +32,13 @@ public class LavaElement extends BaseElement {
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
         if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 0, true, false));
+            player.addPotionEffect(
+                    new PotionEffect(
+                            PotionEffectType.FIRE_RESISTANCE,
+                            PotionEffect.INFINITE_DURATION,
+                            0,
+                            true,
+                            false));
         } else {
             EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
         }

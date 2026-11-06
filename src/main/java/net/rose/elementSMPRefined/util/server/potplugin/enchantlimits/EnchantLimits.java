@@ -1,17 +1,19 @@
 package net.rose.elementSMPRefined.util.server.potplugin.enchantlimits;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
+import net.rose.elementSMPRefined.core.AbstractElementPlugin;
+import net.rose.elementSMPRefined.items.EnchantableMace;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
-import net.rose.elementSMPRefined.core.AbstractElementPlugin;
-import net.rose.elementSMPRefined.items.EnchantableMace;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Per-enchantment level caps, stored in config.yml as "name=maxLevel"
@@ -44,7 +46,8 @@ public final class EnchantLimits {
             if (name != null && level != null && lookup(name) != null) {
                 limits.put(name, level);
             } else {
-                plugin.getLogger().warning("Ignoring invalid enchant-limits entry in config.yml: " + raw);
+                plugin.getLogger()
+                        .warning("Ignoring invalid enchant-limits entry in config.yml: " + raw);
             }
         }
     }
@@ -141,7 +144,8 @@ public final class EnchantLimits {
             return false;
         }
 
-        for (Map.Entry<Enchantment, Integer> entry : new ArrayList<>(item.getEnchantments().entrySet())) {
+        for (Map.Entry<Enchantment, Integer> entry :
+                new ArrayList<>(item.getEnchantments().entrySet())) {
             Enchantment enchantment = entry.getKey();
             if (exceeds(enchantment, entry.getValue())) {
                 item.removeEnchantment(enchantment);
@@ -184,7 +188,8 @@ public final class EnchantLimits {
     }
 
     private static Enchantment lookup(String name) {
-        NamespacedKey key = NamespacedKey.fromString(name.contains(":") ? name : "minecraft:" + name);
+        NamespacedKey key =
+                NamespacedKey.fromString(name.contains(":") ? name : "minecraft:" + name);
         return key == null ? null : Registry.ENCHANTMENT.get(key);
     }
 

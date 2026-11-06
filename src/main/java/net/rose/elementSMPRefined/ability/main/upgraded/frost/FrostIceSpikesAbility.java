@@ -1,15 +1,16 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.frost;
 
-import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.model.IceSpikeVisual;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -44,27 +45,32 @@ public class FrostIceSpikesAbility extends BaseAbility {
     // Rings of spikes: radius and spike count per ring, nearest ring first
     private static final double[] RING_RADII = {2.0, 3.5, 5.0};
     private static final int[] RING_SPIKES = {8, 13, 18};
-    private static final int RING_DELAY_TICKS = 2;      // gap between one ring starting and the next
-    private static final int SWEEP_TICKS = 8;           // a ring unzips around the circle over this long
+    private static final int RING_DELAY_TICKS = 2; // gap between one ring starting and the next
+    private static final int SWEEP_TICKS = 8; // a ring unzips around the circle over this long
     private static final double SPIKE_MAX_HEIGHT = 1.9; // inner ring, ground to point, in blocks
     private static final double SPIKE_MIN_HEIGHT = 1.2; // outer ring, ground to point, in blocks
 
     private static final double DAMAGE = 6.0; // 3 hearts of true damage
     private static final double LAUNCH_UP = 0.8;
-    // A spike only hurts what actually touches it: its hitbox is a cone that follows the drawn spike
-    // (wide at the base, tapering to the point), built from this many stacked slices. Each slice uses the
+    // A spike only hurts what actually touches it: its hitbox is a cone that follows the drawn
+    // spike
+    // (wide at the base, tapering to the point), built from this many stacked slices. Each slice
+    // uses the
     // cone's width at its bottom, so the hitbox is never thinner than the spike it covers.
     private static final int HIT_SLICES = 4;
-    private static final double HIT_QUERY_MARGIN = 1.5; // spike base + a wide entity's half-width, for the entity query
+    private static final double HIT_QUERY_MARGIN =
+            1.5; // spike base + a wide entity's half-width, for the entity query
     private static final int SLOW_TICKS = 60;
-    private static final int SLOW_AMPLIFIER = 1;       // Slowness II
+    private static final int SLOW_AMPLIFIER = 1; // Slowness II
 
     private static final int SCAN_UP = 2;
     private static final int SCAN_DOWN = 4;
 
-    // Radial jitter applied to a spike (see startSpikes) and the entity query that covers every spike
-    private static final double RADIUS_JITTER = 0.25;   // r +/- this
-    private static final double QUERY_XZ = RING_RADII[RING_RADII.length - 1] + RADIUS_JITTER + HIT_QUERY_MARGIN;
+    // Radial jitter applied to a spike (see startSpikes) and the entity query that covers every
+    // spike
+    private static final double RADIUS_JITTER = 0.25; // r +/- this
+    private static final double QUERY_XZ =
+            RING_RADII[RING_RADII.length - 1] + RADIUS_JITTER + HIT_QUERY_MARGIN;
     private static final double QUERY_Y = 6.0;
     private static final int QUERY_EVERY_TICKS = 4;
 
@@ -72,7 +78,13 @@ public class FrostIceSpikesAbility extends BaseAbility {
     private final Set<UUID> activeCasters = new HashSet<>();
 
     public FrostIceSpikesAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("frost_ice_spikes", ElementType.FROST, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
+        super(
+                "frost_ice_spikes",
+                ElementType.FROST,
+                2,
+                Constants.Cooldown.ABILITY_2_SECONDS,
+                2,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -111,8 +123,16 @@ public class FrostIceSpikesAbility extends BaseAbility {
                         scratch.setX(feet.getX() + Math.cos(angle) * r);
                         scratch.setY(feet.getY() + 0.15);
                         scratch.setZ(feet.getZ() + Math.sin(angle) * r);
-                        world.spawnParticle(Particle.BLOCK, scratch,
-                                1, 0.05, 0.05, 0.05, 0.0, Material.PACKED_ICE.createBlockData(), true);
+                        world.spawnParticle(
+                                Particle.BLOCK,
+                                scratch,
+                                1,
+                                0.05,
+                                0.05,
+                                0.05,
+                                0.0,
+                                Material.PACKED_ICE.createBlockData(),
+                                true);
                     }
                     if (ticks % 3 == 0) {
                         world.playSound(feet, Sound.BLOCK_GLASS_BREAK, 0.6f, 0.5f + ticks * 0.06f);
@@ -134,8 +154,16 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
     private void startSpikes(Player caster, TeamManager team, Location origin) {
         World world = origin.getWorld();
-        world.spawnParticle(Particle.BLOCK, origin.clone().add(0, 0.2, 0), 30, 0.8, 0.1, 0.8, 0.0,
-                Material.PACKED_ICE.createBlockData(), true);
+        world.spawnParticle(
+                Particle.BLOCK,
+                origin.clone().add(0, 0.2, 0),
+                30,
+                0.8,
+                0.1,
+                0.8,
+                0.0,
+                Material.PACKED_ICE.createBlockData(),
+                true);
         world.playSound(origin, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.5f);
         world.playSound(origin, Sound.BLOCK_GLASS_BREAK, 1.5f, 0.6f);
 
@@ -160,16 +188,22 @@ public class FrostIceSpikesAbility extends BaseAbility {
             for (int i = 0; i < count; i++) {
                 double fraction = (double) i / count;
                 // A little jitter in angle and distance keeps the ring from looking machine-made.
-                double angle = sweepStart + Math.PI * 2 * fraction + (rnd.nextDouble() - 0.5) * 0.25;
+                double angle =
+                        sweepStart + Math.PI * 2 * fraction + (rnd.nextDouble() - 0.5) * 0.25;
                 double r = radius + (rnd.nextDouble() - 0.5) * (RADIUS_JITTER * 2);
                 double height = ringHeight * (0.8 + rnd.nextDouble() * 0.4);
                 int delay = ring * RING_DELAY_TICKS + (int) Math.round(fraction * SWEEP_TICKS);
 
                 if (byTick[delay] == null) byTick[delay] = new ArrayList<>();
-                byTick[delay].add(new PlannedSpike(Math.cos(angle) * r, Math.sin(angle) * r, height));
+                byTick[delay].add(
+                        new PlannedSpike(Math.cos(angle) * r, Math.sin(angle) * r, height));
             }
 
-            world.playSound(origin.clone().add(radius, 0, 0), Sound.BLOCK_AMETHYST_CLUSTER_BREAK, 1.0f, 0.6f);
+            world.playSound(
+                    origin.clone().add(radius, 0, 0),
+                    Sound.BLOCK_AMETHYST_CLUSTER_BREAK,
+                    1.0f,
+                    0.6f);
         }
 
         new BukkitRunnable() {
@@ -197,8 +231,13 @@ public class FrostIceSpikesAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    private void spawnBatch(Player caster, Location origin, int startY, List<PlannedSpike> batch,
-                            List<LivingEntity> candidates, Set<UUID> alreadyHit) {
+    private void spawnBatch(
+            Player caster,
+            Location origin,
+            int startY,
+            List<PlannedSpike> batch,
+            List<LivingEntity> candidates,
+            Set<UUID> alreadyHit) {
         World world = origin.getWorld();
 
         for (PlannedSpike spike : batch) {
@@ -207,8 +246,12 @@ public class FrostIceSpikesAbility extends BaseAbility {
             Block ground = GroundScan.findGround(world, bx, bz, startY, SCAN_UP, SCAN_DOWN);
             if (ground == null) continue;
 
-            Location base = new Location(world, origin.getX() + spike.dx(), ground.getY() + 1,
-                    origin.getZ() + spike.dz());
+            Location base =
+                    new Location(
+                            world,
+                            origin.getX() + spike.dx(),
+                            ground.getY() + 1,
+                            origin.getZ() + spike.dz());
             double baseRadius = IceSpikeVisual.spawn(plugin, base, spike.height());
 
             if (candidates.isEmpty()) continue;
@@ -235,8 +278,14 @@ public class FrostIceSpikesAbility extends BaseAbility {
         for (int i = 0; i < HIT_SLICES; i++) {
             double radius = baseRadius * (1.0 - (double) i / HIT_SLICES);
             double y = base.getY() + i * sliceHeight;
-            zones[i] = new BoundingBox(base.getX() - radius, y, base.getZ() - radius,
-                    base.getX() + radius, y + sliceHeight, base.getZ() + radius);
+            zones[i] =
+                    new BoundingBox(
+                            base.getX() - radius,
+                            y,
+                            base.getZ() - radius,
+                            base.getX() + radius,
+                            y + sliceHeight,
+                            base.getZ() + radius);
         }
         return zones;
     }
@@ -248,13 +297,14 @@ public class FrostIceSpikesAbility extends BaseAbility {
         return false;
     }
 
-    private List<LivingEntity> collectCandidates(Player caster, TeamManager team, Location origin,
-                                                 Set<UUID> alreadyHit) {
+    private List<LivingEntity> collectCandidates(
+            Player caster, TeamManager team, Location origin, Set<UUID> alreadyHit) {
         List<LivingEntity> out = new ArrayList<>();
         for (LivingEntity entity : origin.getNearbyLivingEntities(QUERY_XZ, QUERY_Y, QUERY_XZ)) {
             if (entity.equals(caster)) continue;
             if (entity instanceof ArmorStand) continue;
-            if (team != null && entity instanceof Player other
+            if (team != null
+                    && entity instanceof Player other
                     && team.isFriendly(caster.getUniqueId(), other.getUniqueId())) continue;
             if (alreadyHit.contains(entity.getUniqueId())) continue;
             out.add(entity);
@@ -269,7 +319,9 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
         entity.setVelocity(new Vector(0, LAUNCH_UP, 0));
         entity.setFreezeTicks(entity.getMaxFreezeTicks());
-        entity.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, SLOW_TICKS, SLOW_AMPLIFIER, false, true, true));
+        entity.addPotionEffect(
+                new PotionEffect(
+                        PotionEffectType.SLOWNESS, SLOW_TICKS, SLOW_AMPLIFIER, false, true, true));
     }
 
     @Override
@@ -279,6 +331,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Ice spikes burst out in rings around you, damaging, launching and slowing enemies they actually hit.";
+        return "Ice spikes burst out in rings around you, damaging, launching and slowing enemies"
+                   + " they actually hit.";
     }
 }

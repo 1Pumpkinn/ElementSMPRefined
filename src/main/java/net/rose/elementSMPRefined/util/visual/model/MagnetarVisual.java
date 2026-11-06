@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Display;
@@ -28,9 +29,9 @@ public final class MagnetarVisual {
     private static final int INTERPOLATION_TICKS = 3;
 
     private static final double BOB = 0.08;
-    private static final float CORE_YAW_PER_TICK = 9f;     // degrees
+    private static final float CORE_YAW_PER_TICK = 9f; // degrees
     private static final float CORE_PITCH_PER_TICK = 4f;
-    private static final float RING_SPIN_PER_TICK = -14f;  // opposite direction to the core
+    private static final float RING_SPIN_PER_TICK = -14f; // opposite direction to the core
     private static final float RING_TILT = 22f;
 
     private static final Set<MagnetarVisual> ACTIVE = new HashSet<>();
@@ -52,16 +53,20 @@ public final class MagnetarVisual {
         float bob = (float) (Math.sin(target * 0.1) * BOB);
 
         if (core.isValid()) {
-            Quaternionf spin = new Quaternionf().rotationYXZ(
-                    (float) Math.toRadians(target * CORE_YAW_PER_TICK),
-                    (float) Math.toRadians(target * CORE_PITCH_PER_TICK), 0f);
+            Quaternionf spin =
+                    new Quaternionf()
+                            .rotationYXZ(
+                                    (float) Math.toRadians(target * CORE_YAW_PER_TICK),
+                                    (float) Math.toRadians(target * CORE_PITCH_PER_TICK),
+                                    0f);
             animate(core, bob, spin);
         }
         if (ring.isValid()) {
             // spin about the ring's own axis first, then tip the whole ring over
-            Quaternionf spin = new Quaternionf()
-                    .rotateX((float) Math.toRadians(RING_TILT))
-                    .rotateY((float) Math.toRadians(target * RING_SPIN_PER_TICK));
+            Quaternionf spin =
+                    new Quaternionf()
+                            .rotateX((float) Math.toRadians(RING_TILT))
+                            .rotateY((float) Math.toRadians(target * RING_SPIN_PER_TICK));
             animate(ring, bob, spin);
         }
     }
@@ -79,8 +84,12 @@ public final class MagnetarVisual {
     }
 
     private static void animate(ItemDisplay display, float bob, Quaternionf rotation) {
-        display.setTransformation(new Transformation(
-                new Vector3f(0f, bob, 0f), rotation, new Vector3f(SCALE), new Quaternionf()));
+        display.setTransformation(
+                new Transformation(
+                        new Vector3f(0f, bob, 0f),
+                        rotation,
+                        new Vector3f(SCALE),
+                        new Quaternionf()));
         display.setInterpolationDelay(0);
     }
 
@@ -88,16 +97,24 @@ public final class MagnetarVisual {
         // The base material is irrelevant - the item_model component replaces its model entirely.
         ItemStack modelItem = ModelItems.of(model);
 
-        return at.getWorld().spawn(at, ItemDisplay.class, d -> {
-            d.setItemStack(modelItem);
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(new Transformation(
-                    new Vector3f(), new Quaternionf(), new Vector3f(SCALE), new Quaternionf()));
-            d.setInterpolationDuration(INTERPOLATION_TICKS);
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        return at.getWorld()
+                .spawn(
+                        at,
+                        ItemDisplay.class,
+                        d -> {
+                            d.setItemStack(modelItem);
+                            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                            d.setBillboard(Display.Billboard.FIXED);
+                            d.setBrightness(new Display.Brightness(15, 15));
+                            d.setTransformation(
+                                    new Transformation(
+                                            new Vector3f(),
+                                            new Quaternionf(),
+                                            new Vector3f(SCALE),
+                                            new Quaternionf()));
+                            d.setInterpolationDuration(INTERPOLATION_TICKS);
+                            d.setPersistent(false);
+                            d.setInvulnerable(true);
+                        });
     }
 }

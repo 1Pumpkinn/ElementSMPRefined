@@ -1,15 +1,17 @@
 package net.rose.elementSMPRefined.util.server.potplugin.enchantlimits;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.TreeMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.enchantments.Enchantment;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.TreeMap;
 
 /**
  * /enchantlimits set <enchant> <maxLevel>   cap an enchantment (0 = not allowed)
@@ -19,7 +21,8 @@ import org.bukkit.enchantments.Enchantment;
  */
 public final class EnchantLimitsCommand implements TabExecutor {
 
-    private static final List<String> SUBCOMMANDS = List.of("set", "ban", "remove", "list", "reload");
+    private static final List<String> SUBCOMMANDS =
+            List.of("set", "ban", "remove", "list", "reload");
 
     private final EnchantLimits limits;
     private final EnchantLimitsListener listener;
@@ -41,7 +44,10 @@ public final class EnchantLimitsCommand implements TabExecutor {
             case "reload" -> {
                 limits.reloadFromDisk();
                 listener.sweepAll();
-                send(sender, "Reloaded " + limits.all().size() + " enchantment limit(s).", NamedTextColor.GREEN);
+                send(
+                        sender,
+                        "Reloaded " + limits.all().size() + " enchantment limit(s).",
+                        NamedTextColor.GREEN);
             }
             case "set" -> set(sender, label, args);
             case "ban" -> ban(sender, label, args);
@@ -70,7 +76,10 @@ public final class EnchantLimitsCommand implements TabExecutor {
             level = -1;
         }
         if (level < 0) {
-            send(sender, "Max level must be a number from 0 (not allowed) upwards.", NamedTextColor.RED);
+            send(
+                    sender,
+                    "Max level must be a number from 0 (not allowed) upwards.",
+                    NamedTextColor.RED);
             return;
         }
 
@@ -95,9 +104,12 @@ public final class EnchantLimitsCommand implements TabExecutor {
         limits.set(name, level);
         limits.save();
         listener.sweepAll();
-        send(sender, level == 0
-                ? name + " is no longer allowed."
-                : name + " is now capped at level " + level + ".", NamedTextColor.GREEN);
+        send(
+                sender,
+                level == 0
+                        ? name + " is no longer allowed."
+                        : name + " is now capped at level " + level + ".",
+                NamedTextColor.GREEN);
     }
 
     private void remove(CommandSender sender, String label, String[] args) {
@@ -127,13 +139,23 @@ public final class EnchantLimitsCommand implements TabExecutor {
         }
 
         List<String> parts = new ArrayList<>();
-        new TreeMap<>(limits.all()).forEach((name, level) ->
-                parts.add(level == 0 ? name + " (banned)" : name + " (max " + level + ")"));
+        new TreeMap<>(limits.all())
+                .forEach(
+                        (name, level) ->
+                                parts.add(
+                                        level == 0
+                                                ? name + " (banned)"
+                                                : name + " (max " + level + ")"));
         send(sender, "Enchantment limits: " + String.join(", ", parts), NamedTextColor.GOLD);
     }
 
     private void usage(CommandSender sender, String label) {
-        send(sender, "/" + label + " set <enchant> <maxLevel>  |  ban <enchant>  |  remove <enchant>  |  list  |  reload",
+        send(
+                sender,
+                "/"
+                        + label
+                        + " set <enchant> <maxLevel>  |  ban <enchant>  |  remove <enchant>  | "
+                        + " list  |  reload",
                 NamedTextColor.GRAY);
     }
 
@@ -142,7 +164,8 @@ public final class EnchantLimitsCommand implements TabExecutor {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
             return filter(SUBCOMMANDS, args[0]);
         }

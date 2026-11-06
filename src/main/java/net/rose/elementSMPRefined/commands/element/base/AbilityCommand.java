@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -26,8 +27,10 @@ public class AbilityCommand implements CommandExecutor {
     private final DisarmManager disarmManager;
     private final StatusEffectManager statusEffectManager;
 
-    public AbilityCommand(ElementManager elements, DisarmManager disarmManager,
-                          StatusEffectManager statusEffectManager) {
+    public AbilityCommand(
+            ElementManager elements,
+            DisarmManager disarmManager,
+            StatusEffectManager statusEffectManager) {
         this.elements = elements;
         this.disarmManager = disarmManager;
         this.statusEffectManager = statusEffectManager;
@@ -36,7 +39,8 @@ public class AbilityCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only players can use abilities.", NamedTextColor.RED));
+            sender.sendMessage(
+                    Component.text("Only players can use abilities.", NamedTextColor.RED));
             return true;
         }
 
@@ -44,7 +48,8 @@ public class AbilityCommand implements CommandExecutor {
             return true;
         }
 
-        // Abilities are cast by command, not PlayerInteractEvent, so StatusEffectListener never sees them.
+        // Abilities are cast by command, not PlayerInteractEvent, so StatusEffectListener never
+        // sees them.
         if (statusEffectManager.isSilenced(player)
                 || statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN)) {
             return true;

@@ -1,7 +1,6 @@
 package net.rose.elementSMPRefined.status;
 
 public enum StatusEffectType {
-
     SLOW,
     SILENCE,
     WEAKNESS,
@@ -10,12 +9,12 @@ public enum StatusEffectType {
     BURN,
     ROOT,
 
-    FULL_STUN,           // Cannot move, look around, or interact
-    PARTIAL_STUN,        // Cannot move or look around, but can interact
-    STUN,                // Cannot move, but can look and interact
+    FULL_STUN, // Cannot move, look around, or interact
+    PARTIAL_STUN, // Cannot move or look around, but can interact
+    STUN, // Cannot move, but can look and interact
 
     // Disarm types - handled by DisarmManager, not StatusEffectManager,
-    ABILITY_DISARM,      // Cannot use element abilities
-    WEAPON_DISARM,       // A random weapon the player owns (sword/axe/spear/mace) goes on cooldown
-    MAIN_HAND_DISARM     // Whatever is currently in the player's main hand goes on cooldown
+    ABILITY_DISARM, // Cannot use element abilities
+    WEAPON_DISARM, // A random weapon the player owns (sword/axe/spear/mace) goes on cooldown
+    MAIN_HAND_DISARM // Whatever is currently in the player's main hand goes on cooldown
 }

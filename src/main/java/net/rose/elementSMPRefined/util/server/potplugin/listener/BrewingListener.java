@@ -1,16 +1,17 @@
 package net.rose.elementSMPRefined.util.server.potplugin.listener;
 
-import java.util.List;
-import java.util.logging.Logger;
-
 import net.rose.elementSMPRefined.util.server.potplugin.util.BrewingConstants;
 import net.rose.elementSMPRefined.util.server.potplugin.util.PotionUtils;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Safety net for the custom PotionMix recipes in
@@ -57,8 +58,12 @@ public final class BrewingListener implements Listener {
     }
 
     private static void logWarning(int slot, ItemStack bottle) {
-        Logger.getLogger("ElementSMPRefined").warning(
-                "[Brewing] Could not build extended potion for slot " + slot
-                        + " (type=" + bottle.getType() + "). Skipping.");
+        Logger.getLogger("ElementSMPRefined")
+                .warning(
+                        "[Brewing] Could not build extended potion for slot "
+                                + slot
+                                + " (type="
+                                + bottle.getType()
+                                + "). Skipping.");
     }
 }

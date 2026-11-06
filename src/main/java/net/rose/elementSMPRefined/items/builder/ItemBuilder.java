@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.items.builder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -31,7 +32,8 @@ import java.util.function.Consumer;
  * is no separate "commit" step to forget and nothing to null-check.
  */
 public final class ItemBuilder {
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
+    private static final LegacyComponentSerializer LEGACY =
+            LegacyComponentSerializer.legacyAmpersand();
 
     private final ItemStack item;
 

@@ -1,11 +1,13 @@
 package net.rose.elementSMPRefined.ability.passive.basic.water.listeners;
 
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+
+import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ElementSMPRefined;
-import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.visual.PassiveInvisibility;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -32,7 +34,8 @@ public class WaterInvisibilityListener implements Listener {
     private static final long MONITOR_PERIOD_TICKS = 4L;
     private static final long BLANK_PERIOD_TICKS = 2L;
     private static final int IDLE_SECONDS_REQUIRED = 10;
-    private static final int IDLE_CHECKS_REQUIRED = (int) (IDLE_SECONDS_REQUIRED * 20L / MONITOR_PERIOD_TICKS);
+    private static final int IDLE_CHECKS_REQUIRED =
+            (int) (IDLE_SECONDS_REQUIRED * 20L / MONITOR_PERIOD_TICKS);
 
     // "Standing still" is judged per monitor period. Water constantly pushes a motionless player
     // (they sink ~0.1 blocks per period and bob at the surface), so a plain 3D distance check
@@ -43,13 +46,18 @@ public class WaterInvisibilityListener implements Listener {
     private static final double MAX_RISE_PER_PERIOD = 0.1;
 
     private static final EquipmentSlot[] VISIBLE_SLOTS = {
-            EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET,
-            EquipmentSlot.HAND, EquipmentSlot.OFF_HAND
+        EquipmentSlot.HEAD,
+        EquipmentSlot.CHEST,
+        EquipmentSlot.LEGS,
+        EquipmentSlot.FEET,
+        EquipmentSlot.HAND,
+        EquipmentSlot.OFF_HAND
     };
 
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
-    // Stored on the player (survives restarts/crashes/hot-swaps) so a leftover infinite invisibility
+    // Stored on the player (survives restarts/crashes/hot-swaps) so a leftover infinite
+    // invisibility
     // from this passive can be recognised and removed later.
     private final NamespacedKey markerKey;
 
@@ -66,39 +74,58 @@ public class WaterInvisibilityListener implements Listener {
         this.markerKey = new NamespacedKey(plugin, "water_invisible");
         startMonitor();
         startBlankTask();
-        // Plugin (re)enabled with players already online: clear any invisibility left by a previous run.
-        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getOnlinePlayers().forEach(this::clearStaleInvisibility));
+        // Plugin (re)enabled with players already online: clear any invisibility left by a previous
+        // run.
+        Bukkit.getScheduler()
+                .runTask(
+                        plugin,
+                        () -> Bukkit.getOnlinePlayers().forEach(this::clearStaleInvisibility));
     }
 
     private void startMonitor() {
-        monitorTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            // Only check players whose element has this passive to avoid wasting cycles on other elements
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (hasPassive(player)) {
-                    tick(player);
-                } else if (trulyInvisible.contains(player.getUniqueId())) {
-                    // No longer Water/Frost (reroll/admin set) - tick() never runs for them again, so reveal here.
-                    idleChecks.remove(player.getUniqueId());
-                    lastLocation.remove(player.getUniqueId());
-                    revealPlayer(player);
-                }
-            }
-        }, 20L, MONITOR_PERIOD_TICKS);
+        monitorTask =
+                Bukkit.getScheduler()
+                        .runTaskTimer(
+                                plugin,
+                                () -> {
+                                    // Only check players whose element has this passive to avoid
+                                    // wasting cycles on other elements
+                                    for (Player player : Bukkit.getOnlinePlayers()) {
+                                        if (hasPassive(player)) {
+                                            tick(player);
+                                        } else if (trulyInvisible.contains(player.getUniqueId())) {
+                                            // No longer Water/Frost (reroll/admin set) - tick()
+                                            // never runs for them again, so reveal here.
+                                            idleChecks.remove(player.getUniqueId());
+                                            lastLocation.remove(player.getUniqueId());
+                                            revealPlayer(player);
+                                        }
+                                    }
+                                },
+                                20L,
+                                MONITOR_PERIOD_TICKS);
     }
 
     private void startBlankTask() {
         // Observers who walk into range, teleport or respawn get the real gear from vanilla's spawn
-        // packet, so concealed players are blanked again every couple of ticks. They are never hidden
+        // packet, so concealed players are blanked again every couple of ticks. They are never
+        // hidden
         // from the tab list or the spectator teleport menu, only their gear is blanked.
-        blankTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            if (trulyInvisible.isEmpty()) return;
-            for (UUID id : trulyInvisible) {
-                Player subject = Bukkit.getPlayer(id);
-                if (subject != null && subject.isOnline()) {
-                    sendEquipment(subject, blankEquipment());
-                }
-            }
-        }, 20L, BLANK_PERIOD_TICKS);
+        blankTask =
+                Bukkit.getScheduler()
+                        .runTaskTimer(
+                                plugin,
+                                () -> {
+                                    if (trulyInvisible.isEmpty()) return;
+                                    for (UUID id : trulyInvisible) {
+                                        Player subject = Bukkit.getPlayer(id);
+                                        if (subject != null && subject.isOnline()) {
+                                            sendEquipment(subject, blankEquipment());
+                                        }
+                                    }
+                                },
+                                20L,
+                                BLANK_PERIOD_TICKS);
     }
 
     private boolean hasPassive(Player player) {
@@ -131,7 +158,8 @@ public class WaterInvisibilityListener implements Listener {
             if (checks >= IDLE_CHECKS_REQUIRED && !trulyInvisible.contains(uuid)) {
                 concealPlayer(player);
             } else if (trulyInvisible.contains(uuid)) {
-                // Re-blank every period so observers who just started tracking them don't see real gear.
+                // Re-blank every period so observers who just started tracking them don't see real
+                // gear.
                 sendEquipment(player, blankEquipment());
             }
         } else {
@@ -158,9 +186,17 @@ public class WaterInvisibilityListener implements Listener {
         trulyInvisible.add(player.getUniqueId());
         PassiveInvisibility.mark(player);
         player.getPersistentDataContainer().set(markerKey, PersistentDataType.BYTE, (byte) 1);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 0, false, false));
-        // Deliberately NOT hideEntity: a hidden entity can't be targeted by other players' clients, so
-        // nobody could ever hit them. Invisibility + blank equipment keeps them unseen but hittable.
+        player.addPotionEffect(
+                new PotionEffect(
+                        PotionEffectType.INVISIBILITY,
+                        PotionEffect.INFINITE_DURATION,
+                        0,
+                        false,
+                        false));
+        // Deliberately NOT hideEntity: a hidden entity can't be targeted by other players' clients,
+        // so
+        // nobody could ever hit them. Invisibility + blank equipment keeps them unseen but
+        // hittable.
         sendEquipment(player, blankEquipment());
     }
 
@@ -176,7 +212,9 @@ public class WaterInvisibilityListener implements Listener {
     private void removeOwnInvisibility(Player player) {
         player.getPersistentDataContainer().remove(markerKey);
         PotionEffect current = player.getPotionEffect(PotionEffectType.INVISIBILITY);
-        if (current != null && (current.getDuration() > 1000000 || current.getDuration() == PotionEffect.INFINITE_DURATION)) {
+        if (current != null
+                && (current.getDuration() > 1000000
+                        || current.getDuration() == PotionEffect.INFINITE_DURATION)) {
             player.removePotionEffect(PotionEffectType.INVISIBILITY);
         }
     }
@@ -190,15 +228,18 @@ public class WaterInvisibilityListener implements Listener {
     private void clearStaleInvisibility(Player player) {
         if (!player.isOnline() || trulyInvisible.contains(player.getUniqueId())) return;
 
-        boolean marked = player.getPersistentDataContainer().has(markerKey, PersistentDataType.BYTE);
+        boolean marked =
+                player.getPersistentDataContainer().has(markerKey, PersistentDataType.BYTE);
         boolean legacy = false;
         if (!marked) {
             ElementType type = elementManager.getPlayerElement(player);
             PotionEffect effect = player.getPotionEffect(PotionEffectType.INVISIBILITY);
-            legacy = (type == ElementType.WATER || type == ElementType.FROST)
-                    && effect != null
-                    && effect.getDuration() == PotionEffect.INFINITE_DURATION
-                    && !effect.isAmbient() && !effect.hasParticles();
+            legacy =
+                    (type == ElementType.WATER || type == ElementType.FROST)
+                            && effect != null
+                            && effect.getDuration() == PotionEffect.INFINITE_DURATION
+                            && !effect.isAmbient()
+                            && !effect.hasParticles();
         }
         if (!marked && !legacy) return;
 
@@ -244,28 +285,37 @@ public class WaterInvisibilityListener implements Listener {
         }
         if (trulyInvisible.contains(player.getUniqueId())) {
             sendEquipment(player, blankEquipment());
-            // Vanilla broadcasts the new item right after this event, so blank it again a tick later.
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (player.isOnline() && trulyInvisible.contains(player.getUniqueId())) {
-                    sendEquipment(player, blankEquipment());
-                }
-            });
+            // Vanilla broadcasts the new item right after this event, so blank it again a tick
+            // later.
+            Bukkit.getScheduler()
+                    .runTask(
+                            plugin,
+                            () -> {
+                                if (player.isOnline()
+                                        && trulyInvisible.contains(player.getUniqueId())) {
+                                    sendEquipment(player, blankEquipment());
+                                }
+                            });
         }
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player observer = event.getPlayer();
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (!observer.isOnline()) return;
-            clearStaleInvisibility(observer); // left over from a crash / unclean shutdown
-            for (UUID id : trulyInvisible) {
-                Player subject = Bukkit.getPlayer(id);
-                if (subject != null && !subject.equals(observer)) {
-                    observer.sendEquipmentChange(subject, blankEquipment());
-                }
-            }
-        });
+        Bukkit.getScheduler()
+                .runTask(
+                        plugin,
+                        () -> {
+                            if (!observer.isOnline()) return;
+                            clearStaleInvisibility(
+                                    observer); // left over from a crash / unclean shutdown
+                            for (UUID id : trulyInvisible) {
+                                Player subject = Bukkit.getPlayer(id);
+                                if (subject != null && !subject.equals(observer)) {
+                                    observer.sendEquipmentChange(subject, blankEquipment());
+                                }
+                            }
+                        });
     }
 
     @EventHandler

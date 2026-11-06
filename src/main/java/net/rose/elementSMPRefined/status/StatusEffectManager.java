@@ -26,11 +26,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class StatusEffectManager {
     private final JavaPlugin plugin;
-    private final Map<UUID, Map<StatusEffectType, StatusEffectInstance>> activeEffects = new ConcurrentHashMap<>();
-    private final Map<StatusEffectType, StatusEffectData> effectData = new EnumMap<>(StatusEffectType.class);
+    private final Map<UUID, Map<StatusEffectType, StatusEffectInstance>> activeEffects =
+            new ConcurrentHashMap<>();
+    private final Map<StatusEffectType, StatusEffectData> effectData =
+            new EnumMap<>(StatusEffectType.class);
 
-    // Stun/Root/Freeze zero out jump strength so the player can't hop around. Transient, so it is never saved with the player.
-    private static final NamespacedKey JUMP_LOCK_KEY = new NamespacedKey("elementsmp", "status_jump_lock");
+    // Stun/Root/Freeze zero out jump strength so the player can't hop around. Transient, so it is
+    // never saved with the player.
+    private static final NamespacedKey JUMP_LOCK_KEY =
+            new NamespacedKey("elementsmp", "status_jump_lock");
 
     private BukkitTask monitorTask;
 
@@ -42,88 +46,143 @@ public class StatusEffectManager {
 
     private void initializeDefaultEffects() {
         // Full Stun - cannot move, look around, or interact
-        registerEffectData(StatusEffectType.FULL_STUN, StatusEffectData.builder()
-                .displayName("Full Stun")
-                .description("Unable to move, look around, or interact")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 127, false, false))
-                .isStackable(false)
-                .maxDuration(300) // 5 seconds max
-                .build());
+        registerEffectData(
+                StatusEffectType.FULL_STUN,
+                StatusEffectData.builder()
+                        .displayName("Full Stun")
+                        .description("Unable to move, look around, or interact")
+                        .potionEffect(
+                                new PotionEffect(
+                                        PotionEffectType.SLOWNESS,
+                                        PotionEffect.INFINITE_DURATION,
+                                        127,
+                                        false,
+                                        false))
+                        .isStackable(false)
+                        .maxDuration(300) // 5 seconds max
+                        .build());
 
         // Partial Stun - cannot move or look around, but can interact
-        registerEffectData(StatusEffectType.PARTIAL_STUN, StatusEffectData.builder()
-                .displayName("Partial Stun")
-                .description("Unable to move or look around, but can interact")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 127, false, false))
-                .isStackable(false)
-                .maxDuration(400) // 8 seconds max
-                .build());
+        registerEffectData(
+                StatusEffectType.PARTIAL_STUN,
+                StatusEffectData.builder()
+                        .displayName("Partial Stun")
+                        .description("Unable to move or look around, but can interact")
+                        .potionEffect(
+                                new PotionEffect(
+                                        PotionEffectType.SLOWNESS,
+                                        PotionEffect.INFINITE_DURATION,
+                                        127,
+                                        false,
+                                        false))
+                        .isStackable(false)
+                        .maxDuration(400) // 8 seconds max
+                        .build());
 
         // Stun - cannot move, but can look and interact
-        registerEffectData(StatusEffectType.STUN, StatusEffectData.builder()
-                .displayName("Stun")
-                .description("Unable to move, but can look and interact")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 6, false, false))
-                .isStackable(false)
-                .maxDuration(400) // 8 seconds max
-                .build());
+        registerEffectData(
+                StatusEffectType.STUN,
+                StatusEffectData.builder()
+                        .displayName("Stun")
+                        .description("Unable to move, but can look and interact")
+                        .potionEffect(
+                                new PotionEffect(
+                                        PotionEffectType.SLOWNESS,
+                                        PotionEffect.INFINITE_DURATION,
+                                        6,
+                                        false,
+                                        false))
+                        .isStackable(false)
+                        .maxDuration(400) // 8 seconds max
+                        .build());
 
         // Root - same as STUN (cannot move but can look and interact)
-        registerEffectData(StatusEffectType.ROOT, StatusEffectData.builder()
-                .displayName("Root")
-                .description("Rooted in place")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 6, false, false))
-                .isStackable(false)
-                .maxDuration(400) // 8 seconds max
-                .build());
+        registerEffectData(
+                StatusEffectType.ROOT,
+                StatusEffectData.builder()
+                        .displayName("Root")
+                        .description("Rooted in place")
+                        .potionEffect(
+                                new PotionEffect(
+                                        PotionEffectType.SLOWNESS,
+                                        PotionEffect.INFINITE_DURATION,
+                                        6,
+                                        false,
+                                        false))
+                        .isStackable(false)
+                        .maxDuration(400) // 8 seconds max
+                        .build());
 
-        registerEffectData(StatusEffectType.SLOW, StatusEffectData.builder()
-                .displayName("Slow")
-                .description("Reduced movement speed")
-                .potionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 2, false, false))
-                .isStackable(true)
-                .maxDuration(600) // 10 seconds max
-                .build());
+        registerEffectData(
+                StatusEffectType.SLOW,
+                StatusEffectData.builder()
+                        .displayName("Slow")
+                        .description("Reduced movement speed")
+                        .potionEffect(
+                                new PotionEffect(
+                                        PotionEffectType.SLOWNESS,
+                                        PotionEffect.INFINITE_DURATION,
+                                        2,
+                                        false,
+                                        false))
+                        .isStackable(true)
+                        .maxDuration(600) // 10 seconds max
+                        .build());
 
-        registerEffectData(StatusEffectType.SILENCE, StatusEffectData.builder()
-                .displayName("Silence")
-                .description("Unable to use abilities")
-                .isStackable(false)
-                .maxDuration(400) // 8 seconds max
-                .build());
+        registerEffectData(
+                StatusEffectType.SILENCE,
+                StatusEffectData.builder()
+                        .displayName("Silence")
+                        .description("Unable to use abilities")
+                        .isStackable(false)
+                        .maxDuration(400) // 8 seconds max
+                        .build());
 
-        registerEffectData(StatusEffectType.WEAKNESS, StatusEffectData.builder()
-                .displayName("Weakness")
-                .description("Reduced damage output")
-                .potionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 1, false, false))
-                .isStackable(true)
-                .maxDuration(800) // 13 seconds max
-                .build());
+        registerEffectData(
+                StatusEffectType.WEAKNESS,
+                StatusEffectData.builder()
+                        .displayName("Weakness")
+                        .description("Reduced damage output")
+                        .potionEffect(
+                                new PotionEffect(
+                                        PotionEffectType.WEAKNESS,
+                                        PotionEffect.INFINITE_DURATION,
+                                        1,
+                                        false,
+                                        false))
+                        .isStackable(true)
+                        .maxDuration(800) // 13 seconds max
+                        .build());
 
         // Freeze effect - prevents movement but allows actions (handled by event listener)
-        registerEffectData(StatusEffectType.FREEZE, StatusEffectData.builder()
-                .displayName("Freeze")
-                .description("Frozen in place")
-                .isStackable(false)
-                .maxDuration(200) // 4 seconds max
-                .build());
+        registerEffectData(
+                StatusEffectType.FREEZE,
+                StatusEffectData.builder()
+                        .displayName("Freeze")
+                        .description("Frozen in place")
+                        .isStackable(false)
+                        .maxDuration(200) // 4 seconds max
+                        .build());
 
-        registerEffectData(StatusEffectType.BLEED, StatusEffectData.builder()
-                .displayName("Bleed")
-                .description("Taking damage over time")
-                .isStackable(true)
-                .maxDuration(1000) // 16 seconds max
-                .damagePerSecond(1.0)
-                .build());
+        registerEffectData(
+                StatusEffectType.BLEED,
+                StatusEffectData.builder()
+                        .displayName("Bleed")
+                        .description("Taking damage over time")
+                        .isStackable(true)
+                        .maxDuration(1000) // 16 seconds max
+                        .damagePerSecond(1.0)
+                        .build());
 
-        registerEffectData(StatusEffectType.BURN, StatusEffectData.builder()
-                .displayName("Burn")
-                .description("Taking fire damage over time")
-                .isStackable(true)
-                .maxDuration(600) // 10 seconds max
-                .damagePerSecond(2.0)
-                .build());
-
+        registerEffectData(
+                StatusEffectType.BURN,
+                StatusEffectData.builder()
+                        .displayName("Burn")
+                        .description("Taking fire damage over time")
+                        .isStackable(true)
+                        .maxDuration(600) // 10 seconds max
+                        .damagePerSecond(2.0)
+                        .build());
     }
 
     public void registerEffectData(StatusEffectType type, StatusEffectData data) {
@@ -153,7 +212,8 @@ public class StatusEffectManager {
      * @param duration duration in ticks (20 ticks = 1 second)
      * @param amplifier the strength of the effect (for stackable effects)
      */
-    public void applyEffect(Player caster, Player player, StatusEffectType type, int duration, int amplifier) {
+    public void applyEffect(
+            Player caster, Player player, StatusEffectType type, int duration, int amplifier) {
         UUID uuid = player.getUniqueId();
         StatusEffectData data = effectData.get(type);
 
@@ -163,23 +223,28 @@ public class StatusEffectManager {
 
         int actualDuration = Math.min(duration, data.maxDuration());
 
-        Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects
-                .computeIfAbsent(uuid, k -> new ConcurrentHashMap<>());
+        Map<StatusEffectType, StatusEffectInstance> playerEffects =
+                activeEffects.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>());
 
         UUID sourceUuid = caster != null ? caster.getUniqueId() : null;
 
-        playerEffects.compute(type, (t, existing) -> {
-            if (existing == null) {
-                return StatusEffectInstance.create(type, actualDuration, amplifier, sourceUuid);
-            }
-            // Stack for stackable effects, otherwise just refresh the duration
-            StatusEffectInstance updated = data.isStackable()
-                    ? existing.stacked(amplifier).extended(actualDuration, data.maxDuration())
-                    : existing.refreshed(actualDuration);
-            // Most recent caster takes over credit for future ticks, for any
-            // effect that cares about a source.
-            return sourceUuid != null ? updated.withSource(sourceUuid) : updated;
-        });
+        playerEffects.compute(
+                type,
+                (t, existing) -> {
+                    if (existing == null) {
+                        return StatusEffectInstance.create(
+                                type, actualDuration, amplifier, sourceUuid);
+                    }
+                    // Stack for stackable effects, otherwise just refresh the duration
+                    StatusEffectInstance updated =
+                            data.isStackable()
+                                    ? existing.stacked(amplifier)
+                                            .extended(actualDuration, data.maxDuration())
+                                    : existing.refreshed(actualDuration);
+                    // Most recent caster takes over credit for future ticks, for any
+                    // effect that cares about a source.
+                    return sourceUuid != null ? updated.withSource(sourceUuid) : updated;
+                });
 
         restorePotionEffects(player, playerEffects);
     }
@@ -197,7 +262,8 @@ public class StatusEffectManager {
      * exit in hot paths (e.g. {@code PlayerMoveEvent}) before asking about individual effects.
      */
     public boolean hasAnyEffect(Player player) {
-        Map<StatusEffectType, StatusEffectInstance> playerEffects = activeEffects.get(player.getUniqueId());
+        Map<StatusEffectType, StatusEffectInstance> playerEffects =
+                activeEffects.get(player.getUniqueId());
         return playerEffects != null && !playerEffects.isEmpty();
     }
 
@@ -254,22 +320,27 @@ public class StatusEffectManager {
         return false;
     }
 
-    private void restorePotionEffects(Player player, Map<StatusEffectType, StatusEffectInstance> active) {
+    private void restorePotionEffects(
+            Player player, Map<StatusEffectType, StatusEffectInstance> active) {
         Map<PotionEffectType, PotionEffect> strongest = new HashMap<>();
         for (StatusEffectType activeType : active.keySet()) {
             StatusEffectData data = effectData.get(activeType);
             if (data == null || data.potionEffects() == null) continue;
             for (PotionEffect effect : data.potionEffects()) {
-                strongest.merge(effect.getType(), effect,
+                strongest.merge(
+                        effect.getType(),
+                        effect,
                         (a, b) -> a.getAmplifier() >= b.getAmplifier() ? a : b);
             }
         }
         for (PotionEffect effect : strongest.values()) {
             player.addPotionEffect(effect);
         }
-        setJumpLock(player, active.containsKey(StatusEffectType.STUN)
-                || active.containsKey(StatusEffectType.ROOT)
-                || active.containsKey(StatusEffectType.FREEZE));
+        setJumpLock(
+                player,
+                active.containsKey(StatusEffectType.STUN)
+                        || active.containsKey(StatusEffectType.ROOT)
+                        || active.containsKey(StatusEffectType.FREEZE));
     }
 
     /** Adds/removes a transient -100% jump strength modifier. Safe to call repeatedly. */
@@ -286,8 +357,9 @@ public class StatusEffectManager {
         }
 
         if (on && existing == null) {
-            attribute.addTransientModifier(new AttributeModifier(
-                    JUMP_LOCK_KEY, -1.0, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
+            attribute.addTransientModifier(
+                    new AttributeModifier(
+                            JUMP_LOCK_KEY, -1.0, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
         } else if (!on && existing != null) {
             attribute.removeModifier(existing);
         }
@@ -312,7 +384,8 @@ public class StatusEffectManager {
      * log back in unable to move.
      */
     public void clearEffects(Player player) {
-        Map<StatusEffectType, StatusEffectInstance> removed = activeEffects.remove(player.getUniqueId());
+        Map<StatusEffectType, StatusEffectInstance> removed =
+                activeEffects.remove(player.getUniqueId());
         if (removed == null) return;
         for (StatusEffectType type : removed.keySet()) {
             removePotionEffects(player, type);
@@ -321,58 +394,77 @@ public class StatusEffectManager {
     }
 
     private void startEffectMonitor() {
-        monitorTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            // Runs every tick, and nearly always there is nothing to do - bail before building iterators.
-            if (activeEffects.isEmpty()) return;
+        monitorTask =
+                Bukkit.getScheduler()
+                        .runTaskTimer(
+                                plugin,
+                                () -> {
+                                    // Runs every tick, and nearly always there is nothing to do -
+                                    // bail before building iterators.
+                                    if (activeEffects.isEmpty()) return;
 
-            // One clock read per tick, not one per effect.
-            final long now = System.currentTimeMillis();
+                                    // One clock read per tick, not one per effect.
+                                    final long now = System.currentTimeMillis();
 
-            Iterator<Map.Entry<UUID, Map<StatusEffectType, StatusEffectInstance>>> playerIterator =
-                    activeEffects.entrySet().iterator();
+                                    Iterator<
+                                                    Map.Entry<
+                                                            UUID,
+                                                            Map<
+                                                                    StatusEffectType,
+                                                                    StatusEffectInstance>>>
+                                            playerIterator = activeEffects.entrySet().iterator();
 
-            while (playerIterator.hasNext()) {
-                Map.Entry<UUID, Map<StatusEffectType, StatusEffectInstance>> entry = playerIterator.next();
-                UUID uuid = entry.getKey();
-                Map<StatusEffectType, StatusEffectInstance> effects = entry.getValue();
+                                    while (playerIterator.hasNext()) {
+                                        Map.Entry<UUID, Map<StatusEffectType, StatusEffectInstance>>
+                                                entry = playerIterator.next();
+                                        UUID uuid = entry.getKey();
+                                        Map<StatusEffectType, StatusEffectInstance> effects =
+                                                entry.getValue();
 
-                Player player = Bukkit.getPlayer(uuid);
-                if (player == null || !player.isOnline()) {
-                    playerIterator.remove();
-                    continue;
-                }
+                                        Player player = Bukkit.getPlayer(uuid);
+                                        if (player == null || !player.isOnline()) {
+                                            playerIterator.remove();
+                                            continue;
+                                        }
 
-                Iterator<Map.Entry<StatusEffectType, StatusEffectInstance>> effectIterator =
-                        effects.entrySet().iterator();
+                                        Iterator<Map.Entry<StatusEffectType, StatusEffectInstance>>
+                                                effectIterator = effects.entrySet().iterator();
 
-                while (effectIterator.hasNext()) {
-                    Map.Entry<StatusEffectType, StatusEffectInstance> effectEntry = effectIterator.next();
-                    StatusEffectType type = effectEntry.getKey();
-                    StatusEffectInstance instance = effectEntry.getValue();
+                                        while (effectIterator.hasNext()) {
+                                            Map.Entry<StatusEffectType, StatusEffectInstance>
+                                                    effectEntry = effectIterator.next();
+                                            StatusEffectType type = effectEntry.getKey();
+                                            StatusEffectInstance instance = effectEntry.getValue();
 
-                    StatusEffectData data = effectData.get(type);
-                    if (data != null && data.damagePerSecond() > 0) {
-                        // Process damage over time effects (once per second)
-                        if (instance.isDamageDue(now)) {
-                            player.damage(data.damagePerSecond() * instance.amplifier());
-                            instance = instance.damagedAt(now);
-                            effects.put(type, instance);
-                        }
-                    }
+                                            StatusEffectData data = effectData.get(type);
+                                            if (data != null && data.damagePerSecond() > 0) {
+                                                // Process damage over time effects (once per
+                                                // second)
+                                                if (instance.isDamageDue(now)) {
+                                                    player.damage(
+                                                            data.damagePerSecond()
+                                                                    * instance.amplifier());
+                                                    instance = instance.damagedAt(now);
+                                                    effects.put(type, instance);
+                                                }
+                                            }
 
-                    if (instance.isExpired(now)) {
-                        removePotionEffects(player, type);
-                        effectIterator.remove();
-                        // Another active effect may still need the potion we just removed.
-                        restorePotionEffects(player, effects);
-                    }
-                }
+                                            if (instance.isExpired(now)) {
+                                                removePotionEffects(player, type);
+                                                effectIterator.remove();
+                                                // Another active effect may still need the potion
+                                                // we just removed.
+                                                restorePotionEffects(player, effects);
+                                            }
+                                        }
 
-                if (effects.isEmpty()) {
-                    playerIterator.remove();
-                }
-            }
-        }, 1L, 1L);
+                                        if (effects.isEmpty()) {
+                                            playerIterator.remove();
+                                        }
+                                    }
+                                },
+                                1L,
+                                1L);
     }
 
     /**
@@ -394,8 +486,7 @@ public class StatusEffectManager {
             PotionEffect[] potionEffects,
             boolean isStackable,
             int maxDuration,
-            double damagePerSecond
-    ) {
+            double damagePerSecond) {
         public static Builder builder() {
             return new Builder();
         }
@@ -448,8 +539,7 @@ public class StatusEffectManager {
                         potionEffects.toArray(new PotionEffect[0]),
                         isStackable,
                         maxDuration,
-                        damagePerSecond
-                );
+                        damagePerSecond);
             }
         }
     }
@@ -467,13 +557,14 @@ public class StatusEffectManager {
             long expiryTime,
             int amplifier,
             long lastDamageTime,
-            UUID source
-    ) {
+            UUID source) {
         private static final long MS_PER_TICK = 50L;
 
-        static StatusEffectInstance create(StatusEffectType type, int durationTicks, int amplifier, UUID source) {
+        static StatusEffectInstance create(
+                StatusEffectType type, int durationTicks, int amplifier, UUID source) {
             long now = System.currentTimeMillis();
-            return new StatusEffectInstance(type, now + durationTicks * MS_PER_TICK, amplifier, now, source);
+            return new StatusEffectInstance(
+                    type, now + durationTicks * MS_PER_TICK, amplifier, now, source);
         }
 
         boolean isExpired() {
@@ -490,8 +581,12 @@ public class StatusEffectManager {
         }
 
         StatusEffectInstance refreshed(int durationTicks) {
-            return new StatusEffectInstance(type, System.currentTimeMillis() + durationTicks * MS_PER_TICK,
-                    amplifier, lastDamageTime, source);
+            return new StatusEffectInstance(
+                    type,
+                    System.currentTimeMillis() + durationTicks * MS_PER_TICK,
+                    amplifier,
+                    lastDamageTime,
+                    source);
         }
 
         /** Adds time but never lets the remaining duration exceed {@code maxTicks}. */
@@ -502,8 +597,8 @@ public class StatusEffectManager {
         }
 
         StatusEffectInstance stacked(int additionalAmplifier) {
-            return new StatusEffectInstance(type, expiryTime, amplifier + additionalAmplifier,
-                    lastDamageTime, source);
+            return new StatusEffectInstance(
+                    type, expiryTime, amplifier + additionalAmplifier, lastDamageTime, source);
         }
 
         StatusEffectInstance withSource(UUID newSource) {

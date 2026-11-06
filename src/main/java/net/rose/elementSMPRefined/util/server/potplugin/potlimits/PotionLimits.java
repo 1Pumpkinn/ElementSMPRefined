@@ -1,20 +1,21 @@
 package net.rose.elementSMPRefined.util.server.potplugin.potlimits;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.TreeSet;
-
+import net.rose.elementSMPRefined.core.AbstractElementPlugin;
 import net.rose.elementSMPRefined.util.server.potplugin.util.PotionUtils;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
-import net.rose.elementSMPRefined.core.AbstractElementPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * The list of restricted potion types (stored in config.yml as the type's key,
@@ -25,8 +26,12 @@ public final class PotionLimits {
 
     private static final String CONFIG_PATH = "banned-potions";
 
-    private static final Set<Material> POTION_ITEMS = Set.of(
-            Material.POTION, Material.SPLASH_POTION, Material.LINGERING_POTION, Material.TIPPED_ARROW);
+    private static final Set<Material> POTION_ITEMS =
+            Set.of(
+                    Material.POTION,
+                    Material.SPLASH_POTION,
+                    Material.LINGERING_POTION,
+                    Material.TIPPED_ARROW);
 
     private final AbstractElementPlugin plugin;
     private final Set<String> banned = new TreeSet<>();
@@ -140,7 +145,8 @@ public final class PotionLimits {
      */
     public boolean blocksEffect(PotionEffect effect) {
         for (PotionEffect blocked : blockedEffects) {
-            if (blocked.getType().equals(effect.getType()) && effect.getAmplifier() >= blocked.getAmplifier()) {
+            if (blocked.getType().equals(effect.getType())
+                    && effect.getAmplifier() >= blocked.getAmplifier()) {
                 return true;
             }
         }

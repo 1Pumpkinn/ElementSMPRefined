@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.core.API.ability;
 
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
+
 import org.bukkit.entity.Player;
 
 public interface Ability {

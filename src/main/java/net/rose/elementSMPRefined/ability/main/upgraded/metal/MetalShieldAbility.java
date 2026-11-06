@@ -1,14 +1,15 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.metal;
 
-import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -38,7 +39,11 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     private static final int DURATION_TICKS = 15 * 20; // 15 seconds if it's never broken
     private static final int POP_INTERVAL_TICKS = 20; // 1 second
 
-    private enum EndReason { BROKEN, EXPIRED, REMOVED }
+    private enum EndReason {
+        BROKEN,
+        EXPIRED,
+        REMOVED
+    }
 
     private static final class Shield {
         final MetalShieldVisual visual;
@@ -54,7 +59,13 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     private final Map<UUID, Shield> shields = new HashMap<>();
 
     public MetalShieldAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("metal_shield", ElementType.METAL, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
+        super(
+                "metal_shield",
+                ElementType.METAL,
+                1,
+                Constants.Cooldown.ABILITY_1_SECONDS,
+                1,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -75,23 +86,24 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         SoundUtils.playTo(player, SoundUtils.Element.METAL);
         player.getWorld().playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1.0f, 0.9f);
 
-        shield.task = new BukkitRunnable() {
-            int ticks = 0;
+        shield.task =
+                new BukkitRunnable() {
+                    int ticks = 0;
 
-            @Override
-            public void run() {
-                if (!player.isOnline() || player.isDead()) {
-                    end(player, EndReason.REMOVED);
-                    return;
-                }
-                if (ticks >= DURATION_TICKS) {
-                    end(player, EndReason.EXPIRED);
-                    return;
-                }
-                shield.visual.update(ticks);
-                ticks++;
-            }
-        };
+                    @Override
+                    public void run() {
+                        if (!player.isOnline() || player.isDead()) {
+                            end(player, EndReason.REMOVED);
+                            return;
+                        }
+                        if (ticks >= DURATION_TICKS) {
+                            end(player, EndReason.EXPIRED);
+                            return;
+                        }
+                        shield.visual.update(ticks);
+                        ticks++;
+                    }
+                };
         shield.task.runTaskTimer(plugin, 0L, 1L);
         return true;
     }
@@ -101,14 +113,17 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         if (!(event.getEntity() instanceof Player victim)) return;
 
         Shield shield = shields.get(victim.getUniqueId());
-        if (shield == null || event.getDamage() <= 0) return; // 0-damage hits (snowballs...) cost nothing
+        if (shield == null || event.getDamage() <= 0)
+            return; // 0-damage hits (snowballs...) cost nothing
 
-        // Self-damage and teammates/allies never spend a charge (the team check would cancel the hit anyway).
+        // Self-damage and teammates/allies never spend a charge (the team check would cancel the
+        // hit anyway).
         DamageSource damageSource = event.getDamageSource();
         Entity source = damageSource.getCausingEntity();
         if (source instanceof Player attacker
                 && (attacker.equals(victim)
-                || plugin.getTeamManager().isFriendly(victim.getUniqueId(), attacker.getUniqueId()))) {
+                        || plugin.getTeamManager()
+                                .isFriendly(victim.getUniqueId(), attacker.getUniqueId()))) {
             return;
         }
 
@@ -130,7 +145,12 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
                 || cause == DamageCause.PROJECTILE;
     }
 
-    private void absorb(Player victim, Shield shield, EntityDamageEvent event, Entity source, boolean abilityHit) {
+    private void absorb(
+            Player victim,
+            Shield shield,
+            EntityDamageEvent event,
+            Entity source,
+            boolean abilityHit) {
         event.setCancelled(true);
 
         // Melee/projectile hits can only break a shield once per second. A hit inside that window
@@ -138,8 +158,12 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
         if (!abilityHit) {
             int now = Bukkit.getCurrentTick();
             if (now - shield.lastPopTick < POP_INTERVAL_TICKS) {
-                victim.getWorld().playSound(victim.getLocation().add(0, 1.0, 0),
-                        Sound.ITEM_SHIELD_BLOCK, 0.5f, 1.4f);
+                victim.getWorld()
+                        .playSound(
+                                victim.getLocation().add(0, 1.0, 0),
+                                Sound.ITEM_SHIELD_BLOCK,
+                                0.5f,
+                                1.4f);
                 return;
             }
             shield.lastPopTick = now;
@@ -168,9 +192,20 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
     }
 
     private void popEffects(Location at, boolean abilityHit) {
-        at.getWorld().spawnParticle(Particle.BLOCK, at, 20, 0.25, 0.35, 0.25, 0.1,
-                Material.IRON_BLOCK.createBlockData(), true);
-        at.getWorld().spawnParticle(Particle.CRIT, at, abilityHit ? 24 : 12, 0.3, 0.4, 0.3, 0.2, null, true);
+        at.getWorld()
+                .spawnParticle(
+                        Particle.BLOCK,
+                        at,
+                        20,
+                        0.25,
+                        0.35,
+                        0.25,
+                        0.1,
+                        Material.IRON_BLOCK.createBlockData(),
+                        true);
+        at.getWorld()
+                .spawnParticle(
+                        Particle.CRIT, at, abilityHit ? 24 : 12, 0.3, 0.4, 0.3, 0.2, null, true);
     }
 
     private void end(Player player, EndReason reason) {
@@ -188,10 +223,21 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
             }
             case EXPIRED -> {
                 at.getWorld().playSound(at, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 0.8f, 0.8f);
-                at.getWorld().spawnParticle(Particle.BLOCK, at, 20, 0.6, 0.5, 0.6, 0.05,
-                        Material.IRON_BLOCK.createBlockData(), true);
+                at.getWorld()
+                        .spawnParticle(
+                                Particle.BLOCK,
+                                at,
+                                20,
+                                0.6,
+                                0.5,
+                                0.6,
+                                0.05,
+                                Material.IRON_BLOCK.createBlockData(),
+                                true);
             }
-            case REMOVED -> { /* quit / death / element change - nothing to show */ }
+            case REMOVED -> {
+                /* quit / death / element change - nothing to show */
+            }
         }
     }
 
@@ -220,6 +266,7 @@ public class MetalShieldAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return "Orbiting shields each block one hit, breaking at most one per second. A damaging ability breaks all of them.";
+        return "Orbiting shields each block one hit, breaking at most one per second. A damaging"
+                   + " ability breaks all of them.";
     }
 }

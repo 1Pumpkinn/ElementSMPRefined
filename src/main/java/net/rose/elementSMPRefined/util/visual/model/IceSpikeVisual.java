@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,7 +25,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class IceSpikeVisual {
 
-    private static final NamespacedKey MODEL = Objects.requireNonNull(NamespacedKey.fromString("elementsmp:icicle_tip"));
+    private static final NamespacedKey MODEL =
+            Objects.requireNonNull(NamespacedKey.fromString("elementsmp:icicle_tip"));
 
     private static final double SPRITE_FILL = 13.0 / 16.0;
 
@@ -43,7 +45,8 @@ public final class IceSpikeVisual {
 
     private static final float COLLAPSED = 0.05f;
 
-    private static final org.bukkit.block.data.BlockData PACKED_ICE = Material.PACKED_ICE.createBlockData();
+    private static final org.bukkit.block.data.BlockData PACKED_ICE =
+            Material.PACKED_ICE.createBlockData();
     private static final org.bukkit.block.data.BlockData ICE = Material.ICE.createBlockData();
 
     private static final List<Spike> ACTIVE = new ArrayList<>();
@@ -86,37 +89,44 @@ public final class IceSpikeVisual {
 
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
 
-        // Model-height scale so the visible sprite (13/16 of the model) comes out `height` blocks tall.
+        // Model-height scale so the visible sprite (13/16 of the model) comes out `height` blocks
+        // tall.
         float sy = (float) (height / SPRITE_FILL);
         float sw = (float) (height * WIDTH_RATIO * (0.9 + rnd.nextDouble() * 0.2));
         float yaw = (float) (rnd.nextDouble() * Math.PI * 2);
 
-        // The model's centre sits on the display and its wide end is half a (scaled) model below that,
+        // The model's centre sits on the display and its wide end is half a (scaled) model below
+        // that,
         // so the display goes half a model above the ground (less the small embed).
-        Location centre = new Location(world, base.getX(), base.getY() + 0.5 * sy - EMBED, base.getZ(), 0f, 0f);
+        Location centre =
+                new Location(
+                        world, base.getX(), base.getY() + 0.5 * sy - EMBED, base.getZ(), 0f, 0f);
 
         // The base material is irrelevant - the item_model component replaces its model entirely.
         // Shared, cached stack: setItemStack copies it, so it is never mutated.
         ItemStack modelItem = ModelItems.of(MODEL);
         Transformation collapsed = pose(sw, sy, yaw, COLLAPSED);
 
-        ItemDisplay display = world.spawn(centre, ItemDisplay.class, d -> {
-            d.setItemStack(modelItem);
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(collapsed);
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        ItemDisplay display =
+                world.spawn(
+                        centre,
+                        ItemDisplay.class,
+                        d -> {
+                            d.setItemStack(modelItem);
+                            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                            d.setBillboard(Display.Billboard.FIXED);
+                            d.setBrightness(new Display.Brightness(15, 15));
+                            d.setTransformation(collapsed);
+                            d.setPersistent(false);
+                            d.setInvulnerable(true);
+                        });
 
         ACTIVE.add(new Spike(display, base, sw, sy, yaw));
         ensureTicker(plugin);
 
         // Block-crack burst at the base.
         Location fx = new Location(world, base.getX(), base.getY() + 0.1, base.getZ());
-        world.spawnParticle(Particle.BLOCK, fx, 6, 0.3, 0.1, 0.3, 0.0,
-                PACKED_ICE, true);
+        world.spawnParticle(Particle.BLOCK, fx, 6, 0.3, 0.1, 0.3, 0.0, PACKED_ICE, true);
 
         // The visible sprite fills SPRITE_FILL of the model's width, so that is the base we draw.
         return sw * 0.5 * SPRITE_FILL;
@@ -143,15 +153,24 @@ public final class IceSpikeVisual {
             if (age >= REMOVE_AT) {
                 s.display.remove();
                 it.remove();
-                s.world.spawnParticle(Particle.BLOCK, new Location(s.world, s.baseX, s.baseY + 0.5, s.baseZ),
-                        10, 0.4, 0.5, 0.4, 0.0, ICE, true);
+                s.world.spawnParticle(
+                        Particle.BLOCK,
+                        new Location(s.world, s.baseX, s.baseY + 0.5, s.baseZ),
+                        10,
+                        0.4,
+                        0.5,
+                        0.4,
+                        0.0,
+                        ICE,
+                        true);
             } else if (age >= SHRINK_AT) {
                 if (s.stage < 2) {
                     s.stage = 2;
                     animate(s, SHRINK_TICKS, COLLAPSED);
                 }
             } else if (age >= GROW_AT) {
-                // Interpolation only animates if the transformation changes after the entity has been
+                // Interpolation only animates if the transformation changes after the entity has
+                // been
                 // sent to clients, so the growth starts a tick after the spawn.
                 if (s.stage < 1) {
                     s.stage = 1;
@@ -198,9 +217,6 @@ public final class IceSpikeVisual {
         // Flip first (point down -> point up), then spin around the vertical axis.
         Quaternionf rotation = new Quaternionf().rotateY(yaw).rotateX((float) Math.PI);
         return new Transformation(
-                new Vector3f(0f, lift, 0f),
-                rotation,
-                new Vector3f(w, h, w),
-                new Quaternionf());
+                new Vector3f(0f, lift, 0f), rotation, new Vector3f(w, h, w), new Quaternionf());
     }
 }

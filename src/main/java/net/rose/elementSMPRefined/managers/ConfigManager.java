@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.managers;
 import net.kyori.adventure.bossbar.BossBar;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.YamlFiles;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,9 +23,11 @@ public class ConfigManager {
 
     // Defaults - named so they're not scattered as unexplained numbers
     // through every getter below.
-    private static final boolean DEFAULT_NETHER_DISABLED = Constants.Dimension.DEFAULT_NETHER_DISABLED;
+    private static final boolean DEFAULT_NETHER_DISABLED =
+            Constants.Dimension.DEFAULT_NETHER_DISABLED;
     private static final boolean DEFAULT_END_DISABLED = Constants.Dimension.DEFAULT_END_DISABLED;
-    private static final int DEFAULT_GRACE_PERIOD_DURATION_SECONDS = Constants.GracePeriod.DEFAULT_DURATION_SECONDS;
+    private static final int DEFAULT_GRACE_PERIOD_DURATION_SECONDS =
+            Constants.GracePeriod.DEFAULT_DURATION_SECONDS;
 
     private final JavaPlugin plugin;
     private FileConfiguration config;
@@ -58,13 +61,19 @@ public class ConfigManager {
     public void mergeNewDefaults() {
         try (InputStream stream = plugin.getResource("config.yml")) {
             if (stream == null) return;
-            FileConfiguration bundled = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+            FileConfiguration bundled =
+                    YamlConfiguration.loadConfiguration(
+                            new InputStreamReader(stream, StandardCharsets.UTF_8));
             if (YamlFiles.mergeMissing(config, bundled)) {
                 plugin.saveConfig();
-                plugin.getLogger().info("Added new options to config.yml (existing values were left untouched).");
+                plugin.getLogger()
+                        .info(
+                                "Added new options to config.yml (existing values were left"
+                                    + " untouched).");
             }
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Could not merge new defaults into config.yml", e);
+            plugin.getLogger()
+                    .log(Level.WARNING, "Could not merge new defaults into config.yml", e);
         }
     }
 
@@ -85,12 +94,15 @@ public class ConfigManager {
         if (defaultConfig == null) {
             try (InputStream stream = plugin.getResource("config.yml")) {
                 if (stream != null) {
-                    defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+                    defaultConfig =
+                            YamlConfiguration.loadConfiguration(
+                                    new InputStreamReader(stream, StandardCharsets.UTF_8));
                 } else {
                     defaultConfig = new YamlConfiguration();
                 }
             } catch (Exception e) {
-                plugin.getLogger().log(Level.WARNING, "Could not load bundled default config.yml", e);
+                plugin.getLogger()
+                        .log(Level.WARNING, "Could not load bundled default config.yml", e);
                 defaultConfig = new YamlConfiguration();
             }
         }
@@ -146,7 +158,14 @@ public class ConfigManager {
         try {
             return config.getInt(path, fallback);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Error reading " + path + " from config, using default value " + fallback, e);
+            plugin.getLogger()
+                    .log(
+                            Level.WARNING,
+                            "Error reading "
+                                    + path
+                                    + " from config, using default value "
+                                    + fallback,
+                            e);
             return fallback;
         }
     }
@@ -155,7 +174,14 @@ public class ConfigManager {
         try {
             return config.getDouble(path, fallback);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Error reading " + path + " from config, using default value " + fallback, e);
+            plugin.getLogger()
+                    .log(
+                            Level.WARNING,
+                            "Error reading "
+                                    + path
+                                    + " from config, using default value "
+                                    + fallback,
+                            e);
             return fallback;
         }
     }
@@ -165,7 +191,15 @@ public class ConfigManager {
         try {
             return Enum.valueOf(type, raw.trim().toUpperCase(java.util.Locale.ROOT));
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Invalid value '" + raw + "' for " + path + " in config, using default value " + fallback);
+            plugin.getLogger()
+                    .log(
+                            Level.WARNING,
+                            "Invalid value '"
+                                    + raw
+                                    + "' for "
+                                    + path
+                                    + " in config, using default value "
+                                    + fallback);
             return Enum.valueOf(type, fallback);
         }
     }
@@ -186,7 +220,14 @@ public class ConfigManager {
         try {
             return config.getBoolean(path, fallback);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Error reading " + path + " from config, using default value " + fallback, e);
+            plugin.getLogger()
+                    .log(
+                            Level.WARNING,
+                            "Error reading "
+                                    + path
+                                    + " from config, using default value "
+                                    + fallback,
+                            e);
             return fallback;
         }
     }
@@ -235,20 +276,30 @@ public class ConfigManager {
     }
 
     public int getDimensionWarningCooldownSeconds() {
-        return Math.max(0, getIntSafe("dimensions.warning_cooldown_seconds", Constants.Dimension.DEFAULT_WARNING_COOLDOWN_SECONDS));
+        return Math.max(
+                0,
+                getIntSafe(
+                        "dimensions.warning_cooldown_seconds",
+                        Constants.Dimension.DEFAULT_WARNING_COOLDOWN_SECONDS));
     }
 
     public boolean isDimensionPushbackEnabled() {
-        return getBooleanSafe("dimensions.pushback_enabled", Constants.Dimension.DEFAULT_PUSHBACK_ENABLED);
+        return getBooleanSafe(
+                "dimensions.pushback_enabled", Constants.Dimension.DEFAULT_PUSHBACK_ENABLED);
     }
 
     public double getDimensionPushbackStrength() {
-        return Math.max(0.0, getDoubleSafe("dimensions.pushback_strength", Constants.Dimension.PORTAL_PUSHBACK_STRENGTH));
+        return Math.max(
+                0.0,
+                getDoubleSafe(
+                        "dimensions.pushback_strength",
+                        Constants.Dimension.PORTAL_PUSHBACK_STRENGTH));
     }
 
     /** Whether non-player entities (boats, pearls, items...) are also blocked from using disabled portals. */
     public boolean isDimensionBlockEntities() {
-        return getBooleanSafe("dimensions.block_entities", Constants.Dimension.DEFAULT_BLOCK_ENTITIES);
+        return getBooleanSafe(
+                "dimensions.block_entities", Constants.Dimension.DEFAULT_BLOCK_ENTITIES);
     }
 
     /** Whether players with element.admin can still use disabled portals. */
@@ -257,26 +308,36 @@ public class ConfigManager {
     }
 
     public BossBar.Color getGracePeriodBossBarColor() {
-        return getEnumSafe("grace_period.boss_bar.color", BossBar.Color.class, Constants.GracePeriod.DEFAULT_BOSS_BAR_COLOR);
+        return getEnumSafe(
+                "grace_period.boss_bar.color",
+                BossBar.Color.class,
+                Constants.GracePeriod.DEFAULT_BOSS_BAR_COLOR);
     }
 
     /** Whether the Nether is automatically disabled when a grace period starts. */
     public boolean isGracePeriodDisableNetherOnStart() {
-        return getBooleanSafe("grace_period.on_start.disable_nether", Constants.GracePeriod.DEFAULT_DISABLE_NETHER_ON_START);
+        return getBooleanSafe(
+                "grace_period.on_start.disable_nether",
+                Constants.GracePeriod.DEFAULT_DISABLE_NETHER_ON_START);
     }
 
     /** Whether the End is automatically disabled when a grace period starts. */
     public boolean isGracePeriodDisableEndOnStart() {
-        return getBooleanSafe("grace_period.on_start.disable_end", Constants.GracePeriod.DEFAULT_DISABLE_END_ON_START);
+        return getBooleanSafe(
+                "grace_period.on_start.disable_end",
+                Constants.GracePeriod.DEFAULT_DISABLE_END_ON_START);
     }
 
     /** Whether the Nether is automatically re-enabled when the grace period runs out on its own. */
     public boolean isGracePeriodEnableNetherOnEnd() {
-        return getBooleanSafe("grace_period.on_end.enable_nether", Constants.GracePeriod.DEFAULT_ENABLE_NETHER_ON_END);
+        return getBooleanSafe(
+                "grace_period.on_end.enable_nether",
+                Constants.GracePeriod.DEFAULT_ENABLE_NETHER_ON_END);
     }
 
     /** Whether the End is automatically re-enabled when the grace period runs out on its own. */
     public boolean isGracePeriodEnableEndOnEnd() {
-        return getBooleanSafe("grace_period.on_end.enable_end", Constants.GracePeriod.DEFAULT_ENABLE_END_ON_END);
+        return getBooleanSafe(
+                "grace_period.on_end.enable_end", Constants.GracePeriod.DEFAULT_ENABLE_END_ON_END);
     }
 }

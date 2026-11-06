@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.data.PassiveToggle;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -51,7 +52,8 @@ public class AirWindBurstListener implements Listener {
 
     private final Map<UUID, Double> peakY = new HashMap<>();
 
-    public AirWindBurstListener(JavaPlugin plugin, ElementManager elementManager, TeamManager teamManager) {
+    public AirWindBurstListener(
+            JavaPlugin plugin, ElementManager elementManager, TeamManager teamManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.teamManager = teamManager;
@@ -98,9 +100,14 @@ public class AirWindBurstListener implements Listener {
     }
 
     private static boolean isSupported(Player player) {
-        return player.isOnGround() || player.isFlying() || player.isGliding()
-                || player.isInsideVehicle() || player.isClimbing() || player.isSwimming()
-                || player.isInWater() || player.isInLava()
+        return player.isOnGround()
+                || player.isFlying()
+                || player.isGliding()
+                || player.isInsideVehicle()
+                || player.isClimbing()
+                || player.isSwimming()
+                || player.isInWater()
+                || player.isInLava()
                 || player.hasPotionEffect(PotionEffectType.SLOW_FALLING)
                 || isInFallBreakingBlock(player);
     }
@@ -114,12 +121,19 @@ public class AirWindBurstListener implements Listener {
         BoundingBox box = player.getBoundingBox();
         World world = player.getWorld();
         final double eps = 1.0E-6;
-        for (int x = (int) Math.floor(box.getMinX() + eps); x <= (int) Math.floor(box.getMaxX() - eps); x++) {
-            for (int y = (int) Math.floor(box.getMinY() + eps); y <= (int) Math.floor(box.getMaxY() - eps); y++) {
-                for (int z = (int) Math.floor(box.getMinZ() + eps); z <= (int) Math.floor(box.getMaxZ() - eps); z++) {
+        for (int x = (int) Math.floor(box.getMinX() + eps);
+                x <= (int) Math.floor(box.getMaxX() - eps);
+                x++) {
+            for (int y = (int) Math.floor(box.getMinY() + eps);
+                    y <= (int) Math.floor(box.getMaxY() - eps);
+                    y++) {
+                for (int z = (int) Math.floor(box.getMinZ() + eps);
+                        z <= (int) Math.floor(box.getMaxZ() - eps);
+                        z++) {
                     Block block = world.getBlockAt(x, y, z);
                     Material type = block.getType();
-                    if (type == Material.COBWEB || type == Material.SWEET_BERRY_BUSH
+                    if (type == Material.COBWEB
+                            || type == Material.SWEET_BERRY_BUSH
                             || type == Material.POWDER_SNOW) {
                         return true;
                     }
@@ -141,12 +155,14 @@ public class AirWindBurstListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHit(EntityDamageByEntityEvent event) {
         // Direct melee only - projectiles and abilities don't count
-        if (event.getCause() != org.bukkit.event.entity.EntityDamageEvent.DamageCause.ENTITY_ATTACK) return;
+        if (event.getCause() != org.bukkit.event.entity.EntityDamageEvent.DamageCause.ENTITY_ATTACK)
+            return;
         if (!(event.getDamager() instanceof Player attacker)) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
         if (attacker.equals(target)) return;
 
-        // Ability damage (Tornado, Magnetar, ...) is dealt with the caster as the attacker, so it looks
+        // Ability damage (Tornado, Magnetar, ...) is dealt with the caster as the attacker, so it
+        // looks
         // like a melee hit. It is not one: never let it trigger Wind Burst.
         if (AbilityDamage.isAbilityDamage(target)) return;
 
@@ -156,7 +172,8 @@ public class AirWindBurstListener implements Listener {
         // Player switched Wind Burst off with /toggle windburst
         if (!data.isToggleEnabled(PassiveToggle.WIND_BURST)) return;
 
-        if (data.getUpgradeLevel(data.getCurrentElement()) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
+        if (data.getUpgradeLevel(data.getCurrentElement()) < BaseElement.PASSIVE_2_UPGRADE_LEVEL)
+            return;
 
         ItemStack weapon = attacker.getInventory().getItemInMainHand();
         if (weapon.getType().isAir()) return;
@@ -164,7 +181,8 @@ public class AirWindBurstListener implements Listener {
         // A real Wind Burst enchantment is handled by vanilla - never double up
         if (weapon.containsEnchantment(Enchantment.WIND_BURST)) return;
 
-        // Stuck in a web (etc.): the fall is over. Forget the old peak so leaving the web doesn't revive it.
+        // Stuck in a web (etc.): the fall is over. Forget the old peak so leaving the web doesn't
+        // revive it.
         if (isInFallBreakingBlock(attacker)) {
             peakY.put(attacker.getUniqueId(), attacker.getLocation().getY());
             debug(attacker, "inside a fall-breaking block (web/berry bush/powder snow)");
@@ -173,15 +191,35 @@ public class AirWindBurstListener implements Listener {
 
         double fall = effectiveFallDistance(attacker);
         if (fall <= MIN_FALL_DISTANCE) {
-            debug(attacker, "fall distance too low: " + fall + " (server " + attacker.getFallDistance() + ")");
+            debug(
+                    attacker,
+                    "fall distance too low: "
+                            + fall
+                            + " (server "
+                            + attacker.getFallDistance()
+                            + ")");
             return;
         }
-        if (attacker.isOnGround() || attacker.isFlying() || attacker.isGliding()
-                || attacker.isInsideVehicle() || attacker.isClimbing() || attacker.isSwimming()) {
-            debug(attacker, "blocked by state: onGround=" + attacker.isOnGround()
-                    + " flying=" + attacker.isFlying() + " gliding=" + attacker.isGliding()
-                    + " vehicle=" + attacker.isInsideVehicle() + " climbing=" + attacker.isClimbing()
-                    + " swimming=" + attacker.isSwimming());
+        if (attacker.isOnGround()
+                || attacker.isFlying()
+                || attacker.isGliding()
+                || attacker.isInsideVehicle()
+                || attacker.isClimbing()
+                || attacker.isSwimming()) {
+            debug(
+                    attacker,
+                    "blocked by state: onGround="
+                            + attacker.isOnGround()
+                            + " flying="
+                            + attacker.isFlying()
+                            + " gliding="
+                            + attacker.isGliding()
+                            + " vehicle="
+                            + attacker.isInsideVehicle()
+                            + " climbing="
+                            + attacker.isClimbing()
+                            + " swimming="
+                            + attacker.isSwimming());
             return;
         }
 
@@ -190,15 +228,20 @@ public class AirWindBurstListener implements Listener {
             return;
         }
 
-        // Captured now: the hit may kill the target, and a dead target has no valid position to burst from
+        // Captured now: the hit may kill the target, and a dead target has no valid position to
+        // burst from
         Location center = target.getLocation().add(0, target.getHeight() / 2.0, 0);
         int level = data.getWindBurstLevel();
 
         // Let vanilla finish the hit (damage, hit sound, mace smash sound) before launching
-        plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (!attacker.isOnline() || attacker.isDead()) return;
-            burst(attacker, center, level);
-        });
+        plugin.getServer()
+                .getScheduler()
+                .runTask(
+                        plugin,
+                        () -> {
+                            if (!attacker.isOnline() || attacker.isDead()) return;
+                            burst(attacker, center, level);
+                        });
     }
 
     private void debug(Player attacker, String reason) {
@@ -211,7 +254,8 @@ public class AirWindBurstListener implements Listener {
         World world = center.getWorld();
         if (world == null) return;
 
-        double multiplier = LEVEL_MULTIPLIERS[Math.max(1, Math.min(LEVEL_MULTIPLIERS.length, level)) - 1];
+        double multiplier =
+                LEVEL_MULTIPLIERS[Math.max(1, Math.min(LEVEL_MULTIPLIERS.length, level)) - 1];
         double launchVelocityY = BASE_LAUNCH_VELOCITY_Y * multiplier;
         double burstStrength = BASE_BURST_STRENGTH * multiplier;
 
@@ -220,11 +264,13 @@ public class AirWindBurstListener implements Listener {
         velocity.setY(launchVelocityY);
         attacker.setVelocity(velocity);
         attacker.setFallDistance(0f);
-        // The fall was just spent: restart the tracked drop from here so the next hit needs a new fall
+        // The fall was just spent: restart the tracked drop from here so the next hit needs a new
+        // fall
         peakY.put(attacker.getUniqueId(), attacker.getLocation().getY());
 
         // Blow everything nearby (including the target) away from the burst
-        for (Entity entity : world.getNearbyEntities(center, BURST_RADIUS, BURST_RADIUS, BURST_RADIUS)) {
+        for (Entity entity :
+                world.getNearbyEntities(center, BURST_RADIUS, BURST_RADIUS, BURST_RADIUS)) {
             if (entity.equals(attacker)) continue;
             if (!(entity instanceof LivingEntity living)) continue;
             if (living instanceof Player other
@@ -235,7 +281,10 @@ public class AirWindBurstListener implements Listener {
             Vector offset = living.getLocation().toVector().subtract(center.toVector());
             offset.setY(0);
             if (offset.lengthSquared() < 1.0E-4) {
-                offset = attacker.getLocation().getDirection().setY(0); // fallback: push the way the attacker faces
+                offset =
+                        attacker.getLocation()
+                                .getDirection()
+                                .setY(0); // fallback: push the way the attacker faces
                 if (offset.lengthSquared() < 1.0E-4) offset = new Vector(0, 0, 1);
             }
             Vector push = offset.normalize().multiply(burstStrength);

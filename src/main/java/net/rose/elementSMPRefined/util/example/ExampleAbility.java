@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.util.example;
 
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -20,7 +21,7 @@ public class ExampleAbility extends BaseAbility {
 
     public ExampleAbility() {
         // abilityId, cooldownSeconds, requiredUpgradeLevel
-        super("example_ability", 8,  1);
+        super("example_ability", 8, 1);
     }
 
     @Override

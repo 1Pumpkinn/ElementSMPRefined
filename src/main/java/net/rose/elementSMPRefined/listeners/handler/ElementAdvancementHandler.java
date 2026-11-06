@@ -5,6 +5,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
+
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.advancement.Advancement;
@@ -38,25 +39,27 @@ public class ElementAdvancementHandler implements Listener {
     private static final String CRITERION = "crafted";
 
     /** Root advancement: its title is the tab title. Awarded silently on join so the tab shows up. */
-    private static final String ROOT_JSON = """
-            {
-              "display": {
-                "icon": { "id": "minecraft:wind_charge" },
-                "title": { "text": "Element SMP" },
-                "description": { "text": "Maybe the WE are Element's were the friends we made along the way..." },
-                "background": "minecraft:gui/advancements/backgrounds/stone",
-                "frame": "task",
-                "show_toast": false,
-                "announce_to_chat": false,
-                "hidden": false
-              },
-              "criteria": {
-                "crafted": { "trigger": "minecraft:impossible" }
-              }
-            }
-            """;
+    private static final String ROOT_JSON =
+            """
+{
+  "display": {
+    "icon": { "id": "minecraft:wind_charge" },
+    "title": { "text": "Element SMP" },
+    "description": { "text": "Maybe the WE are Element's were the friends we made along the way..." },
+    "background": "minecraft:gui/advancements/backgrounds/stone",
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "crafted": { "trigger": "minecraft:impossible" }
+  }
+}
+""";
 
-    private static final String UPGRADE_JSON = """
+    private static final String UPGRADE_JSON =
+            """
             {
               "parent": "%s",
               "display": {
@@ -77,7 +80,8 @@ public class ElementAdvancementHandler implements Listener {
             }
             """;
 
-    private static final String ABILITY_KILL_JSON = """
+    private static final String ABILITY_KILL_JSON =
+            """
             {
               "parent": "%s",
               "display": {
@@ -95,7 +99,8 @@ public class ElementAdvancementHandler implements Listener {
             }
             """;
 
-    private static final String REFORGE_JSON = """
+    private static final String REFORGE_JSON =
+            """
             {
               "parent": "%s",
               "display": {
@@ -151,14 +156,22 @@ public class ElementAdvancementHandler implements Listener {
 
         // A stale persisted copy is still loaded this run (only happens once, right after the
         // stored file is deleted above). Reload server data once the server is up, then load ours.
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            try {
-                Bukkit.reloadData();
-            } catch (Exception e) {
-                plugin.getLogger().log(Level.WARNING, "Could not reload data to drop the old advancement copies", e);
-            }
-            load();
-        });
+        Bukkit.getScheduler()
+                .runTask(
+                        plugin,
+                        () -> {
+                            try {
+                                Bukkit.reloadData();
+                            } catch (Exception e) {
+                                plugin.getLogger()
+                                        .log(
+                                                Level.WARNING,
+                                                "Could not reload data to drop the old advancement"
+                                                    + " copies",
+                                                e);
+                            }
+                            load();
+                        });
     }
 
     @SuppressWarnings("deprecation")
@@ -174,7 +187,8 @@ public class ElementAdvancementHandler implements Listener {
             advancements.put(reforgeKey, REFORGE_JSON.formatted(parent));
             Bukkit.getUnsafe().loadAdvancements(advancements, false);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not register the Element SMP advancements", e);
+            plugin.getLogger()
+                    .log(Level.SEVERE, "Could not register the Element SMP advancements", e);
         }
     }
 
@@ -208,7 +222,9 @@ public class ElementAdvancementHandler implements Listener {
         ItemStack result = event.getCurrentItem();
         if (result == null) return;
 
-        int level = ItemUtil.getTag(result, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER).orElse(0);
+        int level =
+                ItemUtil.getTag(result, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER)
+                        .orElse(0);
         if (level != 1) return;
 
         load();

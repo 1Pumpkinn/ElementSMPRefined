@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -40,8 +41,10 @@ public class CastAllCommand implements ElementSubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length < 2 || !(args[1].equals("1") || args[1].equals("2"))) {
-            sender.sendMessage(Component.text(
-                    "Usage: /element castall <1|2> [players... | *] [at <target>]", NamedTextColor.RED));
+            sender.sendMessage(
+                    Component.text(
+                            "Usage: /element castall <1|2> [players... | *] [at <target>]",
+                            NamedTextColor.RED));
             return true;
         }
         boolean slotTwo = args[1].equals("2");
@@ -51,7 +54,8 @@ public class CastAllCommand implements ElementSubCommand {
         for (int i = 2; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("at")) {
                 if (i + 1 >= args.length) {
-                    sender.sendMessage(Component.text("'at' needs a target name.", NamedTextColor.RED));
+                    sender.sendMessage(
+                            Component.text("'at' needs a target name.", NamedTextColor.RED));
                     return true;
                 }
                 targetName = args[i + 1];
@@ -64,7 +68,8 @@ public class CastAllCommand implements ElementSubCommand {
         if (targetName != null) {
             target = Bukkit.getPlayerExact(targetName);
             if (target == null) {
-                sender.sendMessage(Component.text("Target not online: " + targetName, NamedTextColor.RED));
+                sender.sendMessage(
+                        Component.text("Target not online: " + targetName, NamedTextColor.RED));
                 return true;
             }
         }
@@ -96,18 +101,27 @@ public class CastAllCommand implements ElementSubCommand {
         List<String> fired = new ArrayList<>();
         List<String> failed = new ArrayList<>();
         for (Player caster : casters) {
-            boolean ok = slotTwo ? plugin.getElementManager().useAbility2(caster)
-                    : plugin.getElementManager().useAbility1(caster);
+            boolean ok =
+                    slotTwo
+                            ? plugin.getElementManager().useAbility2(caster)
+                            : plugin.getElementManager().useAbility1(caster);
             (ok ? fired : failed).add(caster.getName());
         }
 
         if (target != null) keepFacing(casters, target);
 
-        sender.sendMessage(Component.text("Ability " + args[1] + " fired together for: "
-                + (fired.isEmpty() ? "nobody" : String.join(", ", fired)), NamedTextColor.GREEN));
+        sender.sendMessage(
+                Component.text(
+                        "Ability "
+                                + args[1]
+                                + " fired together for: "
+                                + (fired.isEmpty() ? "nobody" : String.join(", ", fired)),
+                        NamedTextColor.GREEN));
         if (!failed.isEmpty()) {
-            sender.sendMessage(Component.text("Did not cast (cooldown/no element/etc): "
-                    + String.join(", ", failed), NamedTextColor.YELLOW));
+            sender.sendMessage(
+                    Component.text(
+                            "Did not cast (cooldown/no element/etc): " + String.join(", ", failed),
+                            NamedTextColor.YELLOW));
         }
         return true;
     }
@@ -131,7 +145,8 @@ public class CastAllCommand implements ElementSubCommand {
                     return;
                 }
                 for (Player caster : casters) {
-                    if (caster.isOnline() && caster.getWorld().equals(target.getWorld())) face(caster, target);
+                    if (caster.isOnline() && caster.getWorld().equals(target.getWorld()))
+                        face(caster, target);
                 }
             }
         }.runTaskTimer(plugin, 1L, 1L);
@@ -142,7 +157,8 @@ public class CastAllCommand implements ElementSubCommand {
         if (args.length == 2) {
             return CommandSupport.filterStartingWith(List.of("1", "2"), args[1]);
         }
-        List<String> options = new ArrayList<>(CommandSupport.getOnlinePlayerNames(args[args.length - 1]));
+        List<String> options =
+                new ArrayList<>(CommandSupport.getOnlinePlayerNames(args[args.length - 1]));
         if ("at".startsWith(args[args.length - 1].toLowerCase(Locale.ROOT))) options.add("at");
         if ("*".startsWith(args[args.length - 1])) options.add("*");
         return options;

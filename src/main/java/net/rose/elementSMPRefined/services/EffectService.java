@@ -1,10 +1,11 @@
 package net.rose.elementSMPRefined.services;
 
-import net.rose.elementSMPRefined.core.Constants;
-import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
+import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.managers.ElementManager;
+
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -110,7 +111,8 @@ public class EffectService implements Listener {
     public void reapplyEffects(Player player) {
         if (player.isOnline()) {
             applyPassiveEffects(player);
-            updatePlayerHealth(player, elementManager.data(player.getUniqueId()).getCurrentElement());
+            updatePlayerHealth(
+                    player, elementManager.data(player.getUniqueId()).getCurrentElement());
         }
     }
 
@@ -131,14 +133,19 @@ public class EffectService implements Listener {
     }
 
     private void startMonitoring() {
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                PlayerData pd = elementManager.data(player.getUniqueId());
-                if (pd.getCurrentElement() != null) {
-                    updatePlayerHealth(player, pd.getCurrentElement());
-                }
-            }
-        }, Constants.Timing.TWO_SECONDS, Constants.Timing.TWO_SECONDS);
+        Bukkit.getScheduler()
+                .runTaskTimer(
+                        plugin,
+                        () -> {
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                PlayerData pd = elementManager.data(player.getUniqueId());
+                                if (pd.getCurrentElement() != null) {
+                                    updatePlayerHealth(player, pd.getCurrentElement());
+                                }
+                            }
+                        },
+                        Constants.Timing.TWO_SECONDS,
+                        Constants.Timing.TWO_SECONDS);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

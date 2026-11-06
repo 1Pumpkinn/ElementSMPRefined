@@ -1,8 +1,9 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -56,7 +57,8 @@ public final class MagmaBeamVisual {
         update(from, direction, length, thickness, 0f);
     }
 
-    public void update(Location from, Vector direction, double length, float thickness, float roll) {
+    public void update(
+            Location from, Vector direction, double length, float thickness, float roll) {
         World world = from.getWorld();
         if (world == null || length < 0.05 || direction.lengthSquared() < 1.0E-6) {
             hide();
@@ -71,28 +73,37 @@ public final class MagmaBeamVisual {
 
         // aim * roll: the roll is applied around the model's own Z axis first, then the whole
         // thing is swung to face along the beam, so it spins around the beam's axis.
-        Quaternionf rotation = new Quaternionf()
-                .rotationTo(MODEL_AXIS, new Vector3f((float) dir.getX(), (float) dir.getY(), (float) dir.getZ()))
-                .rotateZ(roll);
+        Quaternionf rotation =
+                new Quaternionf()
+                        .rotationTo(
+                                MODEL_AXIS,
+                                new Vector3f(
+                                        (float) dir.getX(), (float) dir.getY(), (float) dir.getZ()))
+                        .rotateZ(roll);
 
-        Transformation transformation = new Transformation(
-                new Vector3f(),
-                rotation,
-                new Vector3f(thickness, thickness, (float) length),
-                new Quaternionf());
+        Transformation transformation =
+                new Transformation(
+                        new Vector3f(),
+                        rotation,
+                        new Vector3f(thickness, thickness, (float) length),
+                        new Quaternionf());
 
         if (display == null || !display.isValid()) {
-            display = world.spawn(flat(mid), ItemDisplay.class, d -> {
-                d.setItemStack(modelItem);
-                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                d.setBillboard(Display.Billboard.FIXED);
-                d.setBrightness(new Display.Brightness(15, 15));
-                d.setTransformation(transformation);
-                d.setTeleportDuration(wanted);
-                d.setInterpolationDuration(wanted);
-                d.setPersistent(false);
-                d.setInvulnerable(true);
-            });
+            display =
+                    world.spawn(
+                            flat(mid),
+                            ItemDisplay.class,
+                            d -> {
+                                d.setItemStack(modelItem);
+                                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                                d.setBillboard(Display.Billboard.FIXED);
+                                d.setBrightness(new Display.Brightness(15, 15));
+                                d.setTransformation(transformation);
+                                d.setTeleportDuration(wanted);
+                                d.setInterpolationDuration(wanted);
+                                d.setPersistent(false);
+                                d.setInvulnerable(true);
+                            });
             smoothing = wanted;
             return;
         }

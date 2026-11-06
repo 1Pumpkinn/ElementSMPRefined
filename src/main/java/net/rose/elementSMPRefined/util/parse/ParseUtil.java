@@ -43,12 +43,14 @@ public final class ParseUtil {
                     return null;
                 }
                 long amount = Long.parseLong(matcher.group(1));
-                total += amount * switch (matcher.group(2).charAt(0)) {
-                    case 'd' -> 86_400L;
-                    case 'h' -> 3_600L;
-                    case 'm' -> 60L;
-                    default -> 1L;
-                };
+                total +=
+                        amount
+                                * switch (matcher.group(2).charAt(0)) {
+                                    case 'd' -> 86_400L;
+                                    case 'h' -> 3_600L;
+                                    case 'm' -> 60L;
+                                    default -> 1L;
+                                };
                 if (total > Integer.MAX_VALUE) {
                     return null;
                 }

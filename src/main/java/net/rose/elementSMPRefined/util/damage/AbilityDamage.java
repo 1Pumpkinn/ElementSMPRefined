@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.util.damage;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -84,10 +85,12 @@ public final class AbilityDamage {
      * @param abilityName the ability's display name; any colour codes in it are ignored
      */
     static Component deathMessage(Player victim, String abilityName) {
-        Component ability = Component.text(ChatColor.stripColor(abilityName), NamedTextColor.YELLOW);
+        Component ability =
+                Component.text(ChatColor.stripColor(abilityName), NamedTextColor.YELLOW);
         Player killer = victim.getKiller();
         if (killer != null && !killer.equals(victim)) {
-            return Component.translatable("death.attack.player.item", victim.name(), killer.name(), ability);
+            return Component.translatable(
+                    "death.attack.player.item", victim.name(), killer.name(), ability);
         }
         return Component.empty()
                 .append(victim.name())

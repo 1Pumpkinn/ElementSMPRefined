@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.basic.fire.listeners;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.PassiveToggle;
 import net.rose.elementSMPRefined.managers.ElementManager;
+
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class FireSmeltListener implements Listener {
 
     private static final Map<Material, Material> SMELT_RESULTS = new EnumMap<>(Material.class);
+
     static {
         SMELT_RESULTS.put(Material.RAW_IRON, Material.IRON_INGOT);
         SMELT_RESULTS.put(Material.RAW_GOLD, Material.GOLD_INGOT);
@@ -74,7 +76,8 @@ public class FireSmeltListener implements Listener {
             return;
         }
 
-        boolean anySmeltable = drops.stream().anyMatch(drop -> SMELT_RESULTS.containsKey(drop.getType()));
+        boolean anySmeltable =
+                drops.stream().anyMatch(drop -> SMELT_RESULTS.containsKey(drop.getType()));
         if (!anySmeltable) {
             return;
         }

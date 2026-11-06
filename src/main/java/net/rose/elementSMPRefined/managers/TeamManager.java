@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.managers;
 
 import net.rose.elementSMPRefined.data.YamlFiles;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
@@ -38,14 +39,23 @@ public class TeamManager {
 
     public static final int MIN_NAME_LENGTH = 3;
     public static final int MAX_NAME_LENGTH = 16;
-    private static final Pattern NAME_PATTERN = Pattern.compile("[A-Za-z0-9_]{" + MIN_NAME_LENGTH + "," + MAX_NAME_LENGTH + "}");
+    private static final Pattern NAME_PATTERN =
+            Pattern.compile("[A-Za-z0-9_]{" + MIN_NAME_LENGTH + "," + MAX_NAME_LENGTH + "}");
 
     private static final long REQUEST_TTL_MILLIS = 60_000L;
     private static final int BACKUP_KEEP = 30;
     private static final long BACKUP_MIN_AGE_MINUTES = 30;
 
     public enum Result {
-        OK, INVALID_NAME, NAME_TAKEN, IN_TEAM, TEAM_FULL, SAME_TEAM, ALREADY_ALLIED, ALLY_LIMIT_SELF, ALLY_LIMIT_OTHER
+        OK,
+        INVALID_NAME,
+        NAME_TAKEN,
+        IN_TEAM,
+        TEAM_FULL,
+        SAME_TEAM,
+        ALREADY_ALLIED,
+        ALLY_LIMIT_SELF,
+        ALLY_LIMIT_OTHER
     }
 
     /** One team. Read it through the getters; only {@link TeamManager} changes it. */
@@ -63,24 +73,47 @@ public class TeamManager {
             this.members.add(owner);
         }
 
-        public String getId() { return id; }
-        public String getName() { return name; }
-        public UUID getOwner() { return owner; }
-        public boolean isOwner(UUID uuid) { return owner.equals(uuid); }
-        public int getSize() { return members.size(); }
-        public Set<UUID> getMembers() { return new HashSet<>(members); }
-        public Set<String> getAllyIds() { return new HashSet<>(allies); }
+        public String getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public UUID getOwner() {
+            return owner;
+        }
+
+        public boolean isOwner(UUID uuid) {
+            return owner.equals(uuid);
+        }
+
+        public int getSize() {
+            return members.size();
+        }
+
+        public Set<UUID> getMembers() {
+            return new HashSet<>(members);
+        }
+
+        public Set<String> getAllyIds() {
+            return new HashSet<>(allies);
+        }
     }
 
     private final JavaPlugin plugin;
     private final ConfigManager config;
     private final File file;
 
-    private final Map<String, Team> teams = new ConcurrentHashMap<>();           // team id -> team
-    private final Map<UUID, String> memberTeam = new ConcurrentHashMap<>();      // player -> team id
-    private final Map<UUID, Map<String, Long>> invites = new ConcurrentHashMap<>();          // invitee -> team id -> expiry
-    private final Map<String, Map<String, Long>> allyRequests = new ConcurrentHashMap<>();   // target team id -> requesting team id -> expiry
-    private final Set<UUID> teamChat = ConcurrentHashMap.newKeySet();                       // players whose chat goes to their team only
+    private final Map<String, Team> teams = new ConcurrentHashMap<>(); // team id -> team
+    private final Map<UUID, String> memberTeam = new ConcurrentHashMap<>(); // player -> team id
+    private final Map<UUID, Map<String, Long>> invites =
+            new ConcurrentHashMap<>(); // invitee -> team id -> expiry
+    private final Map<String, Map<String, Long>> allyRequests =
+            new ConcurrentHashMap<>(); // target team id -> requesting team id -> expiry
+    private final Set<UUID> teamChat =
+            ConcurrentHashMap.newKeySet(); // players whose chat goes to their team only
     private boolean loadFailed = false;
 
     public TeamManager(JavaPlugin plugin, ConfigManager config) {
@@ -89,13 +122,19 @@ public class TeamManager {
 
         File dataDir = new File(plugin.getDataFolder(), "data");
         if (!dataDir.exists() && !dataDir.mkdirs()) {
-            throw new IllegalStateException("Could not create data directory: " + dataDir.getAbsolutePath());
+            throw new IllegalStateException(
+                    "Could not create data directory: " + dataDir.getAbsolutePath());
         }
         this.file = new File(dataDir, "teams.yml");
         load();
 
         try {
-            YamlFiles.backup(file, new File(dataDir, "backups"), "teams", BACKUP_KEEP, BACKUP_MIN_AGE_MINUTES);
+            YamlFiles.backup(
+                    file,
+                    new File(dataDir, "backups"),
+                    "teams",
+                    BACKUP_KEEP,
+                    BACKUP_MIN_AGE_MINUTES);
         } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING, "Could not back up teams.yml", e);
         }
@@ -376,10 +415,18 @@ public class TeamManager {
             yaml = YamlFiles.loadStrict(file);
         } catch (IOException | InvalidConfigurationException e) {
             loadFailed = true;
-            plugin.getLogger().log(Level.SEVERE, "teams.yml could not be read - teams will NOT be saved until it is fixed "
-                    + "(nothing has been overwritten). Fix or restore it from data/backups/ and restart.", e);
+            plugin.getLogger()
+                    .log(
+                            Level.SEVERE,
+                            "teams.yml could not be read - teams will NOT be saved until it is"
+                                + " fixed (nothing has been overwritten). Fix or restore it from"
+                                + " data/backups/ and restart.",
+                            e);
             try {
-                plugin.getLogger().severe("Copied the unreadable file to " + YamlFiles.quarantine(file).getName());
+                plugin.getLogger()
+                        .severe(
+                                "Copied the unreadable file to "
+                                        + YamlFiles.quarantine(file).getName());
             } catch (IOException ioe) {
                 plugin.getLogger().log(Level.WARNING, "Could not quarantine teams.yml", ioe);
             }
@@ -412,10 +459,11 @@ public class TeamManager {
 
         // Alliances must be mutual and point at teams that still exist.
         for (Team team : teams.values()) {
-            team.allies.removeIf(id -> {
-                Team other = teams.get(id);
-                return other == null || other == team || !other.allies.contains(team.id);
-            });
+            team.allies.removeIf(
+                    id -> {
+                        Team other = teams.get(id);
+                        return other == null || other == team || !other.allies.contains(team.id);
+                    });
         }
     }
 
@@ -435,7 +483,8 @@ public class TeamManager {
             String path = "teams." + team.id;
             yaml.set(path + ".name", team.name);
             yaml.set(path + ".owner", team.owner.toString());
-            yaml.set(path + ".members", team.members.stream().map(UUID::toString).sorted().toList());
+            yaml.set(
+                    path + ".members", team.members.stream().map(UUID::toString).sorted().toList());
             yaml.set(path + ".allies", team.allies.stream().sorted().toList());
         }
         try {

@@ -1,8 +1,9 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -51,28 +52,38 @@ public final class LightningSpearVisual {
         this.caster = caster;
         this.smoothing = PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS);
         this.direction = direction.clone().normalize();
-        Vector3f dir = new Vector3f(
-                (float) this.direction.getX(), (float) this.direction.getY(), (float) this.direction.getZ());
+        Vector3f dir =
+                new Vector3f(
+                        (float) this.direction.getX(),
+                        (float) this.direction.getY(),
+                        (float) this.direction.getZ());
 
-        Transformation transformation = new Transformation(
-                new Vector3f(),
-                new Quaternionf().rotationTo(MODEL_FORWARD, dir),
-                new Vector3f(SCALE),
-                new Quaternionf());
+        Transformation transformation =
+                new Transformation(
+                        new Vector3f(),
+                        new Quaternionf().rotationTo(MODEL_FORWARD, dir),
+                        new Vector3f(SCALE),
+                        new Quaternionf());
 
         // The base material is irrelevant - the item_model component replaces its model entirely.
         ItemStack modelItem = ModelItems.of(LIGHTNING_SPEAR);
 
-        this.display = head.getWorld().spawn(centre(head), ItemDisplay.class, d -> {
-            d.setItemStack(modelItem);
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(transformation);
-            d.setTeleportDuration(smoothing);
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        this.display =
+                head.getWorld()
+                        .spawn(
+                                centre(head),
+                                ItemDisplay.class,
+                                d -> {
+                                    d.setItemStack(modelItem);
+                                    d.setItemDisplayTransform(
+                                            ItemDisplay.ItemDisplayTransform.NONE);
+                                    d.setBillboard(Display.Billboard.FIXED);
+                                    d.setBrightness(new Display.Brightness(15, 15));
+                                    d.setTransformation(transformation);
+                                    d.setTeleportDuration(smoothing);
+                                    d.setPersistent(false);
+                                    d.setInvulnerable(true);
+                                });
         ACTIVE.add(this);
     }
 

@@ -1,14 +1,15 @@
 package net.rose.elementSMPRefined.commands.element.base;
 
-import net.rose.elementSMPRefined.core.API.element.Element;
-import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.core.API.element.Element;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -54,8 +55,12 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
         for (ElementType type : elementManager.getElementRegistry().getAllTypes()) {
             names.add(type.name().toLowerCase());
         }
-        player.sendMessage(Component.text("Elements: " + String.join(", ", names), NamedTextColor.GRAY));
-        player.sendMessage(Component.text("Use /elements <element> to see its passives and abilities.", NamedTextColor.GRAY));
+        player.sendMessage(
+                Component.text("Elements: " + String.join(", ", names), NamedTextColor.GRAY));
+        player.sendMessage(
+                Component.text(
+                        "Use /elements <element> to see its passives and abilities.",
+                        NamedTextColor.GRAY));
     }
 
     private void showElementDetails(Player player, String elementName) {
@@ -63,19 +68,24 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
         try {
             type = ElementType.valueOf(elementName.toUpperCase());
         } catch (IllegalArgumentException e) {
-            player.sendMessage(Component.text("Unknown element: " + elementName, NamedTextColor.RED));
+            player.sendMessage(
+                    Component.text("Unknown element: " + elementName, NamedTextColor.RED));
             return;
         }
 
         Element element = elementManager.get(type);
         if (element == null) {
-            player.sendMessage(Component.text("No information available for " + capitalize(type.name()), NamedTextColor.RED));
+            player.sendMessage(
+                    Component.text(
+                            "No information available for " + capitalize(type.name()),
+                            NamedTextColor.RED));
             return;
         }
 
         player.sendMessage(Component.empty());
-        player.sendMessage(Component.text(capitalize(type.name()), NamedTextColor.GOLD)
-                .decorate(TextDecoration.BOLD));
+        player.sendMessage(
+                Component.text(capitalize(type.name()), NamedTextColor.GOLD)
+                        .decorate(TextDecoration.BOLD));
 
         if (!element.getPassiveBenefits().isEmpty()) {
             player.sendMessage(Component.text("Passives", NamedTextColor.YELLOW));
@@ -89,8 +99,9 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendAbility(Player player, int slot, String name, String description) {
-        player.sendMessage(Component.text("Ability " + slot + ": ", NamedTextColor.YELLOW)
-                .append(Component.text(strip(name), NamedTextColor.WHITE)));
+        player.sendMessage(
+                Component.text("Ability " + slot + ": ", NamedTextColor.YELLOW)
+                        .append(Component.text(strip(name), NamedTextColor.WHITE)));
         player.sendMessage(Component.text(strip(description), NamedTextColor.GRAY));
     }
 
@@ -103,7 +114,8 @@ public class ElementInfoCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
             List<String> completions = new ArrayList<>();
             String input = args[0].toLowerCase();

@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.util.damage;
 
 import net.rose.elementSMPRefined.managers.TeamManager;
+
 import org.bukkit.GameMode;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;

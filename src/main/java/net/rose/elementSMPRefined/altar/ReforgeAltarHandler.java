@@ -3,10 +3,9 @@ package net.rose.elementSMPRefined.altar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.altar.ForgeRecipe;
-import net.rose.elementSMPRefined.altar.ReforgeAltarManager;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.lang.Lang;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -52,7 +51,8 @@ public class ReforgeAltarHandler implements Listener {
         // Sneaking with something in hand = "I'm trying to build against it", let vanilla do that.
         if (player.isSneaking() && event.getItem() != null) return;
 
-        // Always cancel so a compass can't be linked to it and blocks can't be placed on it by accident.
+        // Always cancel so a compass can't be linked to it and blocks can't be placed on it by
+        // accident.
         event.setCancelled(true);
         // Fires once per hand - only act on the main-hand pass.
         if (event.getHand() != EquipmentSlot.HAND) return;
@@ -76,8 +76,11 @@ public class ReforgeAltarHandler implements Listener {
             }
         }
         if (!missing.isEmpty()) {
-            player.sendMessage(Component.text("The altar needs more: ", NamedTextColor.RED)
-                    .append(Component.text(String.join(", ", missing), NamedTextColor.YELLOW)));
+            player.sendMessage(
+                    Component.text("The altar needs more: ", NamedTextColor.RED)
+                            .append(
+                                    Component.text(
+                                            String.join(", ", missing), NamedTextColor.YELLOW)));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.6f);
             return;
         }
@@ -99,9 +102,10 @@ public class ReforgeAltarHandler implements Listener {
         block.getWorld().playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 1.2f, 1.2f);
 
         // Server-wide announcement of who crafted the Forged Upgrader.
-        Bukkit.broadcast(Component.text(player.getName(), NamedTextColor.YELLOW)
-                .append(Component.text(" has crafted the ", NamedTextColor.GOLD))
-                .append(Component.text("Forged Upgrader", ForgedUpgraderItem.COLOR)));
+        Bukkit.broadcast(
+                Component.text(player.getName(), NamedTextColor.YELLOW)
+                        .append(Component.text(" has crafted the ", NamedTextColor.GOLD))
+                        .append(Component.text("Forged Upgrader", ForgedUpgraderItem.COLOR)));
 
         altar.completeAltar();
     }
@@ -137,7 +141,10 @@ public class ReforgeAltarHandler implements Listener {
     public void onBreak(BlockBreakEvent event) {
         if (altar.isAltarLodestone(event.getBlock())) {
             event.setCancelled(true);
-            event.getPlayer().sendActionBar(Component.text("The altar's lodestone can't be broken.", NamedTextColor.RED));
+            event.getPlayer()
+                    .sendActionBar(
+                            Component.text(
+                                    "The altar's lodestone can't be broken.", NamedTextColor.RED));
         }
     }
 

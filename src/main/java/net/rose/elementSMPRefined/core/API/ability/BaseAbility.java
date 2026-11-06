@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.core.API.ability;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;
@@ -13,8 +14,8 @@ public abstract class BaseAbility implements Ability {
     private final String abilityId;
     private final int cooldownSeconds;
     private final int requiredUpgradeLevel;
-    private final ElementType elementType;     // non-null for the "live" constructor
-    private final int abilitySlot;             // 1 or 2, paired with elementType
+    private final ElementType elementType; // non-null for the "live" constructor
+    private final int abilitySlot; // 1 or 2, paired with elementType
     private final ConfigManager configManager; // non-null for the "live" constructor
     private final Set<UUID> activePlayers = new HashSet<>();
 
@@ -51,8 +52,13 @@ public abstract class BaseAbility implements Ability {
      * @param requiredUpgradeLevel The minimum upgrade level required
      * @param configManager Source of truth for the live mana cost lookup
      */
-    public BaseAbility(String abilityId, ElementType elementType, int abilitySlot, int cooldownSeconds,
-                       int requiredUpgradeLevel, ConfigManager configManager) {
+    public BaseAbility(
+            String abilityId,
+            ElementType elementType,
+            int abilitySlot,
+            int cooldownSeconds,
+            int requiredUpgradeLevel,
+            ConfigManager configManager) {
         this.abilityId = abilityId;
         this.cooldownSeconds = cooldownSeconds;
         this.requiredUpgradeLevel = requiredUpgradeLevel;

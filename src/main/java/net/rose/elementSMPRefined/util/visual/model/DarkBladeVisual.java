@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -28,13 +29,14 @@ import java.util.Set;
 public final class DarkBladeVisual {
 
     private static final NamespacedKey[] MODELS = {
-            key("elementsmp:purple_blade_1"),
-            key("elementsmp:purple_blade_2"),
-            key("elementsmp:purple_blade_3")
+        key("elementsmp:purple_blade_1"),
+        key("elementsmp:purple_blade_2"),
+        key("elementsmp:purple_blade_3")
     };
 
     /** Z roll (degrees) of each blade group, straight from the bbmodel. Flip {@link #ROLL_SIGN} if they look mirrored. */
     private static final float[] BASE_ROLLS = {-120f, 120f, 180f};
+
     private static final float ROLL_SIGN = 1f;
 
     /** The blades lead toward +Z. Use (0, 0, -1) to flip. */
@@ -53,24 +55,29 @@ public final class DarkBladeVisual {
         this.scale = scale;
         this.direction = direction.clone().normalize();
         World world = at.getWorld();
-        // Zero yaw/pitch: display entities rotate with their own yaw/pitch ON TOP of the transformation,
+        // Zero yaw/pitch: display entities rotate with their own yaw/pitch ON TOP of the
+        // transformation,
         // so the heading must live only in the transformation.
         Location flat = upright(at);
         for (int i = 0; i < MODELS.length; i++) {
             ItemStack modelItem = ModelItems.of(MODELS[i]);
             Transformation transformation = transformation(i);
-            displays[i] = world.spawn(flat, ItemDisplay.class, d -> {
-                d.setItemStack(modelItem);
-                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                d.setBillboard(Display.Billboard.FIXED);
-                d.setBrightness(new Display.Brightness(15, 15));
-                d.setTransformation(transformation);
-                d.setInterpolationDelay(0);
-                d.setInterpolationDuration(1);
-                d.setTeleportDuration(1);
-                d.setPersistent(false);
-                d.setInvulnerable(true);
-            });
+            displays[i] =
+                    world.spawn(
+                            flat,
+                            ItemDisplay.class,
+                            d -> {
+                                d.setItemStack(modelItem);
+                                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                                d.setBillboard(Display.Billboard.FIXED);
+                                d.setBrightness(new Display.Brightness(15, 15));
+                                d.setTransformation(transformation);
+                                d.setInterpolationDelay(0);
+                                d.setInterpolationDuration(1);
+                                d.setTeleportDuration(1);
+                                d.setPersistent(false);
+                                d.setInvulnerable(true);
+                            });
         }
         ACTIVE.add(this);
     }
@@ -110,7 +117,11 @@ public final class DarkBladeVisual {
     }
 
     private Transformation transformation(int index) {
-        Vector3f dir = new Vector3f((float) direction.getX(), (float) direction.getY(), (float) direction.getZ());
+        Vector3f dir =
+                new Vector3f(
+                        (float) direction.getX(),
+                        (float) direction.getY(),
+                        (float) direction.getZ());
         float roll = (float) Math.toRadians(ROLL_SIGN * BASE_ROLLS[index] + spin);
         Quaternionf rotation = new Quaternionf().rotationTo(MODEL_FORWARD, dir).rotateZ(roll);
         return new Transformation(new Vector3f(), rotation, new Vector3f(scale), new Quaternionf());

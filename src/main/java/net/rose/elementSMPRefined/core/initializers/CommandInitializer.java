@@ -1,7 +1,8 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementevents.command.EventVillagerCommand;
+import net.rose.elementSMPRefined.commands.element.admin.ReforgeAltarCommand;
+import net.rose.elementSMPRefined.commands.element.admin.UtilCommand;
 import net.rose.elementSMPRefined.commands.element.base.AbilityCommand;
 import net.rose.elementSMPRefined.commands.element.base.AutoSmeltCommand;
 import net.rose.elementSMPRefined.commands.element.base.ElementCommand;
@@ -9,11 +10,11 @@ import net.rose.elementSMPRefined.commands.element.base.ElementInfoCommand;
 import net.rose.elementSMPRefined.commands.element.base.ToggleCommand;
 import net.rose.elementSMPRefined.commands.element.base.WithdrawCommand;
 import net.rose.elementSMPRefined.commands.server.DimensionCommand;
+import net.rose.elementSMPRefined.commands.server.EnchantableMaceCommand;
 import net.rose.elementSMPRefined.commands.server.GraceCommand;
 import net.rose.elementSMPRefined.commands.team.TeamCommand;
-import net.rose.elementSMPRefined.commands.element.admin.ReforgeAltarCommand;
-import net.rose.elementSMPRefined.commands.element.admin.UtilCommand;
-import net.rose.elementSMPRefined.commands.server.EnchantableMaceCommand;
+import net.rose.elementevents.command.EventVillagerCommand;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class CommandInitializer {
@@ -26,7 +27,11 @@ public class CommandInitializer {
     public void registerCommands() {
         plugin.getLogger().info("Registering commands...");
 
-        AbilityCommand abilityCommand = new AbilityCommand(plugin.getElementManager(), plugin.getDisarmManager(), plugin.getStatusEffectManager());
+        AbilityCommand abilityCommand =
+                new AbilityCommand(
+                        plugin.getElementManager(),
+                        plugin.getDisarmManager(),
+                        plugin.getStatusEffectManager());
 
         CommandRegister.register(plugin)
                 .command("ability1", abilityCommand)
@@ -40,7 +45,9 @@ public class CommandInitializer {
                 .command("util", new UtilCommand(plugin))
                 .command("enchantablemace", new EnchantableMaceCommand(plugin))
                 .command("reforgealtar", new ReforgeAltarCommand(plugin.getReforgeAltarManager()))
-                .command("eventvillager", new EventVillagerCommand(plugin, plugin.getEventVillager()))
+                .command(
+                        "eventvillager",
+                        new EventVillagerCommand(plugin, plugin.getEventVillager()))
                 .command("grace", new GraceCommand(plugin))
                 .command("dimension", new DimensionCommand(plugin));
     }

@@ -1,17 +1,18 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
-import net.rose.elementSMPRefined.util.damage.AbilityTargets;
-import net.rose.elementSMPRefined.core.Constants;
-import net.rose.elementSMPRefined.particles.element.StormParticles;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+import net.rose.elementSMPRefined.particles.element.StormParticles;
 import net.rose.elementSMPRefined.status.StatusEffectType;
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
@@ -33,7 +34,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class LightningSpearAbility extends BaseAbility {
 
-    private static final double SPEED = 2.2 ;
+    private static final double SPEED = 2.2;
     private static final double RANGE = 48.0;
     private static final double HIT_RADIUS = 0.6;
     private static final double SPEAR_LENGTH = 3.0;
@@ -58,7 +59,13 @@ public class LightningSpearAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public LightningSpearAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("storm_lightning_spear", ElementType.STORM, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
+        super(
+                "storm_lightning_spear",
+                ElementType.STORM,
+                1,
+                Constants.Cooldown.ABILITY_1_SECONDS,
+                1,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -70,7 +77,8 @@ public class LightningSpearAbility extends BaseAbility {
 
         Vector direction = player.getEyeLocation().getDirection().normalize();
         // Starts just in front of and slightly below the eyes so it doesn't blot out your view.
-        Location start = player.getEyeLocation().add(0, -0.25, 0).add(direction.clone().multiply(0.6));
+        Location start =
+                player.getEyeLocation().add(0, -0.25, 0).add(direction.clone().multiply(0.6));
 
         world.playSound(start, Sound.ITEM_TRIDENT_THROW, THROW_VOLUME, 1.7f);
         world.playSound(start, Sound.ITEM_TRIDENT_THUNDER, CRACKLE_VOLUME, 1.6f);
@@ -97,17 +105,28 @@ public class LightningSpearAbility extends BaseAbility {
                 // Frozen: hang in the air (model stays visible) instead of flying on and vanishing.
                 if (HOLD_WHEN_TICK_FROZEN && isTickFrozen()) return;
 
-                // One ray per tick covers the whole step: first block or first valid entity along it.
-                RayTraceResult hit = world.rayTrace(
-                        position, direction, SPEED, FluidCollisionMode.NEVER, true, HIT_RADIUS,
-                        entity -> isTargetable(context, entity));
+                // One ray per tick covers the whole step: first block or first valid entity along
+                // it.
+                RayTraceResult hit =
+                        world.rayTrace(
+                                position,
+                                direction,
+                                SPEED,
+                                FluidCollisionMode.NEVER,
+                                true,
+                                HIT_RADIUS,
+                                entity -> isTargetable(context, entity));
 
                 if (hit != null) {
                     Location impact = hit.getHitPosition().toLocation(world);
                     spear.moveTo(impact);
                     drawSpear(world, impact, direction);
                     Entity hitEntity = hit.getHitEntity();
-                    explode(context, impact, hitEntity instanceof LivingEntity living ? living : null, direction);
+                    explode(
+                            context,
+                            impact,
+                            hitEntity instanceof LivingEntity living ? living : null,
+                            direction);
                     cancel();
                     return;
                 }
@@ -120,7 +139,8 @@ public class LightningSpearAbility extends BaseAbility {
                 if (travelled >= RANGE) {
                     // Ran out of range - fizzle out instead of vanishing silently.
                     StormParticles.spearFizzle(world, position);
-                    world.playSound(position, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, FIZZLE_VOLUME, 1.8f);
+                    world.playSound(
+                            position, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, FIZZLE_VOLUME, 1.8f);
                     cancel();
                 }
             }
@@ -159,7 +179,8 @@ public class LightningSpearAbility extends BaseAbility {
         }
     }
 
-    private void explode(ElementContext context, Location impact, LivingEntity directHit, Vector direction) {
+    private void explode(
+            ElementContext context, Location impact, LivingEntity directHit, Vector direction) {
         Player caster = context.getPlayer();
         World world = impact.getWorld();
 
@@ -169,10 +190,17 @@ public class LightningSpearAbility extends BaseAbility {
         world.strikeLightningEffect(impact);
 
         if (directHit != null) {
-            // A raised shield stops the spear itself: no damage and no shock for the one holding it up.
+            // A raised shield stops the spear itself: no damage and no shock for the one holding it
+            // up.
             // (The burst below is an area effect, so it isn't blockable.)
-            boolean landed = TrueDamage.of(DIRECT_DAMAGE).attacker(caster).ability(getName()).type(DamageType.LIGHTNING_BOLT)
-                    .ignoreIFrames(false).blockableByShield(direction).apply(directHit);
+            boolean landed =
+                    TrueDamage.of(DIRECT_DAMAGE)
+                            .attacker(caster)
+                            .ability(getName())
+                            .type(DamageType.LIGHTNING_BOLT)
+                            .ignoreIFrames(false)
+                            .blockableByShield(direction)
+                            .apply(directHit);
             if (landed) {
                 shock(caster, directHit);
             }
@@ -182,8 +210,12 @@ public class LightningSpearAbility extends BaseAbility {
             if (nearby.equals(directHit)) continue;
             if (!isTargetable(context, nearby)) continue;
 
-            TrueDamage.of(SHOCK_DAMAGE).attacker(caster).ability(getName()).type(DamageType.LIGHTNING_BOLT)
-                    .ignoreIFrames(false).apply(nearby);
+            TrueDamage.of(SHOCK_DAMAGE)
+                    .attacker(caster)
+                    .ability(getName())
+                    .type(DamageType.LIGHTNING_BOLT)
+                    .ignoreIFrames(false)
+                    .apply(nearby);
             shock(caster, nearby);
             StormParticles.spearAreaShock(nearby.getLocation());
         }
@@ -191,9 +223,11 @@ public class LightningSpearAbility extends BaseAbility {
 
     private void shock(Player caster, LivingEntity target) {
         if (target instanceof Player player) {
-            plugin.getStatusEffectManager().applyEffect(caster, player, StatusEffectType.STUN, PLAYER_STUN_TICKS, 1);
+            plugin.getStatusEffectManager()
+                    .applyEffect(caster, player, StatusEffectType.STUN, PLAYER_STUN_TICKS, 1);
         } else {
-            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, MOB_SLOW_TICKS, 4, false, false));
+            target.addPotionEffect(
+                    new PotionEffect(PotionEffectType.SLOWNESS, MOB_SLOW_TICKS, 4, false, false));
         }
         StormParticles.spearShock(target.getLocation());
     }
@@ -205,6 +239,7 @@ public class LightningSpearAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Throws a lightning spear that damages and shocks what it hits and anything near it.";
+        return "Throws a lightning spear that damages and shocks what it hits and anything near"
+                   + " it.";
     }
 }

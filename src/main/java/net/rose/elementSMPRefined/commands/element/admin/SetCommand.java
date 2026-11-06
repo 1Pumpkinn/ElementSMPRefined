@@ -3,8 +3,9 @@ package net.rose.elementSMPRefined.commands.element.admin;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.lang.Lang;
+import net.rose.elementSMPRefined.managers.ElementManager;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -35,7 +36,9 @@ public class SetCommand implements ElementSubCommand {
 
         Optional<ElementType> parsed = CommandSupport.parseElementType(args[2]);
         if (parsed.isEmpty()) {
-            sender.sendMessage(Lang.setInvalidElementValid(String.join(", ", CommandSupport.getElementNames())));
+            sender.sendMessage(
+                    Lang.setInvalidElementValid(
+                            String.join(", ", CommandSupport.getElementNames())));
             return true;
         }
 

@@ -1,9 +1,8 @@
 package net.rose.elementSMPRefined.util.server.potplugin.potlimits;
 
-import java.util.ArrayList;
-import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.Arrow;
@@ -31,6 +30,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Enforces the restricted-potion list:
@@ -110,7 +112,8 @@ public final class PotLimitsListener implements Listener {
             return;
         }
 
-        boolean restricted = limits.isBanned(event.getCurrentItem()) || limits.isBanned(event.getCursor());
+        boolean restricted =
+                limits.isBanned(event.getCurrentItem()) || limits.isBanned(event.getCursor());
 
         int hotbarButton = event.getHotbarButton();
         if (!restricted && hotbarButton >= 0) {
@@ -203,11 +206,14 @@ public final class PotLimitsListener implements Listener {
         LivingEntity mob = event.getEntity();
         stripMobEffects(mob);
         // Some effects only land after the spawn event, so check once more next tick.
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (mob.isValid()) {
-                stripMobEffects(mob);
-            }
-        });
+        Bukkit.getScheduler()
+                .runTask(
+                        plugin,
+                        () -> {
+                            if (mob.isValid()) {
+                                stripMobEffects(mob);
+                            }
+                        });
     }
 
     private void stripMobEffects(LivingEntity mob) {

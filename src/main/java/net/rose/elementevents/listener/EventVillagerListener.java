@@ -2,6 +2,7 @@ package net.rose.elementevents.listener;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementevents.CustomEventVillager;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
@@ -68,7 +69,8 @@ public class EventVillagerListener implements Listener {
             return;
         }
 
-        // Pull the latest trades for this villager's type from event_villagers.yml right before the trade window opens.
+        // Pull the latest trades for this villager's type from event_villagers.yml right before the
+        // trade window opens.
         // Skipped while someone else is mid-trade so their open window isn't swapped out.
         if (!villager.isTrading()) {
             villager.setRecipes(villagers.buildRecipes(villagers.getType(villager)));

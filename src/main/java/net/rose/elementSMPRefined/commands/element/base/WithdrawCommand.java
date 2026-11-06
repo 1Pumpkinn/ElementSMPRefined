@@ -15,6 +15,7 @@ import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.ElementColours;
+
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -97,7 +98,8 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
 
         int newLevel = level - 1;
 
-        UpgradeLevelChangeEvent event = new UpgradeLevelChangeEvent(player, current, level, newLevel);
+        UpgradeLevelChangeEvent event =
+                new UpgradeLevelChangeEvent(player, current, level, newLevel);
         plugin.getServer().getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             player.sendMessage(Lang.WITHDRAW_CANCELLED);
@@ -126,17 +128,22 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
         boolean dropped = give(player, ForgedUpgraderItem.make(plugin));
 
         var element = elementManager.get(base);
-        NamedTextColor color = element != null
-                ? ElementColours.fromLegacy(element.getDisplayName())
-                : NamedTextColor.AQUA;
+        NamedTextColor color =
+                element != null
+                        ? ElementColours.fromLegacy(element.getDisplayName())
+                        : NamedTextColor.AQUA;
         // Replaces the generic "Element Assigned!" title assignBasicElement() just showed.
-        player.showTitle(Title.title(
-                Component.text("Element Unforged").color(NamedTextColor.GOLD),
-                Component.text(current.name() + " -> " + base.name()).color(color),
-                Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(2000), Duration.ofMillis(500))
-        ));
+        player.showTitle(
+                Title.title(
+                        Component.text("Element Unforged").color(NamedTextColor.GOLD),
+                        Component.text(current.name() + " -> " + base.name()).color(color),
+                        Title.Times.times(
+                                Duration.ofMillis(500),
+                                Duration.ofMillis(2000),
+                                Duration.ofMillis(500))));
 
-        // assignBasicElement() just played the success jingle - cut it and play the power-down instead.
+        // assignBasicElement() just played the success jingle - cut it and play the power-down
+        // instead.
         player.stopSound(SoundUtils.UI.SUCCESS.sound());
         SoundUtils.playTo(player, SoundUtils.UI.WITHDRAW);
     }
@@ -164,13 +171,17 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
 
         if (!dropped.isValid()) {
             // Something (another plugin / a region) cancelled the item spawn.
-            plugin.getLogger().warning("Could not drop withdrawn item for " + player.getName()
-                    + " - the item spawn was cancelled by another plugin.");
+            plugin.getLogger()
+                    .warning(
+                            "Could not drop withdrawn item for "
+                                    + player.getName()
+                                    + " - the item spawn was cancelled by another plugin.");
         }
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
             return CommandSupport.filterStartingWith(SUBCOMMANDS, args[0]);
         }

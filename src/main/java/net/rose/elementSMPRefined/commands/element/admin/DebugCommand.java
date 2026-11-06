@@ -6,13 +6,14 @@ import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.data.PlayerData;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
-import net.rose.elementSMPRefined.lang.Lang;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -50,12 +51,18 @@ import java.util.UUID;
  * requiring them to log in first.
  */
 public class DebugCommand implements ElementSubCommand {
-    private static final EnumSet<StatusEffectType> MONITORED_STATUS_EFFECTS = EnumSet.of(
-            StatusEffectType.SLOW, StatusEffectType.SILENCE, StatusEffectType.WEAKNESS,
-            StatusEffectType.FREEZE, StatusEffectType.BLEED, StatusEffectType.BURN,
-            StatusEffectType.ROOT, StatusEffectType.FULL_STUN, StatusEffectType.PARTIAL_STUN,
-            StatusEffectType.STUN
-    );
+    private static final EnumSet<StatusEffectType> MONITORED_STATUS_EFFECTS =
+            EnumSet.of(
+                    StatusEffectType.SLOW,
+                    StatusEffectType.SILENCE,
+                    StatusEffectType.WEAKNESS,
+                    StatusEffectType.FREEZE,
+                    StatusEffectType.BLEED,
+                    StatusEffectType.BURN,
+                    StatusEffectType.ROOT,
+                    StatusEffectType.FULL_STUN,
+                    StatusEffectType.PARTIAL_STUN,
+                    StatusEffectType.STUN);
 
     private static final int ELEMENT_PASSIVE_DURATION_THRESHOLD_TICKS = 1_000_000;
 
@@ -66,9 +73,13 @@ public class DebugCommand implements ElementSubCommand {
     private final StatusEffectManager statusEffectManager;
     private final TeamManager teamManager;
 
-    public DebugCommand(DataStore dataStore, ElementManager elementManager,
-                        CooldownManager cooldownManager, DisarmManager disarmManager,
-                        StatusEffectManager statusEffectManager, TeamManager teamManager) {
+    public DebugCommand(
+            DataStore dataStore,
+            ElementManager elementManager,
+            CooldownManager cooldownManager,
+            DisarmManager disarmManager,
+            StatusEffectManager statusEffectManager,
+            TeamManager teamManager) {
         this.dataStore = dataStore;
         this.elementManager = elementManager;
         this.cooldownManager = cooldownManager;
@@ -130,15 +141,20 @@ public class DebugCommand implements ElementSubCommand {
         sender.sendMessage(Lang.debugSection("Persisted Data"));
 
         ElementType reportedType = elementManager.data(uuid).getCurrentElement();
-        sender.sendMessage(Lang.debugElementmanagerReportsBuiltinType(reportedType != null ? reportedType.name() : "null"));
+        sender.sendMessage(
+                Lang.debugElementmanagerReportsBuiltinType(
+                        reportedType != null ? reportedType.name() : "null"));
 
         dataStore.invalidateCache(uuid);
         ElementType reloadedType = elementManager.data(uuid).getCurrentElement();
-        sender.sendMessage(Lang.debugAfterCacheInvalidation(reloadedType != null ? reloadedType.name() : "null"));
+        sender.sendMessage(
+                Lang.debugAfterCacheInvalidation(
+                        reloadedType != null ? reloadedType.name() : "null"));
 
         Element element = elementManager.get(reportedType);
         if (element != null) {
-            sender.sendMessage(Lang.debugDisplayName(ChatColor.stripColor(element.getDisplayName())));
+            sender.sendMessage(
+                    Lang.debugDisplayName(ChatColor.stripColor(element.getDisplayName())));
         }
 
         PlayerData pd = elementManager.data(uuid);
@@ -146,7 +162,9 @@ public class DebugCommand implements ElementSubCommand {
 
         sendTeamInfo(sender, uuid);
 
-        sender.sendMessage(Lang.debugPendingRefunds(pd.getPendingRerollerRefunds(), pd.getPendingAdvancedRerollerRefunds()));
+        sender.sendMessage(
+                Lang.debugPendingRefunds(
+                        pd.getPendingRerollerRefunds(), pd.getPendingAdvancedRerollerRefunds()));
     }
 
     private void sendLiveState(CommandSender sender, Player livePlayer) {
@@ -167,18 +185,22 @@ public class DebugCommand implements ElementSubCommand {
             return;
         }
 
-        sender.sendMessage(Lang.debugAbilityStatus(
-                1, ChatColor.stripColor(element.getAbility1Name()), element.getAbility1Id(),
-                cooldownManager.isReady(target, element.getAbility1Id()),
-                cooldownManager.getRemainingSeconds(target, element.getAbility1Id()),
-                element.getAbility1CooldownSeconds()
-        ));
-        sender.sendMessage(Lang.debugAbilityStatus(
-                2, ChatColor.stripColor(element.getAbility2Name()), element.getAbility2Id(),
-                cooldownManager.isReady(target, element.getAbility2Id()),
-                cooldownManager.getRemainingSeconds(target, element.getAbility2Id()),
-                element.getAbility2CooldownSeconds()
-        ));
+        sender.sendMessage(
+                Lang.debugAbilityStatus(
+                        1,
+                        ChatColor.stripColor(element.getAbility1Name()),
+                        element.getAbility1Id(),
+                        cooldownManager.isReady(target, element.getAbility1Id()),
+                        cooldownManager.getRemainingSeconds(target, element.getAbility1Id()),
+                        element.getAbility1CooldownSeconds()));
+        sender.sendMessage(
+                Lang.debugAbilityStatus(
+                        2,
+                        ChatColor.stripColor(element.getAbility2Name()),
+                        element.getAbility2Id(),
+                        cooldownManager.isReady(target, element.getAbility2Id()),
+                        cooldownManager.getRemainingSeconds(target, element.getAbility2Id()),
+                        element.getAbility2CooldownSeconds()));
     }
 
     private String formatActiveStatusEffects(Player player) {
@@ -215,9 +237,20 @@ public class DebugCommand implements ElementSubCommand {
             sender.sendMessage(Lang.debugTeam("None"));
             return;
         }
-        sender.sendMessage(Lang.debugTeam(team.getName() + " (" + team.getSize() + "/" + teamManager.getMaxMembers()
-                + " members, " + team.getAllyIds().size() + "/" + teamManager.getMaxAllies() + " allies"
-                + (team.isOwner(uuid) ? ", owner" : "") + ")"));
+        sender.sendMessage(
+                Lang.debugTeam(
+                        team.getName()
+                                + " ("
+                                + team.getSize()
+                                + "/"
+                                + teamManager.getMaxMembers()
+                                + " members, "
+                                + team.getAllyIds().size()
+                                + "/"
+                                + teamManager.getMaxAllies()
+                                + " allies"
+                                + (team.isOwner(uuid) ? ", owner" : "")
+                                + ")"));
     }
 
     @Override

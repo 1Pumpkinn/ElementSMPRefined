@@ -1,5 +1,7 @@
 package net.rose.elementSMPRefined.commands.element.base;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.commands.element.admin.CastAllCommand;
 import net.rose.elementSMPRefined.commands.element.admin.ConfigCommand;
@@ -8,8 +10,7 @@ import net.rose.elementSMPRefined.commands.element.admin.DebugCommand;
 import net.rose.elementSMPRefined.commands.element.admin.SetCommand;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -35,12 +36,24 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
     private Map<String, ElementSubCommand> initializeSubCommands(ElementSMPRefined plugin) {
         Map<String, ElementSubCommand> commands = new LinkedHashMap<>();
         commands.put("set", new SetCommand(plugin.getElementManager()));
-        commands.put("debug", new DebugCommand(plugin.getDataStore(), plugin.getElementManager(),
-                plugin.getCooldownManager(), plugin.getDisarmManager(),
-                plugin.getStatusEffectManager(), plugin.getTeamManager()));
-        commands.put("data", new DataCommand(plugin.getDataStore(), plugin.getElementManager(),
-                plugin.getCooldownManager(), plugin.getDisarmManager(), plugin.getStatusEffectManager(),
-                plugin.getTeamManager()));
+        commands.put(
+                "debug",
+                new DebugCommand(
+                        plugin.getDataStore(),
+                        plugin.getElementManager(),
+                        plugin.getCooldownManager(),
+                        plugin.getDisarmManager(),
+                        plugin.getStatusEffectManager(),
+                        plugin.getTeamManager()));
+        commands.put(
+                "data",
+                new DataCommand(
+                        plugin.getDataStore(),
+                        plugin.getElementManager(),
+                        plugin.getCooldownManager(),
+                        plugin.getDisarmManager(),
+                        plugin.getStatusEffectManager(),
+                        plugin.getTeamManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
         commands.put("castall", new CastAllCommand(plugin));
         return commands;
@@ -49,7 +62,9 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("element.admin")) {
-            sender.sendMessage(Component.text("You don't have permission to use this command.", NamedTextColor.RED));
+            sender.sendMessage(
+                    Component.text(
+                            "You don't have permission to use this command.", NamedTextColor.RED));
             return true;
         }
 
@@ -68,7 +83,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
             return List.of();
         }
@@ -94,11 +110,30 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(Component.text("=== Element Admin Commands ===", NamedTextColor.GOLD));
-        sender.sendMessage(Component.text("/element set <player> <element> - Set player's element", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("/element data [player] - Show a player's stored data and live state (read-only)", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("/element debug [player] - Debug a player's element data (defaults to yourself)", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("/element castall <1|2> [players...|*] [at <target>] - Fire an ability for several players on the same tick (testing)", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("/element config <action> - Configuration management", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("  reload | reset [key] | set <key> <value>", NamedTextColor.GRAY));
+        sender.sendMessage(
+                Component.text(
+                        "/element set <player> <element> - Set player's element",
+                        NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text(
+                        "/element data [player] - Show a player's stored data and live state"
+                            + " (read-only)",
+                        NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text(
+                        "/element debug [player] - Debug a player's element data (defaults to"
+                            + " yourself)",
+                        NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text(
+                        "/element castall <1|2> [players...|*] [at <target>] - Fire an ability for"
+                            + " several players on the same tick (testing)",
+                        NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text(
+                        "/element config <action> - Configuration management",
+                        NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text("  reload | reset [key] | set <key> <value>", NamedTextColor.GRAY));
     }
 }

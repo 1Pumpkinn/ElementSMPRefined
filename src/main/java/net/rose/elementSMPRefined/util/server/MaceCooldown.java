@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.util.server;
 
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -11,9 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -114,11 +115,15 @@ public class MaceCooldown implements Listener {
     }
 
     private void scheduleReapply(Player player) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline()) {
-                reapplyClientCooldown(player);
-            }
-        }, REAPPLY_DELAY_TICKS);
+        Bukkit.getScheduler()
+                .runTaskLater(
+                        plugin,
+                        () -> {
+                            if (player.isOnline()) {
+                                reapplyClientCooldown(player);
+                            }
+                        },
+                        REAPPLY_DELAY_TICKS);
     }
 
     private static boolean isMace(ItemStack item) {
@@ -160,8 +165,10 @@ public class MaceCooldown implements Listener {
         double total = damageBeforeAbsorption(event);
         if (total <= max) return;
 
-        // Armor reduction isn't perfectly linear in the base damage, so scale and re-check a few times.
-        // Setting the base damage also re-runs the absorption modifier, so the cap holds with golden hearts.
+        // Armor reduction isn't perfectly linear in the base damage, so scale and re-check a few
+        // times.
+        // Setting the base damage also re-runs the absorption modifier, so the cap holds with
+        // golden hearts.
         double base = event.getDamage();
         for (int i = 0; i < 5 && total > max + 1.0E-6; i++) {
             base *= max / total;
@@ -174,7 +181,8 @@ public class MaceCooldown implements Listener {
     public void onHit(EntityDamageByEntityEvent event) {
         Player player = meleeAttacker(event);
         if (player == null) return;
-        if (!(event.getEntity() instanceof LivingEntity victim) || victim instanceof ArmorStand) return;
+        if (!(event.getEntity() instanceof LivingEntity victim) || victim instanceof ArmorStand)
+            return;
         if (!isMace(player.getInventory().getItemInMainHand())) return;
 
         start(player);

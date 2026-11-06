@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.items.recipes;
 
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -24,11 +25,22 @@ public final class UpgraderItem {
 
     private record Tier(String key, String name, String lore, Material corner, Material center) {}
 
-    private static final Map<Integer, Tier> TIERS = Map.of(
-            1, new Tier("upgrader_1", "&aUpgrader I", "Unlocks Ability 1",
-                    Material.GOLD_BLOCK, Material.ENDER_EYE),
-            2, new Tier("upgrader_2", "&bUpgrader II", "Unlocks Ability 2 and Passive 2",
-                    Material.DIAMOND_BLOCK, Material.TOTEM_OF_UNDYING));
+    private static final Map<Integer, Tier> TIERS =
+            Map.of(
+                    1,
+                            new Tier(
+                                    "upgrader_1",
+                                    "&aUpgrader I",
+                                    "Unlocks Ability 1",
+                                    Material.GOLD_BLOCK,
+                                    Material.ENDER_EYE),
+                    2,
+                            new Tier(
+                                    "upgrader_2",
+                                    "&bUpgrader II",
+                                    "Unlocks Ability 2 and Passive 2",
+                                    Material.DIAMOND_BLOCK,
+                                    Material.TOTEM_OF_UNDYING));
 
     /** @return the upgrader for {@code level}, or null if there is no upgrader for that level */
     public static ItemStack make(JavaPlugin plugin, int level) {
@@ -44,25 +56,35 @@ public final class UpgraderItem {
     }
 
     public static void registerRecipes(JavaPlugin plugin) {
-        TIERS.forEach((level, tier) -> {
-            try {
-                NamespacedKey key = new NamespacedKey(plugin, tier.key());
-                plugin.getServer().removeRecipe(key);
+        TIERS.forEach(
+                (level, tier) -> {
+                    try {
+                        NamespacedKey key = new NamespacedKey(plugin, tier.key());
+                        plugin.getServer().removeRecipe(key);
 
-                ShapedRecipe recipe = new ShapedRecipe(key, make(plugin, level));
-                recipe.shape("XAX", "AYA", "XAX");
-                recipe.setIngredient('X', tier.corner());
-                recipe.setIngredient('A', Material.AMETHYST_SHARD);
-                recipe.setIngredient('Y', tier.center());
+                        ShapedRecipe recipe = new ShapedRecipe(key, make(plugin, level));
+                        recipe.shape("XAX", "AYA", "XAX");
+                        recipe.setIngredient('X', tier.corner());
+                        recipe.setIngredient('A', Material.AMETHYST_SHARD);
+                        recipe.setIngredient('Y', tier.center());
 
-                plugin.getServer().addRecipe(recipe);
-            } catch (Exception e) {
-                plugin.getLogger().severe("Error registering " + tier.key() + " recipe: " + e.getMessage());
-            }
-        });
+                        plugin.getServer().addRecipe(recipe);
+                    } catch (Exception e) {
+                        plugin.getLogger()
+                                .severe(
+                                        "Error registering "
+                                                + tier.key()
+                                                + " recipe: "
+                                                + e.getMessage());
+                    }
+                });
     }
 
     public static void unregisterRecipes(JavaPlugin plugin) {
-        TIERS.values().forEach(tier -> plugin.getServer().removeRecipe(new NamespacedKey(plugin, tier.key())));
+        TIERS.values()
+                .forEach(
+                        tier ->
+                                plugin.getServer()
+                                        .removeRecipe(new NamespacedKey(plugin, tier.key())));
     }
 }

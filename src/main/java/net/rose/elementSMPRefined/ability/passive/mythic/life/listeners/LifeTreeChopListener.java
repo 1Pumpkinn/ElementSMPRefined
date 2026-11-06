@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.ability.passive.mythic.life.listeners;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
+
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -49,6 +50,7 @@ public class LifeTreeChopListener implements Listener {
      * for them from the logs of the tree.
      */
     private static final int DARK_OAK_BRANCH_REACH = 4;
+
     /** A floating group bigger than this is another tree, not a branch. */
     private static final int MAX_BRANCH_GROUP = 48;
 
@@ -58,10 +60,12 @@ public class LifeTreeChopListener implements Listener {
     private final JavaPlugin plugin;
     private final ElementManager elementManager;
     private final PlacedLogTracker placedLogs;
+
     /** Logs queued by a running chop animation, so a second chop can't claim them. */
     private final Set<Block> chopping = new HashSet<>();
 
-    public LifeTreeChopListener(JavaPlugin plugin, ElementManager elementManager, PlacedLogTracker placedLogs) {
+    public LifeTreeChopListener(
+            JavaPlugin plugin, ElementManager elementManager, PlacedLogTracker placedLogs) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.placedLogs = placedLogs;
@@ -89,7 +93,8 @@ public class LifeTreeChopListener implements Listener {
         List<Block> logs = collectTree(origin);
         if (logs.isEmpty()) return;
 
-        // The block being broken by this event still costs the axe one durability; the rest must fit in what's left.
+        // The block being broken by this event still costs the axe one durability; the rest must
+        // fit in what's left.
         int budget = remainingDurability(tool) - 1;
         if (budget <= 0) return;
         if (logs.size() > budget) logs = new ArrayList<>(logs.subList(0, budget));
@@ -99,7 +104,8 @@ public class LifeTreeChopListener implements Listener {
     }
 
     private static int remainingDurability(ItemStack tool) {
-        if (!(tool.getItemMeta() instanceof Damageable meta) || meta.isUnbreakable()) return Integer.MAX_VALUE;
+        if (!(tool.getItemMeta() instanceof Damageable meta) || meta.isUnbreakable())
+            return Integer.MAX_VALUE;
         int max = meta.hasMaxDamage() ? meta.getMaxDamage() : tool.getType().getMaxDurability();
         return max <= 0 ? Integer.MAX_VALUE : max - meta.getDamage();
     }
@@ -114,7 +120,9 @@ public class LifeTreeChopListener implements Listener {
             @Override
             public void run() {
                 ItemStack tool = player.getInventory().getItemInMainHand();
-                if (index >= logs.size() || !player.isOnline() || player.isDead()
+                if (index >= logs.size()
+                        || !player.isOnline()
+                        || player.isDead()
                         || !Tag.ITEMS_AXES.isTagged(tool.getType())) {
                     finish();
                     return;
@@ -183,7 +191,8 @@ public class LifeTreeChopListener implements Listener {
                         // Player-placed logs are never chopped, nor used to reach logs beyond them.
                         if (placedLogs.isPlaced(next)) continue;
                         if (Math.abs(next.getX() - origin.getX()) > MAX_HORIZONTAL_RADIUS
-                                || Math.abs(next.getZ() - origin.getZ()) > MAX_HORIZONTAL_RADIUS) continue;
+                                || Math.abs(next.getZ() - origin.getZ()) > MAX_HORIZONTAL_RADIUS)
+                            continue;
 
                         found.add(next);
                         queue.add(next);
@@ -222,7 +231,8 @@ public class LifeTreeChopListener implements Listener {
                         for (Block log : group) {
                             if (found.size() >= MAX_LOGS) return;
                             if (Math.abs(log.getX() - origin.getX()) > MAX_HORIZONTAL_RADIUS
-                                    || Math.abs(log.getZ() - origin.getZ()) > MAX_HORIZONTAL_RADIUS) continue;
+                                    || Math.abs(log.getZ() - origin.getZ()) > MAX_HORIZONTAL_RADIUS)
+                                continue;
                             found.add(log);
                         }
                     }
@@ -259,7 +269,8 @@ public class LifeTreeChopListener implements Listener {
                             touchesNaturalLeaves = true;
                             continue;
                         }
-                        if (next.getType() != type || placedLogs.isPlaced(next) || !seen.add(next)) continue;
+                        if (next.getType() != type || placedLogs.isPlaced(next) || !seen.add(next))
+                            continue;
                         if (group.size() >= MAX_BRANCH_GROUP) {
                             tooBig = true;
                             continue;

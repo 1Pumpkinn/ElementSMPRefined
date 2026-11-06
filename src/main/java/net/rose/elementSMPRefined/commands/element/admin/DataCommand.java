@@ -14,6 +14,7 @@ import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -49,8 +50,13 @@ public class DataCommand implements ElementSubCommand {
     private final StatusEffectManager statusEffectManager;
     private final TeamManager teamManager;
 
-    public DataCommand(DataStore dataStore, ElementManager elementManager, CooldownManager cooldownManager,
-                       DisarmManager disarmManager, StatusEffectManager statusEffectManager, TeamManager teamManager) {
+    public DataCommand(
+            DataStore dataStore,
+            ElementManager elementManager,
+            CooldownManager cooldownManager,
+            DisarmManager disarmManager,
+            StatusEffectManager statusEffectManager,
+            TeamManager teamManager) {
         this.dataStore = dataStore;
         this.elementManager = elementManager;
         this.cooldownManager = cooldownManager;
@@ -65,7 +71,8 @@ public class DataCommand implements ElementSubCommand {
             if (sender instanceof Player self) {
                 show(sender, self);
             } else {
-                sender.sendMessage(Component.text("Usage: /element data <player>", NamedTextColor.RED));
+                sender.sendMessage(
+                        Component.text("Usage: /element data <player>", NamedTextColor.RED));
             }
             return true;
         }
@@ -77,16 +84,21 @@ public class DataCommand implements ElementSubCommand {
             return true;
         }
 
-        // Only a name to go on for offline players - deprecated but fine for a manual admin command.
+        // Only a name to go on for offline players - deprecated but fine for a manual admin
+        // command.
         OfflinePlayer offline = Bukkit.getOfflinePlayer(name);
         if (!offline.hasPlayedBefore()) {
-            sender.sendMessage(Component.text("No player named '" + name + "' has played on this server.", NamedTextColor.RED));
+            sender.sendMessage(
+                    Component.text(
+                            "No player named '" + name + "' has played on this server.",
+                            NamedTextColor.RED));
             return true;
         }
         try {
             show(sender, offline);
         } finally {
-            // Offline players have no live use for the cached copy; drop it so this read can't leak.
+            // Offline players have no live use for the cached copy; drop it so this read can't
+            // leak.
             dataStore.invalidateCache(offline.getUniqueId());
         }
         return true;
@@ -104,9 +116,13 @@ public class DataCommand implements ElementSubCommand {
 
         sendElement(sender, pd);
         sendTeam(sender, uuid);
-        sender.sendMessage(row("Pending refunds",
-                "reroller x" + pd.getPendingRerollerRefunds()
-                        + ", advanced reroller x" + pd.getPendingAdvancedRerollerRefunds()));
+        sender.sendMessage(
+                row(
+                        "Pending refunds",
+                        "reroller x"
+                                + pd.getPendingRerollerRefunds()
+                                + ", advanced reroller x"
+                                + pd.getPendingAdvancedRerollerRefunds()));
 
         if (live != null) {
             sendLive(sender, live, pd);
@@ -123,7 +139,8 @@ public class DataCommand implements ElementSubCommand {
         }
 
         Element element = elementManager.get(type);
-        String display = element != null ? ChatColor.stripColor(element.getDisplayName()) : type.name();
+        String display =
+                element != null ? ChatColor.stripColor(element.getDisplayName()) : type.name();
         sender.sendMessage(row("Current", display + " (" + type.name().toLowerCase() + ")"));
 
         int level = pd.getCurrentElementUpgradeLevel();
@@ -139,7 +156,9 @@ public class DataCommand implements ElementSubCommand {
         } else {
             sender.sendMessage(row("Passives", ""));
             for (String passive : passives) {
-                sender.sendMessage(Component.text("  - " + ChatColor.stripColor(passive), NamedTextColor.WHITE));
+                sender.sendMessage(
+                        Component.text(
+                                "  - " + ChatColor.stripColor(passive), NamedTextColor.WHITE));
             }
         }
     }
@@ -151,12 +170,21 @@ public class DataCommand implements ElementSubCommand {
             return;
         }
         List<String> names = teamManager.getMemberNames(team);
-        String shown = names.size() <= MAX_NAMES_SHOWN ? String.join(", ", names)
-                : String.join(", ", names.subList(0, MAX_NAMES_SHOWN)) + " (+" + (names.size() - MAX_NAMES_SHOWN) + " more)";
-        List<String> allies = teamManager.getAllies(team).stream().map(TeamManager.Team::getName).toList();
+        String shown =
+                names.size() <= MAX_NAMES_SHOWN
+                        ? String.join(", ", names)
+                        : String.join(", ", names.subList(0, MAX_NAMES_SHOWN))
+                                + " (+"
+                                + (names.size() - MAX_NAMES_SHOWN)
+                                + " more)";
+        List<String> allies =
+                teamManager.getAllies(team).stream().map(TeamManager.Team::getName).toList();
         sender.sendMessage(row("Team", team.getName() + (team.isOwner(uuid) ? " (owner)" : "")));
         sender.sendMessage(row("Team members (" + names.size() + ")", shown));
-        sender.sendMessage(row("Team allies (" + allies.size() + ")", allies.isEmpty() ? "None" : String.join(", ", allies)));
+        sender.sendMessage(
+                row(
+                        "Team allies (" + allies.size() + ")",
+                        allies.isEmpty() ? "None" : String.join(", ", allies)));
     }
 
     private void sendLive(CommandSender sender, Player live, PlayerData pd) {
@@ -164,20 +192,36 @@ public class DataCommand implements ElementSubCommand {
 
         Element element = elementManager.get(pd.getCurrentElement());
         if (element != null) {
-            sender.sendMessage(row("Ability 1 cooldown", cooldown(live, element.getAbility1Id(), element.getAbility1CooldownSeconds())));
-            sender.sendMessage(row("Ability 2 cooldown", cooldown(live, element.getAbility2Id(), element.getAbility2CooldownSeconds())));
+            sender.sendMessage(
+                    row(
+                            "Ability 1 cooldown",
+                            cooldown(
+                                    live,
+                                    element.getAbility1Id(),
+                                    element.getAbility1CooldownSeconds())));
+            sender.sendMessage(
+                    row(
+                            "Ability 2 cooldown",
+                            cooldown(
+                                    live,
+                                    element.getAbility2Id(),
+                                    element.getAbility2CooldownSeconds())));
         }
 
-        sender.sendMessage(row("Ability disarmed", disarmManager.isAbilityDisarmed(live) ? "Yes" : "No"));
+        sender.sendMessage(
+                row("Ability disarmed", disarmManager.isAbilityDisarmed(live) ? "Yes" : "No"));
         sender.sendMessage(row("Applied passive effects", appliedPassiveEffects(live)));
         sender.sendMessage(row("Status effects", statusEffects(live)));
-        sender.sendMessage(row("Rerolling", elementManager.isCurrentlyRolling(live) ? "Yes" : "No"));
+        sender.sendMessage(
+                row("Rerolling", elementManager.isCurrentlyRolling(live) ? "Yes" : "No"));
         sender.sendMessage(row("Game mode", live.getGameMode().name()));
     }
 
     private String cooldown(Player player, String abilityId, int totalSeconds) {
         long remaining = cooldownManager.getRemainingSeconds(player, abilityId);
-        return remaining <= 0 ? "READY (" + totalSeconds + "s)" : remaining + "s left of " + totalSeconds + "s";
+        return remaining <= 0
+                ? "READY (" + totalSeconds + "s)"
+                : remaining + "s left of " + totalSeconds + "s";
     }
 
     private String appliedPassiveEffects(Player player) {
@@ -196,7 +240,11 @@ public class DataCommand implements ElementSubCommand {
         List<String> active = new ArrayList<>();
         for (StatusEffectType type : StatusEffectType.values()) {
             if (statusEffectManager.hasEffect(player, type)) {
-                active.add(type.name() + " (" + statusEffectManager.getRemainingDuration(player, type) / 20 + "s)");
+                active.add(
+                        type.name()
+                                + " ("
+                                + statusEffectManager.getRemainingDuration(player, type) / 20
+                                + "s)");
             }
         }
         return active.isEmpty() ? "None" : String.join(", ", active);
@@ -211,7 +259,8 @@ public class DataCommand implements ElementSubCommand {
     }
 
     private static Component row(String label, String value) {
-        return Component.text(label + ": ", NamedTextColor.GRAY).append(Component.text(value, NamedTextColor.WHITE));
+        return Component.text(label + ": ", NamedTextColor.GRAY)
+                .append(Component.text(value, NamedTextColor.WHITE));
     }
 
     @Override

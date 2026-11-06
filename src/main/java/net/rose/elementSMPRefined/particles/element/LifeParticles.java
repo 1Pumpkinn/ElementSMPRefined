@@ -9,9 +9,11 @@ public final class LifeParticles {
 
     private static final Particle.DustOptions RED_DUST = new Particle.DustOptions(Color.RED, 1.0f);
 
-    private static final Particle.DustOptions GREEN_DUST = new Particle.DustOptions(Color.fromRGB(90, 255, 130), 1.0f);
+    private static final Particle.DustOptions GREEN_DUST =
+            new Particle.DustOptions(Color.fromRGB(90, 255, 130), 1.0f);
 
-    private static final Particle.DustOptions POISON_DUST = new Particle.DustOptions(Color.fromRGB(120, 200, 60), 1.2f);
+    private static final Particle.DustOptions POISON_DUST =
+            new Particle.DustOptions(Color.fromRGB(120, 200, 60), 1.2f);
 
     private LifeParticles() {}
 
@@ -30,8 +32,35 @@ public final class LifeParticles {
         if (generation != 0) {
             world.spawnParticle(Particle.POOF, loc, 4, 0.2, 0.2, 0.2, 0.04, null, true);
         }
-        world.spawnParticle(Particle.SPORE_BLOSSOM_AIR, loc, spores, spread, spread * 0.8, spread, 0, null, true);
-        world.spawnParticle(Particle.FALLING_SPORE_BLOSSOM, loc, spores / 2, spread, spread * 0.8, spread, 0, null, true);
-        world.spawnParticle(Particle.DUST, loc, spores, spread * 0.8, spread * 0.6, spread * 0.8, 0, POISON_DUST, true);
+        world.spawnParticle(
+                Particle.SPORE_BLOSSOM_AIR,
+                loc,
+                spores,
+                spread,
+                spread * 0.8,
+                spread,
+                0,
+                null,
+                true);
+        world.spawnParticle(
+                Particle.FALLING_SPORE_BLOSSOM,
+                loc,
+                spores / 2,
+                spread,
+                spread * 0.8,
+                spread,
+                0,
+                null,
+                true);
+        world.spawnParticle(
+                Particle.DUST,
+                loc,
+                spores,
+                spread * 0.8,
+                spread * 0.6,
+                spread * 0.8,
+                0,
+                POISON_DUST,
+                true);
     }
 }

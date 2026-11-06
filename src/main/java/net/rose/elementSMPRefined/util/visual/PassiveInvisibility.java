@@ -15,8 +15,7 @@ public final class PassiveInvisibility {
 
     private static final Set<UUID> PASSIVE = ConcurrentHashMap.newKeySet();
 
-    private PassiveInvisibility() {
-    }
+    private PassiveInvisibility() {}
 
     public static void mark(Player player) {
         PASSIVE.add(player.getUniqueId());

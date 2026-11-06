@@ -4,28 +4,29 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.data.YamlFiles;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.Tag;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.BlockState;
-import org.bukkit.structure.Palette;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
-import net.rose.elementSMPRefined.data.YamlFiles;
-import org.bukkit.entity.Display;
+import org.bukkit.World;
 import org.bukkit.block.Biome;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.structure.Palette;
 import org.bukkit.structure.Structure;
 
 import java.io.File;
@@ -34,12 +35,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -66,10 +67,13 @@ public final class ReforgeAltarManager {
 
     /** Structure footprint, from the bundled reforge_altar.nbt (13 x 6 x 13). */
     public static final int SIZE_X = 13;
+
     public static final int SIZE_Y = 6;
     public static final int SIZE_Z = 13;
+
     /** Lodestone position inside the structure, relative to its origin corner. */
     public static final int LODESTONE_X = 6;
+
     public static final int LODESTONE_Y = 1;
     public static final int LODESTONE_Z = 6;
 
@@ -82,9 +86,17 @@ public final class ReforgeAltarManager {
 
     /** The altar currently in the world. Immutable; replaced, never edited. */
     public record Altar(String worldName, int originX, int originY, int originZ) {
-        public int lodestoneX() { return originX + LODESTONE_X; }
-        public int lodestoneY() { return originY + LODESTONE_Y; }
-        public int lodestoneZ() { return originZ + LODESTONE_Z; }
+        public int lodestoneX() {
+            return originX + LODESTONE_X;
+        }
+
+        public int lodestoneY() {
+            return originY + LODESTONE_Y;
+        }
+
+        public int lodestoneZ() {
+            return originZ + LODESTONE_Z;
+        }
     }
 
     private final JavaPlugin plugin;
@@ -116,13 +128,21 @@ public final class ReforgeAltarManager {
     public void start() {
         try (InputStream in = plugin.getResource(STRUCTURE_RESOURCE)) {
             if (in == null) {
-                plugin.getLogger().severe("Missing " + STRUCTURE_RESOURCE + " in the plugin jar - Reforge Altar disabled.");
+                plugin.getLogger()
+                        .severe(
+                                "Missing "
+                                        + STRUCTURE_RESOURCE
+                                        + " in the plugin jar - Reforge Altar disabled.");
                 return;
             }
             altarStructure = Bukkit.getStructureManager().loadStructure(in);
             readPieces();
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not load the Reforge Altar structure - altar disabled.", e);
+            plugin.getLogger()
+                    .log(
+                            Level.SEVERE,
+                            "Could not load the Reforge Altar structure - altar disabled.",
+                            e);
             return;
         }
 
@@ -181,11 +201,17 @@ public final class ReforgeAltarManager {
         return plugin.getConfig();
     }
 
-    public boolean hasActiveAltar() { return active != null; }
+    public boolean hasActiveAltar() {
+        return active != null;
+    }
 
-    public Altar getActiveAltar() { return active; }
+    public Altar getActiveAltar() {
+        return active;
+    }
 
-    public long getNextSpawnAtMillis() { return nextSpawnAtMillis; }
+    public long getNextSpawnAtMillis() {
+        return nextSpawnAtMillis;
+    }
 
     /** True if {@code block} is the lodestone of the active altar. Hot path for the protection listeners. */
     public boolean isAltarLodestone(Block block) {
@@ -259,11 +285,15 @@ public final class ReforgeAltarManager {
         spawning = true;
         int ox = lodestoneX - LODESTONE_X;
         int oz = lodestoneZ - LODESTONE_Z;
-        loadFootprint(world, ox, oz).whenComplete((v, err) -> onMain(() -> {
-            if (err != null || !place(world, ox, floorY, oz)) {
-                spawning = false;
-            }
-        }));
+        loadFootprint(world, ox, oz)
+                .whenComplete(
+                        (v, err) ->
+                                onMain(
+                                        () -> {
+                                            if (err != null || !place(world, ox, floorY, oz)) {
+                                                spawning = false;
+                                            }
+                                        }));
         return true;
     }
 
@@ -271,7 +301,11 @@ public final class ReforgeAltarManager {
         int maxAttempts = Math.max(1, cfg().getInt("reforge_altar.spawn_attempts", 25));
         if (attempt >= maxAttempts) {
             spawning = false;
-            plugin.getLogger().warning("Reforge Altar: found no valid site after " + maxAttempts + " attempts, retrying in 5 minutes.");
+            plugin.getLogger()
+                    .warning(
+                            "Reforge Altar: found no valid site after "
+                                    + maxAttempts
+                                    + " attempts, retrying in 5 minutes.");
             nextSpawnAtMillis = System.currentTimeMillis() + RETRY_AFTER_FAILED_SPAWN_MS;
             saveState();
             return;
@@ -292,22 +326,28 @@ public final class ReforgeAltarManager {
             return;
         }
 
-        loadFootprint(world, ox, oz).whenComplete((v, err) -> onMain(() -> {
-            if (err != null) {
-                tryRandomSite(world, attempt + 1);
-                return;
-            }
-            Integer floorY = evaluateSite(world, ox, oz);
-            if (floorY == null) {
-                tryRandomSite(world, attempt + 1);
-                return;
-            }
-            if (!place(world, ox, floorY, oz)) {
-                spawning = false;
-                nextSpawnAtMillis = System.currentTimeMillis() + RETRY_AFTER_FAILED_SPAWN_MS;
-                saveState();
-            }
-        }));
+        loadFootprint(world, ox, oz)
+                .whenComplete(
+                        (v, err) ->
+                                onMain(
+                                        () -> {
+                                            if (err != null) {
+                                                tryRandomSite(world, attempt + 1);
+                                                return;
+                                            }
+                                            Integer floorY = evaluateSite(world, ox, oz);
+                                            if (floorY == null) {
+                                                tryRandomSite(world, attempt + 1);
+                                                return;
+                                            }
+                                            if (!place(world, ox, floorY, oz)) {
+                                                spawning = false;
+                                                nextSpawnAtMillis =
+                                                        System.currentTimeMillis()
+                                                                + RETRY_AFTER_FAILED_SPAWN_MS;
+                                                saveState();
+                                            }
+                                        }));
     }
 
     private World resolveWorld() {
@@ -346,7 +386,8 @@ public final class ReforgeAltarManager {
 
         int floorY = max + 1;
         for (int h : heights) {
-            // Floor block sits at floorY; the ground's top block is h, so the air gap is floorY - h - 1.
+            // Floor block sits at floorY; the ground's top block is h, so the air gap is floorY - h
+            // - 1.
             if (floorY - h - 1 > maxGap) return null;
         }
         if (floorY < world.getMinHeight() || floorY + SIZE_Y > world.getMaxHeight()) return null;
@@ -370,7 +411,8 @@ public final class ReforgeAltarManager {
             return false;
         }
 
-        // Ground heights under the floor - read BEFORE placing, since placing changes the heightmap.
+        // Ground heights under the floor - read BEFORE placing, since placing changes the
+        // heightmap.
         Map<Integer, Integer> ground = new HashMap<>();
         for (int col : floorColumns) {
             int x = ox + col / SIZE_Z;
@@ -437,17 +479,29 @@ public final class ReforgeAltarManager {
         scheduleNextSpawn(); // also saves state (altar position + snapshot + placed blocks)
         spawnDisplays();
 
-        plugin.getLogger().info("Reforge Altar spawned at " + active.lodestoneX() + ", " + active.lodestoneY()
-                + ", " + active.lodestoneZ() + " in " + world.getName() + ".");
+        plugin.getLogger()
+                .info(
+                        "Reforge Altar spawned at "
+                                + active.lodestoneX()
+                                + ", "
+                                + active.lodestoneY()
+                                + ", "
+                                + active.lodestoneZ()
+                                + " in "
+                                + world.getName()
+                                + ".");
         announce();
         return true;
     }
 
     private Material groundMaterial(World world, int x, int y, int z) {
         Material top = world.getBlockAt(x, y, z).getType();
-        if (top.isBlock() && top.isSolid()
-                && !Tag.LEAVES.isTagged(top) && !Tag.LOGS.isTagged(top)
-                && !top.name().endsWith("ICE") && top != Material.LODESTONE) {
+        if (top.isBlock()
+                && top.isSolid()
+                && !Tag.LEAVES.isTagged(top)
+                && !Tag.LOGS.isTagged(top)
+                && !top.name().endsWith("ICE")
+                && top != Material.LODESTONE) {
             return top;
         }
         return biomeDefault(world.getBiome(x, y, z));
@@ -458,15 +512,23 @@ public final class ReforgeAltarManager {
         if (key.contains("badlands")) return Material.RED_SAND;
         if (key.contains("desert") || key.contains("beach")) return Material.SAND;
         if (key.contains("mushroom")) return Material.MYCELIUM;
-        if (key.contains("snowy") || key.contains("frozen") || key.contains("ice")
-                || key.contains("grove") || key.contains("slopes") || key.contains("peaks")) return Material.SNOW_BLOCK;
+        if (key.contains("snowy")
+                || key.contains("frozen")
+                || key.contains("ice")
+                || key.contains("grove")
+                || key.contains("slopes")
+                || key.contains("peaks")) return Material.SNOW_BLOCK;
         if (key.contains("stony")) return Material.STONE;
         return Material.GRASS_BLOCK;
     }
 
     private static boolean isGrassy(Material m) {
-        return m == Material.GRASS_BLOCK || m == Material.PODZOL || m == Material.MYCELIUM
-                || m == Material.DIRT_PATH || m == Material.FARMLAND || m == Material.MOSS_BLOCK
+        return m == Material.GRASS_BLOCK
+                || m == Material.PODZOL
+                || m == Material.MYCELIUM
+                || m == Material.DIRT_PATH
+                || m == Material.FARMLAND
+                || m == Material.MOSS_BLOCK
                 || m == Material.ROOTED_DIRT;
     }
 
@@ -484,8 +546,16 @@ public final class ReforgeAltarManager {
         if (a == null) return;
         Component msg = Component.text("A Reforge Altar has appeared", NamedTextColor.GOLD);
         if (cfg().getBoolean("reforge_altar.announce_coordinates", true)) {
-            msg = msg.append(Component.text(" near ", NamedTextColor.GOLD))
-                    .append(Component.text(a.lodestoneX() + ", " + a.lodestoneY() + ", " + a.lodestoneZ(), NamedTextColor.YELLOW));
+            msg =
+                    msg.append(Component.text(" near ", NamedTextColor.GOLD))
+                            .append(
+                                    Component.text(
+                                            a.lodestoneX()
+                                                    + ", "
+                                                    + a.lodestoneY()
+                                                    + ", "
+                                                    + a.lodestoneZ(),
+                                            NamedTextColor.YELLOW));
         }
         Bukkit.broadcast(msg.append(Component.text("!", NamedTextColor.GOLD)));
     }
@@ -519,8 +589,12 @@ public final class ReforgeAltarManager {
 
     private void restoreTerrain(World world, Altar a, List<String> entries) {
         if (entries.isEmpty()) {
-            plugin.getLogger().warning("Reforge Altar: no saved terrain to restore, only removing the lodestone.");
-            world.getBlockAt(a.lodestoneX(), a.lodestoneY(), a.lodestoneZ()).setType(Material.AIR, false);
+            plugin.getLogger()
+                    .warning(
+                            "Reforge Altar: no saved terrain to restore, only removing the"
+                                + " lodestone.");
+            world.getBlockAt(a.lodestoneX(), a.lodestoneY(), a.lodestoneZ())
+                    .setType(Material.AIR, false);
             return;
         }
         applyEntries(world, a, entries);
@@ -533,12 +607,18 @@ public final class ReforgeAltarManager {
                 int bar = line.indexOf('|');
                 String[] pos = line.substring(0, bar).split(",");
                 BlockData data = Bukkit.createBlockData(line.substring(bar + 1));
-                world.getBlockAt(a.originX() + Integer.parseInt(pos[0]),
-                        a.originY() + Integer.parseInt(pos[1]),
-                        a.originZ() + Integer.parseInt(pos[2])).setBlockData(data, false);
+                world.getBlockAt(
+                                a.originX() + Integer.parseInt(pos[0]),
+                                a.originY() + Integer.parseInt(pos[1]),
+                                a.originZ() + Integer.parseInt(pos[2]))
+                        .setBlockData(data, false);
                 applied++;
             } catch (RuntimeException e) {
-                plugin.getLogger().log(Level.WARNING, "Reforge Altar: bad saved block entry '" + line + "'", e);
+                plugin.getLogger()
+                        .log(
+                                Level.WARNING,
+                                "Reforge Altar: bad saved block entry '" + line + "'",
+                                e);
             }
         }
         return applied;
@@ -555,20 +635,35 @@ public final class ReforgeAltarManager {
         if (world == null || !world.isChunkLoaded(a.lodestoneX() >> 4, a.lodestoneZ() >> 4)) return;
         verified = true;
 
-        if (world.getBlockAt(a.lodestoneX(), a.lodestoneY(), a.lodestoneZ()).getType() == Material.LODESTONE) return;
+        if (world.getBlockAt(a.lodestoneX(), a.lodestoneY(), a.lodestoneZ()).getType()
+                == Material.LODESTONE) return;
         if (placedBlocks.isEmpty()) {
-            plugin.getLogger().warning("Reforge Altar: saved altar is missing from the world and has no saved blocks to re-place.");
+            plugin.getLogger()
+                    .warning(
+                            "Reforge Altar: saved altar is missing from the world and has no saved"
+                                + " blocks to re-place.");
             return;
         }
-        loadFootprint(world, a.originX(), a.originZ()).whenComplete((v, err) -> onMain(() -> {
-            int n = applyEntries(world, a, placedBlocks);
-            plugin.getLogger().info("Reforge Altar: structure was missing after restart, re-placed " + n + " blocks.");
-        }));
+        loadFootprint(world, a.originX(), a.originZ())
+                .whenComplete(
+                        (v, err) ->
+                                onMain(
+                                        () -> {
+                                            int n = applyEntries(world, a, placedBlocks);
+                                            plugin.getLogger()
+                                                    .info(
+                                                            "Reforge Altar: structure was missing"
+                                                                + " after restart, re-placed "
+                                                                    + n
+                                                                    + " blocks.");
+                                        }));
     }
 
     private Component buildDisplayText(ForgeRecipe recipe) {
         List<Component> lines = new ArrayList<>();
-        lines.add(Component.text("Forged Upgrader", NamedTextColor.GOLD).decorate(TextDecoration.BOLD));
+        lines.add(
+                Component.text("Forged Upgrader", NamedTextColor.GOLD)
+                        .decorate(TextDecoration.BOLD));
         for (ForgeRecipe.Ingredient ing : recipe.ingredients()) {
             lines.add(Component.text(ing.label(), NamedTextColor.WHITE));
         }
@@ -587,24 +682,35 @@ public final class ReforgeAltarManager {
         World world = Bukkit.getWorld(a.worldName());
         if (world == null) return;
 
-        Location loc = new Location(world, a.lodestoneX() + 0.5, a.lodestoneY() + DISPLAY_HEIGHT, a.lodestoneZ() + 0.5);
+        Location loc =
+                new Location(
+                        world,
+                        a.lodestoneX() + 0.5,
+                        a.lodestoneY() + DISPLAY_HEIGHT,
+                        a.lodestoneZ() + 0.5);
         Component text = buildDisplayText(recipe);
-        TextDisplay display = world.spawn(loc, TextDisplay.class, td -> {
-            td.text(text);
-            td.setBillboard(Display.Billboard.CENTER);
-            td.setAlignment(TextDisplay.TextAlignment.CENTER);
-            td.setShadowed(true);
-            td.setSeeThrough(false);
-            // No background box behind the text: turn off the default one and make any custom one fully transparent.
-            td.setDefaultBackground(false);
-            td.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
-            // Hidden from everyone until updateDisplayVisibility() shows it to a
-            // player whose element uses this recipe.
-            td.setVisibleByDefault(false);
-            // Not persistent: re-created by maintainDisplays() whenever the chunk is
-            // loaded without one, so it can never be orphaned or duplicated.
-            td.setPersistent(false);
-        });
+        TextDisplay display =
+                world.spawn(
+                        loc,
+                        TextDisplay.class,
+                        td -> {
+                            td.text(text);
+                            td.setBillboard(Display.Billboard.CENTER);
+                            td.setAlignment(TextDisplay.TextAlignment.CENTER);
+                            td.setShadowed(true);
+                            td.setSeeThrough(false);
+                            // No background box behind the text: turn off the default one and make
+                            // any custom one fully transparent.
+                            td.setDefaultBackground(false);
+                            td.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+                            // Hidden from everyone until updateDisplayVisibility() shows it to a
+                            // player whose element uses this recipe.
+                            td.setVisibleByDefault(false);
+                            // Not persistent: re-created by maintainDisplays() whenever the chunk
+                            // is
+                            // loaded without one, so it can never be orphaned or duplicated.
+                            td.setPersistent(false);
+                        });
         displayIds.put(recipe, display.getUniqueId());
     }
 
@@ -653,11 +759,14 @@ public final class ReforgeAltarManager {
         if (upgraded.isPresent()) return upgraded;
 
         ForgeRecipe[] all = ForgeRecipe.values();
-        return Optional.of(randomRecipes.computeIfAbsent(player.getUniqueId(), id -> all[random.nextInt(all.length)]));
+        return Optional.of(
+                randomRecipes.computeIfAbsent(
+                        player.getUniqueId(), id -> all[random.nextInt(all.length)]));
     }
 
     private void updateDisplayVisibility(World world, Altar a) {
-        Location center = new Location(world, a.lodestoneX() + 0.5, a.lodestoneY(), a.lodestoneZ() + 0.5);
+        Location center =
+                new Location(world, a.lodestoneX() + 0.5, a.lodestoneY(), a.lodestoneZ() + 0.5);
 
         for (Player player : world.getPlayers()) {
             if (player.getLocation().distanceSquared(center) > DISPLAY_RANGE_SQ) continue;
@@ -706,14 +815,24 @@ public final class ReforgeAltarManager {
             // Don't fall through to an empty state: the next saveState() would overwrite the real
             // altar record (and its terrain snapshot) with nothing.
             stateUnreadable = true;
-            plugin.getLogger().log(Level.SEVERE, "reforge_altar.yml is unreadable - altar state will not be saved until it is fixed", e);
+            plugin.getLogger()
+                    .log(
+                            Level.SEVERE,
+                            "reforge_altar.yml is unreadable - altar state will not be saved until"
+                                + " it is fixed",
+                            e);
             return;
         }
         nextSpawnAtMillis = yaml.getLong("next_spawn_at", 0L);
 
         String worldName = yaml.getString("altar.world");
         if (worldName == null) return;
-        active = new Altar(worldName, yaml.getInt("altar.x"), yaml.getInt("altar.y"), yaml.getInt("altar.z"));
+        active =
+                new Altar(
+                        worldName,
+                        yaml.getInt("altar.x"),
+                        yaml.getInt("altar.y"),
+                        yaml.getInt("altar.z"));
         snapshot = new ArrayList<>(yaml.getStringList("altar.snapshot"));
         placedBlocks = new ArrayList<>(yaml.getStringList("altar.placed"));
         verified = false;

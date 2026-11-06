@@ -50,7 +50,10 @@ public class DisarmManager {
     }
 
     public enum WeaponCategory {
-        SWORD, AXE, SPEAR, MACE
+        SWORD,
+        AXE,
+        SPEAR,
+        MACE
     }
 
     private record MaterialLock(Material material, long expiryMillis) {
@@ -154,7 +157,8 @@ public class DisarmManager {
         return isLocked(mainHandDisarm, player, material);
     }
 
-    private void lockMaterial(Map<UUID, MaterialLock> map, Player player, Material material, int durationTicks) {
+    private void lockMaterial(
+            Map<UUID, MaterialLock> map, Player player, Material material, int durationTicks) {
         long expiry = System.currentTimeMillis() + (durationTicks * 50L);
         map.put(player.getUniqueId(), new MaterialLock(material, expiry));
         player.setCooldown(material, durationTicks);
@@ -200,12 +204,22 @@ public class DisarmManager {
     }
 
     private void startSweep() {
-        sweepTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            long now = System.currentTimeMillis();
-            abilityDisarmExpiry.values().removeIf(expiry -> now >= expiry);
-            weaponDisarm.values().removeIf(lock -> now >= lock.expiryMillis());
-            mainHandDisarm.values().removeIf(lock -> now >= lock.expiryMillis());
-        }, 20L, 20L); // once a second - pure housekeeping, see class javadoc
+        sweepTask =
+                Bukkit.getScheduler()
+                        .runTaskTimer(
+                                plugin,
+                                () -> {
+                                    long now = System.currentTimeMillis();
+                                    abilityDisarmExpiry.values().removeIf(expiry -> now >= expiry);
+                                    weaponDisarm
+                                            .values()
+                                            .removeIf(lock -> now >= lock.expiryMillis());
+                                    mainHandDisarm
+                                            .values()
+                                            .removeIf(lock -> now >= lock.expiryMillis());
+                                },
+                                20L,
+                                20L); // once a second - pure housekeeping, see class javadoc
     }
 
     /**

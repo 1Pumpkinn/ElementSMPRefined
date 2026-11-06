@@ -3,8 +3,9 @@ package net.rose.elementSMPRefined.commands.element.admin;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
-import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.lang.Lang;
+import net.rose.elementSMPRefined.managers.ConfigManager;
+
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
@@ -18,9 +19,15 @@ import java.util.List;
  */
 public class ConfigCommand implements ElementSubCommand {
     // Settings that already have their own command (/grace set, /dimension set, /potlimits,
-    // /enchantlimits, /reforgealtar enable|disable) - not suggested here so there is one place to change each.
-    private static final List<String> HANDLED_ELSEWHERE = List.of(
-            "dimensions.", "grace_period.", "banned-potions", "enchant-limits", "reforge_altar.enabled");
+    // /enchantlimits, /reforgealtar enable|disable) - not suggested here so there is one place to
+    // change each.
+    private static final List<String> HANDLED_ELSEWHERE =
+            List.of(
+                    "dimensions.",
+                    "grace_period.",
+                    "banned-potions",
+                    "enchant-limits",
+                    "reforge_altar.enabled");
 
     private final ElementSMPRefined plugin;
     private final ConfigManager configManager;
@@ -107,9 +114,10 @@ public class ConfigCommand implements ElementSubCommand {
         String action = args[1].toLowerCase();
 
         if (args.length == 3 && (action.equals("set") || action.equals("reset"))) {
-            List<String> keys = configManager.getConfigKeys().stream()
-                    .filter(key -> HANDLED_ELSEWHERE.stream().noneMatch(key::startsWith))
-                    .toList();
+            List<String> keys =
+                    configManager.getConfigKeys().stream()
+                            .filter(key -> HANDLED_ELSEWHERE.stream().noneMatch(key::startsWith))
+                            .toList();
             return CommandSupport.filterStartingWith(keys, args[2]);
         }
 

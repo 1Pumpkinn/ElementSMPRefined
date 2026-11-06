@@ -2,6 +2,7 @@ package net.rose.elementevents.api.config;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.YamlFiles;
+
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -51,7 +52,13 @@ public class EventVillagerConfig {
             this.types = Collections.unmodifiableMap(loaded);
             return true;
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not load " + FILE_NAME + " - keeping the previous villager types", e);
+            plugin.getLogger()
+                    .log(
+                            Level.SEVERE,
+                            "Could not load "
+                                    + FILE_NAME
+                                    + " - keeping the previous villager types",
+                            e);
             return false;
         }
     }

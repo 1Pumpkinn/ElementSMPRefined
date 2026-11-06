@@ -10,9 +10,11 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.particles.element.LifeParticles;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -23,22 +25,21 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.BlockDisplay;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.GameMode;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -57,48 +58,54 @@ public class LifeTotemAbility extends BaseAbility {
     private static final NamespacedKey MODEL =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:life_totem"));
 
-    private static final double LAUNCH_SPEED = 1.1;      // blocks per tick
-    private static final double LAUNCH_LIFT = 0.12;      // extra upward push so the throw arcs
-    private static final double GRAVITY = 0.05;          // blocks per tick^2
+    private static final double LAUNCH_SPEED = 1.1; // blocks per tick
+    private static final double LAUNCH_LIFT = 0.12; // extra upward push so the throw arcs
+    private static final double GRAVITY = 0.05; // blocks per tick^2
     private static final int MAX_FLIGHT_TICKS = 60;
-    private static final float SPIN_PER_TICK = 0.5f;     // radians, end over end
+    private static final float SPIN_PER_TICK = 0.5f; // radians, end over end
     private static final float FLIGHT_SCALE = 1.2f;
 
-    private static final float PLANTED_SCALE = 1.6f;     // model is ~1.5 blocks tall at scale 1 (~2.7 planted)
-    private static final double EMBED = 0.05;            // sink the base slightly so there is no gap
+    private static final float PLANTED_SCALE =
+            1.6f; // model is ~1.5 blocks tall at scale 1 (~2.7 planted)
+    private static final double EMBED = 0.05; // sink the base slightly so there is no gap
     private static final int GROW_TICKS = 4;
     private static final int SHRINK_TICKS = 8;
-    private static final int DURATION_TICKS = 200;       // 10 seconds standing
-    private static final float COLLAPSED = 0.05f;        // never scale to exactly zero
+    private static final int DURATION_TICKS = 200; // 10 seconds standing
+    private static final float COLLAPSED = 0.05f; // never scale to exactly zero
 
-    private static final int HITS_TO_BREAK = 3;          // critical hits needed to destroy it
+    private static final int HITS_TO_BREAK = 3; // critical hits needed to destroy it
     private static final float HITBOX_WIDTH = PLANTED_SCALE * 1.0f;
     private static final float HITBOX_HEIGHT = PLANTED_SCALE * (24.4f / 16f);
 
     // Health bar (flat coloured blocks that always face the viewer)
-    private static final double BAR_OFFSET = 0.3;        // gap between the totem's top and its health bar
+    private static final double BAR_OFFSET = 0.3; // gap between the totem's top and its health bar
     private static final float BAR_WIDTH = 1.3f;
     private static final float BAR_HEIGHT = 0.11f;
     private static final float BAR_BORDER = 0.035f;
-    private static final float BAR_GAP = 0.03f;          // between segments
-    private static final float BAR_DEPTH = 0.08f;        // segments are thicker than the backing so they always sit in front
+    private static final float BAR_GAP = 0.03f; // between segments
+    private static final float BAR_DEPTH =
+            0.08f; // segments are thicker than the backing so they always sit in front
     private static final BlockData BAR_BACK = Material.BLACK_CONCRETE.createBlockData();
     private static final BlockData BAR_EMPTY = Material.GRAY_CONCRETE.createBlockData();
-    private static final BlockData BAR_GREEN = Material.LIME_CONCRETE.createBlockData(); // brighter than lime concrete; swap here to retint
+    private static final BlockData BAR_GREEN =
+            Material.LIME_CONCRETE
+                    .createBlockData(); // brighter than lime concrete; swap here to retint
     private static final BlockData BAR_YELLOW = Material.YELLOW_CONCRETE.createBlockData();
     private static final BlockData BAR_RED = Material.RED_CONCRETE.createBlockData();
 
-    private static final double ATTACK_REACH = 3.0;      // vanilla melee reach, used to pick which occupant was swung at
-    private static final double OCCUPANT_AIM_MARGIN = 0.1; // forgiveness around an occupant's body, like vanilla's pick radius
+    private static final double ATTACK_REACH =
+            3.0; // vanilla melee reach, used to pick which occupant was swung at
+    private static final double OCCUPANT_AIM_MARGIN =
+            0.1; // forgiveness around an occupant's body, like vanilla's pick radius
     private static final java.util.Set<Material> EATABLE_INSIDE =
             java.util.EnumSet.of(Material.GOLDEN_APPLE, Material.ENCHANTED_GOLDEN_APPLE);
 
     private static final double RADIUS = Constants.Distance.LIFE_REGEN_RADIUS;
     private static final int PULSE_EVERY_TICKS = 20;
-    private static final int PULSE_FIRST_TICK = 3;       // just after it finished planting
-    private static final int REGEN_TICKS = 60;           // each pulse refreshes Regeneration II for 3s
+    private static final int PULSE_FIRST_TICK = 3; // just after it finished planting
+    private static final int REGEN_TICKS = 60; // each pulse refreshes Regeneration II for 3s
     private static final int REGEN_AMPLIFIER = 1;
-    private static final int RING_TICKS = 8;             // how long a pulse ring takes to expand
+    private static final int RING_TICKS = 8; // how long a pulse ring takes to expand
 
     private static final List<Totem> ACTIVE = new ArrayList<>();
 
@@ -108,7 +115,13 @@ public class LifeTotemAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public LifeTotemAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("life_totem", ElementType.LIFE, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
+        super(
+                "life_totem",
+                ElementType.LIFE,
+                1,
+                Constants.Cooldown.ABILITY_1_SECONDS,
+                1,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -123,19 +136,30 @@ public class LifeTotemAbility extends BaseAbility {
         Vector velocity = dir.clone().multiply(LAUNCH_SPEED).add(new Vector(0, LAUNCH_LIFT, 0));
 
         ItemStack modelItem = ModelItems.of(MODEL);
-        ItemDisplay display = world.spawn(start.toLocation(world), ItemDisplay.class, d -> {
-            d.setItemStack(modelItem);
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setTeleportDuration(1);
-            d.setTransformation(flightPose(0f));
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        ItemDisplay display =
+                world.spawn(
+                        start.toLocation(world),
+                        ItemDisplay.class,
+                        d -> {
+                            d.setItemStack(modelItem);
+                            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                            d.setBillboard(Display.Billboard.FIXED);
+                            d.setBrightness(new Display.Brightness(15, 15));
+                            d.setTeleportDuration(1);
+                            d.setTransformation(flightPose(0f));
+                            d.setPersistent(false);
+                            d.setInvulnerable(true);
+                        });
 
-        Totem totem = new Totem(world, display, start, velocity, player.getUniqueId(),
-                context.getTeamManager(), eye.getYaw());
+        Totem totem =
+                new Totem(
+                        world,
+                        display,
+                        start,
+                        velocity,
+                        player.getUniqueId(),
+                        context.getTeamManager(),
+                        eye.getYaw());
         ACTIVE.add(totem);
         totem.runTaskTimer(plugin, 1L, 1L);
 
@@ -159,7 +183,8 @@ public class LifeTotemAbility extends BaseAbility {
         Integer last = LAST_HIT_TICK.put(attacker.getUniqueId(), tick);
         if (last != null && last == tick) return true; // same swing, already handled
 
-        // Someone (player or mob) is inside the totem and the attacker is actually aiming at them: the (much
+        // Someone (player or mob) is inside the totem and the attacker is actually aiming at them:
+        // the (much
         // bigger) hitbox swallowed the swing, so hand it to them instead of the totem.
         LivingEntity occupant = totem.occupantInSights(attacker);
         if (occupant != null) {
@@ -174,12 +199,15 @@ public class LifeTotemAbility extends BaseAbility {
     public static void handleUse(Player player, Entity target, EquipmentSlot hand) {
         Totem totem = BY_HITBOX.get(target.getUniqueId());
         if (totem == null || !totem.contains(player)) return;
-        if (player.isHandRaised()) return; // already eating; the held button re-sends the click every tick
+        if (player.isHandRaised())
+            return; // already eating; the held button re-sends the click every tick
 
         EquipmentSlot slot = hand;
         if (!EATABLE_INSIDE.contains(player.getInventory().getItem(slot).getType())) {
-            // The client only tries the main hand when it consumed the click, so an off-hand gap is skipped too.
-            if (hand != EquipmentSlot.HAND || !player.getInventory().getItemInMainHand().getType().isAir()) return;
+            // The client only tries the main hand when it consumed the click, so an off-hand gap is
+            // skipped too.
+            if (hand != EquipmentSlot.HAND
+                    || !player.getInventory().getItemInMainHand().getType().isAir()) return;
             slot = EquipmentSlot.OFF_HAND;
             if (!EATABLE_INSIDE.contains(player.getInventory().getItem(slot).getType())) return;
         }
@@ -243,16 +271,23 @@ public class LifeTotemAbility extends BaseAbility {
         private int flightTicks = 0;
         private float spin = 0f;
 
-        private Location base;       // where the totem's base touches the ground
-        private int plantedAge = 0;  // ticks since it stuck into the ground
+        private Location base; // where the totem's base touches the ground
+        private int plantedAge = 0; // ticks since it stuck into the ground
         private int ringStart = -100;
 
-        private BlockDisplay barBack;                              // dark backing of the health bar
+        private BlockDisplay barBack; // dark backing of the health bar
         private final List<BlockDisplay> barSegments = new ArrayList<>(); // one per hit left
-        private Interaction hitbox;  // invisible entity players actually hit
-        private int hits = 0;        // critical hits taken so far
+        private Interaction hitbox; // invisible entity players actually hit
+        private int hits = 0; // critical hits taken so far
 
-        Totem(World world, ItemDisplay display, Vector pos, Vector vel, UUID ownerId, TeamManager team, float yawDegrees) {
+        Totem(
+                World world,
+                ItemDisplay display,
+                Vector pos,
+                Vector vel,
+                UUID ownerId,
+                TeamManager team,
+                float yawDegrees) {
             this.world = world;
             this.display = display;
             this.pos = pos.clone();
@@ -283,8 +318,13 @@ public class LifeTotemAbility extends BaseAbility {
 
             vel.setY(vel.getY() - GRAVITY);
             double step = vel.length();
-            RayTraceResult hit = world.rayTraceBlocks(pos.toLocation(world), vel.clone().normalize(), step,
-                    FluidCollisionMode.NEVER, true);
+            RayTraceResult hit =
+                    world.rayTraceBlocks(
+                            pos.toLocation(world),
+                            vel.clone().normalize(),
+                            step,
+                            FluidCollisionMode.NEVER,
+                            true);
 
             if (hit != null && hit.getHitPosition() != null) {
                 plant(hit);
@@ -314,8 +354,14 @@ public class LifeTotemAbility extends BaseAbility {
                 // Hit a wall or ceiling: slide out from it and drop to the floor below.
                 double nx = hp.getX() + (face != null ? face.getModX() * 0.4 : 0);
                 double nz = hp.getZ() + (face != null ? face.getModZ() * 0.4 : 0);
-                Block ground = GroundScan.findGround(world, (int) Math.floor(nx), (int) Math.floor(nz),
-                        (int) Math.floor(hp.getY()) + 1, 1, 12);
+                Block ground =
+                        GroundScan.findGround(
+                                world,
+                                (int) Math.floor(nx),
+                                (int) Math.floor(nz),
+                                (int) Math.floor(hp.getY()) + 1,
+                                1,
+                                12);
                 if (ground == null) {
                     fizzle();
                     return;
@@ -329,26 +375,46 @@ public class LifeTotemAbility extends BaseAbility {
 
             // Snap upright at the ground, collapsed, ready to rise next tick.
             display.setTeleportDuration(0);
-            display.teleport(new Location(world, spot.getX(),
-                    spot.getY() + 0.5 * PLANTED_SCALE - EMBED, spot.getZ()));
+            display.teleport(
+                    new Location(
+                            world,
+                            spot.getX(),
+                            spot.getY() + 0.5 * PLANTED_SCALE - EMBED,
+                            spot.getZ()));
             display.setInterpolationDelay(0);
             display.setInterpolationDuration(0);
             display.setTransformation(plantedPose(yaw, COLLAPSED));
 
-            hitbox = world.spawn(spot, Interaction.class, i -> {
-                i.setInteractionWidth(HITBOX_WIDTH);
-                i.setInteractionHeight(HITBOX_HEIGHT);
-                i.setResponsive(true);
-                i.setPersistent(false);
-                i.setInvulnerable(true);
-            });
+            hitbox =
+                    world.spawn(
+                            spot,
+                            Interaction.class,
+                            i -> {
+                                i.setInteractionWidth(HITBOX_WIDTH);
+                                i.setInteractionHeight(HITBOX_HEIGHT);
+                                i.setResponsive(true);
+                                i.setPersistent(false);
+                                i.setInvulnerable(true);
+                            });
             BY_HITBOX.put(hitbox.getUniqueId(), this);
 
             spawnBar(spot.clone().add(0, HITBOX_HEIGHT + BAR_OFFSET, 0));
 
-            Block under = world.getBlockAt(spot.getBlockX(), (int) Math.floor(spot.getY() - 0.1), spot.getBlockZ());
-            world.spawnParticle(Particle.BLOCK, spot.clone().add(0, 0.1, 0), 18, 0.35, 0.1, 0.35, 0.0,
-                    under.getBlockData(), true);
+            Block under =
+                    world.getBlockAt(
+                            spot.getBlockX(),
+                            (int) Math.floor(spot.getY() - 0.1),
+                            spot.getBlockZ());
+            world.spawnParticle(
+                    Particle.BLOCK,
+                    spot.clone().add(0, 0.1, 0),
+                    18,
+                    0.35,
+                    0.1,
+                    0.35,
+                    0.0,
+                    under.getBlockData(),
+                    true);
             world.playSound(spot, Sound.BLOCK_STONE_PLACE, SoundCategory.PLAYERS, 1.2f, 0.7f);
             world.playSound(spot, Sound.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 0.8f, 1.6f);
         }
@@ -358,13 +424,16 @@ public class LifeTotemAbility extends BaseAbility {
             int t = plantedAge;
 
             if (t == 1) {
-                // Interpolation only animates if the transformation changes after the entity was sent.
+                // Interpolation only animates if the transformation changes after the entity was
+                // sent.
                 display.setInterpolationDelay(0);
                 display.setInterpolationDuration(GROW_TICKS);
                 display.setTransformation(plantedPose(yaw, 1.0f));
             }
 
-            if (t >= PULSE_FIRST_TICK && (t - PULSE_FIRST_TICK) % PULSE_EVERY_TICKS == 0 && t < DURATION_TICKS) {
+            if (t >= PULSE_FIRST_TICK
+                    && (t - PULSE_FIRST_TICK) % PULSE_EVERY_TICKS == 0
+                    && t < DURATION_TICKS) {
                 pulse();
                 ringStart = t;
             }
@@ -387,9 +456,19 @@ public class LifeTotemAbility extends BaseAbility {
                 display.setInterpolationDelay(0);
                 display.setInterpolationDuration(SHRINK_TICKS);
                 display.setTransformation(plantedPose(yaw, COLLAPSED));
-                world.playSound(base, Sound.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 0.8f, 1.6f);
+                world.playSound(
+                        base, Sound.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 0.8f, 1.6f);
             } else if (t >= DURATION_TICKS + SHRINK_TICKS + 2) {
-                world.spawnParticle(Particle.HAPPY_VILLAGER, base.clone().add(0, 0.6, 0), 10, 0.4, 0.5, 0.4, 0.0, null, true);
+                world.spawnParticle(
+                        Particle.HAPPY_VILLAGER,
+                        base.clone().add(0, 0.6, 0),
+                        10,
+                        0.4,
+                        0.5,
+                        0.4,
+                        0.0,
+                        null,
+                        true);
                 finish();
             }
         }
@@ -400,10 +479,17 @@ public class LifeTotemAbility extends BaseAbility {
                 boolean friendly = team != null && team.isFriendly(ownerId, other.getUniqueId());
                 if (!owner && !friendly) continue;
 
-                other.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, REGEN_TICKS,
-                        REGEN_AMPLIFIER, true, true, true));
+                other.addPotionEffect(
+                        new PotionEffect(
+                                PotionEffectType.REGENERATION,
+                                REGEN_TICKS,
+                                REGEN_AMPLIFIER,
+                                true,
+                                true,
+                                true));
             }
-            world.playSound(base, Sound.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.PLAYERS, 2.0f, 0.8f);
+            world.playSound(
+                    base, Sound.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.PLAYERS, 2.0f, 0.8f);
         }
 
         private void drawRing(double radius) {
@@ -416,13 +502,25 @@ public class LifeTotemAbility extends BaseAbility {
         }
 
         private void ambient() {
-            world.spawnParticle(Particle.HAPPY_VILLAGER, base.clone().add(0, 1.8, 0), 2, 0.3, 0.3, 0.3, 0.0, null, true);
+            world.spawnParticle(
+                    Particle.HAPPY_VILLAGER,
+                    base.clone().add(0, 1.8, 0),
+                    2,
+                    0.3,
+                    0.3,
+                    0.3,
+                    0.0,
+                    null,
+                    true);
             double a = world.getGameTime() * 0.3;
-            LifeParticles.totemRingPoint(world, base.clone().add(Math.cos(a) * RADIUS, 0.15, Math.sin(a) * RADIUS));
+            LifeParticles.totemRingPoint(
+                    world, base.clone().add(Math.cos(a) * RADIUS, 0.15, Math.sin(a) * RADIUS));
         }
 
         boolean contains(Entity p) {
-            return hitbox != null && hitbox.isValid() && hitbox.getBoundingBox().overlaps(p.getBoundingBox());
+            return hitbox != null
+                    && hitbox.isValid()
+                    && hitbox.getBoundingBox().overlaps(p.getBoundingBox());
         }
 
         LivingEntity occupantInSights(Player attacker) {
@@ -435,8 +533,11 @@ public class LifeTotemAbility extends BaseAbility {
             LivingEntity best = null;
             double bestDistance = Double.MAX_VALUE;
             for (Entity e : hitbox.getNearbyEntities(HITBOX_WIDTH, HITBOX_HEIGHT, HITBOX_WIDTH)) {
-                if (!(e instanceof LivingEntity p) || e instanceof ArmorStand || p.equals(attacker)
-                        || !p.isValid() || p.isDead()) continue;
+                if (!(e instanceof LivingEntity p)
+                        || e instanceof ArmorStand
+                        || p.equals(attacker)
+                        || !p.isValid()
+                        || p.isDead()) continue;
                 if (p instanceof Player pl && pl.getGameMode() == GameMode.SPECTATOR) continue;
                 if (!contains(p)) continue;
 
@@ -467,7 +568,8 @@ public class LifeTotemAbility extends BaseAbility {
             hits++;
             updateBar();
             world.spawnParticle(Particle.CRIT, centre, 20, 0.4, 0.6, 0.4, 0.3, null, true);
-            world.playSound(centre, Sound.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.PLAYERS, 1.0f, 0.9f);
+            world.playSound(
+                    centre, Sound.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.PLAYERS, 1.0f, 0.9f);
 
             if (hits >= HITS_TO_BREAK) {
                 breakTotem(attacker);
@@ -478,11 +580,18 @@ public class LifeTotemAbility extends BaseAbility {
 
         private void breakTotem(Player breaker) {
             Location centre = base.clone().add(0, HITBOX_HEIGHT * 0.5, 0);
-            Block under = world.getBlockAt(base.getBlockX(), (int) Math.floor(base.getY() - 0.1), base.getBlockZ());
-            world.spawnParticle(Particle.BLOCK, centre, 40, 0.5, 0.9, 0.5, 0.0, under.getBlockData(), true);
-            world.spawnParticle(Particle.HAPPY_VILLAGER, centre, 15, 0.5, 0.8, 0.5, 0.0, null, true);
+            Block under =
+                    world.getBlockAt(
+                            base.getBlockX(),
+                            (int) Math.floor(base.getY() - 0.1),
+                            base.getBlockZ());
+            world.spawnParticle(
+                    Particle.BLOCK, centre, 40, 0.5, 0.9, 0.5, 0.0, under.getBlockData(), true);
+            world.spawnParticle(
+                    Particle.HAPPY_VILLAGER, centre, 15, 0.5, 0.8, 0.5, 0.0, null, true);
             world.playSound(centre, Sound.BLOCK_STONE_BREAK, SoundCategory.PLAYERS, 1.5f, 0.6f);
-            world.playSound(centre, Sound.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.0f, 1.2f);
+            world.playSound(
+                    centre, Sound.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 1.0f, 1.2f);
 
             finish();
         }
@@ -490,8 +599,14 @@ public class LifeTotemAbility extends BaseAbility {
         private void spawnBar(Location at) {
             float segW = (BAR_WIDTH - BAR_GAP * (HITS_TO_BREAK - 1)) / HITS_TO_BREAK;
 
-            barBack = spawnBarPiece(at, BAR_BACK,
-                    BAR_WIDTH + BAR_BORDER * 2, BAR_HEIGHT + BAR_BORDER * 2, 0.01f, 0f);
+            barBack =
+                    spawnBarPiece(
+                            at,
+                            BAR_BACK,
+                            BAR_WIDTH + BAR_BORDER * 2,
+                            BAR_HEIGHT + BAR_BORDER * 2,
+                            0.01f,
+                            0f);
 
             for (int i = 0; i < HITS_TO_BREAK; i++) {
                 float centreX = -BAR_WIDTH / 2f + segW / 2f + i * (segW + BAR_GAP);
@@ -499,19 +614,24 @@ public class LifeTotemAbility extends BaseAbility {
             }
         }
 
-        private BlockDisplay spawnBarPiece(Location at, BlockData data, float w, float h, float d, float centreX) {
-            return world.spawn(at, BlockDisplay.class, e -> {
-                e.setBlock(data);
-                e.setBillboard(Display.Billboard.CENTER);
-                e.setBrightness(new Display.Brightness(15, 15)); // flat colour, no shading
-                e.setTransformation(new Transformation(
-                        new Vector3f(centreX - w / 2f, -h / 2f, -d / 2f),
-                        new Quaternionf(),
-                        new Vector3f(w, h, d),
-                        new Quaternionf()));
-                e.setPersistent(false);
-                e.setInvulnerable(true);
-            });
+        private BlockDisplay spawnBarPiece(
+                Location at, BlockData data, float w, float h, float d, float centreX) {
+            return world.spawn(
+                    at,
+                    BlockDisplay.class,
+                    e -> {
+                        e.setBlock(data);
+                        e.setBillboard(Display.Billboard.CENTER);
+                        e.setBrightness(new Display.Brightness(15, 15)); // flat colour, no shading
+                        e.setTransformation(
+                                new Transformation(
+                                        new Vector3f(centreX - w / 2f, -h / 2f, -d / 2f),
+                                        new Quaternionf(),
+                                        new Vector3f(w, h, d),
+                                        new Quaternionf()));
+                        e.setPersistent(false);
+                        e.setInvulnerable(true);
+                    });
         }
 
         private void updateBar() {
@@ -545,7 +665,8 @@ public class LifeTotemAbility extends BaseAbility {
         }
 
         private void fizzle() {
-            world.spawnParticle(Particle.SMOKE, pos.toLocation(world), 8, 0.2, 0.2, 0.2, 0.02, null, true);
+            world.spawnParticle(
+                    Particle.SMOKE, pos.toLocation(world), 8, 0.2, 0.2, 0.2, 0.02, null, true);
             finish();
         }
 
@@ -566,6 +687,7 @@ public class LifeTotemAbility extends BaseAbility {
     }
 
     public String getDescription() {
-        return "Launch a totem that plants in the ground and regenerates you and your teammates and allies nearby.";
+        return "Launch a totem that plants in the ground and regenerates you and your teammates and"
+                   + " allies nearby.";
     }
 }

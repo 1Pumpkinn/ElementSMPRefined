@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.core.API.event;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

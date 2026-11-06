@@ -2,10 +2,12 @@ package net.rose.elementSMPRefined.listeners.player;
 
 import io.papermc.paper.chat.ChatRenderer;
 import io.papermc.paper.event.player.AsyncChatEvent;
+
 import net.kyori.adventure.audience.Audience;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.managers.TeamManager.Team;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -39,8 +41,10 @@ public class TeamChatListener implements Listener {
 
         Set<UUID> members = team.getMembers();
         event.viewers().removeIf(viewer -> isOutsider(viewer, members));
-        event.renderer(ChatRenderer.viewerUnaware((source, sourceDisplayName, message) ->
-                Lang.teamChatMessage(team.getName(), source.getName(), message)));
+        event.renderer(
+                ChatRenderer.viewerUnaware(
+                        (source, sourceDisplayName, message) ->
+                                Lang.teamChatMessage(team.getName(), source.getName(), message)));
     }
 
     private static boolean isOutsider(Audience viewer, Set<UUID> members) {

@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.commands.supporters;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -27,7 +28,10 @@ public final class CommandSupport {
     public static List<String> getOnlinePlayerNames(String prefix) {
         return Bukkit.getOnlinePlayers().stream()
                 .map(Player::getName)
-                .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT)))
+                .filter(
+                        name ->
+                                name.toLowerCase(Locale.ROOT)
+                                        .startsWith(prefix.toLowerCase(Locale.ROOT)))
                 .toList();
     }
 

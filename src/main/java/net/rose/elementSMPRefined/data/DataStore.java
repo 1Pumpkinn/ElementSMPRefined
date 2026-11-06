@@ -49,7 +49,8 @@ public class DataStore implements PlayerDataRepository {
 
         File dataDir = new File(plugin.getDataFolder(), "data");
         if (!dataDir.exists() && !dataDir.mkdirs()) {
-            throw new IllegalStateException("Could not create data directory: " + dataDir.getAbsolutePath());
+            throw new IllegalStateException(
+                    "Could not create data directory: " + dataDir.getAbsolutePath());
         }
 
         this.playerFile = createIfMissing(dataDir, "players.yml");
@@ -58,7 +59,12 @@ public class DataStore implements PlayerDataRepository {
         // Rolling copy of players.yml taken before anything can modify it this session, so a bad
         // update/edit is always recoverable from data/backups/.
         try {
-            YamlFiles.backup(playerFile, new File(dataDir, "backups"), "players", BACKUP_KEEP, BACKUP_MIN_AGE_MINUTES);
+            YamlFiles.backup(
+                    playerFile,
+                    new File(dataDir, "backups"),
+                    "players",
+                    BACKUP_KEEP,
+                    BACKUP_MIN_AGE_MINUTES);
         } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING, "Could not back up players.yml", e);
         }
@@ -88,8 +94,14 @@ public class DataStore implements PlayerDataRepository {
     }
 
     private void reportUnreadable(String name, Exception e) {
-        plugin.getLogger().log(Level.SEVERE, name + " could not be read - player data will NOT be saved until it is "
-                + "fixed (nothing has been overwritten). Fix or restore it from data/backups/ and restart.", e);
+        plugin.getLogger()
+                .log(
+                        Level.SEVERE,
+                        name
+                                + " could not be read - player data will NOT be saved until it is"
+                                + " fixed (nothing has been overwritten). Fix or restore it from"
+                                + " data/backups/ and restart.",
+                        e);
         try {
             File copy = YamlFiles.quarantine(playerFile);
             plugin.getLogger().severe("Copied the unreadable file to " + copy.getName());
@@ -106,7 +118,12 @@ public class DataStore implements PlayerDataRepository {
             long now = System.currentTimeMillis();
             if (now - lastUnreadableLogMillis > 60_000L) { // don't spam on every save
                 lastUnreadableLogMillis = now;
-                plugin.getLogger().log(Level.SEVERE, "players.yml is unreadable - skipping disk access to protect saved data", e);
+                plugin.getLogger()
+                        .log(
+                                Level.SEVERE,
+                                "players.yml is unreadable - skipping disk access to protect saved"
+                                    + " data",
+                                e);
             }
             return false;
         }
@@ -174,11 +191,14 @@ public class DataStore implements PlayerDataRepository {
     @Override
     public void saveAsync(PlayerData data) {
         playerDataCache.put(data.getUuid(), data);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            synchronized (this) {
-                persistToDisk(data);
-            }
-        });
+        Bukkit.getScheduler()
+                .runTaskAsynchronously(
+                        plugin,
+                        () -> {
+                            synchronized (this) {
+                                persistToDisk(data);
+                            }
+                        });
     }
 
     private void persistToDisk(PlayerData data) {
@@ -199,7 +219,8 @@ public class DataStore implements PlayerDataRepository {
 
             flushPlayerData();
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save player data for " + data.getUuid(), e);
+            plugin.getLogger()
+                    .log(Level.SEVERE, "Failed to save player data for " + data.getUuid(), e);
         }
     }
 

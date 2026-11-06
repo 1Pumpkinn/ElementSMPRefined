@@ -1,9 +1,6 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementevents.listener.EventVillagerListener;
-import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.AirElement;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
@@ -12,20 +9,24 @@ import net.rose.elementSMPRefined.ability.passive.basic.earth.listeners.EarthVei
 import net.rose.elementSMPRefined.ability.passive.basic.fire.listeners.FireSmeltListener;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.listeners.MetalChainStunListener;
-import net.rose.elementSMPRefined.listeners.handler.CraftingIngredientHandler;
-import net.rose.elementSMPRefined.listeners.handler.ForgedUpgraderHandler;
 import net.rose.elementSMPRefined.altar.ReforgeAltarHandler;
-import net.rose.elementSMPRefined.listeners.player.PlayerDeathListener;
-import net.rose.elementSMPRefined.listeners.handler.RerollerHandler;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
+import net.rose.elementSMPRefined.listeners.handler.CraftingIngredientHandler;
 import net.rose.elementSMPRefined.listeners.handler.ElementAdvancementHandler;
+import net.rose.elementSMPRefined.listeners.handler.ForgedUpgraderHandler;
+import net.rose.elementSMPRefined.listeners.handler.RerollerHandler;
 import net.rose.elementSMPRefined.listeners.handler.UpgraderHandler;
 import net.rose.elementSMPRefined.listeners.player.InvisibilityNameHider;
+import net.rose.elementSMPRefined.listeners.player.PlayerDeathListener;
 import net.rose.elementSMPRefined.listeners.player.PlayerLifecycle;
 import net.rose.elementSMPRefined.listeners.status.StatusEffectListener;
 import net.rose.elementSMPRefined.util.server.DimensionDisable;
 import net.rose.elementSMPRefined.util.server.GracePeriod;
 import net.rose.elementSMPRefined.util.server.MaceCooldown;
 import net.rose.elementSMPRefined.util.visual.ElementSmpTablist;
+import net.rose.elementevents.listener.EventVillagerListener;
+
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -57,16 +58,23 @@ public class ListenerInitializer {
     private void registerCoreListeners() {
         pluginManager.registerEvents(new InvisibilityNameHider(), plugin);
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
-        pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.combat.CombatListener(plugin.getTeamManager()), plugin);
+        pluginManager.registerEvents(
+                new net.rose.elementSMPRefined.listeners.combat.CombatListener(
+                        plugin.getTeamManager()),
+                plugin);
 
-        pluginManager.registerEvents(new net.rose.elementSMPRefined.listeners.player.TeamChatListener(plugin.getTeamManager()), plugin);
+        pluginManager.registerEvents(
+                new net.rose.elementSMPRefined.listeners.player.TeamChatListener(
+                        plugin.getTeamManager()),
+                plugin);
 
         pluginManager.registerEvents(new StatusEffectListener(plugin), plugin);
 
         pluginManager.registerEvents(new DimensionDisable(plugin.getConfigManager()), plugin);
         pluginManager.registerEvents(new MaceCooldown(plugin), plugin);
 
-        this.gracePeriod = new GracePeriod(plugin, plugin.getConfigManager(), plugin.getTaskScheduler());
+        this.gracePeriod =
+                new GracePeriod(plugin, plugin.getConfigManager(), plugin.getTaskScheduler());
         pluginManager.registerEvents(gracePeriod, plugin);
 
         // Also refreshes a player's action bar immediately on AbilityActivateEvent -
@@ -77,46 +85,106 @@ public class ListenerInitializer {
     }
 
     private void registerItemListeners() {
-        pluginManager.registerEvents(new PlayerDeathListener(plugin, plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new RerollerHandler(plugin, plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(
+                new PlayerDeathListener(plugin, plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(
+                new RerollerHandler(plugin, plugin.getElementManager()), plugin);
         ElementAdvancementHandler advancements = new ElementAdvancementHandler(plugin);
-        pluginManager.registerEvents(new ForgedUpgraderHandler(plugin, plugin.getElementManager(), advancements), plugin);
-        pluginManager.registerEvents(new ReforgeAltarHandler(plugin, plugin.getReforgeAltarManager()), plugin);
-        pluginManager.registerEvents(new UpgraderHandler(plugin, plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(
+                new ForgedUpgraderHandler(plugin, plugin.getElementManager(), advancements),
+                plugin);
+        pluginManager.registerEvents(
+                new ReforgeAltarHandler(plugin, plugin.getReforgeAltarManager()), plugin);
+        pluginManager.registerEvents(
+                new UpgraderHandler(plugin, plugin.getElementManager()), plugin);
         pluginManager.registerEvents(new CraftingIngredientHandler(plugin), plugin);
         pluginManager.registerEvents(advancements, plugin);
-        pluginManager.registerEvents(new EventVillagerListener(plugin, plugin.getEventVillager()), plugin);
+        pluginManager.registerEvents(
+                new EventVillagerListener(plugin, plugin.getEventVillager()), plugin);
     }
 
     private void registerElementListeners() {
         registerCoreElementListeners();
 
-        plugin.getElementManager().getAllElements().forEach(element -> {
-            if (element instanceof ListenerProvider provider) {
-                provider.getListeners(plugin).forEach(listener -> {
-                    pluginManager.registerEvents(listener, plugin);
-                });
-            }
-        });
+        plugin.getElementManager()
+                .getAllElements()
+                .forEach(
+                        element -> {
+                            if (element instanceof ListenerProvider provider) {
+                                provider.getListeners(plugin)
+                                        .forEach(
+                                                listener -> {
+                                                    pluginManager.registerEvents(listener, plugin);
+                                                });
+                            }
+                        });
     }
 
     private void registerCoreElementListeners() {
         this.airAntiFallDmgListener = new AirAntiFallDmgListener(plugin.getElementManager());
         pluginManager.registerEvents(airAntiFallDmgListener, plugin);
-        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeTotemListener(), plugin);
-        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeLeafGoldenAppleListener(plugin.getElementManager()), plugin);
-        var placedLogTracker = new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.PlacedLogTracker(plugin);
+        pluginManager.registerEvents(
+                new net.rose
+                        .elementSMPRefined
+                        .ability
+                        .passive
+                        .mythic
+                        .life
+                        .listeners
+                        .LifeTotemListener(),
+                plugin);
+        pluginManager.registerEvents(
+                new net.rose
+                        .elementSMPRefined
+                        .ability
+                        .passive
+                        .mythic
+                        .life
+                        .listeners
+                        .LifeLeafGoldenAppleListener(plugin.getElementManager()),
+                plugin);
+        var placedLogTracker =
+                new net.rose
+                        .elementSMPRefined
+                        .ability
+                        .passive
+                        .mythic
+                        .life
+                        .listeners
+                        .PlacedLogTracker(plugin);
         pluginManager.registerEvents(placedLogTracker, plugin);
-        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeTreeChopListener(plugin, plugin.getElementManager(), placedLogTracker), plugin);
-        pluginManager.registerEvents(new net.rose.elementSMPRefined.ability.passive.mythic.life.listeners.LifeGoldenAppleAbsorptionListener(plugin, plugin.getElementManager()), plugin);
-        pluginManager.registerEvents(new AirWindBurstListener(plugin, plugin.getElementManager(), plugin.getTeamManager()), plugin);
+        pluginManager.registerEvents(
+                new net.rose
+                        .elementSMPRefined
+                        .ability
+                        .passive
+                        .mythic
+                        .life
+                        .listeners
+                        .LifeTreeChopListener(plugin, plugin.getElementManager(), placedLogTracker),
+                plugin);
+        pluginManager.registerEvents(
+                new net.rose
+                        .elementSMPRefined
+                        .ability
+                        .passive
+                        .mythic
+                        .life
+                        .listeners
+                        .LifeGoldenAppleAbsorptionListener(plugin, plugin.getElementManager()),
+                plugin);
+        pluginManager.registerEvents(
+                new AirWindBurstListener(
+                        plugin, plugin.getElementManager(), plugin.getTeamManager()),
+                plugin);
 
         var airElement = plugin.getElementManager().get(ElementType.AIR);
         if (airElement instanceof AirElement airElementImpl) {
             airElementImpl.setFallImpactListener(airAntiFallDmgListener);
         }
 
-        pluginManager.registerEvents(new EarthVeinMinerListener(plugin.getElementManager()), plugin);
+        pluginManager.registerEvents(
+                new EarthVeinMinerListener(plugin.getElementManager()), plugin);
 
         var metalElement = plugin.getElementManager().get(ElementType.METAL);
         if (metalElement instanceof MetalElement metalElementImpl) {
@@ -128,21 +196,23 @@ public class ListenerInitializer {
     }
 
     private void registerLifecycleListener() {
-        this.playerLifecycleListener = new PlayerLifecycle(
-                plugin,
-                plugin.getElementManager(),
-                plugin.getCooldownManager(),
-                plugin.getEffectService(),
-                plugin.getDisarmManager(),
-                airAntiFallDmgListener,
-                metalMagnetarAbility
-        );
+        this.playerLifecycleListener =
+                new PlayerLifecycle(
+                        plugin,
+                        plugin.getElementManager(),
+                        plugin.getCooldownManager(),
+                        plugin.getEffectService(),
+                        plugin.getDisarmManager(),
+                        airAntiFallDmgListener,
+                        metalMagnetarAbility);
         pluginManager.registerEvents(playerLifecycleListener, plugin);
     }
 
     public void cleanup() {
         if (plugin.getElementManager() != null
-                && plugin.getElementManager().get(ElementType.WATER) instanceof net.rose.elementSMPRefined.ability.passive.basic.water.WaterElement water) {
+                && plugin.getElementManager().get(ElementType.WATER)
+                        instanceof
+                        net.rose.elementSMPRefined.ability.passive.basic.water.WaterElement water) {
             water.shutdown();
         }
         if (gracePeriod != null) {

@@ -44,7 +44,7 @@ public final class GroundScan {
 
             Block b = world.getBlockAt(x, y, z);
             if (!b.getRelative(0, 1, 0).isPassable()) continue;
-            if (type.getHardness() < 0) return null;                 // bedrock, barriers, etc.
+            if (type.getHardness() < 0) return null; // bedrock, barriers, etc.
             if (b.getState(false) instanceof TileState) return null; // chests, spawners, signs
             return b;
         }

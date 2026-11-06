@@ -1,9 +1,9 @@
 package net.rose.elementSMPRefined.listeners.player;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
@@ -15,6 +15,7 @@ import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -39,11 +40,14 @@ public class PlayerLifecycle implements Listener {
     private final MetalMagnetarAbility metalMagnetarAbility;
     private final Random random = new Random();
 
-    public PlayerLifecycle(ElementSMPRefined plugin, ElementManager elementManager,
-                           CooldownManager cooldownManager, EffectService effectService,
-                           DisarmManager disarmManager,
-                           AirAntiFallDmgListener airAntiFallDmgListener,
-                           MetalMagnetarAbility metalMagnetarAbility) {
+    public PlayerLifecycle(
+            ElementSMPRefined plugin,
+            ElementManager elementManager,
+            CooldownManager cooldownManager,
+            EffectService effectService,
+            DisarmManager disarmManager,
+            AirAntiFallDmgListener airAntiFallDmgListener,
+            MetalMagnetarAbility metalMagnetarAbility) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.effectService = effectService;
@@ -58,39 +62,43 @@ public class PlayerLifecycle implements Listener {
         Player player = event.getPlayer();
         PlayerData pd = elementManager.data(player.getUniqueId());
         if (disarmManager != null) {
-            scheduler.runAfterPlayerLoad(() -> {
-                if (player.isOnline()) {
-                    disarmManager.reapplyCooldowns(player);
-                }
-            });
+            scheduler.runAfterPlayerLoad(
+                    () -> {
+                        if (player.isOnline()) {
+                            disarmManager.reapplyCooldowns(player);
+                        }
+                    });
         }
 
         if (pd.getCurrentElement() == null) {
             // First join: skip ElementSelectionGUI entirely and roll the
             // player's starter element with the same gem orbit animation
             // the basic reroller item plays.
-            scheduler.runAfterPlayerLoad(() -> {
-                if (player.isOnline()) {
-                    rollStarterElement(player);
-                }
-            });
+            scheduler.runAfterPlayerLoad(
+                    () -> {
+                        if (player.isOnline()) {
+                            rollStarterElement(player);
+                        }
+                    });
         } else {
-            scheduler.runAfterPlayerLoad(() -> {
-                if (player.isOnline()) {
-                    effectService.clearAllElementEffects(player);
-                    effectService.applyPassiveEffects(player);
-                }
-            });
+            scheduler.runAfterPlayerLoad(
+                    () -> {
+                        if (player.isOnline()) {
+                            effectService.clearAllElementEffects(player);
+                            effectService.applyPassiveEffects(player);
+                        }
+                    });
         }
 
         // Hand back any rerollers that were consumed but never resolved
         // because the player disconnected mid-roll (see ElementManager /
         // AdvancedRerollerHandler's queue*RerollerRefund calls).
-        scheduler.runAfterPlayerLoad(() -> {
-            if (player.isOnline()) {
-                refundPendingRerollers(player, pd);
-            }
-        });
+        scheduler.runAfterPlayerLoad(
+                () -> {
+                    if (player.isOnline()) {
+                        refundPendingRerollers(player, pd);
+                    }
+                });
     }
 
     private void rollStarterElement(Player player) {
@@ -101,7 +109,8 @@ public class PlayerLifecycle implements Listener {
 
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
-        final ElementGemOrbitVisual visual = new ElementGemOrbitVisual(player, basicElements, targetElement);
+        final ElementGemOrbitVisual visual =
+                new ElementGemOrbitVisual(player, basicElements, targetElement);
 
         new BukkitRunnable() {
             boolean assigned = false;
@@ -110,7 +119,9 @@ public class PlayerLifecycle implements Listener {
             public void run() {
                 // Nothing was consumed on first join, so an aborted roll needs no refund:
                 // current element is still null and they simply roll again next join.
-                if (!player.isOnline() || player.isDead() || !elementManager.isCurrentlyRolling(player)) {
+                if (!player.isOnline()
+                        || player.isDead()
+                        || !elementManager.isCurrentlyRolling(player)) {
                     visual.remove();
                     cancel();
                     elementManager.endRolling(player);
@@ -197,23 +208,28 @@ public class PlayerLifecycle implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        scheduler.runLater(() -> {
-            if (player.isOnline()) {
-                effectService.applyPassiveEffects(player);
-                // A reroller consumed by a roll that was aborted by this player's death is owed back.
-                refundPendingRerollers(player, elementManager.data(player.getUniqueId()));
-            }
-        }, 5L);
+        scheduler.runLater(
+                () -> {
+                    if (player.isOnline()) {
+                        effectService.applyPassiveEffects(player);
+                        // A reroller consumed by a roll that was aborted by this player's death is
+                        // owed back.
+                        refundPendingRerollers(player, elementManager.data(player.getUniqueId()));
+                    }
+                },
+                5L);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTotemUse(EntityResurrectEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
-        scheduler.runLater(() -> {
-            if (player.isOnline()) {
-                effectService.applyPassiveEffects(player);
-            }
-        }, Constants.Timing.HALF_SECOND);
+        scheduler.runLater(
+                () -> {
+                    if (player.isOnline()) {
+                        effectService.applyPassiveEffects(player);
+                    }
+                },
+                Constants.Timing.HALF_SECOND);
     }
 }

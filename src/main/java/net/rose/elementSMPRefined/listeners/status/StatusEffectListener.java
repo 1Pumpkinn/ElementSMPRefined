@@ -4,6 +4,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -36,7 +37,8 @@ public class StatusEffectListener implements Listener {
         if (!statusEffectManager.hasAnyEffect(player)) return;
 
         boolean isFullyStunned = statusEffectManager.hasEffect(player, StatusEffectType.FULL_STUN);
-        boolean isPartiallyStunned = statusEffectManager.hasEffect(player, StatusEffectType.PARTIAL_STUN);
+        boolean isPartiallyStunned =
+                statusEffectManager.hasEffect(player, StatusEffectType.PARTIAL_STUN);
         boolean isStunned = statusEffectManager.hasEffect(player, StatusEffectType.STUN);
         boolean isRooted = statusEffectManager.hasEffect(player, StatusEffectType.ROOT);
         boolean isFrozen = statusEffectManager.hasEffect(player, StatusEffectType.FREEZE);
@@ -46,31 +48,36 @@ public class StatusEffectListener implements Listener {
         }
 
         if (isFullyStunned || isPartiallyStunned) {
-            if (event.getFrom().getYaw() != event.getTo().getYaw() ||
-                event.getFrom().getPitch() != event.getTo().getPitch()) {
+            if (event.getFrom().getYaw() != event.getTo().getYaw()
+                    || event.getFrom().getPitch() != event.getTo().getPitch()) {
                 event.setCancelled(true);
                 return;
             }
         }
 
-        if (event.getFrom().getX() != event.getTo().getX() ||
-            event.getFrom().getY() != event.getTo().getY() ||
-            event.getFrom().getZ() != event.getTo().getZ()) {
+        if (event.getFrom().getX() != event.getTo().getX()
+                || event.getFrom().getY() != event.getTo().getY()
+                || event.getFrom().getZ() != event.getTo().getZ()) {
             if (isFullyStunned || isPartiallyStunned) {
                 event.setCancelled(true);
                 return;
             }
 
-            // Stun / Root / Freeze: they can't move but may still look around. Slowness 7 + the jump lock make
-            // voluntary movement impossible, so this only fires for knockback/velocity - rotation-only events
+            // Stun / Root / Freeze: they can't move but may still look around. Slowness 7 + the
+            // jump lock make
+            // voluntary movement impossible, so this only fires for knockback/velocity -
+            // rotation-only events
             // never reach here, which is what keeps free look working. Cancelling the event would
-            // also snap their camera back (the rollback restores the old yaw/pitch), so instead keep the
+            // also snap their camera back (the rollback restores the old yaw/pitch), so instead
+            // keep the
             // old position and carry over the new rotation.
             Location locked = event.getFrom().clone();
             locked.setYaw(event.getTo().getYaw());
             locked.setPitch(event.getTo().getPitch());
-            // X/Z stay locked, but downward movement is allowed so gravity still works (e.g. a player
-            // frozen mid-air falls to the ground instead of hanging there). Upward movement stays locked.
+            // X/Z stay locked, but downward movement is allowed so gravity still works (e.g. a
+            // player
+            // frozen mid-air falls to the ground instead of hanging there). Upward movement stays
+            // locked.
             if (event.getTo().getY() < event.getFrom().getY()) {
                 locked.setY(event.getTo().getY());
             }

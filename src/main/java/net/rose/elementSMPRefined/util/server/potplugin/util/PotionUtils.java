@@ -1,10 +1,8 @@
 package net.rose.elementSMPRefined.util.server.potplugin.util;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -16,11 +14,16 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+
 public final class PotionUtils {
 
     /** How many redstone steps this potion has already had (missing = 0). */
     private static final NamespacedKey STEP_KEY =
             Objects.requireNonNull(NamespacedKey.fromString("potplugin:extension_step"));
+
     /** The vanilla potion type it started as (needed because the base type is reset to WATER). */
     private static final NamespacedKey ORIGIN_KEY =
             Objects.requireNonNull(NamespacedKey.fromString("potplugin:extension_origin"));
@@ -120,11 +123,13 @@ public final class PotionUtils {
     }
 
     private static int currentStep(PotionMeta meta) {
-        return meta.getPersistentDataContainer().getOrDefault(STEP_KEY, PersistentDataType.INTEGER, 0);
+        return meta.getPersistentDataContainer()
+                .getOrDefault(STEP_KEY, PersistentDataType.INTEGER, 0);
     }
 
     private static PotionType originType(PotionMeta meta) {
-        String stored = meta.getPersistentDataContainer().get(ORIGIN_KEY, PersistentDataType.STRING);
+        String stored =
+                meta.getPersistentDataContainer().get(ORIGIN_KEY, PersistentDataType.STRING);
         if (stored != null) {
             NamespacedKey key = NamespacedKey.fromString(stored);
             PotionType type = key == null ? null : Registry.POTION.get(key);
@@ -145,8 +150,7 @@ public final class PotionUtils {
         // Base type is WATER now, so name it after the original effect.
         meta.displayName(
                 Component.translatable(nameKeyPrefix(item.getType()) + nameKey(origin))
-                        .decoration(TextDecoration.ITALIC, false)
-        );
+                        .decoration(TextDecoration.ITALIC, false));
 
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(STEP_KEY, PersistentDataType.INTEGER, index);

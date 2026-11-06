@@ -60,8 +60,7 @@ public final class PlayerData {
     }
 
     public void setCurrentElementUpgradeLevel(int level) {
-        this.currentElementUpgradeLevel = Math.clamp(level,
-                0, MAX_UPGRADE_LEVEL);
+        this.currentElementUpgradeLevel = Math.clamp(level, 0, MAX_UPGRADE_LEVEL);
     }
 
     /** Upgrade level only applies to whichever element is currently active; anything else reads as 0. */
@@ -178,10 +177,13 @@ public final class PlayerData {
 
     @Override
     public String toString() {
-        return "PlayerData{" +
-                "uuid=" + uuid +
-                ", element=" + currentElement +
-                ", upgradeLevel=" + currentElementUpgradeLevel +
-                '}';
+        return "PlayerData{"
+                + "uuid="
+                + uuid
+                + ", element="
+                + currentElement
+                + ", upgradeLevel="
+                + currentElementUpgradeLevel
+                + '}';
     }
 }

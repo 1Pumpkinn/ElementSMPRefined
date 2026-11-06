@@ -17,7 +17,13 @@ import java.util.Locale;
  * each hand-rolling their own parsing.
  */
 public final class ConfigOption {
-    public enum Type { BOOLEAN, DURATION, DURATION_OR_ZERO, DECIMAL, CHOICE }
+    public enum Type {
+        BOOLEAN,
+        DURATION,
+        DURATION_OR_ZERO,
+        DECIMAL,
+        CHOICE
+    }
 
     private final String name;
     private final String path;
@@ -26,7 +32,8 @@ public final class ConfigOption {
     private final double min;
     private final double max;
 
-    private ConfigOption(String name, String path, Type type, List<String> choices, double min, double max) {
+    private ConfigOption(
+            String name, String path, Type type, List<String> choices, double min, double max) {
         this.name = name;
         this.path = path;
         this.type = type;
@@ -113,7 +120,9 @@ public final class ConfigOption {
             case DURATION -> "a time like 90, 10m or 1h30m";
             case DURATION_OR_ZERO -> "a time like 90, 10m or 1h30m (0 = off)";
             case DECIMAL -> "a number from " + min + " to " + max;
-            case CHOICE -> String.join(", ", choices.stream().map(c -> c.toLowerCase(Locale.ROOT)).toList());
+            case CHOICE ->
+                    String.join(
+                            ", ", choices.stream().map(c -> c.toLowerCase(Locale.ROOT)).toList());
         };
     }
 
@@ -132,7 +141,8 @@ public final class ConfigOption {
         if (value == null) {
             return "unset";
         }
-        if ((type == Type.DURATION || type == Type.DURATION_OR_ZERO) && value instanceof Number number) {
+        if ((type == Type.DURATION || type == Type.DURATION_OR_ZERO)
+                && value instanceof Number number) {
             return ParseUtil.formatCompact(number.longValue());
         }
         if (type == Type.CHOICE) {

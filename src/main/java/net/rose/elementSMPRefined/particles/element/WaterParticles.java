@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.particles.element;
 
 import net.rose.elementSMPRefined.util.compat.ClientCompat;
+
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -13,18 +14,39 @@ public final class WaterParticles {
 
     public static void graspBurst(Location at) {
         World world = at.getWorld();
-        world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.2, 0), 50, 0.5, 0.2, 0.5, 0.2, null, true);
-        world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.8, 0), 20, 0.4, 0.6, 0.4, 0.05, null, true);
+        world.spawnParticle(
+                Particle.SPLASH, at.clone().add(0, 0.2, 0), 50, 0.5, 0.2, 0.5, 0.2, null, true);
+        world.spawnParticle(
+                Particle.BUBBLE_POP,
+                at.clone().add(0, 0.8, 0),
+                20,
+                0.4,
+                0.6,
+                0.4,
+                0.05,
+                null,
+                true);
     }
 
     public static void tentacleErupt(Location at) {
         World world = at.getWorld();
-        world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.1, 0), 14, 0.2, 0.1, 0.2, 0.15, null, true);
-        world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.4, 0), 6, 0.15, 0.3, 0.15, 0.03, null, true);
+        world.spawnParticle(
+                Particle.SPLASH, at.clone().add(0, 0.1, 0), 14, 0.2, 0.1, 0.2, 0.15, null, true);
+        world.spawnParticle(
+                Particle.BUBBLE_POP,
+                at.clone().add(0, 0.4, 0),
+                6,
+                0.15,
+                0.3,
+                0.15,
+                0.03,
+                null,
+                true);
     }
 
     public static void graspRelease(Location body) {
-        body.getWorld().spawnParticle(Particle.BUBBLE_POP, body, 40, 0.5, 0.7, 0.5, 0.15, null, true);
+        body.getWorld()
+                .spawnParticle(Particle.BUBBLE_POP, body, 40, 0.5, 0.7, 0.5, 0.15, null, true);
         body.getWorld().spawnParticle(Particle.SPLASH, body, 30, 0.5, 0.5, 0.5, 0.2, null, true);
     }
 
@@ -37,7 +59,8 @@ public final class WaterParticles {
         World world = center.getWorld();
         for (int i = 0; i < points; i++) {
             double angle = 2 * Math.PI * i / points;
-            Location p = center.clone().add(Math.cos(angle) * radius, 0.15, Math.sin(angle) * radius);
+            Location p =
+                    center.clone().add(Math.cos(angle) * radius, 0.15, Math.sin(angle) * radius);
             world.spawnParticle(Particle.SPLASH, p, 2, 0.05, 0.02, 0.05, 0.02, null, true);
             world.spawnParticle(Particle.BUBBLE_POP, p, 1, 0.02, 0.02, 0.02, 0.0, null, true);
         }
@@ -45,10 +68,26 @@ public final class WaterParticles {
 
     public static void krakenSlamImpact(Location at, double radius) {
         World world = at.getWorld();
-        world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.3, 0), 120,
-                radius * 0.35, 0.3, radius * 0.35, 0.4, null, true);
-        world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.6, 0), 60,
-                radius * 0.3, 0.6, radius * 0.3, 0.15, null, true);
+        world.spawnParticle(
+                Particle.SPLASH,
+                at.clone().add(0, 0.3, 0),
+                120,
+                radius * 0.35,
+                0.3,
+                radius * 0.35,
+                0.4,
+                null,
+                true);
+        world.spawnParticle(
+                Particle.BUBBLE_POP,
+                at.clone().add(0, 0.6, 0),
+                60,
+                radius * 0.3,
+                0.6,
+                radius * 0.3,
+                0.15,
+                null,
+                true);
         for (double r = 1.0; r <= radius; r += 1.25) {
             int points = (int) Math.max(12, r * 8);
             for (int i = 0; i < points; i++) {
@@ -61,12 +100,9 @@ public final class WaterParticles {
 
     public static void geyserSpray(Location sprayOrigin) {
         World world = sprayOrigin.getWorld();
-        world.spawnParticle(Particle.SPLASH, sprayOrigin, 25,
-                0.3, 0.3, 0.3, 0.15, null, true);
-        world.spawnParticle(Particle.BUBBLE_POP, sprayOrigin, 15,
-                0.3, 0.2, 0.3, 0.1, null, true);
-        world.spawnParticle(Particle.BUBBLE, sprayOrigin, 20,
-                0.4, 0.2, 0.4, 0.02, null, true);
+        world.spawnParticle(Particle.SPLASH, sprayOrigin, 25, 0.3, 0.3, 0.3, 0.15, null, true);
+        world.spawnParticle(Particle.BUBBLE_POP, sprayOrigin, 15, 0.3, 0.2, 0.3, 0.1, null, true);
+        world.spawnParticle(Particle.BUBBLE, sprayOrigin, 20, 0.4, 0.2, 0.4, 0.02, null, true);
     }
 
     public static void geyserEruption(Location origin, int waterBlocks) {
@@ -90,8 +126,10 @@ public final class WaterParticles {
 
     public static void surgeBurst(Location at) {
         World world = at.getWorld();
-        world.spawnParticle(Particle.SPLASH, at.clone().add(0, 0.9, 0), 40, 0.4, 0.5, 0.4, 0.2, null, true);
-        world.spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.9, 0), 20, 0.4, 0.5, 0.4, 0.1, null, true);
+        world.spawnParticle(
+                Particle.SPLASH, at.clone().add(0, 0.9, 0), 40, 0.4, 0.5, 0.4, 0.2, null, true);
+        world.spawnParticle(
+                Particle.BUBBLE_POP, at.clone().add(0, 0.9, 0), 20, 0.4, 0.5, 0.4, 0.1, null, true);
     }
 
     public static void surgeImpact(Location at) {
@@ -116,6 +154,16 @@ public final class WaterParticles {
     }
 
     public static void surgeEnd(Location at) {
-        at.getWorld().spawnParticle(Particle.BUBBLE_POP, at.clone().add(0, 0.5, 0), 25, 0.4, 0.4, 0.4, 0.1, null, true);
+        at.getWorld()
+                .spawnParticle(
+                        Particle.BUBBLE_POP,
+                        at.clone().add(0, 0.5, 0),
+                        25,
+                        0.4,
+                        0.4,
+                        0.4,
+                        0.1,
+                        null,
+                        true);
     }
 }

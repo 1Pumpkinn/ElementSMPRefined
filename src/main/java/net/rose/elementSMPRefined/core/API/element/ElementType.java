@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined.core.API.element;
 
 import java.util.EnumSet;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 /**

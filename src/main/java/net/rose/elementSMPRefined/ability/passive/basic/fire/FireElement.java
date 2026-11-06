@@ -1,12 +1,13 @@
 package net.rose.elementSMPRefined.ability.passive.basic.fire;
 
 import net.rose.elementSMPRefined.ability.main.basic.fire.HellChainAbility;
+import net.rose.elementSMPRefined.ability.main.basic.fire.StarFallAbility;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.basic.fire.StarFallAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,7 +19,9 @@ import java.util.List;
 public class FireElement extends BaseElement {
 
     public FireElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.FIRE,
+        super(
+                plugin,
+                ElementType.FIRE,
                 new HellChainAbility(plugin, configManager),
                 new StarFallAbility(plugin, configManager));
     }
@@ -26,7 +29,13 @@ public class FireElement extends BaseElement {
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
         if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 0, true, false));
+            player.addPotionEffect(
+                    new PotionEffect(
+                            PotionEffectType.FIRE_RESISTANCE,
+                            PotionEffect.INFINITE_DURATION,
+                            0,
+                            true,
+                            false));
         } else {
             EffectService.removeElementPotionEffect(player, PotionEffectType.FIRE_RESISTANCE);
         }
@@ -52,7 +61,6 @@ public class FireElement extends BaseElement {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Auto Smelt (toggle with /toggle firesmelt)",
-                "Fire Resistance (Upgrade II)");
+                "Auto Smelt (toggle with /toggle firesmelt)", "Fire Resistance (Upgrade II)");
     }
 }

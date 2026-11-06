@@ -1,11 +1,5 @@
 package net.rose.elementSMPRefined.lang;
 
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.textOfChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
@@ -18,6 +12,12 @@ import static net.kyori.adventure.text.format.NamedTextColor.RED;
 import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
 import static net.kyori.adventure.text.format.NamedTextColor.YELLOW;
 
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+
 /**
  * Every player-facing message, grouped by feature. Constants are fixed messages; methods take
  * the values that vary.
@@ -28,10 +28,21 @@ public final class Lang {
 
     // Helpers
 
-    private static Component green(String message) { return text(message, GREEN); }
-    private static Component red(String message) { return text(message, RED); }
-    private static Component yellow(String message) { return text(message, YELLOW); }
-    private static Component gray(String message) { return text(message, GRAY); }
+    private static Component green(String message) {
+        return text(message, GREEN);
+    }
+
+    private static Component red(String message) {
+        return text(message, RED);
+    }
+
+    private static Component yellow(String message) {
+        return text(message, YELLOW);
+    }
+
+    private static Component gray(String message) {
+        return text(message, GRAY);
+    }
 
     /** Parses a name that may contain legacy colour codes; uncoloured parts get {@code fallback}. */
     private static Component legacy(Object name, NamedTextColor fallback) {
@@ -41,7 +52,8 @@ public final class Lang {
     }
 
     /** "label: value", with the label and value in different colours. */
-    private static Component labelled(String label, NamedTextColor labelColor, Object value, NamedTextColor valueColor) {
+    private static Component labelled(
+            String label, NamedTextColor labelColor, Object value, NamedTextColor valueColor) {
         return textOfChildren(text(label, labelColor), text(String.valueOf(value), valueColor));
     }
 
@@ -51,9 +63,7 @@ public final class Lang {
 
     /** "{subject} enabled." / "{subject} disabled." */
     private static Component switched(String subject, boolean enabled) {
-        return text(subject + " ", GRAY)
-                .append(enabledOrDisabled(enabled))
-                .append(gray("."));
+        return text(subject + " ", GRAY).append(enabledOrDisabled(enabled)).append(gray("."));
     }
 
     private static Component stateWord(boolean disabled) {
@@ -66,8 +76,10 @@ public final class Lang {
 
     // Messages that several commands share.
     private static final Component ONLY_PLAYERS_CAN_USE = red("Only players can use this command!");
-    private static final Component COMMAND_PLAYERS_ONLY = red("This command can only be used by players.");
-    private static final Component INVALID_TIME = red("Invalid time! Use seconds or units, e.g. 90, 10m, 1h30m.");
+    private static final Component COMMAND_PLAYERS_ONLY =
+            red("This command can only be used by players.");
+    private static final Component INVALID_TIME =
+            red("Invalid time! Use seconds or units, e.g. 90, 10m, 1h30m.");
 
     // Abilities
 
@@ -93,7 +105,9 @@ public final class Lang {
     public static final Component TEAM_PLAYERS_ONLY = text("Players only");
 
     public static final Component TEAM_USAGE =
-            yellow("Usage: /team <create|invite|accept|deny|leave|kick|transfer|disband|info|ally|chat>");
+            yellow(
+                    "Usage: /team"
+                        + " <create|invite|accept|deny|leave|kick|transfer|disband|info|ally|chat>");
 
     public static final Component TEAM_NOT_IN_TEAM = red("You are not in a team.");
 
@@ -127,10 +141,7 @@ public final class Lang {
 
     public static Component teamChatMessage(String team, String player, Component message) {
         return textOfChildren(
-                text("[Team " + team + "] ", AQUA),
-                text(player, WHITE),
-                text(": ", GRAY),
-                message);
+                text("[Team " + team + "] ", AQUA), text(player, WHITE), text(": ", GRAY), message);
     }
 
     public static Component teamInfoLine(String label, String value) {
@@ -153,7 +164,8 @@ public final class Lang {
 
     public static final Component UTIL_64X_REROLLER = yellow("• 64x Reroller");
 
-    public static final Component UTIL_64X_FORGED_UPGRADER = text("• 64x Forged Upgrader", DARK_PURPLE);
+    public static final Component UTIL_64X_FORGED_UPGRADER =
+            text("• 64x Forged Upgrader", DARK_PURPLE);
 
     // /enchantablemace
 
@@ -166,13 +178,15 @@ public final class Lang {
     public static final Component ENCHANTABLE_MACE_YOU_DON_T_HAVE_PERMISSION =
             red("You don't have permission to use this command.");
 
-    public static final Component ENCHANTABLE_MACE_RECEIVED = green("You have been given the enchantable mace.");
+    public static final Component ENCHANTABLE_MACE_RECEIVED =
+            green("You have been given the enchantable mace.");
 
     public static Component enchantableMaceGiven(String playerName) {
         return green("Gave the enchantable mace to " + playerName + ".");
     }
 
-    public static final Component ENCHANTABLE_MACE_INVENTORY_FULL = yellow("Inventory was full, the mace was dropped at your feet.");
+    public static final Component ENCHANTABLE_MACE_INVENTORY_FULL =
+            yellow("Inventory was full, the mace was dropped at your feet.");
 
     // /element config
 
@@ -256,25 +270,34 @@ public final class Lang {
         return yellow("Upgrade level: " + level);
     }
 
-    public static Component debugAbilityStatus(int slot, String name, String abilityId, boolean ready,
-                                               long remainingSeconds, int cooldownSeconds) {
-        Component status = ready
-                ? green("READY")
-                : red("ON COOLDOWN (" + remainingSeconds + "s left)");
+    public static Component debugAbilityStatus(
+            int slot,
+            String name,
+            String abilityId,
+            boolean ready,
+            long remainingSeconds,
+            int cooldownSeconds) {
+        Component status =
+                ready ? green("READY") : red("ON COOLDOWN (" + remainingSeconds + "s left)");
         return textOfChildren(
-                yellow("Ability " + slot + " '" + name + "' [" + abilityId + ", " + cooldownSeconds + "s cd]: "),
-                status
-        );
+                yellow(
+                        "Ability "
+                                + slot
+                                + " '"
+                                + name
+                                + "' ["
+                                + abilityId
+                                + ", "
+                                + cooldownSeconds
+                                + "s cd]: "),
+                status);
     }
 
     public static final Component DEBUG_NO_ABILITIES_ELEMENT =
             red("No element assigned - abilities unavailable.");
 
     public static Component debugDisarmed(boolean disarmed) {
-        return textOfChildren(
-                yellow("Ability disarmed: "),
-                disarmed ? red("YES") : green("NO")
-        );
+        return textOfChildren(yellow("Ability disarmed: "), disarmed ? red("YES") : green("NO"));
     }
 
     public static Component debugActiveStatusEffects(String summary) {
@@ -294,10 +317,7 @@ public final class Lang {
     }
 
     public static Component debugRerolling(boolean rolling) {
-        return textOfChildren(
-                yellow("Currently rerolling: "),
-                rolling ? green("YES") : gray("NO")
-        );
+        return textOfChildren(yellow("Currently rerolling: "), rolling ? green("YES") : gray("NO"));
     }
 
     public static Component debugGameMode(Object mode) {
@@ -323,18 +343,14 @@ public final class Lang {
     }
 
     public static Component setSet(Object name, Object displayName) {
-        return textOfChildren(
-                green("Set " + name + "'s element to "),
-                legacy(displayName, AQUA)
-        );
+        return textOfChildren(green("Set " + name + "'s element to "), legacy(displayName, AQUA));
     }
 
     public static Component setYourElementHasBeenSet(Object displayName) {
         return textOfChildren(
                 green("Your element has been set to "),
                 legacy(displayName, AQUA),
-                green(" by an admin.")
-        );
+                green(" by an admin."));
     }
 
     // Upgraders
@@ -345,14 +361,16 @@ public final class Lang {
 
     public static final Component UPGRADER_NO_ELEMENT_YET = red("You don't have an element yet.");
 
-    public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I = red("You already have Upgrade I");
+    public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I =
+            red("You already have Upgrade I");
 
     public static final Component UPGRADER_YOU_HAVE_UNLOCKED = unlocked("Upgrade I");
 
     public static final Component UPGRADER_YOU_NEED_UPGRADE_I_BEFORE =
             red("You need Upgrade I before you can use Upgrade II!");
 
-    public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_II = red("You already have Upgrade II");
+    public static final Component UPGRADER_YOU_ALREADY_HAVE_UPGRADE_II =
+            red("You already have Upgrade II");
 
     public static final Component UPGRADER_YOU_HAVE_UNLOCKED_2 = unlocked("Upgrade II");
 
@@ -367,10 +385,7 @@ public final class Lang {
     // Player lifecycle / rerolling
 
     public static Component elementManagerYourElementIsNow(Object displayName) {
-        return textOfChildren(
-                text("Your element is now ", GOLD),
-                legacy(displayName, AQUA)
-        );
+        return textOfChildren(text("Your element is now ", GOLD), legacy(displayName, AQUA));
     }
 
     public static final Component ELEMENT_MANAGER_YOU_ARE_ALREADY_REROLLING =
@@ -401,7 +416,9 @@ public final class Lang {
             yellow("Usage: /toggle [passive] [on|off]  (run /toggle to see yours)");
 
     public static final Component TOGGLE_WINDBURST_USAGE =
-            yellow("Usage: /toggle windburst [1|2|3|on|off]  (no argument cycles I > II > III > off)");
+            yellow(
+                    "Usage: /toggle windburst [1|2|3|on|off]  (no argument cycles I > II > III >"
+                        + " off)");
 
     public static final Component TOGGLE_LIST_HEADER = text("Passive toggles:", GOLD);
 
@@ -412,7 +429,8 @@ public final class Lang {
                 .append(enabled ? green("on") : red("off"));
     }
 
-    public static Component toggleListEntryLevel(String id, String displayName, boolean enabled, int level) {
+    public static Component toggleListEntryLevel(
+            String id, String displayName, boolean enabled, int level) {
         return text(" - ", DARK_GRAY)
                 .append(gray(displayName))
                 .append(text(" (" + id + "): ", DARK_GRAY))
@@ -450,7 +468,9 @@ public final class Lang {
     public static final Component DIMENSION_TRAVEL_DISABLED = red("Dimension is disabled.");
 
     public static final Component DIMENSION_CMD_USAGE =
-            yellow("Usage: /dimension <enable|disable|toggle> <nether|end|all> [time]  |  status  |  settings  |  set <option> <value>");
+            yellow(
+                    "Usage: /dimension <enable|disable|toggle> <nether|end|all> [time]  |  status "
+                        + " |  settings  |  set <option> <value>");
 
     public static final Component DIMENSION_CMD_INVALID_TARGET =
             red("Invalid dimension! Use: nether, end, or all");
@@ -461,18 +481,14 @@ public final class Lang {
         return textOfChildren(green(name + " travel is now "), stateWord(disabled));
     }
 
-    public static Component dimensionCmdToggledTimed(String name, boolean disabled, String duration) {
-        return textOfChildren(
-                dimensionCmdToggled(name, disabled),
-                green(" for " + duration + ".")
-        );
+    public static Component dimensionCmdToggledTimed(
+            String name, boolean disabled, String duration) {
+        return textOfChildren(dimensionCmdToggled(name, disabled), green(" for " + duration + "."));
     }
 
     public static Component dimensionTimerEnded(String name, boolean disabled) {
         return textOfChildren(
-                yellow("The timer ran out - " + name + " travel is now "),
-                stateWord(disabled)
-        );
+                yellow("The timer ran out - " + name + " travel is now "), stateWord(disabled));
     }
 
     public static Component dimensionStatusLine(String name, boolean disabled, String timeLeft) {
@@ -494,11 +510,7 @@ public final class Lang {
     }
 
     public static Component optionSet(String name, String value) {
-        return textOfChildren(
-                green(name + " set to "),
-                yellow(value),
-                green(".")
-        );
+        return textOfChildren(green(name + " set to "), yellow(value), green("."));
     }
 
     public static Component optionUnknown(String name, String valid) {
@@ -510,7 +522,8 @@ public final class Lang {
     }
 
     public static Component optionUsage(String command) {
-        return yellow("Usage: /" + command + " set <option> <value>  (see /" + command + " settings)");
+        return yellow(
+                "Usage: /" + command + " set <option> <value>  (see /" + command + " settings)");
     }
 
     // /grace
@@ -526,7 +539,9 @@ public final class Lang {
             red("PvP is disabled during the grace period!");
 
     public static final Component GRACE_CMD_USAGE =
-            yellow("Usage: /grace <start [time] | stop | status | extend <time> | shorten <time> | settings | set <option> <value>>");
+            yellow(
+                    "Usage: /grace <start [time] | stop | status | extend <time> | shorten <time> |"
+                        + " settings | set <option> <value>>");
 
     public static final Component GRACE_CMD_ALREADY_ACTIVE =
             red("A grace period is already active! Use /grace stop first.");
@@ -540,18 +555,14 @@ public final class Lang {
 
     public static Component graceCmdAdjusted(String change, String timeLeft) {
         return textOfChildren(
-                green("Grace period " + change + ". "),
-                yellow(timeLeft),
-                green(" remaining.")
-        );
+                green("Grace period " + change + ". "), yellow(timeLeft), green(" remaining."));
     }
 
     public static Component graceCmdStatus(String timeLeft) {
         return textOfChildren(
                 green("Grace period active - "),
                 yellow(timeLeft),
-                green(" remaining. PvP is disabled.")
-        );
+                green(" remaining. PvP is disabled."));
     }
 
     // Cooldown action bar
@@ -568,17 +579,26 @@ public final class Lang {
     private static final Key ICON_FONT = Key.key("elementsmp", "icons");
     private static final String LOCK_GLYPH = "\uE000";
 
-    public static Component cooldownActionBar(String ability1Name, long ability1RemainingSeconds,
-                                              String ability2Name, long ability2RemainingSeconds,
-                                              int upgradeLevel) {
+    public static Component cooldownActionBar(
+            String ability1Name,
+            long ability1RemainingSeconds,
+            String ability2Name,
+            long ability2RemainingSeconds,
+            int upgradeLevel) {
         return textOfChildren(
-                cooldownBarSegment(ability1Name, ability1RemainingSeconds, upgradeLevel < ABILITY1_REQUIRED_UPGRADE),
+                cooldownBarSegment(
+                        ability1Name,
+                        ability1RemainingSeconds,
+                        upgradeLevel < ABILITY1_REQUIRED_UPGRADE),
                 text("   ", DARK_GRAY),
-                cooldownBarSegment(ability2Name, ability2RemainingSeconds, upgradeLevel < ABILITY2_REQUIRED_UPGRADE)
-        );
+                cooldownBarSegment(
+                        ability2Name,
+                        ability2RemainingSeconds,
+                        upgradeLevel < ABILITY2_REQUIRED_UPGRADE));
     }
 
-    private static Component cooldownBarSegment(String abilityName, long remainingSeconds, boolean locked) {
+    private static Component cooldownBarSegment(
+            String abilityName, long remainingSeconds, boolean locked) {
         String label = truncateAbilityName(abilityName);
 
         if (locked) {
@@ -586,8 +606,7 @@ public final class Lang {
             return textOfChildren(
                     text(label, DARK_GRAY).decoration(TextDecoration.STRIKETHROUGH, true),
                     text(" "),
-                    text(LOCK_GLYPH, RED).font(ICON_FONT)
-            );
+                    text(LOCK_GLYPH, RED).font(ICON_FONT));
         }
 
         Component status = remainingSeconds <= 0 ? green("Ready") : red(remainingSeconds + "s");

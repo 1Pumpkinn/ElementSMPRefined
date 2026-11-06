@@ -1,8 +1,9 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -17,8 +18,8 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Objects;
+import java.util.Set;
 
 public final class AirCutterVisual {
 
@@ -46,8 +47,12 @@ public final class AirCutterVisual {
     public AirCutterVisual(Location at, Vector direction, Player caster) {
         this.caster = caster;
         this.smoothing = PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS);
-        Vector3f dir = new Vector3f(
-                (float) direction.getX(), (float) direction.getY(), (float) direction.getZ()).normalize();
+        Vector3f dir =
+                new Vector3f(
+                                (float) direction.getX(),
+                                (float) direction.getY(),
+                                (float) direction.getZ())
+                        .normalize();
 
         // Orientation lives entirely in the transformation (entity yaw/pitch stay 0), same as
         // ChainVisual - a display's own rotation would stack with it.
@@ -65,28 +70,38 @@ public final class AirCutterVisual {
         Vector3f side = new Vector3f(0f, 1f, 0f).cross(flatDir).normalize();
         Quaternionf orientation = new Quaternionf().rotateAxis(-pitch, side).mul(yaw);
         if (ROLL_DEGREES != 0f) {
-            orientation = new Quaternionf().rotateAxis((float) Math.toRadians(ROLL_DEGREES), dir).mul(orientation);
+            orientation =
+                    new Quaternionf()
+                            .rotateAxis((float) Math.toRadians(ROLL_DEGREES), dir)
+                            .mul(orientation);
         }
 
-        Transformation transformation = new Transformation(
-                new Vector3f(0f, -DROP, 0f),
-                orientation,
-                new Vector3f(SCALE),
-                new Quaternionf());
+        Transformation transformation =
+                new Transformation(
+                        new Vector3f(0f, -DROP, 0f),
+                        orientation,
+                        new Vector3f(SCALE),
+                        new Quaternionf());
 
         // The base material is irrelevant - the item_model component replaces its model entirely.
         ItemStack modelItem = ModelItems.of(AIR_CUTTER);
 
-        this.display = at.getWorld().spawn(flat(at), ItemDisplay.class, d -> {
-            d.setItemStack(modelItem);
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(transformation);
-            d.setTeleportDuration(smoothing);
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        this.display =
+                at.getWorld()
+                        .spawn(
+                                flat(at),
+                                ItemDisplay.class,
+                                d -> {
+                                    d.setItemStack(modelItem);
+                                    d.setItemDisplayTransform(
+                                            ItemDisplay.ItemDisplayTransform.NONE);
+                                    d.setBillboard(Display.Billboard.FIXED);
+                                    d.setBrightness(new Display.Brightness(15, 15));
+                                    d.setTransformation(transformation);
+                                    d.setTeleportDuration(smoothing);
+                                    d.setPersistent(false);
+                                    d.setInvulnerable(true);
+                                });
         ACTIVE.add(this);
     }
 

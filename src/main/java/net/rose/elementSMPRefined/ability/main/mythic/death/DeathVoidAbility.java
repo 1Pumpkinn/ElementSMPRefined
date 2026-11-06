@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.DarkBladeVisual;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -38,20 +39,20 @@ public class DeathVoidAbility extends BaseAbility {
 
     private static final int CHARGE_TICKS = 10;
     private static final double CHARGE_RADIUS = 1.3;
-    private static final double CHARGE_DISTANCE = 3.5;       // how far in front of the eyes the energy gathers
-    private static final double MIN_PARTICLE_DISTANCE = 2.5; // charge particles closer than this to the eyes are skipped
+    private static final double CHARGE_DISTANCE = 3.5;
+    private static final double MIN_PARTICLE_DISTANCE = 2.5;
 
-    private static final double SPEED = 1.5;            // blocks per tick
+    private static final double SPEED = 1.5; // blocks per tick
     private static final double MAX_DISTANCE = 24.0;
-    private static final double TRAIL_START_DISTANCE = 4.0; // no trail particles right in the caster's face
+    private static final double TRAIL_START_DISTANCE = 4.0;
     private static final double HIT_RADIUS = 2.4;
     private static final float BLADE_SCALE = 4.0f;
 
-    private static final double BLADE_DAMAGE = 6.0;     // 3 hearts, once per target
+    private static final double BLADE_DAMAGE = 6.0; // 3 hearts, once per target
     private static final double BLADE_KNOCKBACK = 0.6;
 
     private static final double PULSE_RADIUS = 4.0;
-    private static final double PULSE_DAMAGE = 4.0;     // 2 hearts
+    private static final double PULSE_DAMAGE = 4.0; // 2 hearts
     private static final double PULSE_KNOCKBACK = 1.1;
 
     private static final int DEBUFF_TICKS = 80;
@@ -64,7 +65,13 @@ public class DeathVoidAbility extends BaseAbility {
     private final JavaPlugin plugin;
 
     public DeathVoidAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("death_dark_blade", ElementType.DEATH, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
+        super(
+                "death_dark_blade",
+                ElementType.DEATH,
+                1,
+                Constants.Cooldown.ABILITY_1_SECONDS,
+                1,
+                configManager);
         this.plugin = plugin;
     }
 
@@ -101,15 +108,22 @@ public class DeathVoidAbility extends BaseAbility {
     private void charge(Player player, int tick) {
         World world = player.getWorld();
         Location eye = player.getEyeLocation();
-        Location center = eye.clone().add(eye.getDirection().multiply(CHARGE_DISTANCE)).subtract(0, 0.3, 0);
+        Location center =
+                eye.clone().add(eye.getDirection().multiply(CHARGE_DISTANCE)).subtract(0, 0.3, 0);
         double progress = (double) tick / CHARGE_TICKS;
         double radius = CHARGE_RADIUS * (1.0 - progress) + 0.2;
         double angle = tick * 0.9;
         for (int arm = 0; arm < 2; arm++) {
             double a = angle + arm * Math.PI;
-            Location p = center.clone().add(Math.cos(a) * radius, Math.sin(a * 1.3) * radius * 0.5, Math.sin(a) * radius);
+            Location p =
+                    center.clone()
+                            .add(
+                                    Math.cos(a) * radius,
+                                    Math.sin(a * 1.3) * radius * 0.5,
+                                    Math.sin(a) * radius);
             if (p.distanceSquared(eye) < MIN_PARTICLE_DISTANCE * MIN_PARTICLE_DISTANCE) continue;
-            world.spawnParticle(Particle.DUST, p, 1, 0, 0, 0, 0, arm == 0 ? DARK_DUST : PURPLE_DUST, true);
+            world.spawnParticle(
+                    Particle.DUST, p, 1, 0, 0, 0, 0, arm == 0 ? DARK_DUST : PURPLE_DUST, true);
         }
         if (tick % 3 == 0) {
             playChargeNote(world, center, tick / 3);
@@ -170,7 +184,8 @@ public class DeathVoidAbility extends BaseAbility {
         world.spawnParticle(Particle.DUST, pos, 1, 0.8, 0.8, 0.8, 0, DARK_DUST, true);
     }
 
-    private void sweep(Player player, TeamManager teams, Location pos, Vector dir, Set<UUID> alreadyHit) {
+    private void sweep(
+            Player player, TeamManager teams, Location pos, Vector dir, Set<UUID> alreadyHit) {
         for (LivingEntity target : pos.getNearbyLivingEntities(HIT_RADIUS)) {
             if (!isValidTarget(player, teams, target)) continue;
             if (!alreadyHit.add(target.getUniqueId())) continue;
@@ -185,8 +200,10 @@ public class DeathVoidAbility extends BaseAbility {
             }
 
             Location hitLoc = target.getLocation().add(0, target.getHeight() * 0.6, 0);
-            target.getWorld().spawnParticle(Particle.CRIT, hitLoc, 14, 0.3, 0.4, 0.3, 0.2, null, true);
-            target.getWorld().spawnParticle(Particle.DUST, hitLoc, 14, 0.3, 0.4, 0.3, 0, PURPLE_DUST, true);
+            target.getWorld()
+                    .spawnParticle(Particle.CRIT, hitLoc, 14, 0.3, 0.4, 0.3, 0.2, null, true);
+            target.getWorld()
+                    .spawnParticle(Particle.DUST, hitLoc, 14, 0.3, 0.4, 0.3, 0, PURPLE_DUST, true);
             target.getWorld().playSound(hitLoc, Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.9f, 0.6f);
         }
     }
@@ -195,13 +212,32 @@ public class DeathVoidAbility extends BaseAbility {
     private void pulse(Player player, TeamManager teams, Location at) {
         World world = at.getWorld();
         playPulseSound(world, at);
-        world.spawnParticle(Particle.DUST, at, 80, PULSE_RADIUS * 0.5, PULSE_RADIUS * 0.4, PULSE_RADIUS * 0.5, 0, PURPLE_DUST, true);
-        world.spawnParticle(Particle.DUST, at, 60, PULSE_RADIUS * 0.5, PULSE_RADIUS * 0.4, PULSE_RADIUS * 0.5, 0, DARK_DUST, true);
+        world.spawnParticle(
+                Particle.DUST,
+                at,
+                80,
+                PULSE_RADIUS * 0.5,
+                PULSE_RADIUS * 0.4,
+                PULSE_RADIUS * 0.5,
+                0,
+                PURPLE_DUST,
+                true);
+        world.spawnParticle(
+                Particle.DUST,
+                at,
+                60,
+                PULSE_RADIUS * 0.5,
+                PULSE_RADIUS * 0.4,
+                PULSE_RADIUS * 0.5,
+                0,
+                DARK_DUST,
+                true);
 
         // Expanding ring
         for (int i = 0; i < 40; i++) {
             double a = i * (Math.PI * 2 / 40);
-            Location ring = at.clone().add(Math.cos(a) * PULSE_RADIUS, 0.2, Math.sin(a) * PULSE_RADIUS);
+            Location ring =
+                    at.clone().add(Math.cos(a) * PULSE_RADIUS, 0.2, Math.sin(a) * PULSE_RADIUS);
             world.spawnParticle(Particle.DUST, ring, 2, 0.1, 0.1, 0.1, 0, PURPLE_DUST, true);
         }
 
@@ -219,8 +255,10 @@ public class DeathVoidAbility extends BaseAbility {
         }
     }
 
-    // Sound layout: the cast and charge-up are an evoker's spell winding up with a rising vex whine, the launch
-    // plays bells and a ghast shot, the flight is silent, and the pulse is an amethyst crack followed by a
+    // Sound layout: the cast and charge-up are an evoker's spell winding up with a rising vex
+    // whine, the launch
+    // plays bells and a ghast shot, the flight is silent, and the pulse is an amethyst crack
+    // followed by a
     // heartbeat that gives out.
 
     /** Falling, uneasy notes (pitch multipliers) used by the launch sound. */
@@ -246,10 +284,18 @@ public class DeathVoidAbility extends BaseAbility {
         for (int i = 0; i < 5; i++) {
             final float pitch = VOID_NOTES[i];
             final float vol = 0.3f - 0.04f * i;
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BELL, vol, pitch);
-                w.playSound(at, Sound.BLOCK_AMETHYST_CLUSTER_BREAK, vol * 0.5f, pitch * 0.5f);
-            }, 2L * (i + 1));
+            Bukkit.getScheduler()
+                    .runTaskLater(
+                            plugin,
+                            () -> {
+                                w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BELL, vol, pitch);
+                                w.playSound(
+                                        at,
+                                        Sound.BLOCK_AMETHYST_CLUSTER_BREAK,
+                                        vol * 0.5f,
+                                        pitch * 0.5f);
+                            },
+                            2L * (i + 1));
         }
     }
 
@@ -266,14 +312,18 @@ public class DeathVoidAbility extends BaseAbility {
         for (int i = 1; i <= 3; i++) {
             final float vol = 1.0f - 0.25f * i;
             final float pitch = 0.5f - 0.05f * i;
-            Bukkit.getScheduler().runTaskLater(plugin, () ->
-                    w.playSound(at, Sound.ENTITY_WARDEN_HEARTBEAT, vol, pitch), 6L * i);
+            Bukkit.getScheduler()
+                    .runTaskLater(
+                            plugin,
+                            () -> w.playSound(at, Sound.ENTITY_WARDEN_HEARTBEAT, vol, pitch),
+                            6L * i);
         }
     }
 
     private boolean isValidTarget(Player player, TeamManager teams, LivingEntity target) {
         if (target.equals(player)) return false;
-        return !(target instanceof Player other && teams.isFriendly(player.getUniqueId(), other.getUniqueId()));
+        return !(target instanceof Player other
+                && teams.isFriendly(player.getUniqueId(), other.getUniqueId()));
     }
 
     private void debuff(LivingEntity target) {
@@ -287,6 +337,7 @@ public class DeathVoidAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Shoot corrupted blades that damages everything in its path and bursts into corrupted energy.";
+        return "Shoot corrupted blades that damages everything in its path and bursts into"
+                   + " corrupted energy.";
     }
 }

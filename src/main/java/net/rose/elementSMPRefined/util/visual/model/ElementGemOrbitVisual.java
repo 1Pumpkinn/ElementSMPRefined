@@ -1,10 +1,11 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
@@ -29,20 +30,26 @@ import java.util.Set;
 
 public final class ElementGemOrbitVisual {
 
-    public enum Phase { SPIN, ELIMINATE, REVEAL, HOLD, DONE }
+    public enum Phase {
+        SPIN,
+        ELIMINATE,
+        REVEAL,
+        HOLD,
+        DONE
+    }
 
-    private static final float ORBIT_SCALE = 0.55f;     // gem texture fills a 1x1 block at scale 1
+    private static final float ORBIT_SCALE = 0.55f; // gem texture fills a 1x1 block at scale 1
     private static final float REVEAL_SCALE = 1.1f;
 
     private static final double RADIUS = 1.5;
-    private static final double HEIGHT = 1.0;           // gem centre above the player's feet
+    private static final double HEIGHT = 1.0; // gem centre above the player's feet
     private static final double BOB = 0.06;
-    private static final double FRONT_DISTANCE = 1.8;   // how far ahead the chosen gem stops
-    private static final double FRONT_HEIGHT = 1.35;    // roughly eye height
+    private static final double FRONT_DISTANCE = 1.8; // how far ahead the chosen gem stops
+    private static final double FRONT_HEIGHT = 1.35; // roughly eye height
 
     private static final double MAX_LEAD_BLOCKS = 2.5;
 
-    private static final double SPIN_START_DEG = 6.0;   // degrees per tick
+    private static final double SPIN_START_DEG = 6.0; // degrees per tick
     private static final double SPIN_MAX_DEG = 22.0;
 
     private static final Set<ElementGemOrbitVisual> ACTIVE = new HashSet<>();
@@ -55,12 +62,12 @@ public final class ElementGemOrbitVisual {
     private final Gem survivor;
     private final int initialCount;
     private final PingCompensation.Tracker tracker;
-    private int smoothing;              // teleport window currently set on the gems, in ticks
+    private int smoothing; // teleport window currently set on the gems, in ticks
 
     private Phase phase = Phase.SPIN;
     private int tick = 0;
     private int phaseTick = 0;
-    private double angle = 0;           // current ring rotation, degrees
+    private double angle = 0; // current ring rotation, degrees
     private Location revealFrom = null; // survivor position when the glide started
 
     /**
@@ -133,7 +140,8 @@ public final class ElementGemOrbitVisual {
             case ELIMINATE -> {
                 angle += SPIN_MAX_DEG;
                 orbitAll(base);
-                if (phaseTick % Constants.Animation.ORBIT_ELIMINATE_INTERVAL_TICKS == 0) popRandomNonSurvivor();
+                if (phaseTick % Constants.Animation.ORBIT_ELIMINATE_INTERVAL_TICKS == 0)
+                    popRandomNonSurvivor();
                 if (gems.size() == 1) {
                     revealFrom = survivor.display().getLocation();
                     enter(Phase.REVEAL);
@@ -141,32 +149,51 @@ public final class ElementGemOrbitVisual {
                 }
             }
             case REVEAL -> {
-                double t = Math.min(1.0, phaseTick / (double) Constants.Animation.ORBIT_GLIDE_TICKS);
+                double t =
+                        Math.min(1.0, phaseTick / (double) Constants.Animation.ORBIT_GLIDE_TICKS);
                 double eased = 1 - Math.pow(1 - t, 3); // ease-out: fast at first, settles gently
                 Location target = front(base, tracker.yaw(), tick);
                 survivor.display().teleport(lerp(revealFrom, target, eased));
                 if (t >= 1.0) {
-                    base.getWorld().playSound(target, Sound.BLOCK_AMETHYST_BLOCK_RESONATE,
-                            SoundCategory.PLAYERS, 1.0f, 1.4f);
-                    base.getWorld().spawnParticle(Particle.END_ROD, target, 14, 0.25, 0.25, 0.25, 0.02);
+                    base.getWorld()
+                            .playSound(
+                                    target,
+                                    Sound.BLOCK_AMETHYST_BLOCK_RESONATE,
+                                    SoundCategory.PLAYERS,
+                                    1.0f,
+                                    1.4f);
+                    base.getWorld()
+                            .spawnParticle(Particle.END_ROD, target, 14, 0.25, 0.25, 0.25, 0.02);
                     enter(Phase.HOLD);
                 }
             }
             case HOLD -> {
                 survivor.display().teleport(front(base, tracker.yaw(), tick));
                 if (tick % 4 == 0) {
-                    base.getWorld().spawnParticle(Particle.END_ROD, survivor.display().getLocation(),
-                            1, 0.2, 0.3, 0.2, 0.0);
+                    base.getWorld()
+                            .spawnParticle(
+                                    Particle.END_ROD,
+                                    survivor.display().getLocation(),
+                                    1,
+                                    0.2,
+                                    0.3,
+                                    0.2,
+                                    0.0);
                 }
                 if (phaseTick >= Constants.Animation.ORBIT_HOLD_TICKS) {
                     Location at = survivor.display().getLocation();
                     at.getWorld().spawnParticle(Particle.POOF, at, 12, 0.2, 0.2, 0.2, 0.05);
-                    at.getWorld().playSound(at, Sound.ENTITY_ILLUSIONER_MIRROR_MOVE,
-                            SoundCategory.PLAYERS, 0.6f, 1.6f);
+                    at.getWorld()
+                            .playSound(
+                                    at,
+                                    Sound.ENTITY_ILLUSIONER_MIRROR_MOVE,
+                                    SoundCategory.PLAYERS,
+                                    0.6f,
+                                    1.6f);
                     remove();
                 }
             }
-            case DONE -> { }
+            case DONE -> {}
         }
     }
 
@@ -220,41 +247,62 @@ public final class ElementGemOrbitVisual {
         w.spawnParticle(Particle.POOF, at, 8, 0.15, 0.15, 0.15, 0.03);
         // Pitch climbs as the ring thins out, so the eliminations build tension.
         float pitch = 0.8f + 0.12f * (initialCount - gems.size());
-        w.playSound(at, Sound.BLOCK_AMETHYST_BLOCK_BREAK, SoundCategory.PLAYERS, 0.8f, Math.min(pitch, 2.0f));
+        w.playSound(
+                at,
+                Sound.BLOCK_AMETHYST_BLOCK_BREAK,
+                SoundCategory.PLAYERS,
+                0.8f,
+                Math.min(pitch, 2.0f));
     }
 
     private void growSurvivor() {
         ItemDisplay d = survivor.display();
         d.setInterpolationDelay(0);
         d.setInterpolationDuration(Constants.Animation.ORBIT_GLIDE_TICKS);
-        d.setTransformation(new Transformation(
-                new Vector3f(), new Quaternionf(), new Vector3f(REVEAL_SCALE), new Quaternionf()));
+        d.setTransformation(
+                new Transformation(
+                        new Vector3f(),
+                        new Quaternionf(),
+                        new Vector3f(REVEAL_SCALE),
+                        new Quaternionf()));
     }
 
     private ItemDisplay spawn(Location base, ElementType type, double slot, int index) {
-        NamespacedKey model = Objects.requireNonNull(
-                NamespacedKey.fromString("elementsmp:" + type.name().toLowerCase() + "_gem"));
+        NamespacedKey model =
+                Objects.requireNonNull(
+                        NamespacedKey.fromString(
+                                "elementsmp:" + type.name().toLowerCase() + "_gem"));
         // The base material is irrelevant - the item_model component replaces its model entirely.
         ItemStack stack = ModelItems.of(model);
 
-        return base.getWorld().spawn(place(base, slot, 0, index), ItemDisplay.class, d -> {
-            d.setItemStack(stack);
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
-            // The gem art is a flat sprite - keep it facing whoever is looking at it.
-            d.setBillboard(Display.Billboard.VERTICAL);
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(new Transformation(
-                    new Vector3f(), new Quaternionf(), new Vector3f(ORBIT_SCALE), new Quaternionf()));
-            d.setTeleportDuration(smoothing);
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        return base.getWorld()
+                .spawn(
+                        place(base, slot, 0, index),
+                        ItemDisplay.class,
+                        d -> {
+                            d.setItemStack(stack);
+                            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
+                            // The gem art is a flat sprite - keep it facing whoever is looking at
+                            // it.
+                            d.setBillboard(Display.Billboard.VERTICAL);
+                            d.setBrightness(new Display.Brightness(15, 15));
+                            d.setTransformation(
+                                    new Transformation(
+                                            new Vector3f(),
+                                            new Quaternionf(),
+                                            new Vector3f(ORBIT_SCALE),
+                                            new Quaternionf()));
+                            d.setTeleportDuration(smoothing);
+                            d.setPersistent(false);
+                            d.setInvulnerable(true);
+                        });
     }
 
     private static Location place(Location owner, double angleDegrees, int tick, int index) {
         double a = Math.toRadians(angleDegrees);
         double bob = Math.sin(tick * 0.15 + index * 2.1) * BOB;
-        return new Location(owner.getWorld(),
+        return new Location(
+                owner.getWorld(),
                 owner.getX() + Math.cos(a) * RADIUS,
                 owner.getY() + HEIGHT + bob,
                 owner.getZ() + Math.sin(a) * RADIUS);
@@ -265,14 +313,16 @@ public final class ElementGemOrbitVisual {
         double dx = -Math.sin(yaw);
         double dz = Math.cos(yaw);
         double bob = Math.sin(tick * 0.12) * 0.04;
-        return new Location(owner.getWorld(),
+        return new Location(
+                owner.getWorld(),
                 owner.getX() + dx * FRONT_DISTANCE,
                 owner.getY() + FRONT_HEIGHT + bob,
                 owner.getZ() + dz * FRONT_DISTANCE);
     }
 
     private static Location lerp(Location a, Location b, double t) {
-        return new Location(b.getWorld(),
+        return new Location(
+                b.getWorld(),
                 a.getX() + (b.getX() - a.getX()) * t,
                 a.getY() + (b.getY() - a.getY()) * t,
                 a.getZ() + (b.getZ() - a.getZ()) * t);

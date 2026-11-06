@@ -4,6 +4,7 @@ import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -32,7 +33,8 @@ public class StormTridentLightningListener implements Listener {
     private final TeamManager teamManager;
     private final Map<UUID, UUID> strikes = new HashMap<>();
 
-    public StormTridentLightningListener(JavaPlugin plugin, ElementManager elementManager, TeamManager teamManager) {
+    public StormTridentLightningListener(
+            JavaPlugin plugin, ElementManager elementManager, TeamManager teamManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.teamManager = teamManager;
@@ -47,7 +49,10 @@ public class StormTridentLightningListener implements Listener {
         if (data == null || data.getCurrentElement() != ElementType.STORM) return;
         if (data.getUpgradeLevel(ElementType.STORM) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
 
-        Location at = event.getHitEntity() != null ? event.getHitEntity().getLocation() : trident.getLocation();
+        Location at =
+                event.getHitEntity() != null
+                        ? event.getHitEntity().getLocation()
+                        : trident.getLocation();
         if (at.getWorld() == null) return;
 
         LightningStrike strike = at.getWorld().strikeLightning(at);
@@ -55,7 +60,9 @@ public class StormTridentLightningListener implements Listener {
 
         UUID strikeId = strike.getUniqueId();
         strikes.put(strikeId, thrower.getUniqueId());
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> strikes.remove(strikeId), TRACK_TICKS);
+        plugin.getServer()
+                .getScheduler()
+                .runTaskLater(plugin, () -> strikes.remove(strikeId), TRACK_TICKS);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -77,14 +84,20 @@ public class StormTridentLightningListener implements Listener {
         if (!strikes.containsKey(strike.getUniqueId())) return;
         boolean wasBurning = victim.getFireTicks() > 1;
         if (wasBurning) return;
-        plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (victim.isValid() && victim.getFireTicks() > 0) victim.setFireTicks(0);
-        });
+        plugin.getServer()
+                .getScheduler()
+                .runTask(
+                        plugin,
+                        () -> {
+                            if (victim.isValid() && victim.getFireTicks() > 0)
+                                victim.setFireTicks(0);
+                        });
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onStrikeIgniteEntity(EntityCombustByEntityEvent event) {
-        if (event.getCombuster() instanceof LightningStrike strike && strikes.containsKey(strike.getUniqueId())) {
+        if (event.getCombuster() instanceof LightningStrike strike
+                && strikes.containsKey(strike.getUniqueId())) {
             event.setCancelled(true);
         }
     }
@@ -92,7 +105,8 @@ public class StormTridentLightningListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onStrikeIgniteBlock(BlockIgniteEvent event) {
         if (event.getCause() != BlockIgniteEvent.IgniteCause.LIGHTNING) return;
-        if (event.getIgnitingEntity() instanceof LightningStrike strike && strikes.containsKey(strike.getUniqueId())) {
+        if (event.getIgnitingEntity() instanceof LightningStrike strike
+                && strikes.containsKey(strike.getUniqueId())) {
             event.setCancelled(true);
         }
     }

@@ -5,6 +5,7 @@ import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
 import net.rose.elementSMPRefined.lang.Lang;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -42,7 +43,8 @@ public class UtilCommand implements CommandExecutor {
         ItemStack forgedUpgraderStack = ForgedUpgraderItem.make(plugin);
         forgedUpgraderStack.setAmount(64);
 
-        player.getInventory().addItem(upgrader1Stack, upgrader2Stack, rerollerStack, forgedUpgraderStack);
+        player.getInventory()
+                .addItem(upgrader1Stack, upgrader2Stack, rerollerStack, forgedUpgraderStack);
 
         player.sendMessage(Lang.UTIL_YOU_HAVE_BEEN_GIVEN_UTILITY);
         player.sendMessage(Lang.UTIL_64X_UPGRADER_I);

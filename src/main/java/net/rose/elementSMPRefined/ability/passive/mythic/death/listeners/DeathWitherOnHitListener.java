@@ -4,6 +4,7 @@ import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,7 +19,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class DeathWitherOnHitListener implements Listener {
 
     private static final double WITHER_CHANCE = 0.35; // 35%
-    private static final int WITHER_TICKS = 100;       // 5 seconds
+    private static final int WITHER_TICKS = 100; // 5 seconds
 
     private final ElementManager elementManager;
     private final TeamManager teamManager;
@@ -36,15 +37,17 @@ public class DeathWitherOnHitListener implements Listener {
         var playerData = elementManager.data(attacker.getUniqueId());
         if (playerData == null || playerData.getCurrentElement() != ElementType.DEATH) return;
 
-        if (playerData.getUpgradeLevel(ElementType.DEATH) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
+        if (playerData.getUpgradeLevel(ElementType.DEATH) < BaseElement.PASSIVE_2_UPGRADE_LEVEL)
+            return;
 
-        if (victim instanceof Player targetPlayer &&
-                teamManager.isFriendly(attacker.getUniqueId(), targetPlayer.getUniqueId())) {
+        if (victim instanceof Player targetPlayer
+                && teamManager.isFriendly(attacker.getUniqueId(), targetPlayer.getUniqueId())) {
             return;
         }
 
         if (ThreadLocalRandom.current().nextDouble() > WITHER_CHANCE) return;
 
-        victim.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, WITHER_TICKS, 0, true, true, true));
+        victim.addPotionEffect(
+                new PotionEffect(PotionEffectType.WITHER, WITHER_TICKS, 0, true, true, true));
     }
 }

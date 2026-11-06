@@ -1,11 +1,12 @@
 package net.rose.elementSMPRefined.ability.passive.upgraded.metal;
 
+import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalShieldAbility;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalShieldAbility;
-import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -17,7 +18,9 @@ import java.util.List;
 public class MetalElement extends BaseElement {
 
     public MetalElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.METAL,
+        super(
+                plugin,
+                ElementType.METAL,
                 new MetalShieldAbility(plugin, configManager),
                 new MetalMagnetarAbility(plugin, configManager));
     }
@@ -28,10 +31,22 @@ public class MetalElement extends BaseElement {
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE, PotionEffect.INFINITE_DURATION, 0, true, false));
+        player.addPotionEffect(
+                new PotionEffect(
+                        PotionEffectType.HERO_OF_THE_VILLAGE,
+                        PotionEffect.INFINITE_DURATION,
+                        0,
+                        true,
+                        false));
 
         if (upgradeLevel >= PASSIVE_2_UPGRADE_LEVEL) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, PotionEffect.INFINITE_DURATION, 0, true, false));
+            player.addPotionEffect(
+                    new PotionEffect(
+                            PotionEffectType.HASTE,
+                            PotionEffect.INFINITE_DURATION,
+                            0,
+                            true,
+                            false));
         } else {
             EffectService.removeElementPotionEffect(player, PotionEffectType.HASTE);
         }
@@ -51,9 +66,6 @@ public class MetalElement extends BaseElement {
 
     @Override
     public List<String> getPassiveBenefits() {
-        return List.of(
-                "Hero of the Village",
-                "Vein Miner (Upgrade II)",
-                "Haste I (Upgrade II)");
+        return List.of("Hero of the Village", "Vein Miner (Upgrade II)", "Haste I (Upgrade II)");
     }
 }

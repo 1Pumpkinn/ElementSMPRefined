@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.util.visual;
 
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.ChatColor;
 
 /**
@@ -21,7 +22,9 @@ public final class ElementColours {
      * leading code is a formatting flag (bold, italic, etc.) rather than a color.
      */
     public static NamedTextColor fromLegacy(String legacyText) {
-        if (legacyText != null && legacyText.length() >= 2 && legacyText.charAt(0) == ChatColor.COLOR_CHAR) {
+        if (legacyText != null
+                && legacyText.length() >= 2
+                && legacyText.charAt(0) == ChatColor.COLOR_CHAR) {
             NamedTextColor named = toNamedTextColor(ChatColor.getByChar(legacyText.charAt(1)));
             if (named != null) {
                 return named;

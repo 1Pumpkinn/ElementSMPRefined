@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.upgraded.lava;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -22,7 +23,9 @@ public class LavaBurningDamagePassive {
 
     public LavaBurningDamagePassive(ElementSMPRefined plugin) {
         this.plugin = plugin;
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, CHECK_INTERVAL_TICKS, CHECK_INTERVAL_TICKS);
+        plugin.getServer()
+                .getScheduler()
+                .runTaskTimer(plugin, this::refreshAll, CHECK_INTERVAL_TICKS, CHECK_INTERVAL_TICKS);
     }
 
     public void clear(Player player) {
@@ -40,7 +43,8 @@ public class LavaBurningDamagePassive {
         if (player.getFireTicks() <= 0 && !player.isInLava()) return false;
 
         var data = plugin.getElementManager().data(player.getUniqueId());
-        return data != null && data.getCurrentElement() == ElementType.LAVA
+        return data != null
+                && data.getCurrentElement() == ElementType.LAVA
                 && data.getUpgradeLevel(ElementType.LAVA) >= BaseElement.PASSIVE_2_UPGRADE_LEVEL;
     }
 
@@ -57,8 +61,11 @@ public class LavaBurningDamagePassive {
         }
 
         if (on && existing == null) {
-            attribute.addTransientModifier(new AttributeModifier(
-                    MODIFIER_KEY, ATTACK_DAMAGE_BONUS, AttributeModifier.Operation.ADD_NUMBER));
+            attribute.addTransientModifier(
+                    new AttributeModifier(
+                            MODIFIER_KEY,
+                            ATTACK_DAMAGE_BONUS,
+                            AttributeModifier.Operation.ADD_NUMBER));
         } else if (!on && existing != null) {
             attribute.removeModifier(existing);
         }

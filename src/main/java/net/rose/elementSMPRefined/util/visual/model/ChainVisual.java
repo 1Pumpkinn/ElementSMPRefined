@@ -1,8 +1,9 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -43,8 +44,8 @@ public final class ChainVisual {
 
     private final ItemStack modelItem;
     private final List<ItemDisplay> segments = new ArrayList<>();
-    private final Player owner;                       // may be null: no ping handling
-    private final PingCompensation.Tracker tracker;   // null when owner is null
+    private final Player owner; // may be null: no ping handling
+    private final PingCompensation.Tracker tracker; // null when owner is null
     private int smoothing = 1;
 
     public ChainVisual(NamespacedKey model) {
@@ -98,8 +99,15 @@ public final class ChainVisual {
             // How far back along the chain the owner's body centre sits from the chain's start;
             // run the start back that far (plus the speed allowance) so it ends inside the body.
             double toBody = -bodyCenter.toVector().subtract(from.toVector()).dot(delta) / length;
-            double overlap = Math.min(length, Math.max(MIN_OVERLAP,
-                    Math.min(MAX_OVERLAP, Math.max(0.0, toBody) * BODY_DEPTH_FACTOR + tracker.speed() * OVERLAP_PER_SPEED)));
+            double overlap =
+                    Math.min(
+                            length,
+                            Math.max(
+                                    MIN_OVERLAP,
+                                    Math.min(
+                                            MAX_OVERLAP,
+                                            Math.max(0.0, toBody) * BODY_DEPTH_FACTOR
+                                                    + tracker.speed() * OVERLAP_PER_SPEED)));
             from = from.clone().add(delta.clone().multiply(-overlap / length));
             delta = to.toVector().subtract(from.toVector());
             length = delta.length();
@@ -108,18 +116,20 @@ public final class ChainVisual {
         int count = Math.min(MAX_SEGMENTS, Math.max(1, (int) Math.round(length / SEGMENT_LENGTH)));
         float segmentLength = (float) (length / count);
 
-        Vector3f direction = new Vector3f(
-                (float) (delta.getX() / length),
-                (float) (delta.getY() / length),
-                (float) (delta.getZ() / length));
+        Vector3f direction =
+                new Vector3f(
+                        (float) (delta.getX() / length),
+                        (float) (delta.getY() / length),
+                        (float) (delta.getZ() / length));
 
         // Scale is applied in model space (Y = chain axis) BEFORE the rotation, so stretching Y
         // lengthens the segment and the left rotation then points it along the chain.
-        Transformation transformation = new Transformation(
-                new Vector3f(),
-                new Quaternionf().rotationTo(MODEL_AXIS, direction),
-                new Vector3f(THICKNESS, segmentLength, THICKNESS),
-                new Quaternionf());
+        Transformation transformation =
+                new Transformation(
+                        new Vector3f(),
+                        new Quaternionf().rotationTo(MODEL_AXIS, direction),
+                        new Vector3f(THICKNESS, segmentLength, THICKNESS),
+                        new Quaternionf());
 
         while (segments.size() > count) {
             removeSegment(segments.removeLast());
@@ -128,11 +138,14 @@ public final class ChainVisual {
         for (int i = 0; i < count; i++) {
             // Yaw/pitch left at 0 on purpose: a display's own rotation stacks with its
             // transformation, and all orientation is handled by the transformation above.
-            Location at = new Location(world,
-                    from.getX() + delta.getX() * ((i + 0.5) / count),
-                    from.getY() + delta.getY() * ((i + 0.5) / count),
-                    from.getZ() + delta.getZ() * ((i + 0.5) / count),
-                    0f, 0f);
+            Location at =
+                    new Location(
+                            world,
+                            from.getX() + delta.getX() * ((i + 0.5) / count),
+                            from.getY() + delta.getY() * ((i + 0.5) / count),
+                            from.getZ() + delta.getZ() * ((i + 0.5) / count),
+                            0f,
+                            0f);
 
             ItemDisplay display = i < segments.size() ? segments.get(i) : null;
             if (display == null || !display.isValid()) {
@@ -170,17 +183,21 @@ public final class ChainVisual {
     }
 
     private ItemDisplay spawn(Location at, Transformation transformation, int smoothing) {
-        return at.getWorld().spawn(at, ItemDisplay.class, display -> {
-            display.setItemStack(modelItem);
-            display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            display.setBillboard(Display.Billboard.FIXED);
-            display.setBrightness(new Display.Brightness(15, 15));
-            display.setTransformation(transformation);
-            display.setTeleportDuration(smoothing);
-            display.setInterpolationDuration(smoothing);
-            display.setPersistent(false);
-            display.setInvulnerable(true);
-        });
+        return at.getWorld()
+                .spawn(
+                        at,
+                        ItemDisplay.class,
+                        display -> {
+                            display.setItemStack(modelItem);
+                            display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                            display.setBillboard(Display.Billboard.FIXED);
+                            display.setBrightness(new Display.Brightness(15, 15));
+                            display.setTransformation(transformation);
+                            display.setTeleportDuration(smoothing);
+                            display.setInterpolationDuration(smoothing);
+                            display.setPersistent(false);
+                            display.setInvulnerable(true);
+                        });
     }
 
     private static void removeSegment(ItemDisplay display) {

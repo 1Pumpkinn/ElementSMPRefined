@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.ability.passive.mythic.life.listeners;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
+
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -39,8 +40,10 @@ public class LifeLeafGoldenAppleListener implements Listener {
         if (!isLife(player)) return;
         if (ThreadLocalRandom.current().nextDouble() >= GOLDEN_APPLE_CHANCE) return;
 
-        block.getWorld().dropItemNaturally(block.getLocation().add(0.5, 0.5, 0.5),
-                new ItemStack(Material.GOLDEN_APPLE, 1));
+        block.getWorld()
+                .dropItemNaturally(
+                        block.getLocation().add(0.5, 0.5, 0.5),
+                        new ItemStack(Material.GOLDEN_APPLE, 1));
     }
 
     private boolean isLife(Player player) {

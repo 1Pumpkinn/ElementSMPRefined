@@ -12,6 +12,7 @@ import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.ElementColours;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -29,8 +30,10 @@ public class ForgedUpgraderHandler implements Listener {
     private final ElementManager elementManager;
     private final ElementAdvancementHandler advancements;
 
-    public ForgedUpgraderHandler(ElementSMPRefined plugin, ElementManager elementManager,
-                                 ElementAdvancementHandler advancements) {
+    public ForgedUpgraderHandler(
+            ElementSMPRefined plugin,
+            ElementManager elementManager,
+            ElementAdvancementHandler advancements) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.advancements = advancements;
@@ -42,7 +45,9 @@ public class ForgedUpgraderHandler implements Listener {
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
 
         ItemStack item = event.getItem();
-        if (item == null || !ItemUtil.hasTag(item, ItemKeys.forgedUpgrader(plugin), PersistentDataType.BYTE)) return;
+        if (item == null
+                || !ItemUtil.hasTag(item, ItemKeys.forgedUpgrader(plugin), PersistentDataType.BYTE))
+            return;
 
         event.setCancelled(true);
 
@@ -64,9 +69,11 @@ public class ForgedUpgraderHandler implements Listener {
 
         Optional<ForgeRecipe> forge = ForgeRecipe.forBase(current);
         if (forge.isEmpty()) {
-            player.sendMessage(Component.text(
-                    "Your element can't be reforged - the Forged Upgrader only works on Fire, Earth, Water and Air.",
-                    NamedTextColor.RED));
+            player.sendMessage(
+                    Component.text(
+                            "Your element can't be reforged - the Forged Upgrader only works on"
+                                + " Fire, Earth, Water and Air.",
+                            NamedTextColor.RED));
             return;
         }
 
@@ -88,16 +95,20 @@ public class ForgedUpgraderHandler implements Listener {
 
     private void showForgedTitle(Player player, ElementType from, ElementType to) {
         var element = elementManager.get(to);
-        NamedTextColor color = element != null
-                ? ElementColours.fromLegacy(element.getDisplayName())
-                : NamedTextColor.AQUA;
+        NamedTextColor color =
+                element != null
+                        ? ElementColours.fromLegacy(element.getDisplayName())
+                        : NamedTextColor.AQUA;
 
         // Replaces the generic "Element Assigned!" title assignBasicElement() just showed.
-        player.showTitle(Title.title(
-                Component.text("Element Forged!").color(NamedTextColor.GOLD),
-                Component.text(from.name() + " -> " + to.name()).color(color),
-                Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(2000), Duration.ofMillis(500))
-        ));
+        player.showTitle(
+                Title.title(
+                        Component.text("Element Forged!").color(NamedTextColor.GOLD),
+                        Component.text(from.name() + " -> " + to.name()).color(color),
+                        Title.Times.times(
+                                Duration.ofMillis(500),
+                                Duration.ofMillis(2000),
+                                Duration.ofMillis(500))));
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
     }
 }

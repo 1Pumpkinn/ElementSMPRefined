@@ -15,10 +15,11 @@ import java.util.Set;
  * inside that passive's listener, and it shows up in {@code /toggle} and its tab completion by itself.
  */
 public enum PassiveToggle {
+    FIRE_SMELT(
+            "firesmelt", "Fire Smelt", "autoSmelt", EnumSet.of(ElementType.FIRE, ElementType.LAVA)),
 
-    FIRE_SMELT("firesmelt", "Fire Smelt", "autoSmelt", EnumSet.of(ElementType.FIRE, ElementType.LAVA)),
-
-    WIND_BURST("windburst", "Wind Burst", "windBurst", EnumSet.of(ElementType.AIR, ElementType.STORM));
+    WIND_BURST(
+            "windburst", "Wind Burst", "windBurst", EnumSet.of(ElementType.AIR, ElementType.STORM));
 
     private final String id;
     private final String displayName;
@@ -52,9 +53,14 @@ public enum PassiveToggle {
 
     /** Human-readable list of the elements that have this passive, e.g. "Fire and Lava". */
     public String elementNames() {
-        return String.join(" and ", elements.stream()
-                .map(e -> e.name().charAt(0) + e.name().substring(1).toLowerCase(Locale.ROOT))
-                .toList());
+        return String.join(
+                " and ",
+                elements.stream()
+                        .map(
+                                e ->
+                                        e.name().charAt(0)
+                                                + e.name().substring(1).toLowerCase(Locale.ROOT))
+                        .toList());
     }
 
     public static Optional<PassiveToggle> parse(String input) {

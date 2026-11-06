@@ -1,10 +1,11 @@
 package net.rose.elementSMPRefined.core.API.element;
 
-import net.rose.elementSMPRefined.core.API.ability.Ability;
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.core.API.ability.Ability;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
-import net.rose.elementSMPRefined.lang.Lang;
+
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -49,12 +50,14 @@ public abstract class BaseElement implements Element {
     }
 
     @Override
-    public final boolean ability1(net.rose.elementSMPRefined.core.API.element.ElementContext context) {
+    public final boolean ability1(
+            net.rose.elementSMPRefined.core.API.element.ElementContext context) {
         return activate(context, ability1, 1, this::canCancelAbility1);
     }
 
     @Override
-    public final boolean ability2(net.rose.elementSMPRefined.core.API.element.ElementContext context) {
+    public final boolean ability2(
+            net.rose.elementSMPRefined.core.API.element.ElementContext context) {
         Player player = context.getPlayer();
         if (context.getUpgradeLevel() < 1) {
             player.sendMessage(Lang.BASE_ELEMENT_YOU_NEED_UPGRADE_I_BEFORE);
@@ -63,8 +66,11 @@ public abstract class BaseElement implements Element {
         return activate(context, ability2, 2, this::canCancelAbility2);
     }
 
-    private boolean activate(net.rose.elementSMPRefined.core.API.element.ElementContext context, Ability ability, int requiredLevel,
-                             Predicate<net.rose.elementSMPRefined.core.API.element.ElementContext> canCancel) {
+    private boolean activate(
+            net.rose.elementSMPRefined.core.API.element.ElementContext context,
+            Ability ability,
+            int requiredLevel,
+            Predicate<net.rose.elementSMPRefined.core.API.element.ElementContext> canCancel) {
         Player player = context.getPlayer();
         if (!checkUpgradeLevel(player, context.getUpgradeLevel(), requiredLevel)) return false;
 
@@ -73,10 +79,12 @@ public abstract class BaseElement implements Element {
             return true;
         }
 
-        if (!checkCooldown(player, context.getCooldownManager(), ability.getAbilityId())) return false;
+        if (!checkCooldown(player, context.getCooldownManager(), ability.getAbilityId()))
+            return false;
 
         if (ability.execute(context)) {
-            context.getCooldownManager().startCooldown(player, ability.getAbilityId(), ability.getCooldownSeconds());
+            context.getCooldownManager()
+                    .startCooldown(player, ability.getAbilityId(), ability.getCooldownSeconds());
             return true;
         }
         return false;
@@ -90,7 +98,8 @@ public abstract class BaseElement implements Element {
         return true;
     }
 
-    protected boolean checkCooldown(Player player, CooldownManager cooldownManager, String abilityId) {
+    protected boolean checkCooldown(
+            Player player, CooldownManager cooldownManager, String abilityId) {
         // No chat message on cooldown - the action bar HUD already shows remaining time.
         return cooldownManager.isReady(player, abilityId);
     }
@@ -113,7 +122,8 @@ public abstract class BaseElement implements Element {
 
     protected boolean isValidTarget(Player player, LivingEntity target, TeamManager team) {
         if (target.equals(player)) return false;
-        return !(target instanceof Player other) || !team.isFriendly(player.getUniqueId(), other.getUniqueId());
+        return !(target instanceof Player other)
+                || !team.isFriendly(player.getUniqueId(), other.getUniqueId());
     }
 
     protected boolean isValidTarget(ElementContext context, LivingEntity target) {

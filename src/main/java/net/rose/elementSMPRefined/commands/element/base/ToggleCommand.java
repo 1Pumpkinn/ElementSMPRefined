@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.data.PassiveToggle;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ElementManager;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -64,7 +65,8 @@ public class ToggleCommand implements CommandExecutor, TabCompleter {
         PassiveToggle toggle = parsed.get();
 
         if (!toggle.appliesTo(current)) {
-            player.sendMessage(Lang.toggleWrongElement(toggle.displayName(), toggle.elementNames()));
+            player.sendMessage(
+                    Lang.toggleWrongElement(toggle.displayName(), toggle.elementNames()));
             return true;
         }
 
@@ -112,8 +114,10 @@ public class ToggleCommand implements CommandExecutor, TabCompleter {
                 case "1", "i" -> setWindBurstLevel(data, 1);
                 case "2", "ii" -> setWindBurstLevel(data, 2);
                 case "3", "iii" -> setWindBurstLevel(data, 3);
-                case "on", "enable", "true" -> data.setToggleEnabled(PassiveToggle.WIND_BURST, true);
-                case "off", "disable", "false" -> data.setToggleEnabled(PassiveToggle.WIND_BURST, false);
+                case "on", "enable", "true" ->
+                        data.setToggleEnabled(PassiveToggle.WIND_BURST, true);
+                case "off", "disable", "false" ->
+                        data.setToggleEnabled(PassiveToggle.WIND_BURST, false);
                 default -> {
                     player.sendMessage(Lang.TOGGLE_WINDBURST_USAGE);
                     return;
@@ -143,10 +147,16 @@ public class ToggleCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(Lang.TOGGLE_LIST_HEADER);
         for (PassiveToggle toggle : available) {
             if (toggle == PassiveToggle.WIND_BURST) {
-                player.sendMessage(Lang.toggleListEntryLevel(toggle.id(), toggle.displayName(),
-                        data.isToggleEnabled(toggle), data.getWindBurstLevel()));
+                player.sendMessage(
+                        Lang.toggleListEntryLevel(
+                                toggle.id(),
+                                toggle.displayName(),
+                                data.isToggleEnabled(toggle),
+                                data.getWindBurstLevel()));
             } else {
-                player.sendMessage(Lang.toggleListEntry(toggle.id(), toggle.displayName(), data.isToggleEnabled(toggle)));
+                player.sendMessage(
+                        Lang.toggleListEntry(
+                                toggle.id(), toggle.displayName(), data.isToggleEnabled(toggle)));
             }
         }
     }
@@ -156,7 +166,8 @@ public class ToggleCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String alias, String[] args) {
         if (!(sender instanceof Player player)) return List.of();
 
         if (args.length == 1) {
@@ -170,9 +181,12 @@ public class ToggleCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 2) {
             String prefix = args[1].toLowerCase(Locale.ROOT);
-            List<String> options = PassiveToggle.parse(args[0]).filter(t -> t == PassiveToggle.WIND_BURST).isPresent()
-                    ? List.of("1", "2", "3", "on", "off")
-                    : List.of("on", "off");
+            List<String> options =
+                    PassiveToggle.parse(args[0])
+                                    .filter(t -> t == PassiveToggle.WIND_BURST)
+                                    .isPresent()
+                            ? List.of("1", "2", "3", "on", "off")
+                            : List.of("on", "off");
             return options.stream().filter(s -> s.startsWith(prefix)).toList();
         }
         return List.of();

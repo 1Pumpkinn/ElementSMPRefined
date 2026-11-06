@@ -50,7 +50,9 @@ public class CooldownManager {
         if (player.getGameMode() == GameMode.CREATIVE) return;
         if (seconds <= 0) return;
         long readyAt = System.currentTimeMillis() + (seconds * 1000L);
-        cooldowns.computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap<>()).put(abilityId, readyAt);
+        cooldowns
+                .computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap<>())
+                .put(abilityId, readyAt);
     }
 
     public void clear(Player player, String abilityId) {
@@ -67,9 +69,12 @@ public class CooldownManager {
      */
     public void pruneExpired() {
         long now = System.currentTimeMillis();
-        cooldowns.entrySet().removeIf(entry -> {
-            entry.getValue().values().removeIf(readyAt -> now >= readyAt);
-            return entry.getValue().isEmpty();
-        });
+        cooldowns
+                .entrySet()
+                .removeIf(
+                        entry -> {
+                            entry.getValue().values().removeIf(readyAt -> now >= readyAt);
+                            return entry.getValue().isEmpty();
+                        });
     }
 }

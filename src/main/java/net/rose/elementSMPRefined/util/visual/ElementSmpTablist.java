@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.util.visual;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,7 +23,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ElementSmpTablist implements Listener {
 
     private static final String HEADER_MINI =
-            "<gradient:#ffffff:#90fe92:#00bfc2:#00fbff:#ffa200:#c20000><bold>Element SMP</bold></gradient>";
+            "<gradient:#ffffff:#90fe92:#00bfc2:#00fbff:#ffa200:#c20000><bold>Element"
+                + " SMP</bold></gradient>";
 
     private static final Component HEADER = MiniMessage.miniMessage().deserialize(HEADER_MINI);
 

@@ -14,8 +14,10 @@ public final class Constants {
     public static final class Cooldown {
         /** Every ability1 (slot 1) cooldown, in seconds. */
         public static final int ABILITY_1_SECONDS = 60;
+
         /** Every ability2 (slot 2) cooldown, in seconds. */
         public static final int ABILITY_2_SECONDS = 120;
+
         /** Earth Tunnel: shortest cooldown left after cancelling it right away, in seconds. */
         public static final int EARTH_TUNNEL_MIN_CANCEL_SECONDS = 10;
 
@@ -25,6 +27,7 @@ public final class Constants {
     public static final class Mace {
         /** Most damage one mace melee hit can deal, in hearts. */
         public static final double MAX_DAMAGE_HEARTS = 5;
+
         public static final double MAX_DAMAGE = MAX_DAMAGE_HEARTS * 2.0;
 
         private Mace() {}
@@ -65,6 +68,7 @@ public final class Constants {
     public static final class Team {
         /** Default {@code team.max_members}: most players on one team, owner included. */
         public static final int DEFAULT_MAX_MEMBERS = 5;
+
         /** Default {@code team.max_allies}: most allied teams one team can have. */
         public static final int DEFAULT_MAX_ALLIES = 1;
 

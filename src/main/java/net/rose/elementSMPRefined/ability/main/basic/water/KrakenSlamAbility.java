@@ -1,16 +1,17 @@
 package net.rose.elementSMPRefined.ability.main.basic.water;
 
-import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.particles.element.WaterParticles;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
+
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
@@ -51,25 +52,27 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
     private static final double RAY_SIZE = 0.5;
 
     public static final double HIT_RADIUS = 3.5;
-    private static final double HIT_HALF_HEIGHT = 3.0;      // vertical reach above/below the impact point
-    private static final double CENTER_DAMAGE = 6.0;        // 3 hearts of true damage right under the impact point
-    private static final double EDGE_DAMAGE = 3.0;          // 1.5 hearts at the very edge of the slam
+    private static final double HIT_HALF_HEIGHT =
+            3.0; // vertical reach above/below the impact point
+    private static final double CENTER_DAMAGE =
+            6.0; // 3 hearts of true damage right under the impact point
+    private static final double EDGE_DAMAGE = 3.0; // 1.5 hearts at the very edge of the slam
     private static final double KNOCKBACK_OUT = 0.7;
     private static final double KNOCKBACK_UP = 0.65;
 
-    private static final int RISE_TICKS = 10;               // tentacle grows out of the ground
-    private static final int SLAM_START_TICK = 16;          // winds up until here, then swings down
-    private static final int SLAM_TICKS = 5;                // the swing itself - fast
+    private static final int RISE_TICKS = 10; // tentacle grows out of the ground
+    private static final int SLAM_START_TICK = 16; // winds up until here, then swings down
+    private static final int SLAM_TICKS = 5; // the swing itself - fast
     private static final int IMPACT_TICK = SLAM_START_TICK + SLAM_TICKS;
-    private static final int HOLD_TICKS = 14;               // stays planted after the hit
-    private static final int RETRACT_TICKS = 10;            // sinks back into the ground
+    private static final int HOLD_TICKS = 14; // stays planted after the hit
+    private static final int RETRACT_TICKS = 10; // sinks back into the ground
     private static final int RETRACT_START_TICK = IMPACT_TICK + HOLD_TICKS;
     private static final int END_TICK = RETRACT_START_TICK + RETRACT_TICKS;
 
     private static final float TILT_START = -8f;
     private static final float TILT_WINDUP = -38f;
     private static final float TILT_SLAM = 86f;
-    private static final float TILT_RISE_END = -28f;        // lean reached by the end of the rise
+    private static final float TILT_RISE_END = -28f; // lean reached by the end of the rise
     private static final int SLAM_FIRST_TICKS = 3;
     private static final float TILT_SLAM_MID = TILT_WINDUP + 0.36f * (TILT_SLAM - TILT_WINDUP);
     private static final float SCALE = 6.0f;
@@ -97,7 +100,13 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
     }
 
     public KrakenSlamAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("kraken_slam", ElementType.WATER, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
+        super(
+                "kraken_slam",
+                ElementType.WATER,
+                2,
+                Constants.Cooldown.ABILITY_2_SECONDS,
+                2,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -133,8 +142,14 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         double length = MODEL_HEIGHT * SCALE;
         double baseX = impact.getX() - dirX * length * IMPACT_ALONG_BODY;
         double baseZ = impact.getZ() - dirZ * length * IMPACT_ALONG_BODY;
-        Block ground = GroundScan.findGround(world, (int) Math.floor(baseX), (int) Math.floor(baseZ),
-                impact.getBlockY(), 6, 10);
+        Block ground =
+                GroundScan.findGround(
+                        world,
+                        (int) Math.floor(baseX),
+                        (int) Math.floor(baseZ),
+                        impact.getBlockY(),
+                        6,
+                        10);
         double baseY = ground != null ? ground.getY() + 1.0 : impact.getY();
         Location base = new Location(world, baseX, baseY, baseZ);
 
@@ -154,14 +169,15 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         slams.put(player.getUniqueId(), state);
         super.setActive(player, true);
 
-        state.task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!tick(state)) {
-                    endSlam(player.getUniqueId());
-                }
-            }
-        }.runTaskTimer(plugin, 1L, 1L);
+        state.task =
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (!tick(state)) {
+                            endSlam(player.getUniqueId());
+                        }
+                    }
+                }.runTaskTimer(plugin, 1L, 1L);
 
         return true;
     }
@@ -169,13 +185,19 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
     private Location findImpact(Player player, ElementContext context) {
         Location eye = player.getEyeLocation();
         World world = player.getWorld();
-        RayTraceResult result = world.rayTrace(
-                eye, eye.getDirection(), RANGE,
-                FluidCollisionMode.NEVER, true, RAY_SIZE,
-                e -> e instanceof LivingEntity living
-                        && !(e instanceof ArmorStand)
-                        && !e.equals(player)
-                        && isValidTarget(context, living));
+        RayTraceResult result =
+                world.rayTrace(
+                        eye,
+                        eye.getDirection(),
+                        RANGE,
+                        FluidCollisionMode.NEVER,
+                        true,
+                        RAY_SIZE,
+                        e ->
+                                e instanceof LivingEntity living
+                                        && !(e instanceof ArmorStand)
+                                        && !e.equals(player)
+                                        && isValidTarget(context, living));
         if (result == null) return null;
 
         Entity hitEntity = result.getHitEntity();
@@ -189,8 +211,14 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
             return new Location(world, hit.getX(), hit.getY(), hit.getZ());
         }
         // Wall or ceiling: drop down to the floor below that spot.
-        Block ground = GroundScan.findGround(world, (int) Math.floor(hit.getX()), (int) Math.floor(hit.getZ()),
-                (int) Math.floor(hit.getY()), 2, 10);
+        Block ground =
+                GroundScan.findGround(
+                        world,
+                        (int) Math.floor(hit.getX()),
+                        (int) Math.floor(hit.getZ()),
+                        (int) Math.floor(hit.getY()),
+                        2,
+                        10);
         if (ground == null) return null;
         return new Location(world, hit.getX(), ground.getY() + 1.0, hit.getZ());
     }
@@ -221,7 +249,9 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         }
         if (t == RETRACT_START_TICK) {
             WaterParticles.graspRelease(state.base.clone().add(0, 0.5, 0));
-            state.base.getWorld().playSound(state.base, Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 1.0f, 0.7f);
+            state.base
+                    .getWorld()
+                    .playSound(state.base, Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 1.0f, 0.7f);
         }
         return true;
     }
@@ -251,28 +281,37 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
             double falloff = Math.min(1.0, horizontal / HIT_RADIUS);
             double damage = CENTER_DAMAGE + (EDGE_DAMAGE - CENTER_DAMAGE) * falloff;
 
-            boolean landed = TrueDamage.of(damage).attacker(state.caster).ability(getName()).apply(target);
+            boolean landed =
+                    TrueDamage.of(damage).attacker(state.caster).ability(getName()).apply(target);
             if (!landed || target.isDead()) continue; // an ability shield soaked it up
 
             // Thrown outward from the impact point (straight back along the swing if dead centre).
             double outX = horizontal < 0.1 ? state.dirX : dx / horizontal;
             double outZ = horizontal < 0.1 ? state.dirZ : dz / horizontal;
-            target.setVelocity(new Vector(outX * KNOCKBACK_OUT, KNOCKBACK_UP, outZ * KNOCKBACK_OUT));
+            target.setVelocity(
+                    new Vector(outX * KNOCKBACK_OUT, KNOCKBACK_UP, outZ * KNOCKBACK_OUT));
         }
     }
 
     private ItemDisplay spawnTentacle(SlamState state, int tick) {
         Transformation initial = transformFor(state, tick);
-        ItemDisplay spawned = state.base.getWorld().spawn(state.base, ItemDisplay.class, d -> {
-            d.setItemStack(ModelItems.of(TENTACLE_MODEL));
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setViewRange(2.0f);
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-            d.setTransformation(initial);
-        });
+        ItemDisplay spawned =
+                state.base
+                        .getWorld()
+                        .spawn(
+                                state.base,
+                                ItemDisplay.class,
+                                d -> {
+                                    d.setItemStack(ModelItems.of(TENTACLE_MODEL));
+                                    d.setItemDisplayTransform(
+                                            ItemDisplay.ItemDisplayTransform.NONE);
+                                    d.setBillboard(Display.Billboard.FIXED);
+                                    d.setBrightness(new Display.Brightness(15, 15));
+                                    d.setViewRange(2.0f);
+                                    d.setPersistent(false);
+                                    d.setInvulnerable(true);
+                                    d.setTransformation(initial);
+                                });
         LIVE.add(spawned);
         return spawned;
     }
@@ -283,7 +322,7 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         } else if (tick == RISE_TICKS) {
             interpolate(state, SLAM_START_TICK - RISE_TICKS, 1f, TILT_WINDUP);
         } else if (tick == SLAM_START_TICK) {
-            interpolate(state, SLAM_FIRST_TICKS, 1f, TILT_SLAM_MID);       // accelerating...
+            interpolate(state, SLAM_FIRST_TICKS, 1f, TILT_SLAM_MID); // accelerating...
         } else if (tick == SLAM_START_TICK + SLAM_FIRST_TICKS) {
             interpolate(state, SLAM_TICKS - SLAM_FIRST_TICKS, 1f, TILT_SLAM); // ...then the crash
         } else if (tick == RETRACT_START_TICK) {
@@ -291,7 +330,8 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         }
     }
 
-    private void interpolate(SlamState state, int durationTicks, float scaleFactor, float tiltDegrees) {
+    private void interpolate(
+            SlamState state, int durationTicks, float scaleFactor, float tiltDegrees) {
         ItemDisplay display = state.display;
         if (display == null || !display.isValid()) return;
         display.setInterpolationDelay(0);
@@ -305,8 +345,10 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
     private static Transformation transform(SlamState state, float scaleFactor, float tiltDegrees) {
         float scale = SCALE * scaleFactor;
-        Quaternionf tilt = new Quaternionf().rotationAxis(
-                (float) Math.toRadians(tiltDegrees), state.axisX, 0f, state.axisZ);
+        Quaternionf tilt =
+                new Quaternionf()
+                        .rotationAxis(
+                                (float) Math.toRadians(tiltDegrees), state.axisX, 0f, state.axisZ);
         // The model's base is a hair below the display's centre; rotate that small offset with the
         // body so the base point stays at the display's location.
         Vector3f translation = new Vector3f(0f, MODEL_BASE_BELOW_CENTER * scale, 0f).rotate(tilt);
@@ -393,25 +435,31 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
     @Override
     public String getDescription() {
-        return "A giant tentacle slams down, crushing everything in the area. Damage is highest in the centre and weaker towards the edge.";
+        return "A giant tentacle slams down, crushing everything in the area. Damage is highest in"
+                   + " the centre and weaker towards the edge.";
     }
 
     private static final class SlamState {
         final Player caster;
         final ElementContext context;
-        final Location base;     // ground point the tentacle's base is planted on
-        final Location impact;   // where it lands (locked at cast time)
-        final double dirX;       // horizontal unit vector, base -> impact (swing direction)
+        final Location base; // ground point the tentacle's base is planted on
+        final Location impact; // where it lands (locked at cast time)
+        final double dirX; // horizontal unit vector, base -> impact (swing direction)
         final double dirZ;
-        final float yaw;         // turns the model's curl along the swing direction
-        final float axisX;       // horizontal axis the tentacle tips around
+        final float yaw; // turns the model's curl along the swing direction
+        final float axisX; // horizontal axis the tentacle tips around
         final float axisZ;
         ItemDisplay display;
         BukkitTask task;
         int ticks = 0;
 
-        SlamState(Player caster, ElementContext context, Location base, Location impact,
-                  double dirX, double dirZ) {
+        SlamState(
+                Player caster,
+                ElementContext context,
+                Location base,
+                Location impact,
+                double dirX,
+                double dirZ) {
             this.caster = caster;
             this.context = context;
             this.base = base;

@@ -1,13 +1,14 @@
 package net.rose.elementSMPRefined.ability.main.basic.fire;
 
-import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
@@ -44,7 +45,8 @@ public class StarFallAbility extends BaseAbility {
     private static final int SPAWN_INTERVAL_TICKS = 6;
     private static final double SPAWN_HEIGHT = 18.0;
     private static final int FALL_TICKS = 16;
-    // The sky spawn must reach the client before the landing teleport, otherwise it has nothing to fall from
+    // The sky spawn must reach the client before the landing teleport, otherwise it has nothing to
+    // fall from
     private static final int LAUNCH_DELAY_TICKS = 2;
 
     private static final Material METEOR_BLOCK = Material.MAGMA_BLOCK;
@@ -53,7 +55,8 @@ public class StarFallAbility extends BaseAbility {
     private static final Color METEOR_GLOW = Color.fromRGB(204, 85, 0);
     private static final float TOTAL_SPIN = (float) Math.PI * 1.5f;
 
-    private static final Particle.DustOptions MARKER_DUST = new Particle.DustOptions(Color.fromRGB(255, 120, 20), 1.0f);
+    private static final Particle.DustOptions MARKER_DUST =
+            new Particle.DustOptions(Color.fromRGB(255, 120, 20), 1.0f);
     private static final int MARKER_POINTS = 12;
     private static final int ZONE_POINTS = 24;
 
@@ -64,7 +67,8 @@ public class StarFallAbility extends BaseAbility {
     private static final double IMPACT_KNOCKBACK_UP = 0.35;
 
     // Hard stop so a barrage can never run forever
-    private static final int MAX_TASK_TICKS = BARRAGE_DURATION_TICKS + LAUNCH_DELAY_TICKS + FALL_TICKS + 20;
+    private static final int MAX_TASK_TICKS =
+            BARRAGE_DURATION_TICKS + LAUNCH_DELAY_TICKS + FALL_TICKS + 20;
 
     private static final String NAME = ChatColor.RED + "Starfall";
 
@@ -74,7 +78,13 @@ public class StarFallAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public StarFallAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("fire_starfall", ElementType.FIRE, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
+        super(
+                "fire_starfall",
+                ElementType.FIRE,
+                2,
+                Constants.Cooldown.ABILITY_2_SECONDS,
+                2,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -124,7 +134,8 @@ public class StarFallAbility extends BaseAbility {
                 return;
             }
 
-            // The counter must advance even if something below throws, or the barrage would never time out
+            // The counter must advance even if something below throws, or the barrage would never
+            // time out
             try {
                 tick();
             } finally {
@@ -174,11 +185,17 @@ public class StarFallAbility extends BaseAbility {
 
             double angle = rng.nextDouble(0, Math.PI * 2);
             double dist = Math.sqrt(rng.nextDouble()) * ZONE_RADIUS;
-            Location skyStart = center.clone().add(Math.cos(angle) * dist, SPAWN_HEIGHT, Math.sin(angle) * dist);
+            Location skyStart =
+                    center.clone()
+                            .add(Math.cos(angle) * dist, SPAWN_HEIGHT, Math.sin(angle) * dist);
 
-            RayTraceResult ground = world.rayTraceBlocks(
-                    skyStart, new Vector(0, -1, 0), SPAWN_HEIGHT + GROUND_SEARCH_DISTANCE,
-                    FluidCollisionMode.NEVER, true);
+            RayTraceResult ground =
+                    world.rayTraceBlocks(
+                            skyStart,
+                            new Vector(0, -1, 0),
+                            SPAWN_HEIGHT + GROUND_SEARCH_DISTANCE,
+                            FluidCollisionMode.NEVER,
+                            true);
             if (ground == null) {
                 return;
             }
@@ -209,18 +226,32 @@ public class StarFallAbility extends BaseAbility {
         World world = impact.getWorld();
 
         world.spawnParticle(Particle.EXPLOSION, impact, 1, 0, 0, 0, 0, null, true);
-        world.spawnParticle(Particle.BLOCK, impact.clone().add(0, 0.3, 0), 12,
-                IMPACT_RADIUS / 4, 0.2, IMPACT_RADIUS / 4, 0.1, METEOR_BLOCK.createBlockData(), true);
+        world.spawnParticle(
+                Particle.BLOCK,
+                impact.clone().add(0, 0.3, 0),
+                12,
+                IMPACT_RADIUS / 4,
+                0.2,
+                IMPACT_RADIUS / 4,
+                0.1,
+                METEOR_BLOCK.createBlockData(),
+                true);
         world.playSound(impact, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.4f);
         world.playSound(impact, Sound.ITEM_FIRECHARGE_USE, 1.0f, 0.9f);
 
-        // Damage is applied manually instead of World#createExplosion to avoid block damage and double hits
+        // Damage is applied manually instead of World#createExplosion to avoid block damage and
+        // double hits
         for (LivingEntity entity : impact.getNearbyLivingEntities(IMPACT_RADIUS)) {
             if (entity.equals(caster)) continue;
-            if (team != null && entity instanceof Player other
+            if (team != null
+                    && entity instanceof Player other
                     && team.isFriendly(caster.getUniqueId(), other.getUniqueId())) continue;
 
-            TrueDamage.of(IMPACT_DAMAGE).attacker(caster).ability(NAME).ignoreIFrames(false).apply(entity);
+            TrueDamage.of(IMPACT_DAMAGE)
+                    .attacker(caster)
+                    .ability(NAME)
+                    .ignoreIFrames(false)
+                    .apply(entity);
             entity.setFireTicks(Math.max(entity.getFireTicks(), IMPACT_FIRE_TICKS));
 
             Vector knockback = entity.getLocation().toVector().subtract(impact.toVector());
@@ -238,14 +269,20 @@ public class StarFallAbility extends BaseAbility {
         Location eye = player.getEyeLocation();
         Vector direction = eye.getDirection();
 
-        RayTraceResult hit = world.rayTraceBlocks(eye, direction, RANGE, FluidCollisionMode.NEVER, true);
+        RayTraceResult hit =
+                world.rayTraceBlocks(eye, direction, RANGE, FluidCollisionMode.NEVER, true);
         if (hit != null) {
             return hit.getHitPosition().toLocation(world);
         }
 
         Location end = eye.clone().add(direction.clone().multiply(RANGE));
-        RayTraceResult down = world.rayTraceBlocks(
-                end, new Vector(0, -1, 0), GROUND_SEARCH_DISTANCE, FluidCollisionMode.NEVER, true);
+        RayTraceResult down =
+                world.rayTraceBlocks(
+                        end,
+                        new Vector(0, -1, 0),
+                        GROUND_SEARCH_DISTANCE,
+                        FluidCollisionMode.NEVER,
+                        true);
         return down != null ? down.getHitPosition().toLocation(world) : null;
     }
 
@@ -258,8 +295,10 @@ public class StarFallAbility extends BaseAbility {
     }
 
     private static Transformation centred(Quaternionf rotation, float size) {
-        Vector3f translation = new Vector3f(size / 2f, size / 2f, size / 2f).rotate(rotation).negate();
-        return new Transformation(translation, rotation, new Vector3f(size, size, size), new Quaternionf());
+        Vector3f translation =
+                new Vector3f(size / 2f, size / 2f, size / 2f).rotate(rotation).negate();
+        return new Transformation(
+                translation, rotation, new Vector3f(size, size, size), new Quaternionf());
     }
 
     private static final class Meteor {
@@ -272,8 +311,13 @@ public class StarFallAbility extends BaseAbility {
         boolean launched = false;
         int landTick;
 
-        private Meteor(BlockDisplay display, Location impact, Location landing, float size,
-                       Quaternionf endRotation, int spawnTick) {
+        private Meteor(
+                BlockDisplay display,
+                Location impact,
+                Location landing,
+                float size,
+                Quaternionf endRotation,
+                int spawnTick) {
             this.display = display;
             this.impact = impact;
             this.landing = landing;
@@ -285,27 +329,36 @@ public class StarFallAbility extends BaseAbility {
         static Meteor spawn(Location impact, int spawnTick, ThreadLocalRandom rng) {
             float size = rng.nextFloat(METEOR_MIN_SIZE, METEOR_MAX_SIZE);
 
-            Quaternionf startRot = new Quaternionf().rotateXYZ(
-                    rng.nextFloat(0f, (float) (Math.PI * 2)),
-                    rng.nextFloat(0f, (float) (Math.PI * 2)),
-                    rng.nextFloat(0f, (float) (Math.PI * 2)));
-            Quaternionf endRot = new Quaternionf(startRot).rotateXYZ(
-                    TOTAL_SPIN * rng.nextFloat(0.6f, 1.0f),
-                    TOTAL_SPIN * rng.nextFloat(0.4f, 0.8f),
-                    TOTAL_SPIN * rng.nextFloat(0.2f, 0.6f));
+            Quaternionf startRot =
+                    new Quaternionf()
+                            .rotateXYZ(
+                                    rng.nextFloat(0f, (float) (Math.PI * 2)),
+                                    rng.nextFloat(0f, (float) (Math.PI * 2)),
+                                    rng.nextFloat(0f, (float) (Math.PI * 2)));
+            Quaternionf endRot =
+                    new Quaternionf(startRot)
+                            .rotateXYZ(
+                                    TOTAL_SPIN * rng.nextFloat(0.6f, 1.0f),
+                                    TOTAL_SPIN * rng.nextFloat(0.4f, 0.8f),
+                                    TOTAL_SPIN * rng.nextFloat(0.2f, 0.6f));
 
             Location landing = impact.clone().add(0, size / 2.0, 0);
             Location skyLoc = landing.clone().add(0, SPAWN_HEIGHT, 0);
-            BlockDisplay display = impact.getWorld().spawn(skyLoc, BlockDisplay.class, d -> {
-                d.setBlock(METEOR_BLOCK.createBlockData());
-                d.setBrightness(new Display.Brightness(15, 15));
-                d.setGlowing(true);
-                d.setGlowColorOverride(METEOR_GLOW);
-                d.setViewRange(2.0f);
-                d.setPersistent(false);
-                d.setTeleportDuration(FALL_TICKS);
-                d.setTransformation(centred(startRot, size));
-            });
+            BlockDisplay display =
+                    impact.getWorld()
+                            .spawn(
+                                    skyLoc,
+                                    BlockDisplay.class,
+                                    d -> {
+                                        d.setBlock(METEOR_BLOCK.createBlockData());
+                                        d.setBrightness(new Display.Brightness(15, 15));
+                                        d.setGlowing(true);
+                                        d.setGlowColorOverride(METEOR_GLOW);
+                                        d.setViewRange(2.0f);
+                                        d.setPersistent(false);
+                                        d.setTeleportDuration(FALL_TICKS);
+                                        d.setTransformation(centred(startRot, size));
+                                    });
             ACTIVE_DISPLAYS.add(display);
 
             return new Meteor(display, impact, landing, size, endRot, spawnTick);

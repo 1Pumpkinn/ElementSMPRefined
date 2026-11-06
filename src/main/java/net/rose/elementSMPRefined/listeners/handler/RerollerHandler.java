@@ -2,14 +2,15 @@ package net.rose.elementSMPRefined.listeners.handler;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
-import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
-import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.ItemKeys;
+import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
-import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
+import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
+
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -51,7 +52,8 @@ public class RerollerHandler implements Listener {
         if (!elementManager.beginRolling(player)) return;
 
         ElementType newElement = determineNewElement(player);
-        // A forged element (Lava/Metal/Frost/Storm) being rerolled away gives the Forged Upgrader back.
+        // A forged element (Lava/Metal/Frost/Storm) being rerolled away gives the Forged Upgrader
+        // back.
         ElementType before = elementManager.getPlayerElement(player);
         boolean wasForged = before != null && ForgeRecipe.forTarget(before).isPresent();
 
@@ -68,13 +70,12 @@ public class RerollerHandler implements Listener {
         ElementType[] basicElements = elementManager.getBasicElements();
         ElementType current = elementManager.getPlayerElement(player);
 
-        List<ElementType> available = java.util.Arrays.stream(basicElements)
-                .filter(type -> type != current)
-                .toList();
+        List<ElementType> available =
+                java.util.Arrays.stream(basicElements).filter(type -> type != current).toList();
 
-        return available.isEmpty() ?
-                basicElements[random.nextInt(basicElements.length)] :
-                available.get(random.nextInt(available.size()));
+        return available.isEmpty()
+                ? basicElements[random.nextInt(basicElements.length)]
+                : available.get(random.nextInt(available.size()));
     }
 
     private void consumeItem(Player player, ItemStack item) {
@@ -108,7 +109,8 @@ public class RerollerHandler implements Listener {
     }
 
     private void giveForgedUpgraderBack(Player player) {
-        for (ItemStack leftover : player.getInventory().addItem(ForgedUpgraderItem.make(plugin)).values()) {
+        for (ItemStack leftover :
+                player.getInventory().addItem(ForgedUpgraderItem.make(plugin)).values()) {
             player.getWorld().dropItemNaturally(player.getLocation(), leftover);
         }
     }
@@ -117,7 +119,8 @@ public class RerollerHandler implements Listener {
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
         ElementType[] basicElements = elementManager.getBasicElements();
-        final ElementGemOrbitVisual visual = new ElementGemOrbitVisual(player, basicElements, targetElement);
+        final ElementGemOrbitVisual visual =
+                new ElementGemOrbitVisual(player, basicElements, targetElement);
 
         new BukkitRunnable() {
             boolean assigned = false;
@@ -140,7 +143,8 @@ public class RerollerHandler implements Listener {
                 // gems and release the lock. Nothing is assigned.
                 if (!elementManager.isCurrentlyRolling(player) || player.isDead()) {
                     visual.remove();
-                    // The item was already consumed - queue it back (delivered on respawn) instead of eating it.
+                    // The item was already consumed - queue it back (delivered on respawn) instead
+                    // of eating it.
                     if (!assigned) elementManager.queueRerollerRefund(player);
                     cancel();
                     elementManager.endRolling(player);

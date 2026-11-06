@@ -1,9 +1,10 @@
 package net.rose.elementSMPRefined.util.server.potplugin.util;
 
-import java.util.Map;
-import java.util.Set;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionType;
+
+import java.util.Map;
+import java.util.Set;
 
 public final class BrewingConstants {
 
@@ -25,11 +26,12 @@ public final class BrewingConstants {
      * Example: STRONG_STRENGTH is 1:30 in vanilla, then
      *   1:30 -> (redstone) 4:00 -> (redstone) 8:00
      */
-    public static final Map<PotionType, int[]> EXTENSION_STEPS = Map.of(
-            PotionType.WEAVING, seconds(300, 480),          // 3:00 -> 5:00 -> 8:00
-            PotionType.INFESTED, seconds(300, 480),         // 3:00 -> 5:00 -> 8:00
-            PotionType.STRONG_STRENGTH, seconds(240, 480)   // 1:30 -> 4:00 -> 8:00
-    );
+    public static final Map<PotionType, int[]> EXTENSION_STEPS =
+            Map.of(
+                    PotionType.WEAVING, seconds(300, 480), // 3:00 -> 5:00 -> 8:00
+                    PotionType.INFESTED, seconds(300, 480), // 3:00 -> 5:00 -> 8:00
+                    PotionType.STRONG_STRENGTH, seconds(240, 480) // 1:30 -> 4:00 -> 8:00
+                    );
 
     /** Kept for existing code that still reads the set of extendable base types. */
     public static final Set<PotionType> EXTENDABLE_TYPES = EXTENSION_STEPS.keySet();
@@ -42,9 +44,8 @@ public final class BrewingConstants {
      * out at the FINAL step of that type's EXTENSION_STEPS ladder (8:00 by default).
      * The value type must also be a key in EXTENSION_STEPS.
      */
-    public static final Map<PotionType, PotionType> LONG_TO_STRONG = Map.of(
-            PotionType.LONG_STRENGTH, PotionType.STRONG_STRENGTH
-    );
+    public static final Map<PotionType, PotionType> LONG_TO_STRONG =
+            Map.of(PotionType.LONG_STRENGTH, PotionType.STRONG_STRENGTH);
 
     public static final Set<Material> POTION_CONTAINERS =
             Set.of(Material.POTION, Material.SPLASH_POTION, Material.LINGERING_POTION);

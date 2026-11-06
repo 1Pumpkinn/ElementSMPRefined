@@ -6,8 +6,9 @@ import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ConfigOption;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
-import net.rose.elementSMPRefined.util.server.GracePeriod;
 import net.rose.elementSMPRefined.util.parse.ParseUtil;
+import net.rose.elementSMPRefined.util.server.GracePeriod;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -39,14 +40,16 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS =
             List.of("start", "stop", "status", "extend", "shorten", "settings", "set");
 
-    private static final List<ConfigOption> OPTIONS = List.of(
-            ConfigOption.duration("duration", "grace_period.duration_seconds"),
-            ConfigOption.choice("bossbar_color", "grace_period.boss_bar.color", BossBar.Color.values()),
-            ConfigOption.bool("disable_nether_on_start", "grace_period.on_start.disable_nether"),
-            ConfigOption.bool("disable_end_on_start", "grace_period.on_start.disable_end"),
-            ConfigOption.bool("open_nether_on_end", "grace_period.on_end.enable_nether"),
-            ConfigOption.bool("open_end_on_end", "grace_period.on_end.enable_end")
-    );
+    private static final List<ConfigOption> OPTIONS =
+            List.of(
+                    ConfigOption.duration("duration", "grace_period.duration_seconds"),
+                    ConfigOption.choice(
+                            "bossbar_color", "grace_period.boss_bar.color", BossBar.Color.values()),
+                    ConfigOption.bool(
+                            "disable_nether_on_start", "grace_period.on_start.disable_nether"),
+                    ConfigOption.bool("disable_end_on_start", "grace_period.on_start.disable_end"),
+                    ConfigOption.bool("open_nether_on_end", "grace_period.on_end.enable_nether"),
+                    ConfigOption.bool("open_end_on_end", "grace_period.on_end.enable_end"));
 
     private final ElementSMPRefined plugin;
 
@@ -117,10 +120,12 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Lang.GRACE_CMD_NOT_ACTIVE);
             return;
         }
-        sender.sendMessage(Lang.graceCmdStatus(ParseUtil.formatClock(gracePeriod.getRemainingSeconds())));
+        sender.sendMessage(
+                Lang.graceCmdStatus(ParseUtil.formatClock(gracePeriod.getRemainingSeconds())));
     }
 
-    private void handleAdjust(CommandSender sender, GracePeriod gracePeriod, String[] args, int sign, String verb) {
+    private void handleAdjust(
+            CommandSender sender, GracePeriod gracePeriod, String[] args, int sign, String verb) {
         if (!gracePeriod.isActive()) {
             sender.sendMessage(Lang.GRACE_CMD_NOT_ACTIVE);
             return;
@@ -134,15 +139,19 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Lang.GRACE_CMD_SHORTEN_TOO_FAR);
             return;
         }
-        sender.sendMessage(Lang.graceCmdAdjusted(verb + " by " + ParseUtil.formatCompact(seconds),
-                ParseUtil.formatClock(gracePeriod.getRemainingSeconds())));
+        sender.sendMessage(
+                Lang.graceCmdAdjusted(
+                        verb + " by " + ParseUtil.formatCompact(seconds),
+                        ParseUtil.formatClock(gracePeriod.getRemainingSeconds())));
     }
 
     private void handleSettings(CommandSender sender) {
         ConfigManager config = plugin.getConfigManager();
         sender.sendMessage(Lang.settingsHeader("Grace period settings"));
         for (ConfigOption option : OPTIONS) {
-            sender.sendMessage(Lang.settingLine(option.name(), option.display(config.getValue(option.path()))));
+            sender.sendMessage(
+                    Lang.settingLine(
+                            option.name(), option.display(config.getValue(option.path()))));
         }
     }
 
@@ -153,7 +162,8 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
         }
         ConfigOption option = ConfigOption.find(OPTIONS, args[1]);
         if (option == null) {
-            sender.sendMessage(Lang.optionUnknown(args[1], String.join(", ", ConfigOption.names(OPTIONS))));
+            sender.sendMessage(
+                    Lang.optionUnknown(args[1], String.join(", ", ConfigOption.names(OPTIONS))));
             return;
         }
         Object value = option.parse(args[2]);
@@ -166,7 +176,8 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
             return CommandSupport.filterStartingWith(SUBCOMMANDS, args[0]);
         }
@@ -175,7 +186,8 @@ public class GraceCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             switch (sub) {
                 case "start", "extend", "shorten" -> {
-                    return CommandSupport.filterStartingWith(List.of("1m", "5m", "10m", "30m", "1h"), args[1]);
+                    return CommandSupport.filterStartingWith(
+                            List.of("1m", "5m", "10m", "30m", "1h"), args[1]);
                 }
                 case "set" -> {
                     return CommandSupport.filterStartingWith(ConfigOption.names(OPTIONS), args[1]);

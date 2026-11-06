@@ -19,8 +19,13 @@ public final class EnchantableMace {
 
     public static ItemStack make(JavaPlugin plugin) {
         ItemStack mace = new ItemStack(Material.MACE);
-        mace.editMeta(meta -> meta.getPersistentDataContainer()
-                .set(ItemKeys.enchantableMace(plugin), PersistentDataType.BYTE, (byte) 1));
+        mace.editMeta(
+                meta ->
+                        meta.getPersistentDataContainer()
+                                .set(
+                                        ItemKeys.enchantableMace(plugin),
+                                        PersistentDataType.BYTE,
+                                        (byte) 1));
         return mace;
     }
 
@@ -28,6 +33,7 @@ public final class EnchantableMace {
     public static boolean isTagged(JavaPlugin plugin, ItemStack item) {
         if (item == null || item.getType() != Material.MACE || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
-        return meta.getPersistentDataContainer().has(ItemKeys.enchantableMace(plugin), PersistentDataType.BYTE);
+        return meta.getPersistentDataContainer()
+                .has(ItemKeys.enchantableMace(plugin), PersistentDataType.BYTE);
     }
 }

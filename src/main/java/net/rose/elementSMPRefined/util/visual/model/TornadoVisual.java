@@ -1,8 +1,9 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -39,9 +40,9 @@ public final class TornadoVisual {
     private static final int INTERPOLATION_TICKS = 3;
     private static final int MAX_SMOOTHING_TICKS = 3;
 
-    private static final float BODY_SPIN = 16f;       // degrees per tick
-    private static final float WISP_SPIN = -26f;       // opposite direction, faster
-    private static final double SWAY_DEGREES = 3.0;    // how far the whole funnel leans side to side
+    private static final float BODY_SPIN = 16f; // degrees per tick
+    private static final float WISP_SPIN = -26f; // opposite direction, faster
+    private static final double SWAY_DEGREES = 3.0; // how far the whole funnel leans side to side
 
     private static final double MIN_GROWTH = 0.02;
 
@@ -84,9 +85,14 @@ public final class TornadoVisual {
         for (int i = 0; i < TIER_HEIGHT.length; i++) {
             double mid = bottom + TIER_HEIGHT[i] / 2.0;
             if (y <= mid) {
-                // below the first tier's middle: flat; otherwise blend from the previous tier's middle
-                radius = i == 0 ? TIER_RADIUS[0]
-                        : previousRadius + (TIER_RADIUS[i] - previousRadius) * ((y - previousMid) / (mid - previousMid));
+                // below the first tier's middle: flat; otherwise blend from the previous tier's
+                // middle
+                radius =
+                        i == 0
+                                ? TIER_RADIUS[0]
+                                : previousRadius
+                                        + (TIER_RADIUS[i] - previousRadius)
+                                                * ((y - previousMid) / (mid - previousMid));
                 break;
             }
             previousMid = mid;
@@ -141,21 +147,31 @@ public final class TornadoVisual {
         }
     }
 
-    private static void animate(ItemDisplay display, int tick, float spinPerTick, float growth,
-                                float leanX, float leanZ) {
+    private static void animate(
+            ItemDisplay display,
+            int tick,
+            float spinPerTick,
+            float growth,
+            float leanX,
+            float leanZ) {
         // spin about the funnel's own axis first, then lean the whole thing over
-        Quaternionf rotation = new Quaternionf()
-                .rotateX(leanX)
-                .rotateZ(leanZ)
-                .rotateY((float) Math.toRadians(tick * spinPerTick));
+        Quaternionf rotation =
+                new Quaternionf()
+                        .rotateX(leanX)
+                        .rotateZ(leanZ)
+                        .rotateY((float) Math.toRadians(tick * spinPerTick));
 
         float scale = SCALE * growth;
         // Scaling happens around the model's centre (mid-height), so drop it by however much the
         // funnel shrank to keep its base planted on the ground.
         float lift = (float) (-(1.0 - growth) * HEIGHT / 2.0);
 
-        display.setTransformation(new Transformation(
-                new Vector3f(0f, lift, 0f), rotation, new Vector3f(scale), new Quaternionf()));
+        display.setTransformation(
+                new Transformation(
+                        new Vector3f(0f, lift, 0f),
+                        rotation,
+                        new Vector3f(scale),
+                        new Quaternionf()));
         display.setInterpolationDelay(0);
     }
 
@@ -163,24 +179,36 @@ public final class TornadoVisual {
         // The base material is irrelevant - the item_model component replaces its model entirely.
         ItemStack modelItem = ModelItems.of(model);
 
-        return at.getWorld().spawn(at, ItemDisplay.class, d -> {
-            d.setItemStack(modelItem);
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            d.setBillboard(Display.Billboard.FIXED);
-            d.setBrightness(new Display.Brightness(15, 15));
-            // Start tiny; the first update() blows it up so it never pops in at full size.
-            float tiny = (float) (SCALE * MIN_GROWTH);
-            d.setTransformation(new Transformation(
-                    new Vector3f(), new Quaternionf(), new Vector3f(tiny), new Quaternionf()));
-            d.setInterpolationDuration(INTERPOLATION_TICKS);
-            d.setTeleportDuration(smoothing);
-            d.setViewRange(2.0f); // it's big - keep it visible from further away than a normal display
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        return at.getWorld()
+                .spawn(
+                        at,
+                        ItemDisplay.class,
+                        d -> {
+                            d.setItemStack(modelItem);
+                            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                            d.setBillboard(Display.Billboard.FIXED);
+                            d.setBrightness(new Display.Brightness(15, 15));
+                            // Start tiny; the first update() blows it up so it never pops in at
+                            // full size.
+                            float tiny = (float) (SCALE * MIN_GROWTH);
+                            d.setTransformation(
+                                    new Transformation(
+                                            new Vector3f(),
+                                            new Quaternionf(),
+                                            new Vector3f(tiny),
+                                            new Quaternionf()));
+                            d.setInterpolationDuration(INTERPOLATION_TICKS);
+                            d.setTeleportDuration(smoothing);
+                            d.setViewRange(
+                                    2.0f); // it's big - keep it visible from further away than a
+                                           // normal display
+                            d.setPersistent(false);
+                            d.setInvulnerable(true);
+                        });
     }
 
     private static Location centre(Location base) {
-        return new Location(base.getWorld(), base.getX(), base.getY() + HEIGHT / 2.0, base.getZ(), 0f, 0f);
+        return new Location(
+                base.getWorld(), base.getX(), base.getY() + HEIGHT / 2.0, base.getZ(), 0f, 0f);
     }
 }

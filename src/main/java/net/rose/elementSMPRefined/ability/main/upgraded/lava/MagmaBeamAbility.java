@@ -1,17 +1,18 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
-import net.rose.elementSMPRefined.util.damage.AbilityTargets;
-import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
@@ -62,8 +63,10 @@ public class MagmaBeamAbility extends BaseAbility {
     private static final Component ALREADY_CHARGING =
             Component.text("Magma Beam is already charging!", NamedTextColor.RED);
 
-    // Only one beam may tick down a given victim at a time: victim -> the beam (caster) that holds them.
-    // The hold is refreshed by every pulse and lapses a couple of ticks after the last one, so when the
+    // Only one beam may tick down a given victim at a time: victim -> the beam (caster) that holds
+    // them.
+    // The hold is refreshed by every pulse and lapses a couple of ticks after the last one, so when
+    // the
     // holding beam moves off (or ends) another beam can take over.
     private static final int BEAM_LOCK_TICKS = HIT_INTERVAL + 2;
     private static final Map<UUID, BeamLock> BEAM_LOCKS = new HashMap<>();
@@ -73,7 +76,13 @@ public class MagmaBeamAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public MagmaBeamAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("lava_magma_beam", ElementType.LAVA, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
+        super(
+                "lava_magma_beam",
+                ElementType.LAVA,
+                2,
+                Constants.Cooldown.ABILITY_2_SECONDS,
+                2,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -92,14 +101,22 @@ public class MagmaBeamAbility extends BaseAbility {
         // is infinite and may be stronger); only apply, and later remove, our own.
         final int slowTicks = CHARGE_TICKS + BEAM_TICKS + 5;
         PotionEffect existingSlow = player.getPotionEffect(PotionEffectType.SLOWNESS);
-        final boolean ownsSlow = existingSlow == null
-                || (existingSlow.getDuration() != PotionEffect.INFINITE_DURATION
-                && existingSlow.getAmplifier() < SLOW_AMPLIFIER);
+        final boolean ownsSlow =
+                existingSlow == null
+                        || (existingSlow.getDuration() != PotionEffect.INFINITE_DURATION
+                                && existingSlow.getAmplifier() < SLOW_AMPLIFIER);
         if (ownsSlow) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,
-                    slowTicks, SLOW_AMPLIFIER, false, false, false));
+            player.addPotionEffect(
+                    new PotionEffect(
+                            PotionEffectType.SLOWNESS,
+                            slowTicks,
+                            SLOW_AMPLIFIER,
+                            false,
+                            false,
+                            false));
         }
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WARDEN_SONIC_CHARGE, 1.0f, 1.2f);
+        player.getWorld()
+                .playSound(player.getLocation(), Sound.ENTITY_WARDEN_SONIC_CHARGE, 1.0f, 1.2f);
 
         new BukkitRunnable() {
             final MagmaBeamVisual visual = new MagmaBeamVisual(player);
@@ -112,8 +129,11 @@ public class MagmaBeamAbility extends BaseAbility {
                 BEAM_LOCKS.values().removeIf(lock -> lock.owner().equals(player.getUniqueId()));
                 setActive(player, false);
                 PotionEffect slow = player.getPotionEffect(PotionEffectType.SLOWNESS);
-                // Ours is finite and no longer than the cast; an infinite one belongs to a status effect.
-                if (ownsSlow && slow != null && slow.getAmplifier() == SLOW_AMPLIFIER
+                // Ours is finite and no longer than the cast; an infinite one belongs to a status
+                // effect.
+                if (ownsSlow
+                        && slow != null
+                        && slow.getAmplifier() == SLOW_AMPLIFIER
                         && slow.getDuration() != PotionEffect.INFINITE_DURATION
                         && slow.getDuration() <= slowTicks) {
                     player.removePotionEffect(PotionEffectType.SLOWNESS);
@@ -142,8 +162,18 @@ public class MagmaBeamAbility extends BaseAbility {
                         w.playSound(start, Sound.ENTITY_BLAZE_SHOOT, 1.6f, 0.6f);
                         w.playSound(start, Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.4f);
                         // One-off burst at the muzzle as the shot is released.
-                        w.spawnParticle(Particle.FLAME, start, MUZZLE_FLAMES, 0.3, 0.3, 0.3, 0.12, null, true);
-                        w.spawnParticle(Particle.LAVA, start, MUZZLE_LAVA, 0.3, 0.3, 0.3, 0.0, null, true);
+                        w.spawnParticle(
+                                Particle.FLAME,
+                                start,
+                                MUZZLE_FLAMES,
+                                0.3,
+                                0.3,
+                                0.3,
+                                0.12,
+                                null,
+                                true);
+                        w.spawnParticle(
+                                Particle.LAVA, start, MUZZLE_LAVA, 0.3, 0.3, 0.3, 0.0, null, true);
                     }
                     fire(player, team, visual, eye, start, dir, tick - CHARGE_TICKS, roll);
                     if (tick >= CHARGE_TICKS + BEAM_TICKS) {
@@ -159,18 +189,33 @@ public class MagmaBeamAbility extends BaseAbility {
         return true;
     }
 
-    private void charge(Player player, MagmaBeamVisual visual, Location start, Vector dir, int tick, float roll) {
+    private void charge(
+            Player player,
+            MagmaBeamVisual visual,
+            Location start,
+            Vector dir,
+            int tick,
+            float roll) {
         World w = player.getWorld();
         double progress = (double) tick / CHARGE_TICKS;
         Location orb = start.clone().add(dir.clone().multiply(0.4));
 
-        visual.update(orb.clone().subtract(dir.clone().multiply(0.2)), dir, 0.4 + 0.8 * progress, (float) (0.4 + 1.0 * progress), roll);
+        visual.update(
+                orb.clone().subtract(dir.clone().multiply(0.2)),
+                dir,
+                0.4 + 0.8 * progress,
+                (float) (0.4 + 1.0 * progress),
+                roll);
 
         // Charge is deliberately quiet - the orb model carries it. The big particle show
         // happens once, when the beam fires (see the muzzle burst in run()).
         double radius = 2.6 * (1.0 - progress) + 0.3;
         if (tick % CHARGE_SPARK_INTERVAL == 0) {
-            Vector offset = Vector.getRandom().subtract(new Vector(0.5, 0.5, 0.5)).normalize().multiply(radius);
+            Vector offset =
+                    Vector.getRandom()
+                            .subtract(new Vector(0.5, 0.5, 0.5))
+                            .normalize()
+                            .multiply(radius);
             w.spawnParticle(Particle.FLAME, orb.clone().add(offset), 1, 0, 0, 0, 0.0, null, true);
         }
         if (tick % CHARGE_LAVA_INTERVAL == 0) {
@@ -182,15 +227,24 @@ public class MagmaBeamAbility extends BaseAbility {
         }
     }
 
-    private void fire(Player player, TeamManager team, MagmaBeamVisual visual,
-                      Location eye, Location start, Vector dir, int beamTick, float roll) {
+    private void fire(
+            Player player,
+            TeamManager team,
+            MagmaBeamVisual visual,
+            Location eye,
+            Location start,
+            Vector dir,
+            int beamTick,
+            float roll) {
         World w = player.getWorld();
 
         RayTraceResult blockHit = w.rayTraceBlocks(eye, dir, RANGE, FluidCollisionMode.NEVER, true);
-        double length = blockHit == null ? RANGE : blockHit.getHitPosition().distance(eye.toVector());
+        double length =
+                blockHit == null ? RANGE : blockHit.getHitPosition().distance(eye.toVector());
         Vector end = eye.toVector().add(dir.clone().multiply(length));
 
-        // Draw from the (offset) start to the true end point so the tip lands exactly where the ray stopped.
+        // Draw from the (offset) start to the true end point so the tip lands exactly where the ray
+        // stopped.
         Vector delta = end.clone().subtract(start.toVector());
         double visualLength = delta.length();
         if (visualLength > 0.5) {
@@ -205,7 +259,8 @@ public class MagmaBeamAbility extends BaseAbility {
             if (side.lengthSquared() < 1.0E-6) side = new Vector(1, 0, 0);
             side.normalize();
             Vector up = step.clone().crossProduct(side).normalize();
-            // One reusable Location for every particle on the beam - the loops below place thousands
+            // One reusable Location for every particle on the beam - the loops below place
+            // thousands
             // of particles over a cast and used to allocate several objects for each one.
             Location p = start.clone();
             double sx = start.getX(), sy = start.getY(), sz = start.getZ();
@@ -250,7 +305,8 @@ public class MagmaBeamAbility extends BaseAbility {
         if (beamTick % HIT_INTERVAL != 0) return;
 
         // One pulse per target per interval. The old version asked the world for entities around a
-        // sample point every 0.75 blocks along the beam (~30 queries per pulse); now it is ONE query
+        // sample point every 0.75 blocks along the beam (~30 queries per pulse); now it is ONE
+        // query
         // over the whole beam, then an exact "does the beam pass within HIT_RADIUS of this entity"
         // test per entity found. The beam still starts 1 block out from the eyes, like before.
         if (length < 1.0) return;
@@ -261,7 +317,8 @@ public class MagmaBeamAbility extends BaseAbility {
         BoundingBox corridor = BoundingBox.of(from, to).expand(HIT_RADIUS);
 
         Set<UUID> hit = new HashSet<>();
-        for (Entity nearby : w.getNearbyEntities(corridor, candidate -> candidate instanceof LivingEntity)) {
+        for (Entity nearby :
+                w.getNearbyEntities(corridor, candidate -> candidate instanceof LivingEntity)) {
             if (!(nearby instanceof LivingEntity e)
                     || !AbilityTargets.isValid(player, e, team)
                     || hit.contains(e.getUniqueId())) continue;
@@ -269,24 +326,41 @@ public class MagmaBeamAbility extends BaseAbility {
             BoundingBox grown = e.getBoundingBox().expand(HIT_RADIUS);
             if (!grown.contains(from) && grown.rayTrace(from, dir, reach) == null) continue;
 
-            // Another beam already has this victim: it keeps ticking them, this one does nothing to them.
+            // Another beam already has this victim: it keeps ticking them, this one does nothing to
+            // them.
             if (!claim(player, e)) continue;
             hit.add(e.getUniqueId());
 
-            // A raised shield stops the pulse: no damage, no burning, and the shield takes the wear.
-            boolean landed = TrueDamage.of(pulseDamage(beamTick)).attacker(player).ability(getName()).ignoreIFrames(true)
-                    .blockableByShield(dir).apply(e);
+            // A raised shield stops the pulse: no damage, no burning, and the shield takes the
+            // wear.
+            boolean landed =
+                    TrueDamage.of(pulseDamage(beamTick))
+                            .attacker(player)
+                            .ability(getName())
+                            .ignoreIFrames(true)
+                            .blockableByShield(dir)
+                            .apply(e);
             if (landed) {
                 e.setFireTicks(BURN_TICKS);
             }
-            w.spawnParticle(Particle.FLAME, e.getLocation().add(0, 1, 0), 3, 0.3, 0.4, 0.3, 0.03, null, true);
+            w.spawnParticle(
+                    Particle.FLAME,
+                    e.getLocation().add(0, 1, 0),
+                    3,
+                    0.3,
+                    0.4,
+                    0.3,
+                    0.03,
+                    null,
+                    true);
         }
     }
 
     /** Damage for one pulse: the per-second rate falls linearly over the beam (1 heart = 2 health). */
     private static double pulseDamage(int beamTick) {
         double t = Math.min(1.0, (double) beamTick / BEAM_TICKS);
-        double heartsPerSecond = START_HEARTS_PER_SECOND + (END_HEARTS_PER_SECOND - START_HEARTS_PER_SECOND) * t;
+        double heartsPerSecond =
+                START_HEARTS_PER_SECOND + (END_HEARTS_PER_SECOND - START_HEARTS_PER_SECOND) * t;
         return heartsPerSecond * 2.0 * HIT_INTERVAL / 20.0;
     }
 
@@ -300,7 +374,8 @@ public class MagmaBeamAbility extends BaseAbility {
         if (lock != null && lock.expiresAt() > now && !lock.owner().equals(caster.getUniqueId())) {
             return false;
         }
-        BEAM_LOCKS.put(victim.getUniqueId(), new BeamLock(caster.getUniqueId(), now + BEAM_LOCK_TICKS));
+        BEAM_LOCKS.put(
+                victim.getUniqueId(), new BeamLock(caster.getUniqueId(), now + BEAM_LOCK_TICKS));
         return true;
     }
 
@@ -311,6 +386,7 @@ public class MagmaBeamAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Charge up, then fire a beam that follows your aim and burns what it hits. You're slowed while casting it.";
+        return "Charge up, then fire a beam that follows your aim and burns what it hits. You're"
+                   + " slowed while casting it.";
     }
 }

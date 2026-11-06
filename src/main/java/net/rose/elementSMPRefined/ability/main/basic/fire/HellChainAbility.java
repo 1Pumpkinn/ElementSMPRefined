@@ -1,16 +1,17 @@
 package net.rose.elementSMPRefined.ability.main.basic.fire;
 
-import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
+
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -20,8 +21,8 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
@@ -30,18 +31,27 @@ import org.bukkit.util.Vector;
 public class HellChainAbility extends BaseAbility {
     private static final double RANGE = 35.0;
     private static final double RAY_SIZE = 0.4;
-    private static final int MAX_TICKS = 30; // safety cap so a chain can never get "stuck" running forever
-    // The flat 50-tick cap is too short for a long hook: the grapple tops out at 1 block/tick, so a 45 block
-    // hook needs 46+ ticks even with perfect progress, and any lag/ramp-up pushes it past the cap and the pull
-    // just stops partway. The cap now grows with the hook distance (still bounded, so nothing runs forever).
+    private static final int MAX_TICKS =
+            30; // safety cap so a chain can never get "stuck" running forever
+    // The flat 50-tick cap is too short for a long hook: the grapple tops out at 1 block/tick, so a
+    // 45 block
+    // hook needs 46+ ticks even with perfect progress, and any lag/ramp-up pushes it past the cap
+    // and the pull
+    // just stops partway. The cap now grows with the hook distance (still bounded, so nothing runs
+    // forever).
     private static final int MAX_TICKS_CAP = 100;
-    private static final double SLOWEST_EXPECTED_SPEED = 0.6; // blocks/tick the cap assumes the pull manages on average
-    private static final int EXTRA_TICKS = 0;                 // slack (was 20; every chain now lasts 20 ticks less) for ramp-up, lag and arcing over obstacles
+    private static final double SLOWEST_EXPECTED_SPEED =
+            0.6; // blocks/tick the cap assumes the pull manages on average
+    private static final int EXTRA_TICKS =
+            0; // slack (was 20; every chain now lasts 20 ticks less) for ramp-up, lag and arcing
+               // over obstacles
 
     private static final boolean DEBUG = false;
 
-    private static final Component NOTHING_IN_RANGE = Component.text(
-            "Hell's Chain: nothing to hook within " + (int) RANGE + " blocks.", NamedTextColor.RED);
+    private static final Component NOTHING_IN_RANGE =
+            Component.text(
+                    "Hell's Chain: nothing to hook within " + (int) RANGE + " blocks.",
+                    NamedTextColor.RED);
 
     // Caster-grapple mode (hook lands on terrain)
     private static final double PULL_STRENGTH = 0.5;
@@ -65,7 +75,8 @@ public class HellChainAbility extends BaseAbility {
     // force for the rest of MAX_TICKS. This is checked every tick for the whole flight (not
     // just once early on), so a snag that develops mid-flight - e.g. clipping an overhang
     // partway through, well after an initial burst of good progress - gets caught too.
-    private static final double PROGRESS_EPSILON = 0.03; // per-tick movement below this counts as "not really moving"
+    private static final double PROGRESS_EPSILON =
+            0.03; // per-tick movement below this counts as "not really moving"
     private static final int MAX_CONSECUTIVE_BLOCKED_TICKS = 4;
     // Continuous step-assist: MIN_UPWARD_PULL only floors the pull's vertical component when
     // the hook point is already above the caster's eye line (pull.getY() > 0). Aiming level
@@ -78,20 +89,29 @@ public class HellChainAbility extends BaseAbility {
     // boost - independent of the raw pull vector's vertical component - so the caster steps
     // up over the ledge instead of stopping at its base.
     private static final double STEP_CHECK_DISTANCE = 0.5;
-    private static final double STEP_UP_VELOCITY = 0.42; // roughly vanilla jump height, enough to clear 1 block
+    private static final double STEP_UP_VELOCITY =
+            0.42; // roughly vanilla jump height, enough to clear 1 block
 
     // Wall-scaling mode (hook lands on a vertical block face rather than a flat/top surface -
     // e.g. a cliff face directly ahead, as opposed to the ground or the top of a ledge). Instead
     // of the caster stopping dead at the wall like a flat-terrain hit, they climb it.
-    private static final double WALL_STOP_DISTANCE = 1.0; // get this close to the wall before switching from approach to climbing
-    private static final double WALL_CHECK_DISTANCE = 0.35; // how far ahead (into the wall) to check whether there's still wall left to climb
+    private static final double WALL_STOP_DISTANCE =
+            1.0; // get this close to the wall before switching from approach to climbing
+    private static final double WALL_CHECK_DISTANCE =
+            0.35; // how far ahead (into the wall) to check whether there's still wall left to climb
     private static final double CLIMB_SPEED = 0.28; // vertical speed while scaling the wall
-    private static final double CLIMB_STICK_STRENGTH = 0.12; // small push into the wall each tick so the caster stays pressed against it instead of drifting off mid-climb
-    private static final double MANTLE_FORWARD_VELOCITY = 0.45; // boost onto the ledge once the top of the wall is cleared
+    private static final double CLIMB_STICK_STRENGTH =
+            0.12; // small push into the wall each tick so the caster stays pressed against it
+                  // instead of drifting off mid-climb
+    private static final double MANTLE_FORWARD_VELOCITY =
+            0.45; // boost onto the ledge once the top of the wall is cleared
     private static final double MANTLE_UPWARD_VELOCITY = 0.25;
-    // Wall-climb limits. The climb used to run until the TOP of the wall (or the tick cap), no matter
-    // where the hook landed, so hooking the base of any tall wall (e.g. aiming steeply down at it) and
-    // then pressing/strafing against it let the caster crawl all the way up. It now only goes as far as
+    // Wall-climb limits. The climb used to run until the TOP of the wall (or the tick cap), no
+    // matter
+    // where the hook landed, so hooking the base of any tall wall (e.g. aiming steeply down at it)
+    // and
+    // then pressing/strafing against it let the caster crawl all the way up. It now only goes as
+    // far as
     // the point that was hooked, and it lets go if the caster stops touching the wall.
     private static final double CLIMB_LEDGE_ALLOWANCE = 1.5;
     private static final double WALL_CONTACT_DISTANCE = 0.8;
@@ -100,20 +120,26 @@ public class HellChainAbility extends BaseAbility {
     // Entity-drag mode (hook lands directly on a living entity)
     private static final double DRAG_MAX_SPEED = 0.8;
     private static final double DRAG_MIN_SPEED = 0.25;
-    private static final double DRAG_SPEED_PER_BLOCK = 0.25; // slows down as the target nears the caster so it can't overshoot
+    private static final double DRAG_SPEED_PER_BLOCK =
+            0.25; // slows down as the target nears the caster so it can't overshoot
     private static final double DRAG_STOP_DISTANCE = 2.5; // horizontal distance
-    private static final double DRAG_GROUND_LIFT = 0.2;   // just enough to break ground friction
-    private static final double DRAG_MAX_UPWARD = 0.25;   // hard cap so targets can never be launched over the caster's head
+    private static final double DRAG_GROUND_LIFT = 0.2; // just enough to break ground friction
+    private static final double DRAG_MAX_UPWARD =
+            0.25; // hard cap so targets can never be launched over the caster's head
     private static final double DRAG_MAX_DOWNWARD = -0.5;
     private static final double DRAG_VERTICAL_FACTOR = 0.15;
 
-    // Projectile-latch mode (hook lands on a projectile in flight): the caster is hauled along behind it
-    private static final double PROJECTILE_MAX_PULL_SPEED = 1.3; // a bit quicker than a terrain hook, projectiles move
-    private static final double PROJECTILE_RIDE_DISTANCE = 2.0;  // closer than this, match the projectile's velocity
+    // Projectile-latch mode (hook lands on a projectile in flight): the caster is hauled along
+    // behind it
+    private static final double PROJECTILE_MAX_PULL_SPEED =
+            1.3; // a bit quicker than a terrain hook, projectiles move
+    private static final double PROJECTILE_RIDE_DISTANCE =
+            2.0; // closer than this, match the projectile's velocity
 
     // Ping compensation: a player's server-side position lags behind what they actually see, so the
     // very first ticks of the pull look like "no movement" to the server. Snag detection gets a
-    // grace period + extra tolerance equal to the caster's ping (in ticks) so it doesn't bail early.
+    // grace period + extra tolerance equal to the caster's ping (in ticks) so it doesn't bail
+    // early.
     private static final double MS_PER_TICK = 50.0;
     private static final int MAX_PING_TICKS = 10;
 
@@ -123,7 +149,13 @@ public class HellChainAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public HellChainAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("fire_hell_chain", ElementType.FIRE, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
+        super(
+                "fire_hell_chain",
+                ElementType.FIRE,
+                1,
+                Constants.Cooldown.ABILITY_1_SECONDS,
+                1,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -143,11 +175,16 @@ public class HellChainAbility extends BaseAbility {
         Location eyeLoc = player.getEyeLocation();
         Vector direction = eyeLoc.getDirection();
 
-        RayTraceResult result = player.getWorld().rayTrace(
-                eyeLoc, direction, RANGE,
-                FluidCollisionMode.NEVER, true, RAY_SIZE,
-                entity -> isHookable(entity, player, context.getTeamManager())
-        );
+        RayTraceResult result =
+                player.getWorld()
+                        .rayTrace(
+                                eyeLoc,
+                                direction,
+                                RANGE,
+                                FluidCollisionMode.NEVER,
+                                true,
+                                RAY_SIZE,
+                                entity -> isHookable(entity, player, context.getTeamManager()));
 
         if (result == null) {
             return false;
@@ -179,9 +216,10 @@ public class HellChainAbility extends BaseAbility {
     }
 
     private void dragEntityIn(Player player, LivingEntity target) {
-        // Horizontal vector caster -> target at cast time; used to detect the target passing the caster.
-        final Vector startOffset = target.getLocation().toVector()
-                .subtract(player.getLocation().toVector()).setY(0);
+        // Horizontal vector caster -> target at cast time; used to detect the target passing the
+        // caster.
+        final Vector startOffset =
+                target.getLocation().toVector().subtract(player.getLocation().toVector()).setY(0);
         final int maxTicks = maxTicksFor(player.getLocation().distance(target.getLocation()));
 
         new BukkitRunnable() {
@@ -218,34 +256,48 @@ public class HellChainAbility extends BaseAbility {
                 Location magnetar = player.getLocation();
                 Location targetLoc = target.getLocation();
 
-                Vector offset = magnetar.toVector().subtract(targetLoc.toVector()); // target -> caster
+                Vector offset =
+                        magnetar.toVector().subtract(targetLoc.toVector()); // target -> caster
                 double horizontal = Math.hypot(offset.getX(), offset.getZ());
 
-                // "Passed" = the target is now on the opposite side of the caster from where it started
+                // "Passed" = the target is now on the opposite side of the caster from where it
+                // started
                 // (laggy position updates can skip right over the stop radius).
                 Vector fromCaster = targetLoc.toVector().subtract(magnetar.toVector()).setY(0);
-                boolean passedCaster = startOffset.lengthSquared() > 1.0E-4 && fromCaster.dot(startOffset) <= 0;
+                boolean passedCaster =
+                        startOffset.lengthSquared() > 1.0E-4 && fromCaster.dot(startOffset) <= 0;
 
                 if (horizontal < DRAG_STOP_DISTANCE || passedCaster) {
                     target.setVelocity(new Vector(0, 0, 0));
                     target.setFireTicks(Math.max(target.getFireTicks(), BURN_FIRE_TICKS));
-                    AbilityDamage.deal(target, getName(), () -> target.damage(IMPACT_DAMAGE, player));
-                    player.getWorld().spawnParticle(Particle.LAVA, targetLoc, 15, 0.3, 0.3, 0.3, 0.05);
+                    AbilityDamage.deal(
+                            target, getName(), () -> target.damage(IMPACT_DAMAGE, player));
+                    player.getWorld()
+                            .spawnParticle(Particle.LAVA, targetLoc, 15, 0.3, 0.3, 0.3, 0.05);
                     player.getWorld().playSound(targetLoc, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
                     cancel();
                     return;
                 }
 
-                chain.update(chainStart(player), target.getBoundingBox().getCenter().toLocation(target.getWorld()));
+                chain.update(
+                        chainStart(player),
+                        target.getBoundingBox().getCenter().toLocation(target.getWorld()));
 
-                // Velocity is SET each tick (not added onto the target's old velocity) so momentum can
+                // Velocity is SET each tick (not added onto the target's old velocity) so momentum
+                // can
                 // never build up and carry them past/over the caster.
-                double speed = Math.max(DRAG_MIN_SPEED, Math.min(DRAG_MAX_SPEED, horizontal * DRAG_SPEED_PER_BLOCK));
+                double speed =
+                        Math.max(
+                                DRAG_MIN_SPEED,
+                                Math.min(DRAG_MAX_SPEED, horizontal * DRAG_SPEED_PER_BLOCK));
                 double vx = offset.getX() / horizontal * speed;
                 double vz = offset.getZ() / horizontal * speed;
 
                 // Aim at the caster's feet (not eye) and clamp the vertical component hard.
-                double vy = Math.max(DRAG_MAX_DOWNWARD, Math.min(DRAG_MAX_UPWARD, offset.getY() * DRAG_VERTICAL_FACTOR));
+                double vy =
+                        Math.max(
+                                DRAG_MAX_DOWNWARD,
+                                Math.min(DRAG_MAX_UPWARD, offset.getY() * DRAG_VERTICAL_FACTOR));
                 if (target.isOnGround()) {
                     vy = Math.max(vy, DRAG_GROUND_LIFT);
                 }
@@ -263,14 +315,16 @@ public class HellChainAbility extends BaseAbility {
         if (entity instanceof LivingEntity) return true;
         if (!(entity instanceof Projectile projectile)) return false;
         if (!projectile.isValid() || projectile.isDead()) return false;
-        if (projectile instanceof AbstractArrow arrow && (arrow.isInBlock() || arrow.isOnGround())) return false;
+        if (projectile instanceof AbstractArrow arrow && (arrow.isInBlock() || arrow.isOnGround()))
+            return false;
         return !(projectile.getShooter() instanceof Player shooter
                 && team.isFriendly(caster.getUniqueId(), shooter.getUniqueId()));
     }
 
     private void latchOntoProjectile(Player player, Projectile projectile) {
         final boolean startedOnGround = player.isOnGround();
-        final int maxTicks = maxTicksFor(player.getEyeLocation().distance(projectile.getLocation()));
+        final int maxTicks =
+                maxTicksFor(player.getEyeLocation().distance(projectile.getLocation()));
 
         new BukkitRunnable() {
             final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
@@ -289,8 +343,12 @@ public class HellChainAbility extends BaseAbility {
                     cancel();
                     return;
                 }
-                // Projectile landed / hit something / despawned, pressed again, or timed out: let go.
-                if (!projectile.isValid() || projectile.isDead() || !isActiveFor(player) || ticks >= maxTicks) {
+                // Projectile landed / hit something / despawned, pressed again, or timed out: let
+                // go.
+                if (!projectile.isValid()
+                        || projectile.isDead()
+                        || !isActiveFor(player)
+                        || ticks >= maxTicks) {
                     player.setVelocity(player.getVelocity().multiply(0.5));
                     player.setFallDistance(0f);
                     cancel();
@@ -306,18 +364,21 @@ public class HellChainAbility extends BaseAbility {
 
                 Vector velocity;
                 if (distance < PROJECTILE_RIDE_DISTANCE) {
-                    // Caught up - travel with the projectile instead of stopping or overshooting it.
+                    // Caught up - travel with the projectile instead of stopping or overshooting
+                    // it.
                     velocity = projectile.getVelocity().clone();
                     if (velocity.length() > PROJECTILE_MAX_PULL_SPEED) {
                         velocity.normalize().multiply(PROJECTILE_MAX_PULL_SPEED);
                     }
                 } else {
-                    // Velocity is SET each tick, ramping up to the max speed, aimed at the projectile's current spot.
+                    // Velocity is SET each tick, ramping up to the max speed, aimed at the
+                    // projectile's current spot.
                     double speed = Math.min(PROJECTILE_MAX_PULL_SPEED, PULL_STRENGTH * (ticks + 1));
                     velocity = toProjectile.normalize().multiply(speed);
                 }
 
-                // The projectile hauls you up: never let the pull point downward-only while it's above you.
+                // The projectile hauls you up: never let the pull point downward-only while it's
+                // above you.
                 if (anchor.getY() >= eye.getY() - 1.0) {
                     velocity.setY(Math.max(velocity.getY(), MIN_UPWARD_PULL));
                 }
@@ -335,7 +396,8 @@ public class HellChainAbility extends BaseAbility {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    private void grappleToPoint(Player player, Location hookLocation, BlockFace hitFace, TeamManager team) {
+    private void grappleToPoint(
+            Player player, Location hookLocation, BlockFace hitFace, TeamManager team) {
         boolean wallHit = isWallFace(hitFace);
         // Direction from the caster INTO the wall - the opposite of the hit face's own outward
         // normal, since the face that was hit points back out toward whoever hit it.
@@ -344,16 +406,21 @@ public class HellChainAbility extends BaseAbility {
         final boolean startedOnGround = player.isOnGround();
         final int latencyTicks = pingTicks(player);
         final int maxTicks = maxTicksFor(player.getEyeLocation().distance(hookLocation));
-        // Highest the caster's eyes may get while climbing: the top of the hooked block plus a ledge's worth.
+        // Highest the caster's eyes may get while climbing: the top of the hooked block plus a
+        // ledge's worth.
         final double climbCeilingY = Math.floor(hookLocation.getY()) + 1.0 + CLIMB_LEDGE_ALLOWANCE;
 
         new BukkitRunnable() {
             final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
             int ticks = 0;
             boolean climbing = false;
-            double bestDistance = Double.MAX_VALUE; // approach-phase progress tracking (closest point reached so far)
+            double bestDistance =
+                    Double
+                            .MAX_VALUE; // approach-phase progress tracking (closest point reached
+                                        // so far)
             int approachStuckTicks = 0;
-            double bestClimbY = Double.NaN; // climb-phase progress tracking (highest point reached so far)
+            double bestClimbY =
+                    Double.NaN; // climb-phase progress tracking (highest point reached so far)
             int climbStuckTicks = 0;
             int climbTicks = 0;
 
@@ -368,7 +435,11 @@ public class HellChainAbility extends BaseAbility {
             public void run() {
                 if (!player.isOnline() || ticks >= maxTicks) {
                     if (player.isOnline()) {
-                        debug(player, "timed out", ticks, player.getEyeLocation().distance(hookLocation));
+                        debug(
+                                player,
+                                "timed out",
+                                ticks,
+                                player.getEyeLocation().distance(hookLocation));
                     }
                     cancel();
                     return;
@@ -376,7 +447,11 @@ public class HellChainAbility extends BaseAbility {
                 if (!isActiveFor(player)) {
                     // Cancelled mid-grapple (pressed again, or element changed) - drop the chain,
                     // keeping a little momentum so it doesn't feel like hitting a wall.
-                    debug(player, "cancelled (pressed again / element changed)", ticks, player.getEyeLocation().distance(hookLocation));
+                    debug(
+                            player,
+                            "cancelled (pressed again / element changed)",
+                            ticks,
+                            player.getEyeLocation().distance(hookLocation));
                     player.setVelocity(player.getVelocity().multiply(0.3));
                     cancel();
                     return;
@@ -385,17 +460,25 @@ public class HellChainAbility extends BaseAbility {
                 Location currentLoc = player.getEyeLocation();
 
                 if (climbing) {
-                    // Came off the wall (strafing / backing away, knocked off...): let go instead of
-                    // rising through open air. Skipped for the first few ticks while the stick-to-wall
+                    // Came off the wall (strafing / backing away, knocked off...): let go instead
+                    // of
+                    // rising through open air. Skipped for the first few ticks while the
+                    // stick-to-wall
                     // push settles them against it (longer on high ping).
-                    if (climbTicks >= CLIMB_CONTACT_GRACE_TICKS + latencyTicks && !touchingWall(currentLoc, intoWall)) {
-                        debug(player, "came off the wall while climbing", ticks, currentLoc.distance(hookLocation));
+                    if (climbTicks >= CLIMB_CONTACT_GRACE_TICKS + latencyTicks
+                            && !touchingWall(currentLoc, intoWall)) {
+                        debug(
+                                player,
+                                "came off the wall while climbing",
+                                ticks,
+                                currentLoc.distance(hookLocation));
                         player.setVelocity(player.getVelocity().multiply(0.3));
                         cancel();
                         return;
                     }
 
-                    Location aheadHead = currentLoc.clone().add(intoWall.clone().multiply(WALL_CHECK_DISTANCE));
+                    Location aheadHead =
+                            currentLoc.clone().add(intoWall.clone().multiply(WALL_CHECK_DISTANCE));
                     if (!aheadHead.getBlock().getType().isSolid()) {
                         // Cleared the top of the wall - vault onto the ledge instead of just
                         // stopping mid-climb.
@@ -404,13 +487,19 @@ public class HellChainAbility extends BaseAbility {
                         return;
                     }
 
-                    // Reached the hooked point and the wall keeps going: stop here. Without this cap
+                    // Reached the hooked point and the wall keeps going: stop here. Without this
+                    // cap
                     // the caster kept climbing to the top of ANY wall, whatever they aimed at.
                     if (currentLoc.getY() >= climbCeilingY) {
-                        debug(player, "reached hooked height", ticks, currentLoc.distance(hookLocation));
+                        debug(
+                                player,
+                                "reached hooked height",
+                                ticks,
+                                currentLoc.distance(hookLocation));
                         player.setVelocity(player.getVelocity().multiply(0.2));
                         player.setFallDistance(0f);
-                        player.getWorld().playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
+                        player.getWorld()
+                                .playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
                         burnNearby(player, currentLoc, team);
                         cancel();
                         return;
@@ -430,7 +519,11 @@ public class HellChainAbility extends BaseAbility {
                     } else if (climbTicks >= latencyTicks) {
                         climbStuckTicks++;
                         if (climbStuckTicks >= MAX_CONSECUTIVE_BLOCKED_TICKS + latencyTicks) {
-                            debug(player, "snagged while climbing", ticks, currentLoc.distance(hookLocation));
+                            debug(
+                                    player,
+                                    "snagged while climbing",
+                                    ticks,
+                                    currentLoc.distance(hookLocation));
                             player.setVelocity(player.getVelocity().multiply(0.2));
                             cancel();
                             return;
@@ -441,10 +534,11 @@ public class HellChainAbility extends BaseAbility {
                     // Keep rising, with a small push into the wall each tick so the caster
                     // stays pressed against it rather than drifting off and falling away
                     // mid-climb.
-                    player.setVelocity(new Vector(
-                            intoWall.getX() * CLIMB_STICK_STRENGTH,
-                            CLIMB_SPEED,
-                            intoWall.getZ() * CLIMB_STICK_STRENGTH));
+                    player.setVelocity(
+                            new Vector(
+                                    intoWall.getX() * CLIMB_STICK_STRENGTH,
+                                    CLIMB_SPEED,
+                                    intoWall.getZ() * CLIMB_STICK_STRENGTH));
                     player.setFallDistance(0f);
 
                     // Keep the chain anchored where it hit the wall while that anchor is still
@@ -473,18 +567,30 @@ public class HellChainAbility extends BaseAbility {
 
                     debug(player, "arrived", ticks, distance);
                     player.setVelocity(player.getVelocity().multiply(0.2));
-                    player.getWorld().playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
-                    player.getWorld().spawnParticle(Particle.LAVA, hookLocation, 20,
-                            BURN_RADIUS / 2, 0.3, BURN_RADIUS / 2, 0.05);
+                    player.getWorld()
+                            .playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
+                    player.getWorld()
+                            .spawnParticle(
+                                    Particle.LAVA,
+                                    hookLocation,
+                                    20,
+                                    BURN_RADIUS / 2,
+                                    0.3,
+                                    BURN_RADIUS / 2,
+                                    0.05);
                     burnNearby(player, hookLocation, team);
                     cancel();
                     return;
                 }
 
-                // Approach-phase snag guard: let go if the caster stops getting closer to the hook point
-                // (snagged on a corner/overhang). Progress is measured against the CLOSEST point reached
-                // so far, and the check only starts after a ping-based grace period with extra tolerance -
-                // on high ping the server doesn't see the caster move for the first few ticks, which
+                // Approach-phase snag guard: let go if the caster stops getting closer to the hook
+                // point
+                // (snagged on a corner/overhang). Progress is measured against the CLOSEST point
+                // reached
+                // so far, and the check only starts after a ping-based grace period with extra
+                // tolerance -
+                // on high ping the server doesn't see the caster move for the first few ticks,
+                // which
                 // used to cancel the chain after ~0.5s.
                 if (distance < bestDistance - PROGRESS_EPSILON) {
                     bestDistance = distance;
@@ -492,7 +598,11 @@ public class HellChainAbility extends BaseAbility {
                 } else if (ticks >= latencyTicks) {
                     approachStuckTicks++;
                     if (approachStuckTicks >= MAX_CONSECUTIVE_BLOCKED_TICKS + latencyTicks) {
-                        debug(player, "snagged on terrain (no progress toward hook)", ticks, distance);
+                        debug(
+                                player,
+                                "snagged on terrain (no progress toward hook)",
+                                ticks,
+                                distance);
                         player.setVelocity(player.getVelocity().multiply(0.3));
                         cancel();
                         return;
@@ -501,15 +611,18 @@ public class HellChainAbility extends BaseAbility {
 
                 chain.update(chainStart(player), hookLocation);
 
-                // Velocity is SET each tick from the pull direction (ramping up to MAX_SPEED) instead of
-                // added onto player.getVelocity(), which is stale/unreliable for players and made the
+                // Velocity is SET each tick from the pull direction (ramping up to MAX_SPEED)
+                // instead of
+                // added onto player.getVelocity(), which is stale/unreliable for players and made
+                // the
                 // pull behave differently depending on latency.
                 Vector pull = hookLocation.toVector().subtract(currentLoc.toVector()).normalize();
                 double speed = Math.min(MAX_SPEED, PULL_STRENGTH * (ticks + 1));
                 Vector newVelocity = pull.multiply(speed);
 
                 // Floor on the vertical pull so the caster arcs up and over ledges - ONLY when the
-                // target is above/level; forcing it when the target is below would launch the caster up.
+                // target is above/level; forcing it when the target is below would launch the
+                // caster up.
                 if (newVelocity.getY() > 0) {
                     newVelocity.setY(Math.max(newVelocity.getY(), MIN_UPWARD_PULL));
                 }
@@ -539,8 +652,17 @@ public class HellChainAbility extends BaseAbility {
 
     private void debug(Player player, String reason, int ticks, double distance) {
         if (!DEBUG) return;
-        plugin.getLogger().info("[HellChain] " + player.getName() + ": " + reason
-                + " (tick " + ticks + ", " + "%.1f".formatted(distance) + " blocks from hook)");
+        plugin.getLogger()
+                .info(
+                        "[HellChain] "
+                                + player.getName()
+                                + ": "
+                                + reason
+                                + " (tick "
+                                + ticks
+                                + ", "
+                                + "%.1f".formatted(distance)
+                                + " blocks from hook)");
     }
 
     private int pingTicks(Player player) {
@@ -549,13 +671,18 @@ public class HellChainAbility extends BaseAbility {
     }
 
     private boolean touchingWall(Location eye, Vector intoWall) {
-        Location lowerChest = eye.clone().subtract(0, 0.9, 0).add(intoWall.clone().multiply(WALL_CONTACT_DISTANCE));
+        Location lowerChest =
+                eye.clone()
+                        .subtract(0, 0.9, 0)
+                        .add(intoWall.clone().multiply(WALL_CONTACT_DISTANCE));
         return lowerChest.getBlock().getType().isSolid();
     }
 
     private boolean isWallFace(BlockFace face) {
-        return face == BlockFace.NORTH || face == BlockFace.SOUTH
-                || face == BlockFace.EAST || face == BlockFace.WEST;
+        return face == BlockFace.NORTH
+                || face == BlockFace.SOUTH
+                || face == BlockFace.EAST
+                || face == BlockFace.WEST;
     }
 
     private void mantleOntoLedge(Player player, Location at, Vector intoWall, TeamManager team) {
@@ -599,7 +726,9 @@ public class HellChainAbility extends BaseAbility {
         Vector forward = eye.getDirection();
         Vector right = forward.clone().crossProduct(new Vector(0, 1, 0));
         if (right.lengthSquared() < 1.0E-4) {
-            right = new Vector(1, 0, 0); // looking straight up/down - any sideways direction will do
+            right =
+                    new Vector(
+                            1, 0, 0); // looking straight up/down - any sideways direction will do
         }
         right.normalize();
 
@@ -631,6 +760,7 @@ public class HellChainAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Shoots a chain at an entity you are looking at or pulls you to a block, Use again to stop mid-chain.";
+        return "Shoots a chain at an entity you are looking at or pulls you to a block, Use again"
+                   + " to stop mid-chain.";
     }
 }

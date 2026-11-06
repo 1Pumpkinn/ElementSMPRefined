@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.data;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.UUID;
@@ -14,8 +15,7 @@ import java.util.UUID;
  */
 public final class PlayerDataSerializer {
 
-    private PlayerDataSerializer() {
-    }
+    private PlayerDataSerializer() {}
 
     /** Builds a {@link PlayerData} from a config section, tolerating missing/corrupt fields. */
     public static PlayerData deserialize(UUID uuid, ConfigurationSection section) {
@@ -25,7 +25,8 @@ public final class PlayerDataSerializer {
         }
 
         // Unknown/renamed element in storage - leave unset rather than crash the load.
-        ElementType.parse(section.getString("element")).ifPresent(data::setCurrentElementWithoutReset);
+        ElementType.parse(section.getString("element"))
+                .ifPresent(data::setCurrentElementWithoutReset);
 
         data.setCurrentElementUpgradeLevel(section.getInt("currentUpgradeLevel", 0));
         data.setPendingRerollerRefunds(section.getInt("pendingRerollerRefunds", 0));

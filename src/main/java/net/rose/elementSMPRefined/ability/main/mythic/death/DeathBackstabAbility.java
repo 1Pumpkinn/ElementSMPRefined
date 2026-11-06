@@ -1,13 +1,14 @@
 package net.rose.elementSMPRefined.ability.main.mythic.death;
 
-import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.server.MaceCooldown;
-import net.rose.elementSMPRefined.lang.Lang;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -35,7 +36,13 @@ public class DeathBackstabAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public DeathBackstabAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("death_backstab", ElementType.DEATH, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
+        super(
+                "death_backstab",
+                ElementType.DEATH,
+                2,
+                Constants.Cooldown.ABILITY_2_SECONDS,
+                2,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -84,7 +91,8 @@ public class DeathBackstabAbility extends BaseAbility {
         for (LivingEntity entity : eyeLoc.getNearbyLivingEntities(RANGE)) {
             if (entity.equals(player)) continue;
             if (entity instanceof Player targetPlayer
-                    && context.getTeamManager().isFriendly(player.getUniqueId(), targetPlayer.getUniqueId())) {
+                    && context.getTeamManager()
+                            .isFriendly(player.getUniqueId(), targetPlayer.getUniqueId())) {
                 continue;
             }
 
@@ -116,7 +124,8 @@ public class DeathBackstabAbility extends BaseAbility {
             Location candidate = targetLoc.clone().add(behindDir.clone().multiply(d));
             candidate.setY(targetLoc.getY());
             if (!isBlocked(candidate)) {
-                candidate.setDirection(facing); // face the same way the target does, i.e. straight at their back
+                candidate.setDirection(
+                        facing); // face the same way the target does, i.e. straight at their back
                 return candidate;
             }
         }

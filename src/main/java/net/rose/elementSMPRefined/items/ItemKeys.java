@@ -16,8 +16,19 @@ public final class ItemKeys {
         return new NamespacedKey(plugin, key);
     }
 
-    public static NamespacedKey upgraderLevel(JavaPlugin plugin) { return namespaced(plugin, KEY_UPGRADER_LEVEL); }
-    public static NamespacedKey reroller(JavaPlugin plugin) { return namespaced(plugin, KEY_REROLLER); }
-    public static NamespacedKey forgedUpgrader(JavaPlugin plugin) { return namespaced(plugin, KEY_FORGED_UPGRADER); }
-    public static NamespacedKey enchantableMace(JavaPlugin plugin) { return namespaced(plugin, KEY_ENCHANTABLE_MACE); }
+    public static NamespacedKey upgraderLevel(JavaPlugin plugin) {
+        return namespaced(plugin, KEY_UPGRADER_LEVEL);
+    }
+
+    public static NamespacedKey reroller(JavaPlugin plugin) {
+        return namespaced(plugin, KEY_REROLLER);
+    }
+
+    public static NamespacedKey forgedUpgrader(JavaPlugin plugin) {
+        return namespaced(plugin, KEY_FORGED_UPGRADER);
+    }
+
+    public static NamespacedKey enchantableMace(JavaPlugin plugin) {
+        return namespaced(plugin, KEY_ENCHANTABLE_MACE);
+    }
 }

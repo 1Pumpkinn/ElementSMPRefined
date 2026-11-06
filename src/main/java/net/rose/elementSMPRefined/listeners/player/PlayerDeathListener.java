@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
 import net.rose.elementSMPRefined.managers.ElementManager;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -42,12 +43,14 @@ public class PlayerDeathListener implements Listener {
             return;
         }
 
-        // With keepInventory the player keeps their items, so they must keep their level and element too
+        // With keepInventory the player keeps their items, so they must keep their level and
+        // element too
         if (event.getKeepInventory()) {
             return;
         }
 
-        // Read the level up front: it is looked up per element, so it must be read before any rollback
+        // Read the level up front: it is looked up per element, so it must be read before any
+        // rollback
         int level = data.getUpgradeLevel(element);
 
         boolean changed = false;
@@ -71,7 +74,8 @@ public class PlayerDeathListener implements Listener {
      *
      * @return true if the player was reverted
      */
-    private boolean dropForgedUpgraderAndRevert(PlayerDeathEvent event, Player player, ElementType element) {
+    private boolean dropForgedUpgraderAndRevert(
+            PlayerDeathEvent event, Player player, ElementType element) {
         Optional<ForgeRecipe> forge = ForgeRecipe.forTarget(element);
         if (forge.isEmpty()) {
             return false;
@@ -80,7 +84,8 @@ public class PlayerDeathListener implements Listener {
         ItemStack forged = ForgedUpgraderItem.make(plugin);
         if (forged == null) {
             // Item couldn't be created, so don't strip the element for nothing
-            plugin.getLogger().warning("Could not create Forged Upgrader (player " + player.getName() + ")");
+            plugin.getLogger()
+                    .warning("Could not create Forged Upgrader (player " + player.getName() + ")");
             return false;
         }
 
@@ -89,7 +94,8 @@ public class PlayerDeathListener implements Listener {
         return true;
     }
 
-    private boolean dropUpgraderAndLowerLevel(PlayerDeathEvent event, Player player, PlayerData data, int level) {
+    private boolean dropUpgraderAndLowerLevel(
+            PlayerDeathEvent event, Player player, PlayerData data, int level) {
         if (level <= 0) {
             return false;
         }
@@ -97,24 +103,34 @@ public class PlayerDeathListener implements Listener {
         ItemStack drop = UpgraderItem.make(plugin, level);
         if (drop == null) {
             // Item couldn't be created, so don't strip the level for nothing
-            plugin.getLogger().warning("Could not create upgrader for level " + level
-                    + " (player " + player.getName() + ")");
+            plugin.getLogger()
+                    .warning(
+                            "Could not create upgrader for level "
+                                    + level
+                                    + " (player "
+                                    + player.getName()
+                                    + ")");
             return false;
         }
 
         event.getDrops().add(drop);
 
-        // The current element may have just been swapped to the basic one, so use whatever is active now
+        // The current element may have just been swapped to the basic one, so use whatever is
+        // active now
         ElementType current = data.getCurrentElement();
         data.setUpgradeLevel(current, level - 1);
         return true;
     }
 
     private void scheduleUpsideReapply(Player player) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline()) {
-                elements.applyUpsides(player);
-            }
-        }, REAPPLY_DELAY_TICKS);
+        Bukkit.getScheduler()
+                .runTaskLater(
+                        plugin,
+                        () -> {
+                            if (player.isOnline()) {
+                                elements.applyUpsides(player);
+                            }
+                        },
+                        REAPPLY_DELAY_TICKS);
     }
 }

@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.commands.supporters.ConfigOption;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.parse.ParseUtil;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -38,17 +39,20 @@ import java.util.Map;
  * entity blocking, admin bypass); see {@link #OPTIONS}.
  */
 public class DimensionCommand implements CommandExecutor, TabCompleter {
-    private static final List<String> ACTIONS = List.of("enable", "disable", "toggle", "status", "settings", "set");
+    private static final List<String> ACTIONS =
+            List.of("enable", "disable", "toggle", "status", "settings", "set");
     private static final List<String> TARGETS = List.of("nether", "end", "all");
 
-    private static final List<ConfigOption> OPTIONS = List.of(
-            ConfigOption.bool("warn_players", "dimensions.warn_players"),
-            ConfigOption.durationOrZero("warning_cooldown", "dimensions.warning_cooldown_seconds"),
-            ConfigOption.bool("pushback", "dimensions.pushback_enabled"),
-            ConfigOption.decimal("pushback_strength", "dimensions.pushback_strength", 0.0, 5.0),
-            ConfigOption.bool("block_entities", "dimensions.block_entities"),
-            ConfigOption.bool("admin_bypass", "dimensions.admin_bypass")
-    );
+    private static final List<ConfigOption> OPTIONS =
+            List.of(
+                    ConfigOption.bool("warn_players", "dimensions.warn_players"),
+                    ConfigOption.durationOrZero(
+                            "warning_cooldown", "dimensions.warning_cooldown_seconds"),
+                    ConfigOption.bool("pushback", "dimensions.pushback_enabled"),
+                    ConfigOption.decimal(
+                            "pushback_strength", "dimensions.pushback_strength", 0.0, 5.0),
+                    ConfigOption.bool("block_entities", "dimensions.block_entities"),
+                    ConfigOption.bool("admin_bypass", "dimensions.admin_bypass"));
 
     private record PendingFlip(BukkitTask task, long endsAtMs) {}
 
@@ -85,7 +89,8 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private void handleToggle(CommandSender sender, ConfigManager configManager, String action, String[] args) {
+    private void handleToggle(
+            CommandSender sender, ConfigManager configManager, String action, String[] args) {
         if (args.length < 2 || args.length > 3) {
             sender.sendMessage(Lang.DIMENSION_CMD_USAGE);
             return;
@@ -107,11 +112,25 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
         }
 
         if (target.equals("all")) {
-            // "toggle all" flips each dimension on its own so mixed states don't get stuck together.
-            apply(sender, configManager, "nether", desiredState(action, configManager.isNetherDisabled()), durationSeconds);
-            apply(sender, configManager, "end", desiredState(action, configManager.isEndDisabled()), durationSeconds);
+            // "toggle all" flips each dimension on its own so mixed states don't get stuck
+            // together.
+            apply(
+                    sender,
+                    configManager,
+                    "nether",
+                    desiredState(action, configManager.isNetherDisabled()),
+                    durationSeconds);
+            apply(
+                    sender,
+                    configManager,
+                    "end",
+                    desiredState(action, configManager.isEndDisabled()),
+                    durationSeconds);
         } else {
-            boolean current = target.equals("nether") ? configManager.isNetherDisabled() : configManager.isEndDisabled();
+            boolean current =
+                    target.equals("nether")
+                            ? configManager.isNetherDisabled()
+                            : configManager.isEndDisabled();
             apply(sender, configManager, target, desiredState(action, current), durationSeconds);
         }
     }
@@ -124,7 +143,12 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
         };
     }
 
-    private void apply(CommandSender sender, ConfigManager configManager, String dimension, boolean disabled, Integer durationSeconds) {
+    private void apply(
+            CommandSender sender,
+            ConfigManager configManager,
+            String dimension,
+            boolean disabled,
+            Integer durationSeconds) {
         // Any manual change replaces whatever timer was pending for this dimension.
         cancelPending(dimension);
         setDisabled(configManager, dimension, disabled);
@@ -135,14 +159,23 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        BukkitTask task = plugin.getTaskScheduler().runLater(() -> {
-            pendingFlips.remove(dimension);
-            setDisabled(configManager, dimension, !disabled);
-            plugin.getServer().broadcast(Lang.dimensionTimerEnded(name, !disabled));
-        }, durationSeconds * 20L);
-        pendingFlips.put(dimension, new PendingFlip(task, System.currentTimeMillis() + durationSeconds * 1000L));
+        BukkitTask task =
+                plugin.getTaskScheduler()
+                        .runLater(
+                                () -> {
+                                    pendingFlips.remove(dimension);
+                                    setDisabled(configManager, dimension, !disabled);
+                                    plugin.getServer()
+                                            .broadcast(Lang.dimensionTimerEnded(name, !disabled));
+                                },
+                                durationSeconds * 20L);
+        pendingFlips.put(
+                dimension,
+                new PendingFlip(task, System.currentTimeMillis() + durationSeconds * 1000L));
 
-        sender.sendMessage(Lang.dimensionCmdToggledTimed(name, disabled, ParseUtil.formatCompact(durationSeconds)));
+        sender.sendMessage(
+                Lang.dimensionCmdToggledTimed(
+                        name, disabled, ParseUtil.formatCompact(durationSeconds)));
     }
 
     private void cancelPending(String dimension) {
@@ -152,7 +185,8 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    private static void setDisabled(ConfigManager configManager, String dimension, boolean disabled) {
+    private static void setDisabled(
+            ConfigManager configManager, String dimension, boolean disabled) {
         if (dimension.equals("nether")) {
             configManager.setNetherDisabled(disabled);
         } else {
@@ -165,8 +199,11 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendStatus(CommandSender sender, ConfigManager configManager) {
-        sender.sendMessage(Lang.dimensionStatusLine("Nether", configManager.isNetherDisabled(), timeLeft("nether")));
-        sender.sendMessage(Lang.dimensionStatusLine("End", configManager.isEndDisabled(), timeLeft("end")));
+        sender.sendMessage(
+                Lang.dimensionStatusLine(
+                        "Nether", configManager.isNetherDisabled(), timeLeft("nether")));
+        sender.sendMessage(
+                Lang.dimensionStatusLine("End", configManager.isEndDisabled(), timeLeft("end")));
     }
 
     private String timeLeft(String dimension) {
@@ -174,7 +211,8 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
         if (pending == null) {
             return null;
         }
-        long secondsLeft = Math.max(0, (pending.endsAtMs() - System.currentTimeMillis() + 999) / 1000);
+        long secondsLeft =
+                Math.max(0, (pending.endsAtMs() - System.currentTimeMillis() + 999) / 1000);
         return ParseUtil.formatCompact(secondsLeft);
     }
 
@@ -182,7 +220,9 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Lang.settingsHeader("Dimension settings"));
         sendStatus(sender, configManager);
         for (ConfigOption option : OPTIONS) {
-            sender.sendMessage(Lang.settingLine(option.name(), option.display(configManager.getValue(option.path()))));
+            sender.sendMessage(
+                    Lang.settingLine(
+                            option.name(), option.display(configManager.getValue(option.path()))));
         }
     }
 
@@ -193,7 +233,8 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
         }
         ConfigOption option = ConfigOption.find(OPTIONS, args[1]);
         if (option == null) {
-            sender.sendMessage(Lang.optionUnknown(args[1], String.join(", ", ConfigOption.names(OPTIONS))));
+            sender.sendMessage(
+                    Lang.optionUnknown(args[1], String.join(", ", ConfigOption.names(OPTIONS))));
             return;
         }
         Object value = option.parse(args[2]);
@@ -206,13 +247,15 @@ public class DimensionCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
             return CommandSupport.filterStartingWith(ACTIONS, args[0]);
         }
 
         String action = args[0].toLowerCase();
-        boolean isToggle = action.equals("enable") || action.equals("disable") || action.equals("toggle");
+        boolean isToggle =
+                action.equals("enable") || action.equals("disable") || action.equals("toggle");
 
         if (args.length == 2) {
             if (isToggle) {

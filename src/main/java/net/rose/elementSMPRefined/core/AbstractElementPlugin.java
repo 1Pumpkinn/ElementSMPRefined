@@ -1,13 +1,11 @@
-
 package net.rose.elementSMPRefined.core;
 
-import net.rose.elementSMPRefined.data.DataStore;
-import net.rose.elementSMPRefined.core.initializers.CommandInitializer;
 import net.rose.elementSMPRefined.altar.ReforgeAltarManager;
+import net.rose.elementSMPRefined.core.initializers.CommandInitializer;
 import net.rose.elementSMPRefined.core.initializers.ListenerInitializer;
 import net.rose.elementSMPRefined.core.initializers.RecipeInitializer;
+import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.hud.CooldownActionBarTask;
-import net.rose.elementevents.CustomEventVillager;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
@@ -16,18 +14,17 @@ import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
 import net.rose.elementSMPRefined.util.bukkit.MetadataHelper;
-import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
-
-// Potion plugin imports
+import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
 import net.rose.elementSMPRefined.util.server.potplugin.enchantlimits.EnchantLimits;
 import net.rose.elementSMPRefined.util.server.potplugin.enchantlimits.EnchantLimitsCommand;
 import net.rose.elementSMPRefined.util.server.potplugin.enchantlimits.EnchantLimitsListener;
 import net.rose.elementSMPRefined.util.server.potplugin.listener.BrewingListener;
 import net.rose.elementSMPRefined.util.server.potplugin.potlimits.PotLimitsCommand;
-import net.rose.elementSMPRefined.util.server.potplugin.potlimits.PotionLimits;
 import net.rose.elementSMPRefined.util.server.potplugin.potlimits.PotLimitsListener;
+import net.rose.elementSMPRefined.util.server.potplugin.potlimits.PotionLimits;
 import net.rose.elementSMPRefined.util.server.potplugin.util.ExtensionRecipes;
+import net.rose.elementevents.CustomEventVillager;
 
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -110,11 +107,13 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         runShutdownStep("cleanup", this::cleanup);
         runShutdownStep("data save", this::saveAllData);
         runShutdownStep("potion recipe unregister", ExtensionRecipes::unregister);
-        runShutdownStep("item recipe unregister", () -> {
-            if (recipeInitializer != null) {
-                recipeInitializer.unregisterRecipes();
-            }
-        });
+        runShutdownStep(
+                "item recipe unregister",
+                () -> {
+                    if (recipeInitializer != null) {
+                        recipeInitializer.unregisterRecipes();
+                    }
+                });
         runShutdownStep("plugin disable hook", this::onPluginDisable);
 
         getLogger().info("ElementPlugin disabled successfully!");
@@ -132,20 +131,17 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
      * Template method for subclasses to perform required setup
      * before listeners are registered.
      */
-    protected void beforeRegisterComponents() {
-    }
+    protected void beforeRegisterComponents() {}
 
     /**
      * Template method for subclasses to perform additional enable logic.
      */
-    protected void onPluginEnable() {
-    }
+    protected void onPluginEnable() {}
 
     /**
      * Template method for subclasses to perform additional disable logic.
      */
-    protected void onPluginDisable() {
-    }
+    protected void onPluginDisable() {}
 
     private void initializeCore() {
         this.configManager = new ConfigManager(this);
@@ -164,28 +160,21 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.teamManager = new TeamManager(this, configManager);
         this.cooldownManager = new CooldownManager();
 
-        this.elementManager = new ElementManager(
-                this,
-                dataStore,
-                cooldownManager,
-                teamManager,
-                configManager
-        );
+        this.elementManager =
+                new ElementManager(this, dataStore, cooldownManager, teamManager, configManager);
 
         this.statusEffectManager = new StatusEffectManager(this);
         this.disarmManager = new DisarmManager(this);
         this.reforgeAltarManager = new ReforgeAltarManager(this);
-        this.eventVillager = new CustomEventVillager((net.rose.elementSMPRefined.ElementSMPRefined) this);
+        this.eventVillager =
+                new CustomEventVillager((net.rose.elementSMPRefined.ElementSMPRefined) this);
     }
 
     private void initializeServices() {
         this.effectService = new EffectService(this, elementManager);
 
-        this.cooldownActionBarTask = new CooldownActionBarTask(
-                this,
-                elementManager,
-                cooldownManager
-        );
+        this.cooldownActionBarTask =
+                new CooldownActionBarTask(this, elementManager, cooldownManager);
     }
 
     /**
@@ -212,18 +201,12 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
     private void registerPotionComponents() {
 
         // Brewing listener
-        getServer().getPluginManager().registerEvents(
-                new BrewingListener(),
-                this
-        );
+        getServer().getPluginManager().registerEvents(new BrewingListener(), this);
 
         // Potion limits listener
         potLimitsListener = new PotLimitsListener(this, potionLimits);
 
-        getServer().getPluginManager().registerEvents(
-                potLimitsListener,
-                this
-        );
+        getServer().getPluginManager().registerEvents(potLimitsListener, this);
 
         potLimitsListener.startSweepTask();
 
@@ -231,25 +214,15 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         PluginCommand potCommand = getCommand("potlimits");
 
         if (potCommand != null) {
-            potCommand.setExecutor(
-                    new PotLimitsCommand(potionLimits, potLimitsListener)
-            );
+            potCommand.setExecutor(new PotLimitsCommand(potionLimits, potLimitsListener));
         } else {
-            getLogger().warning(
-                    "Command 'potlimits' is missing from plugin.yml!"
-            );
+            getLogger().warning("Command 'potlimits' is missing from plugin.yml!");
         }
 
         // Enchantment limits listener
-        enchantLimitsListener = new EnchantLimitsListener(
-                this,
-                enchantLimits
-        );
+        enchantLimitsListener = new EnchantLimitsListener(this, enchantLimits);
 
-        getServer().getPluginManager().registerEvents(
-                enchantLimitsListener,
-                this
-        );
+        getServer().getPluginManager().registerEvents(enchantLimitsListener, this);
 
         enchantLimitsListener.startSweepTask();
 
@@ -258,15 +231,9 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
         if (enchantCommand != null) {
             enchantCommand.setExecutor(
-                    new EnchantLimitsCommand(
-                            enchantLimits,
-                            enchantLimitsListener
-                    )
-            );
+                    new EnchantLimitsCommand(enchantLimits, enchantLimitsListener));
         } else {
-            getLogger().warning(
-                    "Command 'enchantlimits' is missing from plugin.yml!"
-            );
+            getLogger().warning("Command 'enchantlimits' is missing from plugin.yml!");
         }
     }
 

@@ -48,18 +48,24 @@ public class PlacedLogTracker implements Listener {
     }
 
     private static long pack(Block block) {
-        return ((long) (block.getY() + 4096) << 8) | ((block.getX() & 15) << 4) | (block.getZ() & 15);
+        return ((long) (block.getY() + 4096) << 8)
+                | ((block.getX() & 15) << 4)
+                | (block.getZ() & 15);
     }
 
     private Set<Long> load(Chunk chunk) {
-        return cache.computeIfAbsent(new ChunkId(chunk.getWorld().getUID(), chunk.getChunkKey()), id -> {
-            Set<Long> set = new HashSet<>();
-            long[] stored = chunk.getPersistentDataContainer().get(storageKey, PersistentDataType.LONG_ARRAY);
-            if (stored != null) {
-                for (long value : stored) set.add(value);
-            }
-            return set;
-        });
+        return cache.computeIfAbsent(
+                new ChunkId(chunk.getWorld().getUID(), chunk.getChunkKey()),
+                id -> {
+                    Set<Long> set = new HashSet<>();
+                    long[] stored =
+                            chunk.getPersistentDataContainer()
+                                    .get(storageKey, PersistentDataType.LONG_ARRAY);
+                    if (stored != null) {
+                        for (long value : stored) set.add(value);
+                    }
+                    return set;
+                });
     }
 
     private void save(Chunk chunk, Set<Long> set) {
@@ -124,11 +130,13 @@ public class PlacedLogTracker implements Listener {
     /** A placed log pushed or pulled by a piston stays a placed log at its new position. */
     private void follow(Block piston, List<Block> moved, boolean extending) {
         if (!(piston.getBlockData() instanceof Directional directional)) return;
-        BlockFace move = extending ? directional.getFacing() : directional.getFacing().getOppositeFace();
+        BlockFace move =
+                extending ? directional.getFacing() : directional.getFacing().getOppositeFace();
 
-        List<Block> tracked = moved.stream()
-                .filter(block -> Tag.LOGS.isTagged(block.getType()) && isPlaced(block))
-                .toList();
+        List<Block> tracked =
+                moved.stream()
+                        .filter(block -> Tag.LOGS.isTagged(block.getType()) && isPlaced(block))
+                        .toList();
         tracked.forEach(this::unmark);
         tracked.forEach(block -> mark(block.getRelative(move)));
     }

@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.core.initializers;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.items.recipes.RerollerItem;
 import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class RecipeInitializer {
@@ -14,10 +15,13 @@ public class RecipeInitializer {
 
     public void registerRecipes() {
         // Delay recipe registration to ensure all items are registered first
-        plugin.getTaskScheduler().runLaterSeconds(() -> {
-            UpgraderItem.registerRecipes(plugin);
-            RerollerItem.registerRecipe(plugin);
-        }, 1);
+        plugin.getTaskScheduler()
+                .runLaterSeconds(
+                        () -> {
+                            UpgraderItem.registerRecipes(plugin);
+                            RerollerItem.registerRecipe(plugin);
+                        },
+                        1);
     }
 
     public void unregisterRecipes() {

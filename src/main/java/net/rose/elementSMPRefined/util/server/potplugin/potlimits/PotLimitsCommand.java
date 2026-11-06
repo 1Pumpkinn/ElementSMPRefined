@@ -1,13 +1,15 @@
 package net.rose.elementSMPRefined.util.server.potplugin.potlimits;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * /potlimits add|remove|list|reload
@@ -38,7 +40,10 @@ public final class PotLimitsCommand implements TabExecutor {
             case "reload" -> {
                 limits.reloadFromDisk();
                 listener.sweepAll();
-                send(sender, "Reloaded " + limits.banned().size() + " restricted potion type(s).", NamedTextColor.GREEN);
+                send(
+                        sender,
+                        "Reloaded " + limits.banned().size() + " restricted potion type(s).",
+                        NamedTextColor.GREEN);
             }
             case "add" -> change(sender, label, args, true);
             case "remove" -> change(sender, label, args, false);
@@ -67,7 +72,10 @@ public final class PotLimitsCommand implements TabExecutor {
         }
 
         if (changed.isEmpty()) {
-            send(sender, add ? "Already restricted." : "That wasn't restricted.", NamedTextColor.YELLOW);
+            send(
+                    sender,
+                    add ? "Already restricted." : "That wasn't restricted.",
+                    NamedTextColor.YELLOW);
             return;
         }
 
@@ -75,7 +83,10 @@ public final class PotLimitsCommand implements TabExecutor {
         if (add) {
             listener.sweepAll();
         }
-        send(sender, (add ? "Restricted: " : "Allowed again: ") + String.join(", ", changed), NamedTextColor.GREEN);
+        send(
+                sender,
+                (add ? "Restricted: " : "Allowed again: ") + String.join(", ", changed),
+                NamedTextColor.GREEN);
     }
 
     private void list(CommandSender sender) {
@@ -83,12 +94,25 @@ public final class PotLimitsCommand implements TabExecutor {
             send(sender, "No potions are restricted.", NamedTextColor.YELLOW);
             return;
         }
-        send(sender, "Restricted potions (" + limits.banned().size() + "): "
-                + String.join(", ", new java.util.TreeSet<>(limits.banned())), NamedTextColor.GOLD);
+        send(
+                sender,
+                "Restricted potions ("
+                        + limits.banned().size()
+                        + "): "
+                        + String.join(", ", new java.util.TreeSet<>(limits.banned())),
+                NamedTextColor.GOLD);
     }
 
     private void usage(CommandSender sender, String label) {
-        send(sender, "/" + label + " <add|remove> <potion|potion*>  |  /" + label + " list  |  /" + label + " reload",
+        send(
+                sender,
+                "/"
+                        + label
+                        + " <add|remove> <potion|potion*>  |  /"
+                        + label
+                        + " list  |  /"
+                        + label
+                        + " reload",
                 NamedTextColor.GRAY);
     }
 
@@ -97,7 +121,8 @@ public final class PotLimitsCommand implements TabExecutor {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
             return filter(SUBCOMMANDS, args[0]);
         }

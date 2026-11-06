@@ -1,9 +1,10 @@
 package net.rose.elementSMPRefined.ability.passive.mythic.death.listeners;
 
-import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.visual.PassiveInvisibility;
+
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -21,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DeathNightInvisibilityListener implements Listener {
 
     private static final long NIGHT_START = 13000L; // vanilla night threshold
-    private static final long NIGHT_END = 23000L;    // vanilla day threshold
+    private static final long NIGHT_END = 23000L; // vanilla day threshold
     private static final long CHECK_PERIOD_TICKS = 20L; // once a second
 
     private final ElementSMPRefined plugin;
@@ -37,13 +38,20 @@ public class DeathNightInvisibilityListener implements Listener {
     }
 
     private void startMonitor() {
-        monitorTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (elementManager.getPlayerElement(player) == ElementType.DEATH) {
-                    tick(player);
-                }
-            }
-        }, 20L, CHECK_PERIOD_TICKS);
+        monitorTask =
+                Bukkit.getScheduler()
+                        .runTaskTimer(
+                                plugin,
+                                () -> {
+                                    for (Player player : Bukkit.getOnlinePlayers()) {
+                                        if (elementManager.getPlayerElement(player)
+                                                == ElementType.DEATH) {
+                                            tick(player);
+                                        }
+                                    }
+                                },
+                                20L,
+                                CHECK_PERIOD_TICKS);
     }
 
     private void tick(Player player) {
@@ -52,7 +60,13 @@ public class DeathNightInvisibilityListener implements Listener {
 
         if (night && nightInvisible.add(uuid)) {
             PassiveInvisibility.mark(player);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 0, true, false));
+            player.addPotionEffect(
+                    new PotionEffect(
+                            PotionEffectType.INVISIBILITY,
+                            PotionEffect.INFINITE_DURATION,
+                            0,
+                            true,
+                            false));
         } else if (!night && nightInvisible.remove(uuid)) {
             removeInvisibility(player);
         }

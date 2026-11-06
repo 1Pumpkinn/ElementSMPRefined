@@ -1,16 +1,17 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.storm;
 
-import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
+
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
@@ -57,16 +58,17 @@ public class TornadoAbility extends BaseAbility {
     private static final int RETARGET_INTERVAL = 5;
 
     private static final double PULL_RADIUS = 4.5;
-    private static final double PULL_SPEED_FAR = 0.16;    // blocks/tick at the edge of the pull...
-    private static final double PULL_SPEED_NEAR = 0.35;   // ...and right next to the funnel
-    private static final double PULL_SWIRL = 0.22;        // sideways drift while being pulled in (reads as a spiral)
+    private static final double PULL_SPEED_FAR = 0.16; // blocks/tick at the edge of the pull...
+    private static final double PULL_SPEED_NEAR = 0.35; // ...and right next to the funnel
+    private static final double PULL_SWIRL =
+            0.22; // sideways drift while being pulled in (reads as a spiral)
     private static final double MAX_SPEED = 0.75;
 
     private static final double INSIDE_MARGIN = 0.8;
-    private static final double ORBIT_SPEED = 0.45;       // how fast they're whipped round the axis
+    private static final double ORBIT_SPEED = 0.45; // how fast they're whipped round the axis
     private static final double LIFT_SPEED = 0.3;
-    private static final double LIFT_MAX = 2.8;      // has to stay inside the (now short) funnel
-    private static final double DAMAGE = 2.0;             // true damage per hit (1 hearts)
+    private static final double LIFT_MAX = 2.8; // has to stay inside the (now short) funnel
+    private static final double DAMAGE = 2.0; // true damage per hit (1 hearts)
     private static final int DAMAGE_INTERVAL_TICKS = 10;
 
     private static final Sound WIND_SOUND = Sound.ITEM_ELYTRA_FLYING;
@@ -102,7 +104,13 @@ public class TornadoAbility extends BaseAbility {
     }
 
     public TornadoAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("storm_tornado", ElementType.STORM, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
+        super(
+                "storm_tornado",
+                ElementType.STORM,
+                2,
+                Constants.Cooldown.ABILITY_2_SECONDS,
+                2,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -115,7 +123,10 @@ public class TornadoAbility extends BaseAbility {
 
         Location start = findStart(caster);
         if (start == null) {
-            caster.sendMessage(Component.text("There's no ground there to summon a tornado on.", NamedTextColor.GRAY));
+            caster.sendMessage(
+                    Component.text(
+                            "There's no ground there to summon a tornado on.",
+                            NamedTextColor.GRAY));
             return false;
         }
 
@@ -125,8 +136,13 @@ public class TornadoAbility extends BaseAbility {
         Vector look = facing.getDirection();
         double heading = Math.atan2(look.getZ(), look.getX());
 
-        Tornado tornado = new Tornado(start.getWorld(), start, new TornadoVisual(start, caster),
-                context.getTeamManager(), heading);
+        Tornado tornado =
+                new Tornado(
+                        start.getWorld(),
+                        start,
+                        new TornadoVisual(start, caster),
+                        context.getTeamManager(),
+                        heading);
         tornadoes.put(caster.getUniqueId(), tornado);
         setActive(caster, true);
 
@@ -134,17 +150,18 @@ public class TornadoAbility extends BaseAbility {
         world.playSound(start, Sound.ITEM_TRIDENT_RIPTIDE_3, 1.0f, 0.6f);
         world.playSound(start, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.4f, 0.7f);
 
-        tornado.task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!caster.isOnline() || tornado.ticks >= DURATION_TICKS) {
-                    end(caster.getUniqueId(), tornado.ticks >= DURATION_TICKS);
-                    return;
-                }
-                tick(tornado, caster);
-                tornado.ticks++;
-            }
-        };
+        tornado.task =
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (!caster.isOnline() || tornado.ticks >= DURATION_TICKS) {
+                            end(caster.getUniqueId(), tornado.ticks >= DURATION_TICKS);
+                            return;
+                        }
+                        tick(tornado, caster);
+                        tornado.ticks++;
+                    }
+                };
         tornado.task.runTaskTimer(plugin, 0L, 1L);
         return true;
     }
@@ -154,14 +171,17 @@ public class TornadoAbility extends BaseAbility {
         Location eye = caster.getEyeLocation();
         Vector direction = eye.getDirection();
 
-        RayTraceResult hit = world.rayTraceBlocks(eye, direction, CAST_RANGE, FluidCollisionMode.NEVER, true);
+        RayTraceResult hit =
+                world.rayTraceBlocks(eye, direction, CAST_RANGE, FluidCollisionMode.NEVER, true);
         Vector point;
         double searchFrom;
         if (hit != null && hit.getHitPosition() != null) {
             point = hit.getHitPosition().clone();
             BlockFace face = hit.getHitBlockFace();
             if (face != null) {
-                point.add(face.getDirection().multiply(0.6)); // back off the surface so we start in open air
+                point.add(
+                        face.getDirection()
+                                .multiply(0.6)); // back off the surface so we start in open air
             }
             searchFrom = point.getY() + (face == BlockFace.DOWN ? -0.2 : 0.5);
         } else {
@@ -203,8 +223,9 @@ public class TornadoAbility extends BaseAbility {
                 it.remove();
                 continue;
             }
-            boolean inRange = listener.getWorld().equals(t.world)
-                    && listener.getLocation().distanceSquared(t.pos) <= rangeSq;
+            boolean inRange =
+                    listener.getWorld().equals(t.world)
+                            && listener.getLocation().distanceSquared(t.pos) <= rangeSq;
             if (!inRange) {
                 listener.stopSound(WIND_SOUND, WIND_CATEGORY);
                 it.remove();
@@ -215,7 +236,8 @@ public class TornadoAbility extends BaseAbility {
 
         // Start / keep the loop going for everyone in range.
         for (Player listener : t.world.getNearbyPlayers(t.pos, WIND_LISTEN_RANGE)) {
-            listener.playSound(t.pos, WIND_SOUND, WIND_CATEGORY, (float) (WIND_VOLUME * growth), 0.5f);
+            listener.playSound(
+                    t.pos, WIND_SOUND, WIND_CATEGORY, (float) (WIND_VOLUME * growth), 0.5f);
             t.windListeners.add(listener.getUniqueId());
         }
     }
@@ -245,8 +267,9 @@ public class TornadoAbility extends BaseAbility {
                         continue;
                     }
                     listener.stopSound(WIND_SOUND, WIND_CATEGORY);
-                    boolean inRange = listener.getWorld().equals(at.getWorld())
-                            && listener.getLocation().distanceSquared(at) <= rangeSq;
+                    boolean inRange =
+                            listener.getWorld().equals(at.getWorld())
+                                    && listener.getLocation().distanceSquared(at) <= rangeSq;
                     if (last || !inRange) {
                         it.remove();
                         continue;
@@ -340,7 +363,8 @@ public class TornadoAbility extends BaseAbility {
         // further than the step so it turns before it clips in.
         Vector ahead = new Vector(dx, 0, dz).normalize();
         Location chest = t.pos.clone().add(0, 1.5, 0);
-        if (t.world.rayTraceBlocks(chest, ahead, speed + 0.9, FluidCollisionMode.NEVER, true) != null) {
+        if (t.world.rayTraceBlocks(chest, ahead, speed + 0.9, FluidCollisionMode.NEVER, true)
+                != null) {
             bounce(t);
             return;
         }
@@ -351,7 +375,8 @@ public class TornadoAbility extends BaseAbility {
             return;
         }
 
-        double dy = Math.max(-MAX_DROP_PER_TICK, Math.min(MAX_DROP_PER_TICK, ground - t.pos.getY()));
+        double dy =
+                Math.max(-MAX_DROP_PER_TICK, Math.min(MAX_DROP_PER_TICK, ground - t.pos.getY()));
         t.pos.add(dx, dy, dz);
     }
 
@@ -363,8 +388,9 @@ public class TornadoAbility extends BaseAbility {
 
     private static Double groundY(World world, double x, double fromY, double z, double depth) {
         Location from = new Location(world, x, fromY + 2.0, z);
-        RayTraceResult hit = world.rayTraceBlocks(
-                from, new Vector(0, -1, 0), depth + 2.0, FluidCollisionMode.ALWAYS, true);
+        RayTraceResult hit =
+                world.rayTraceBlocks(
+                        from, new Vector(0, -1, 0), depth + 2.0, FluidCollisionMode.ALWAYS, true);
         if (hit == null || hit.getHitPosition() == null) return null;
         return hit.getHitPosition().getY();
     }
@@ -373,7 +399,8 @@ public class TornadoAbility extends BaseAbility {
         Location middle = t.pos.clone().add(0, TornadoVisual.HEIGHT / 2.0, 0);
         double reach = TornadoVisual.HEIGHT / 2.0 + 2.0;
 
-        for (LivingEntity target : t.world.getNearbyLivingEntities(middle, PULL_RADIUS, reach, PULL_RADIUS)) {
+        for (LivingEntity target :
+                t.world.getNearbyLivingEntities(middle, PULL_RADIUS, reach, PULL_RADIUS)) {
             if (!canAffect(t, caster, target)) continue;
 
             Location at = target.getLocation();
@@ -385,13 +412,16 @@ public class TornadoAbility extends BaseAbility {
             double height = at.getY() - t.pos.getY(); // how far above the tornado's base they are
             if (height < -1.5 || height > TornadoVisual.HEIGHT * growth + 2.0) continue;
 
-            // Unit vector toward the axis, and the one at 90 degrees to it (the direction to swirl in).
-            Vector inward = distance > 1.0E-4 ? new Vector(dx / distance, 0, dz / distance) : new Vector();
+            // Unit vector toward the axis, and the one at 90 degrees to it (the direction to swirl
+            // in).
+            Vector inward =
+                    distance > 1.0E-4 ? new Vector(dx / distance, 0, dz / distance) : new Vector();
             Vector swirl = new Vector(-inward.getZ(), 0, inward.getX());
 
-            double funnel = TornadoVisual.radiusAt(Math.max(0.0, height) / TornadoVisual.HEIGHT) * growth;
-            boolean inside = distance <= funnel + INSIDE_MARGIN
-                    && height <= TornadoVisual.HEIGHT * growth;
+            double funnel =
+                    TornadoVisual.radiusAt(Math.max(0.0, height) / TornadoVisual.HEIGHT) * growth;
+            boolean inside =
+                    distance <= funnel + INSIDE_MARGIN && height <= TornadoVisual.HEIGHT * growth;
 
             if (inside) {
                 caught(t, caster, target, inward, swirl, distance, funnel, height);
@@ -401,14 +431,17 @@ public class TornadoAbility extends BaseAbility {
         }
     }
 
-    private void pull(LivingEntity target, Vector inward, Vector swirl, double distance, double growth) {
+    private void pull(
+            LivingEntity target, Vector inward, Vector swirl, double distance, double growth) {
         double closeness = 1.0 - Math.min(1.0, distance / PULL_RADIUS);
         double speed = (PULL_SPEED_FAR + (PULL_SPEED_NEAR - PULL_SPEED_FAR) * closeness) * growth;
 
         // Keep a little of their own momentum so it feels like a current, not a rail.
-        Vector velocity = target.getVelocity().multiply(0.5)
-                .add(inward.clone().multiply(speed))
-                .add(swirl.clone().multiply(PULL_SWIRL * closeness * growth));
+        Vector velocity =
+                target.getVelocity()
+                        .multiply(0.5)
+                        .add(inward.clone().multiply(speed))
+                        .add(swirl.clone().multiply(PULL_SWIRL * closeness * growth));
         if (velocity.length() > MAX_SPEED) {
             velocity.normalize().multiply(MAX_SPEED);
         }
@@ -419,23 +452,36 @@ public class TornadoAbility extends BaseAbility {
         target.setVelocity(velocity);
     }
 
-    private void caught(Tornado t, Player caster, LivingEntity target, Vector inward, Vector swirl,
-                        double distance, double funnel, double height) {
+    private void caught(
+            Tornado t,
+            Player caster,
+            LivingEntity target,
+            Vector inward,
+            Vector swirl,
+            double distance,
+            double funnel,
+            double height) {
         UUID id = target.getUniqueId();
 
         if (t.ticks >= t.nextHit.getOrDefault(id, 0)) {
             t.nextHit.put(id, t.ticks + DAMAGE_INTERVAL_TICKS);
-            TrueDamage.of(DAMAGE).attacker(caster).ability(getName()).ignoreIFrames(true).apply(target);
+            TrueDamage.of(DAMAGE)
+                    .attacker(caster)
+                    .ability(getName())
+                    .ignoreIFrames(true)
+                    .apply(target);
 
             Location chest = target.getLocation().add(0, 1.0, 0);
             t.world.playSound(chest, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.6f, 1.2f);
         }
 
         // Orbit around the axis, drifting toward a ring about 60% of the way out to the funnel wall
-        // (pushes them back out if they sit right on the axis, so they circle instead of stacking up).
+        // (pushes them back out if they sit right on the axis, so they circle instead of stacking
+        // up).
         double ringRadius = Math.max(0.6, funnel * 0.6);
         double radial = (distance - ringRadius) * 0.3;
-        Vector horizontal = swirl.clone().multiply(ORBIT_SPEED).add(inward.clone().multiply(radial));
+        Vector horizontal =
+                swirl.clone().multiply(ORBIT_SPEED).add(inward.clone().multiply(radial));
 
         // Up to LIFT_MAX, then hover. The hover bobs up AND down on purpose: vanilla kicks survival
         // players for "flying" after ~4s of never moving downward, and the dips reset that timer.
@@ -453,20 +499,24 @@ public class TornadoAbility extends BaseAbility {
     }
 
     private boolean canAffect(Tornado t, Player caster, LivingEntity target) {
-        // The caster is never touched, matched by UUID so a stale/re-created Player object can't slip through.
+        // The caster is never touched, matched by UUID so a stale/re-created Player object can't
+        // slip through.
         if (target.getUniqueId().equals(caster.getUniqueId())) return false;
         if (!target.isValid() || target.isDead()) return false;
         if (target instanceof ArmorStand) return false;
 
-        // Anything the caster is riding or carrying (horse, pig, a mob on their shoulders...) would drag
+        // Anything the caster is riding or carrying (horse, pig, a mob on their shoulders...) would
+        // drag
         // the caster along with it, so it is off limits too.
         if (isCasterAttached(caster, target)) return false;
 
-        // Caster-owned projectiles (arrows, wind charges, tridents...) are not living entities and are
+        // Caster-owned projectiles (arrows, wind charges, tridents...) are not living entities and
+        // are
         // never scanned, but never treat one as a target even if one is ever passed in.
         if (target instanceof Projectile projectile
                 && projectile.getShooter() instanceof Player shooter
-                && (shooter.getUniqueId().equals(caster.getUniqueId()) || isFriendly(t, caster, shooter.getUniqueId()))) {
+                && (shooter.getUniqueId().equals(caster.getUniqueId())
+                        || isFriendly(t, caster, shooter.getUniqueId()))) {
             return false;
         }
 
@@ -480,7 +530,8 @@ public class TornadoAbility extends BaseAbility {
         // caster's (or their teammates'/allies') tamed pets.
         for (Entity passenger : target.getPassengers()) {
             if (passenger instanceof Player rider
-                    && (rider.getUniqueId().equals(caster.getUniqueId()) || isFriendly(t, caster, rider.getUniqueId()))) {
+                    && (rider.getUniqueId().equals(caster.getUniqueId())
+                            || isFriendly(t, caster, rider.getUniqueId()))) {
                 return false;
             }
         }
@@ -545,6 +596,7 @@ public class TornadoAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Summons a tornado that pulls in nearby players and mobs, lifts them and damages them.";
+        return "Summons a tornado that pulls in nearby players and mobs, lifts them and damages"
+                   + " them.";
     }
 }

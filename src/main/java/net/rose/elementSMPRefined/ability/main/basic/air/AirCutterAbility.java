@@ -1,14 +1,15 @@
 package net.rose.elementSMPRefined.ability.main.basic.air;
 
-import net.rose.elementSMPRefined.core.Constants;
+import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
-import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
-import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
+import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
+
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -33,7 +34,13 @@ public class AirCutterAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public AirCutterAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("air_cutter", ElementType.AIR, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
+        super(
+                "air_cutter",
+                ElementType.AIR,
+                2,
+                Constants.Cooldown.ABILITY_2_SECONDS,
+                2,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -59,7 +66,8 @@ public class AirCutterAbility extends BaseAbility {
         for (int i = 0; i < CUTTER_COUNT; i++) {
             // Offsets are centred on the aim: for 3 blades that's -7deg, 0deg, +7deg.
             double offset = (i - (CUTTER_COUNT - 1) / 2.0) * SPREAD_DEGREES;
-            Vector direction = aim.clone().rotateAroundAxis(fanAxis, Math.toRadians(offset)).normalize();
+            Vector direction =
+                    aim.clone().rotateAroundAxis(fanAxis, Math.toRadians(offset)).normalize();
             launchCutter(player, team, origin, direction, hitEntities);
         }
 
@@ -78,22 +86,28 @@ public class AirCutterAbility extends BaseAbility {
         return right.clone().crossProduct(aim).normalize();
     }
 
-    private void launchCutter(Player player, TeamManager team, Location origin, Vector direction,
-                              java.util.Set<java.util.UUID> hitEntities) {
+    private void launchCutter(
+            Player player,
+            TeamManager team,
+            Location origin,
+            Vector direction,
+            java.util.Set<java.util.UUID> hitEntities) {
         World w = origin.getWorld();
 
         double range = 25.0;
         double hitboxWidth = 1.1;
         double damage = 2.0; // 1 heart of true damage per blade
 
-        // Targets this particular blade has already cut, so one blade never hits the same target twice.
+        // Targets this particular blade has already cut, so one blade never hits the same target
+        // twice.
         final java.util.Set<java.util.UUID> bladeHit = new java.util.HashSet<>();
 
         new BukkitRunnable() {
             double travelled = 0;
             Location previous = origin.clone();
             final AirCutterVisual blade =
-                    new AirCutterVisual(origin.clone().add(direction.clone().multiply(1.0)), direction, player);
+                    new AirCutterVisual(
+                            origin.clone().add(direction.clone().multiply(1.0)), direction, player);
 
             @Override
             public synchronized void cancel() throws IllegalStateException {
@@ -111,21 +125,41 @@ public class AirCutterAbility extends BaseAbility {
                 travelled += 1.5;
                 Location slice = origin.clone().add(direction.clone().multiply(travelled));
 
-                // The blade moves 1.5 blocks a tick, so check the whole step for a solid block rather
-                // than just the end point (otherwise it skips straight through thin floors and walls).
+                // The blade moves 1.5 blocks a tick, so check the whole step for a solid block
+                // rather
+                // than just the end point (otherwise it skips straight through thin floors and
+                // walls).
                 Vector step = slice.toVector().subtract(previous.toVector());
                 double stepLength = step.length();
                 boolean blocked = false;
                 if (stepLength > 1.0E-4) {
-                    RayTraceResult wall = w.rayTraceBlocks(previous, step.clone().normalize(), stepLength,
-                            FluidCollisionMode.NEVER, true);
+                    RayTraceResult wall =
+                            w.rayTraceBlocks(
+                                    previous,
+                                    step.clone().normalize(),
+                                    stepLength,
+                                    FluidCollisionMode.NEVER,
+                                    true);
                     if (wall != null) {
                         blocked = true;
-                        // Stop just short of the surface so the blade doesn't visually sink into it.
-                        Vector stop = wall.getHitPosition().clone().subtract(step.clone().normalize().multiply(0.15));
+                        // Stop just short of the surface so the blade doesn't visually sink into
+                        // it.
+                        Vector stop =
+                                wall.getHitPosition()
+                                        .clone()
+                                        .subtract(step.clone().normalize().multiply(0.15));
                         slice = stop.toLocation(w);
                         if (travelled >= PARTICLE_START_DISTANCE) {
-                            w.spawnParticle(Particle.CLOUD, wall.getHitPosition().toLocation(w), 2, 0.1, 0.1, 0.1, 0.01, null, true);
+                            w.spawnParticle(
+                                    Particle.CLOUD,
+                                    wall.getHitPosition().toLocation(w),
+                                    2,
+                                    0.1,
+                                    0.1,
+                                    0.1,
+                                    0.01,
+                                    null,
+                                    true);
                         }
                     }
                 }
@@ -139,16 +173,25 @@ public class AirCutterAbility extends BaseAbility {
 
                 for (LivingEntity e : slice.getNearbyLivingEntities(hitboxWidth)) {
                     if (e.equals(player)) continue;
-                    if (e instanceof Player other && team.isFriendly(player.getUniqueId(), other.getUniqueId())) continue;
+                    if (e instanceof Player other
+                            && team.isFriendly(player.getUniqueId(), other.getUniqueId())) continue;
                     if (!bladeHit.add(e.getUniqueId())) continue;
 
-                    // A raised shield stops the blade: no damage, no knockback, and the shield takes the wear.
-                    // Every blade deals its own heart, so i-frames are ignored or blades 2 and 3 would be eaten by them.
-                    boolean landed = TrueDamage.of(damage).attacker(player).ability(getName()).ignoreIFrames(true)
-                            .blockableByShield(direction).apply(e);
+                    // A raised shield stops the blade: no damage, no knockback, and the shield
+                    // takes the wear.
+                    // Every blade deals its own heart, so i-frames are ignored or blades 2 and 3
+                    // would be eaten by them.
+                    boolean landed =
+                            TrueDamage.of(damage)
+                                    .attacker(player)
+                                    .ability(getName())
+                                    .ignoreIFrames(true)
+                                    .blockableByShield(direction)
+                                    .apply(e);
                     if (!landed) continue;
 
-                    // Knockback and the hit particle only happen once per cast, however many blades connect.
+                    // Knockback and the hit particle only happen once per cast, however many blades
+                    // connect.
                     if (!hitEntities.add(e.getUniqueId())) continue;
 
                     // Horizontal only, and SET rather than added onto existing velocity.
@@ -158,7 +201,17 @@ public class AirCutterAbility extends BaseAbility {
                     }
                     knockback.setY(KNOCKBACK_VERTICAL);
                     e.setVelocity(knockback);
-                    e.getWorld().spawnParticle(Particle.SWEEP_ATTACK, e.getLocation().add(0, 1, 0), 1, 0, 0, 0, 0, null, true);
+                    e.getWorld()
+                            .spawnParticle(
+                                    Particle.SWEEP_ATTACK,
+                                    e.getLocation().add(0, 1, 0),
+                                    1,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    null,
+                                    true);
                 }
 
                 if (blocked) {

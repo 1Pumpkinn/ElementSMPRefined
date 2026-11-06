@@ -1,17 +1,18 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.frost;
 
-import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
@@ -49,62 +50,79 @@ import java.util.Set;
 
 public class FrostIcicleBarrageAbility extends BaseAbility {
 
-    private static final NamespacedKey ICICLE_MODEL = Objects.requireNonNull(NamespacedKey.fromString("elementsmp:icicle_tip"));
+    private static final NamespacedKey ICICLE_MODEL =
+            Objects.requireNonNull(NamespacedKey.fromString("elementsmp:icicle_tip"));
 
     private static final Component ALREADY_ACTIVE =
             Component.text("Icicle Barrage is already active!", NamedTextColor.RED);
 
     private static final int CHARGE_TICKS = 14;
-    private static final int SLOW_AMPLIFIER_CASTER = 2;     // Slowness III for the whole cast, like Magma Beam
-    private static final double ORB_DISTANCE = 2.2;         // how far in front of the eyes the ring floats
+    private static final int SLOW_AMPLIFIER_CASTER =
+            2; // Slowness III for the whole cast, like Magma Beam
+    private static final double ORB_DISTANCE = 2.2; // how far in front of the eyes the ring floats
     private static final double ORB_DROP = 0.15;
     private static final double RING_RADIUS = 0.8;
-    private static final float RING_SPIN_PER_TICK = 0.2f;   // radians; the ring turns around the aim
-    private static final float LOADED_SCALE = 0.5f;         // size of an icicle hovering in the ring (1.0 = flying size)
-    private static final int APPEAR_TICKS = 3;              // an icicle grows in over this long once loaded
+    private static final float RING_SPIN_PER_TICK = 0.2f; // radians; the ring turns around the aim
+    private static final float LOADED_SCALE =
+            0.5f; // size of an icicle hovering in the ring (1.0 = flying size)
+    private static final int APPEAR_TICKS = 3; // an icicle grows in over this long once loaded
 
     private static final int ICICLE_COUNT = 6;
-    private static final int FIRE_INTERVAL_TICKS = 8;       // ticks between icicles (20 = 1 second)
-    private static final double SPEED = 2.8;                // blocks per tick
+    private static final int FIRE_INTERVAL_TICKS = 8; // ticks between icicles (20 = 1 second)
+    private static final double SPEED = 2.8; // blocks per tick
     private static final double MAX_RANGE = 40.0;
     private static final double HIT_RADIUS = 0.6;
-    private static final int LAUNCH_GROW_TICKS = 3;         // loaded size -> full size as it leaves the ring
-    private static final int MAX_SMOOTHING_TICKS = 2;       // cap on ping smoothing; more makes the model trail its hitbox
-    private static final double AIM_ASSIST_RADIUS = 0.3;    // how forgiving the "what am I looking at" check is
-    private static final double CROSSHAIR_CONVERGE = 24.0;  // with nothing under the crosshair, icicles still converge on the aim line this far out
+    private static final int LAUNCH_GROW_TICKS =
+            3; // loaded size -> full size as it leaves the ring
+    private static final int MAX_SMOOTHING_TICKS =
+            2; // cap on ping smoothing; more makes the model trail its hitbox
+    private static final double AIM_ASSIST_RADIUS =
+            0.3; // how forgiving the "what am I looking at" check is
+    private static final double CROSSHAIR_CONVERGE =
+            24.0; // with nothing under the crosshair, icicles still converge on the aim line this
+                  // far out
 
-    // Icicle model: vanilla pointed-dripstone shape with the icicle texture, stretched long and thin.
-    // This is the model axis that the point faces (the sprite's point is at the bottom, so -Y); if icicles
+    // Icicle model: vanilla pointed-dripstone shape with the icicle texture, stretched long and
+    // thin.
+    // This is the model axis that the point faces (the sprite's point is at the bottom, so -Y); if
+    // icicles
     // ever fly backwards, flip its sign.
     private static final Vector3f TIP_AXIS = new Vector3f(0f, -1f, 0f);
     private static final float ICICLE_WIDTH = 1.0f;
     private static final float ICICLE_LENGTH = 3.2f;
     private static final double ICICLE_HALF_LENGTH = ICICLE_LENGTH * 5.0 / 16.0;
 
-    private static final double DAMAGE = 2.0;               // 1 heart per icicle (6 icicles = 12 if they all land)
+    private static final double DAMAGE =
+            2.0; // 1 heart per icicle (6 icicles = 12 if they all land)
     private static final int SLOW_TICKS = 60;
-    private static final int SLOW_AMPLIFIER = 1;            // Slowness II on the target
-    private static final int FREEZE_PER_HIT = 60;           // ticks of powder-snow freeze added per icicle
+    private static final int SLOW_AMPLIFIER = 1; // Slowness II on the target
+    private static final int FREEZE_PER_HIT = 60; // ticks of powder-snow freeze added per icicle
 
     // Icicles that miss and stick into a wall
     private static final int STUCK_TICKS = 40;
     private static final int STUCK_SHRINK_TICKS = 5;
     private static final float COLLAPSED = 0.05f;
-    private static final float STUCK_SCALE = 0.55f;         // a planted icicle is smaller than a flying one
-    private static final double STUCK_EMBED = 0.12;         // how far the point sits inside the surface
-    private static final double STUCK_STRAIGHTEN = 0.7;     // 0 = keep the flight angle, 1 = point straight into the wall
+    private static final float STUCK_SCALE = 0.55f; // a planted icicle is smaller than a flying one
+    private static final double STUCK_EMBED = 0.12; // how far the point sits inside the surface
+    private static final double STUCK_STRAIGHTEN =
+            0.7; // 0 = keep the flight angle, 1 = point straight into the wall
 
     // Hard stop so a cast can never run forever
-    private static final int MAX_TASK_TICKS = CHARGE_TICKS + (ICICLE_COUNT - 1) * FIRE_INTERVAL_TICKS
-            + (int) (MAX_RANGE / SPEED) + STUCK_TICKS + 40;
+    private static final int MAX_TASK_TICKS =
+            CHARGE_TICKS
+                    + (ICICLE_COUNT - 1) * FIRE_INTERVAL_TICKS
+                    + (int) (MAX_RANGE / SPEED)
+                    + STUCK_TICKS
+                    + 40;
 
     // Trail left behind a flying icicle
-    private static final double TRAIL_SPACING = 0.6;        // blocks between trail particles
+    private static final double TRAIL_SPACING = 0.6; // blocks between trail particles
     private static final Particle.DustOptions TRAIL_DUST =
             new Particle.DustOptions(org.bukkit.Color.fromRGB(150, 220, 255), 1.0f);
 
     // Block data for the particle bursts, built once instead of on every hit / launch / stick.
-    private static final org.bukkit.block.data.BlockData PACKED_ICE_DATA = Material.PACKED_ICE.createBlockData();
+    private static final org.bukkit.block.data.BlockData PACKED_ICE_DATA =
+            Material.PACKED_ICE.createBlockData();
     private static final org.bukkit.block.data.BlockData ICE_DATA = Material.ICE.createBlockData();
 
     // Every live display, so they can be swept up when the plugin shuts down or reloads
@@ -113,7 +131,13 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public FrostIcicleBarrageAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("frost_icicle_barrage", ElementType.FROST, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
+        super(
+                "frost_icicle_barrage",
+                ElementType.FROST,
+                1,
+                Constants.Cooldown.ABILITY_1_SECONDS,
+                1,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -134,10 +158,17 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         }
 
         setActive(caster, true);
-        caster.getWorld().playSound(caster.getLocation(), Sound.BLOCK_POWDER_SNOW_BREAK, 1.2f, 0.5f);
+        caster.getWorld()
+                .playSound(caster.getLocation(), Sound.BLOCK_POWDER_SNOW_BREAK, 1.2f, 0.5f);
         int slowTicks = CHARGE_TICKS + (ICICLE_COUNT - 1) * FIRE_INTERVAL_TICKS + 5;
-        caster.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, slowTicks,
-                SLOW_AMPLIFIER_CASTER, false, false, true));
+        caster.addPotionEffect(
+                new PotionEffect(
+                        PotionEffectType.SLOWNESS,
+                        slowTicks,
+                        SLOW_AMPLIFIER_CASTER,
+                        false,
+                        false,
+                        true));
 
         new Cast(caster, context.getTeamManager()).runTaskTimer(plugin, 0L, 1L);
         return true;
@@ -151,7 +182,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         boolean inRing = true;
         double travelled = 0;
         int stuckLeft = -1; // -1 = still flying
-        Vector stuckDir;    // direction the point faces once planted
+        Vector stuckDir; // direction the point faces once planted
 
         Icicle(ItemDisplay display, Location pos, int appearTick) {
             this.display = display;
@@ -182,15 +213,21 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         @Override
         public void run() {
             // !isActiveFor: BaseElement.clearEffects (element change) deactivates the ability.
-            if (!caster.isOnline() || caster.isDead() || !isActiveFor(caster)
-                    || !caster.getWorld().equals(world) || ticks > MAX_TASK_TICKS) {
+            if (!caster.isOnline()
+                    || caster.isDead()
+                    || !isActiveFor(caster)
+                    || !caster.getWorld().equals(world)
+                    || ticks > MAX_TASK_TICKS) {
                 end();
                 return;
             }
 
-            // /tick freeze: the scheduler keeps running but entities stop updating, so without this the
-            // icicles would fly on, hit their range limit and vanish while the world looks paused. Hold
-            // everything exactly where it is (the tick counter included); /tick step still advances it.
+            // /tick freeze: the scheduler keeps running but entities stop updating, so without this
+            // the
+            // icicles would fly on, hit their range limit and vanish while the world looks paused.
+            // Hold
+            // everything exactly where it is (the tick counter included); /tick step still advances
+            // it.
             if (isTickFrozen()) return;
 
             try {
@@ -210,7 +247,9 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
                 // Release one icicle every FIRE_INTERVAL_TICKS once the ring is full.
                 int fireTick = ticks - CHARGE_TICKS;
-                if (fireTick >= 0 && fireTick % FIRE_INTERVAL_TICKS == 0 && launched < ICICLE_COUNT) {
+                if (fireTick >= 0
+                        && fireTick % FIRE_INTERVAL_TICKS == 0
+                        && launched < ICICLE_COUNT) {
                     launchNext(aim);
                 }
 
@@ -237,7 +276,11 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             double progress = (double) ticks / CHARGE_TICKS;
 
             if (ticks % 4 == 0) {
-                world.playSound(orb, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.7f, (float) (0.5 + progress * 1.2));
+                world.playSound(
+                        orb,
+                        Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                        0.7f,
+                        (float) (0.5 + progress * 1.2));
             }
         }
 
@@ -245,16 +288,20 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             int slot = spawned++;
             Location pos = ringSpot(orb, axes, slot, 0f);
 
-            ItemDisplay display = world.spawn(pos, ItemDisplay.class, d -> {
-                d.setItemStack(icicleItem);
-                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                d.setBillboard(Display.Billboard.FIXED);
-                d.setBrightness(new Display.Brightness(15, 15));
-                d.setTransformation(pose(aim, COLLAPSED));
-                d.setTeleportDuration(1);
-                d.setPersistent(false);
-                d.setInvulnerable(true);
-            });
+            ItemDisplay display =
+                    world.spawn(
+                            pos,
+                            ItemDisplay.class,
+                            d -> {
+                                d.setItemStack(icicleItem);
+                                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                                d.setBillboard(Display.Billboard.FIXED);
+                                d.setBrightness(new Display.Brightness(15, 15));
+                                d.setTransformation(pose(aim, COLLAPSED));
+                                d.setTeleportDuration(1);
+                                d.setPersistent(false);
+                                d.setInvulnerable(true);
+                            });
             ACTIVE.add(display);
             slots[slot] = new Icicle(display, pos, ticks);
 
@@ -293,40 +340,58 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
         private void launchNext(Vector aim) {
             int slot = launched++;
-            if (launched >= ICICLE_COUNT) releaseCaster(); // last one is away: the caster can move again
+            if (launched >= ICICLE_COUNT)
+                releaseCaster(); // last one is away: the caster can move again
 
             Icicle ic = slots[slot];
             if (ic == null || !ic.inRing || !ic.display.isValid()) return;
             ic.inRing = false;
 
-            // Every icicle is steered at the exact point under the crosshair (entity or block) - the ring sits
-            // off to the side of the eye line, so a plain "same direction as the eyes" shot would miss it.
-            // The ray is cast from the eyes so the point is what the caster really sees; with nothing in
+            // Every icicle is steered at the exact point under the crosshair (entity or block) -
+            // the ring sits
+            // off to the side of the eye line, so a plain "same direction as the eyes" shot would
+            // miss it.
+            // The ray is cast from the eyes so the point is what the caster really sees; with
+            // nothing in
             // sight the icicles still converge on the aim line a fixed distance out.
             Location eye = caster.getEyeLocation();
-            RayTraceResult sight = world.rayTrace(eye, aim, MAX_RANGE, FluidCollisionMode.NEVER, true,
-                    AIM_ASSIST_RADIUS, this::isTarget);
-            Vector target = sight != null
-                    ? sight.getHitPosition()
-                    : eye.toVector().add(aim.clone().multiply(CROSSHAIR_CONVERGE));
+            RayTraceResult sight =
+                    world.rayTrace(
+                            eye,
+                            aim,
+                            MAX_RANGE,
+                            FluidCollisionMode.NEVER,
+                            true,
+                            AIM_ASSIST_RADIUS,
+                            this::isTarget);
+            Vector target =
+                    sight != null
+                            ? sight.getHitPosition()
+                            : eye.toVector().add(aim.clone().multiply(CROSSHAIR_CONVERGE));
 
             Vector dir = target.clone().subtract(ic.pos.toVector());
-            // A point right at the caster's face would send the icicle sideways/backwards - use the aim line.
+            // A point right at the caster's face would send the icicle sideways/backwards - use the
+            // aim line.
             if (dir.lengthSquared() < 1.0E-4 || dir.clone().normalize().dot(aim) < 0.2) {
                 dir = aim.clone();
             }
             ic.velocity = dir.normalize().multiply(SPEED);
 
-            // The flight is a dead-straight line, so the pose is set exactly once here (it also grows the
-            // icicle from its hovering size to full size over a few ticks) and only the position changes
-            // after that. Re-sending the pose every tick restarted its interpolation and made it judder.
-            ic.display.setTeleportDuration(PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS));
+            // The flight is a dead-straight line, so the pose is set exactly once here (it also
+            // grows the
+            // icicle from its hovering size to full size over a few ticks) and only the position
+            // changes
+            // after that. Re-sending the pose every tick restarted its interpolation and made it
+            // judder.
+            ic.display.setTeleportDuration(
+                    PingCompensation.smoothingTicks(caster, MAX_SMOOTHING_TICKS));
             ic.display.setInterpolationDelay(0);
             ic.display.setInterpolationDuration(LAUNCH_GROW_TICKS);
             ic.display.setTransformation(pose(ic.velocity, 1.0f));
 
             world.spawnParticle(Particle.CLOUD, ic.pos, 2, 0.15, 0.15, 0.15, 0.04, null, true);
-            world.spawnParticle(Particle.BLOCK, ic.pos, 3, 0.15, 0.15, 0.15, 0.0, PACKED_ICE_DATA, true);
+            world.spawnParticle(
+                    Particle.BLOCK, ic.pos, 3, 0.15, 0.15, 0.15, 0.0, PACKED_ICE_DATA, true);
             world.playSound(ic.pos, Sound.BLOCK_GLASS_BREAK, 1.2f, 0.9f);
             world.playSound(ic.pos, Sound.ENTITY_PLAYER_HURT_FREEZE, 1.0f, 1.1f);
             world.playSound(ic.pos, Sound.BLOCK_AMETHYST_CLUSTER_BREAK, 1.0f, 1.4f);
@@ -346,8 +411,11 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
                     ic.display.setInterpolationDelay(0);
                     ic.display.setInterpolationDuration(STUCK_SHRINK_TICKS);
                     // Sinks back into the wall while it shrinks instead of hanging in the air.
-                    ic.display.setTransformation(pose(ic.stuckDir, COLLAPSED,
-                            (float) (ICICLE_HALF_LENGTH * STUCK_SCALE)));
+                    ic.display.setTransformation(
+                            pose(
+                                    ic.stuckDir,
+                                    COLLAPSED,
+                                    (float) (ICICLE_HALF_LENGTH * STUCK_SCALE)));
                 }
                 if (ic.stuckLeft-- <= 0) {
                     remove(ic);
@@ -359,8 +427,15 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             Vector direction = ic.velocity.clone().normalize();
             double step = ic.velocity.length();
 
-            RayTraceResult hit = world.rayTrace(ic.pos, direction, step, FluidCollisionMode.NEVER, true,
-                    HIT_RADIUS, this::isTarget);
+            RayTraceResult hit =
+                    world.rayTrace(
+                            ic.pos,
+                            direction,
+                            step,
+                            FluidCollisionMode.NEVER,
+                            true,
+                            HIT_RADIUS,
+                            this::isTarget);
 
             if (hit != null) {
                 if (hit.getHitEntity() instanceof LivingEntity target) {
@@ -410,23 +485,30 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             Vector at = hit.getHitPosition();
             BlockFace face = hit.getHitBlockFace();
 
-            // The icicle arrives at whatever angle it was fired (it starts off to the side of the ring),
-            // which looks lopsided when planted. Pull it most of the way towards pointing straight into
+            // The icicle arrives at whatever angle it was fired (it starts off to the side of the
+            // ring),
+            // which looks lopsided when planted. Pull it most of the way towards pointing straight
+            // into
             // the surface so it looks stuck in, like an arrow.
             Vector dir = ic.velocity.clone().normalize();
             if (face != null) {
                 Vector inward = face.getDirection().multiply(-1);
-                Vector blended = dir.clone().multiply(1.0 - STUCK_STRAIGHTEN).add(inward.multiply(STUCK_STRAIGHTEN));
+                Vector blended =
+                        dir.clone()
+                                .multiply(1.0 - STUCK_STRAIGHTEN)
+                                .add(inward.multiply(STUCK_STRAIGHTEN));
                 if (blended.lengthSquared() > 1.0E-6) dir = blended.normalize();
             }
             ic.stuckDir = dir;
 
             // Smaller than the flying size, with the point just inside the surface.
             double halfLength = ICICLE_HALF_LENGTH * STUCK_SCALE;
-            Location embedded = new Location(world, at.getX(), at.getY(), at.getZ())
-                    .subtract(dir.clone().multiply(halfLength - STUCK_EMBED));
+            Location embedded =
+                    new Location(world, at.getX(), at.getY(), at.getZ())
+                            .subtract(dir.clone().multiply(halfLength - STUCK_EMBED));
 
-            // Snap straight to the final pose (no interpolation from the flying pose), then place it.
+            // Snap straight to the final pose (no interpolation from the flying pose), then place
+            // it.
             ic.display.setInterpolationDelay(0);
             ic.display.setInterpolationDuration(0);
             ic.display.setTeleportDuration(0);
@@ -441,13 +523,28 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         }
 
         private void hitEntity(LivingEntity target, Vector at, Vector direction) {
-            // A raised shield stops the icicle: no damage, no freeze/slow, and the shield takes the wear.
-            boolean landed = TrueDamage.of(DAMAGE).attacker(caster).ability(getName())
-                    .blockableByShield(direction).apply(target);
+            // A raised shield stops the icicle: no damage, no freeze/slow, and the shield takes the
+            // wear.
+            boolean landed =
+                    TrueDamage.of(DAMAGE)
+                            .attacker(caster)
+                            .ability(getName())
+                            .blockableByShield(direction)
+                            .apply(target);
 
             if (landed) {
-                target.setFreezeTicks(Math.min(target.getMaxFreezeTicks() + 40, target.getFreezeTicks() + FREEZE_PER_HIT));
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, SLOW_TICKS, SLOW_AMPLIFIER, false, true, true));
+                target.setFreezeTicks(
+                        Math.min(
+                                target.getMaxFreezeTicks() + 40,
+                                target.getFreezeTicks() + FREEZE_PER_HIT));
+                target.addPotionEffect(
+                        new PotionEffect(
+                                PotionEffectType.SLOWNESS,
+                                SLOW_TICKS,
+                                SLOW_AMPLIFIER,
+                                false,
+                                true,
+                                true));
             }
 
             Location spot = new Location(world, at.getX(), at.getY(), at.getZ());
@@ -461,7 +558,8 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             if (entity.equals(caster) || entity instanceof ArmorStand) return false;
             if (entity instanceof Player other) {
                 if (other.getGameMode() == GameMode.SPECTATOR) return false;
-                if (team != null && team.isFriendly(caster.getUniqueId(), other.getUniqueId())) return false;
+                if (team != null && team.isFriendly(caster.getUniqueId(), other.getUniqueId()))
+                    return false;
             }
             return living.isValid();
         }
@@ -493,8 +591,10 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
     private static Location orbSpot(Location eyeLocation) {
         Location eye = eyeLocation.clone();
         Location spot = eye.add(eye.getDirection().multiply(ORB_DISTANCE)).subtract(0, ORB_DROP, 0);
-        // A display entity is also rotated by its own yaw/pitch, on top of its transformation. The eye
-        // location carries the caster's look direction, so zero it or every model gets turned twice.
+        // A display entity is also rotated by its own yaw/pitch, on top of its transformation. The
+        // eye
+        // location carries the caster's look direction, so zero it or every model gets turned
+        // twice.
         spot.setYaw(0f);
         spot.setPitch(0f);
         return spot;
@@ -505,7 +605,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
         if (right.lengthSquared() < 1.0E-6) right = new Vector(1, 0, 0); // looking straight up/down
         right.normalize();
         Vector up = right.clone().crossProduct(aim).normalize();
-        return new Vector[]{right, up};
+        return new Vector[] {right, up};
     }
 
     private static Transformation pose(Vector direction, float scale) {
@@ -514,10 +614,14 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
     private static Transformation pose(Vector direction, float scale, float push) {
         Vector d = direction.clone().normalize();
-        Quaternionf facing = new Quaternionf().rotationTo(TIP_AXIS,
-                new Vector3f((float) d.getX(), (float) d.getY(), (float) d.getZ()));
+        Quaternionf facing =
+                new Quaternionf()
+                        .rotationTo(
+                                TIP_AXIS,
+                                new Vector3f((float) d.getX(), (float) d.getY(), (float) d.getZ()));
         return new Transformation(
-                new Vector3f((float) d.getX() * push, (float) d.getY() * push, (float) d.getZ() * push),
+                new Vector3f(
+                        (float) d.getX() * push, (float) d.getY() * push, (float) d.getZ() * push),
                 facing,
                 new Vector3f(ICICLE_WIDTH * scale, ICICLE_LENGTH * scale, ICICLE_WIDTH * scale),
                 new Quaternionf());
@@ -530,6 +634,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Charge a ring of icicles, then fire them at what you're looking at. They damage and slow enemies. You're slowed while casting it.";
+        return "Charge a ring of icicles, then fire them at what you're looking at. They damage and"
+                   + " slow enemies. You're slowed while casting it.";
     }
 }

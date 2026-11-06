@@ -82,7 +82,7 @@ public final class PingCompensation {
         private float lastYaw;
 
         private double velX, velY, velZ; // blocks per tick, smoothed
-        private double yawRate;          // degrees per tick, smoothed
+        private double yawRate; // degrees per tick, smoothed
 
         private final Vector lead = new Vector();
         private float yaw;
@@ -127,9 +127,11 @@ public final class PingCompensation {
             lastZ = now.getZ();
             lastYaw = now.getYaw();
 
-            double leadTicks = Math.min(MAX_LEAD_TICKS,
-                    Math.max(0.0, ping(player) - LEAD_DEADZONE_MS) / MS_PER_TICK
-                            + Math.max(0, smoothingTicks - 1));
+            double leadTicks =
+                    Math.min(
+                            MAX_LEAD_TICKS,
+                            Math.max(0.0, ping(player) - LEAD_DEADZONE_MS) / MS_PER_TICK
+                                    + Math.max(0, smoothingTicks - 1));
 
             lead.setX(velX * leadTicks);
             lead.setY(velY * leadTicks * VERTICAL_LEAD_FACTOR);
@@ -139,7 +141,10 @@ public final class PingCompensation {
                 lead.multiply(maxLeadBlocks / length);
             }
 
-            double yawLead = Math.max(-MAX_YAW_LEAD_DEGREES, Math.min(MAX_YAW_LEAD_DEGREES, yawRate * leadTicks));
+            double yawLead =
+                    Math.max(
+                            -MAX_YAW_LEAD_DEGREES,
+                            Math.min(MAX_YAW_LEAD_DEGREES, yawRate * leadTicks));
             yaw = now.getYaw() + (float) yawLead;
 
             return now.add(lead);

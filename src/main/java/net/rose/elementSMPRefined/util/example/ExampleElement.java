@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.util.example;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -46,7 +47,7 @@ public class ExampleElement extends BaseElement implements ListenerProvider {
         // They will be automatically registered by ListenerInitializer.
         return List.of(
                 // new ExamplePassiveListener(plugin, ...)
-        );
+                );
     }
 
     @Override
@@ -56,10 +57,18 @@ public class ExampleElement extends BaseElement implements ListenerProvider {
         // to keep the effects topped up, so just re-apply them here each time
         // rather than worrying about "is it already active". Gate stronger
         // effects behind upgradeLevel so Upgrade II actually feels stronger.
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 0, true, false));
+        player.addPotionEffect(
+                new PotionEffect(
+                        PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 0, true, false));
 
         if (upgradeLevel >= 2) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 1, true, false));
+            player.addPotionEffect(
+                    new PotionEffect(
+                            PotionEffectType.SPEED,
+                            PotionEffect.INFINITE_DURATION,
+                            1,
+                            true,
+                            false));
         }
     }
 
@@ -79,9 +88,6 @@ public class ExampleElement extends BaseElement implements ListenerProvider {
 
     @Override
     public List<String> getPassiveBenefits() {
-        return List.of(
-                "Speed I",
-                "Speed II (Upgrade II)"
-        );
+        return List.of("Speed I", "Speed II (Upgrade II)");
     }
 }

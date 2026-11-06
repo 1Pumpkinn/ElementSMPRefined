@@ -1,14 +1,15 @@
 package net.rose.elementSMPRefined.ability.passive.mythic.death;
 
+import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.ability.main.mythic.death.DeathBackstabAbility;
 import net.rose.elementSMPRefined.ability.main.mythic.death.DeathVoidAbility;
+import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathNightInvisibilityListener;
+import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathWitherOnHitListener;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
-import net.rose.elementSMPRefined.ability.main.mythic.death.DeathBackstabAbility;
-import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathNightInvisibilityListener;
-import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathWitherOnHitListener;
-import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -20,7 +21,9 @@ public class DeathElement extends BaseElement implements ListenerProvider {
     private DeathNightInvisibilityListener nightInvisibilityListener;
 
     public DeathElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.DEATH,
+        super(
+                plugin,
+                ElementType.DEATH,
                 new DeathVoidAbility(plugin, configManager),
                 new DeathBackstabAbility(plugin, configManager));
     }
@@ -28,16 +31,17 @@ public class DeathElement extends BaseElement implements ListenerProvider {
     @Override
     public List<Listener> getListeners(JavaPlugin plugin) {
         ElementSMPRefined elementPlugin = (ElementSMPRefined) plugin;
-        this.nightInvisibilityListener = new DeathNightInvisibilityListener(elementPlugin, elementPlugin.getElementManager());
+        this.nightInvisibilityListener =
+                new DeathNightInvisibilityListener(
+                        elementPlugin, elementPlugin.getElementManager());
         return List.of(
                 nightInvisibilityListener,
-                new DeathWitherOnHitListener(elementPlugin.getElementManager(), elementPlugin.getTeamManager())
-        );
+                new DeathWitherOnHitListener(
+                        elementPlugin.getElementManager(), elementPlugin.getTeamManager()));
     }
 
     @Override
-    public void applyUpsides(Player player, int upgradeLevel) {
-    }
+    public void applyUpsides(Player player, int upgradeLevel) {}
 
     @Override
     public void clearEffects(Player player) {
@@ -55,7 +59,6 @@ public class DeathElement extends BaseElement implements ListenerProvider {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Invisible at night",
-                "35% chance to apply Wither for 5s on hit (Upgrade II)");
+                "Invisible at night", "35% chance to apply Wither for 5s on hit (Upgrade II)");
     }
 }

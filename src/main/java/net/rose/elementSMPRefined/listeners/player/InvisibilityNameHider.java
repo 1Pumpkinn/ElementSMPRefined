@@ -1,9 +1,11 @@
 package net.rose.elementSMPRefined.listeners.player;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.rose.elementSMPRefined.util.visual.PassiveInvisibility;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,8 +34,10 @@ public class InvisibilityNameHider implements Listener {
         }
 
         // Vanilla "<name> message" format, with the name swapped for ???
-        event.renderer((source, sourceDisplayName, message, viewer) ->
-                Component.translatable("chat.type.text", Component.text(HIDDEN_NAME), message));
+        event.renderer(
+                (source, sourceDisplayName, message, viewer) ->
+                        Component.translatable(
+                                "chat.type.text", Component.text(HIDDEN_NAME), message));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

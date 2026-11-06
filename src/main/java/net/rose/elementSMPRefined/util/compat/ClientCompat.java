@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.util.compat;
 
 import com.viaversion.viaversion.api.Via;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

@@ -1,15 +1,16 @@
 package net.rose.elementSMPRefined.ability.main.basic.earth;
 
-import org.bukkit.Bukkit;
-import net.rose.elementSMPRefined.core.Constants;
-import net.rose.elementSMPRefined.core.API.element.ElementContext;
-import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.ability.passive.basic.earth.EarthElement;
+import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
+import net.rose.elementSMPRefined.core.API.element.ElementContext;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.bukkit.MetadataHelper;
-import net.rose.elementSMPRefined.lang.Lang;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -42,7 +43,13 @@ public class EarthTunnelAbility extends BaseAbility {
     private final Map<UUID, Object> tunnelTokens = new HashMap<>();
 
     public EarthTunnelAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("earth_tunnel", ElementType.EARTH, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
+        super(
+                "earth_tunnel",
+                ElementType.EARTH,
+                1,
+                Constants.Cooldown.ABILITY_1_SECONDS,
+                1,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
         this.metadataHelper = ((ElementSMPRefined) plugin).getMetadataHelper();
     }
@@ -66,10 +73,12 @@ public class EarthTunnelAbility extends BaseAbility {
         tunnelTokens.put(player.getUniqueId(), token);
 
         long now = System.currentTimeMillis();
-        metadataHelper.setLong(player, EarthElement.META_TUNNELING, now + Constants.Duration.EARTH_TUNNEL_MS);
+        metadataHelper.setLong(
+                player, EarthElement.META_TUNNELING, now + Constants.Duration.EARTH_TUNNEL_MS);
         tunnelStartTimes.put(player.getUniqueId(), now);
 
-        // If a pickaxe is in hand right now, lock it in for the whole tunnel (Fortune / Silk Touch included).
+        // If a pickaxe is in hand right now, lock it in for the whole tunnel (Fortune / Silk Touch
+        // included).
         ItemStack started = player.getInventory().getItemInMainHand();
         if (Tag.ITEMS_PICKAXES.isTagged(started.getType())) {
             tunnelTools.put(player.getUniqueId(), started.clone());
@@ -82,46 +91,64 @@ public class EarthTunnelAbility extends BaseAbility {
 
         setActive(player, true);
 
-        Bukkit.getScheduler().runTaskTimer(plugin, task -> {
-            if (tunnelTokens.get(player.getUniqueId()) != token) {
-                // Superseded by a newer tunnel (or cancelled): just die quietly.
-                task.cancel();
-                return;
-            }
+        Bukkit.getScheduler()
+                .runTaskTimer(
+                        plugin,
+                        task -> {
+                            if (tunnelTokens.get(player.getUniqueId()) != token) {
+                                // Superseded by a newer tunnel (or cancelled): just die quietly.
+                                task.cancel();
+                                return;
+                            }
 
-            if (!player.isOnline() || !metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
-                tunnelTools.remove(player.getUniqueId());
-                tunnelStartTimes.remove(player.getUniqueId());
-                tunnelTokens.remove(player.getUniqueId());
-                setActive(player, false);
-                task.cancel();
-                return;
-            }
+                            if (!player.isOnline()
+                                    || !metadataHelper.hasFlag(
+                                            player, EarthElement.META_TUNNELING)) {
+                                tunnelTools.remove(player.getUniqueId());
+                                tunnelStartTimes.remove(player.getUniqueId());
+                                tunnelTokens.remove(player.getUniqueId());
+                                setActive(player, false);
+                                task.cancel();
+                                return;
+                            }
 
-            long until = metadataHelper.getLong(player, EarthElement.META_TUNNELING, 0);
-            if (System.currentTimeMillis() > until) {
-                metadataHelper.remove(player, EarthElement.META_TUNNELING);
-                player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_ENDED);
-                tunnelTools.remove(player.getUniqueId());
-                tunnelStartTimes.remove(player.getUniqueId());
-                tunnelTokens.remove(player.getUniqueId());
-                setActive(player, false);
-                task.cancel();
-                return;
-            }
+                            long until =
+                                    metadataHelper.getLong(player, EarthElement.META_TUNNELING, 0);
+                            if (System.currentTimeMillis() > until) {
+                                metadataHelper.remove(player, EarthElement.META_TUNNELING);
+                                player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_ENDED);
+                                tunnelTools.remove(player.getUniqueId());
+                                tunnelStartTimes.remove(player.getUniqueId());
+                                tunnelTokens.remove(player.getUniqueId());
+                                setActive(player, false);
+                                task.cancel();
+                                return;
+                            }
 
-            Vector direction = player.getLocation().getDirection().normalize();
+                            Vector direction = player.getLocation().getDirection().normalize();
 
-            Location mineLocation;
-            if (direction.getY() < -0.5) {
-                mineLocation = player.getLocation().add(direction.multiply(1.0));
-            } else {
-                mineLocation = player.getEyeLocation().add(direction.multiply(1.5));
-            }
-            breakTunnel(mineLocation, player);
+                            Location mineLocation;
+                            if (direction.getY() < -0.5) {
+                                mineLocation = player.getLocation().add(direction.multiply(1.0));
+                            } else {
+                                mineLocation = player.getEyeLocation().add(direction.multiply(1.5));
+                            }
+                            breakTunnel(mineLocation, player);
 
-            player.getWorld().spawnParticle(Particle.BLOCK, mineLocation, 10, 0.5, 0.5, 0.5, 0.1, Material.STONE.createBlockData(), true);
-        }, 0L, 2L);
+                            player.getWorld()
+                                    .spawnParticle(
+                                            Particle.BLOCK,
+                                            mineLocation,
+                                            10,
+                                            0.5,
+                                            0.5,
+                                            0.5,
+                                            0.1,
+                                            Material.STONE.createBlockData(),
+                                            true);
+                        },
+                        0L,
+                        2L);
 
         return true;
     }
@@ -136,7 +163,9 @@ public class EarthTunnelAbility extends BaseAbility {
         Long startedAt = tunnelStartTimes.remove(player.getUniqueId());
         if (startedAt == null) return;
 
-        double usedFraction = (System.currentTimeMillis() - startedAt) / (double) Constants.Duration.EARTH_TUNNEL_MS;
+        double usedFraction =
+                (System.currentTimeMillis() - startedAt)
+                        / (double) Constants.Duration.EARTH_TUNNEL_MS;
         usedFraction = Math.max(0.0, Math.min(1.0, usedFraction));
 
         int full = getCooldownSeconds();
@@ -163,7 +192,8 @@ public class EarthTunnelAbility extends BaseAbility {
 
                     if (TUNNELABLE.contains(block.getType())) {
                         if (tool != null) {
-                            // Drops are rolled against the locked-in pickaxe, so Fortune / Silk Touch apply.
+                            // Drops are rolled against the locked-in pickaxe, so Fortune / Silk
+                            // Touch apply.
                             block.breakNaturally(tool);
                         } else {
                             block.breakNaturally();
@@ -175,31 +205,57 @@ public class EarthTunnelAbility extends BaseAbility {
         }
     }
 
-    private static final Set<Material> TUNNELABLE = EnumSet.of(
-            Material.STONE, Material.DEEPSLATE, Material.DIRT, Material.GRASS_BLOCK,
-            Material.COBBLESTONE, Material.ANDESITE, Material.DIORITE, Material.GRANITE,
-            Material.MUD, Material.ROOTED_DIRT, Material.COARSE_DIRT, Material.ICE, Material.BLUE_ICE,
-            Material.PACKED_ICE,
-
-            Material.GRAVEL, Material.SAND, Material.RED_SAND, Material.SANDSTONE,
-            Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK, Material.SULFUR,
-            Material.CINNABAR,
-
-            Material.BLACKSTONE, Material.CRIMSON_NYLIUM, Material.WARPED_NYLIUM,
-            Material.SOUL_SAND, Material.BASALT,  Material.SMOOTH_BASALT, Material.SOUL_SOIL,
-
-            Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
-            Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE,
-            Material.COPPER_ORE, Material.DEEPSLATE_COPPER_ORE,
-            Material.GOLD_ORE, Material.DEEPSLATE_GOLD_ORE,
-            Material.REDSTONE_ORE, Material.DEEPSLATE_REDSTONE_ORE,
-            Material.LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE,
-            Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
-            Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE,
-
-            Material.RAW_COPPER_BLOCK, Material.RAW_IRON_BLOCK, Material.RAW_GOLD_BLOCK
-
-    );
+    private static final Set<Material> TUNNELABLE =
+            EnumSet.of(
+                    Material.STONE,
+                    Material.DEEPSLATE,
+                    Material.DIRT,
+                    Material.GRASS_BLOCK,
+                    Material.COBBLESTONE,
+                    Material.ANDESITE,
+                    Material.DIORITE,
+                    Material.GRANITE,
+                    Material.MUD,
+                    Material.ROOTED_DIRT,
+                    Material.COARSE_DIRT,
+                    Material.ICE,
+                    Material.BLUE_ICE,
+                    Material.PACKED_ICE,
+                    Material.GRAVEL,
+                    Material.SAND,
+                    Material.RED_SAND,
+                    Material.SANDSTONE,
+                    Material.TUFF,
+                    Material.CALCITE,
+                    Material.DRIPSTONE_BLOCK,
+                    Material.SULFUR,
+                    Material.CINNABAR,
+                    Material.BLACKSTONE,
+                    Material.CRIMSON_NYLIUM,
+                    Material.WARPED_NYLIUM,
+                    Material.SOUL_SAND,
+                    Material.BASALT,
+                    Material.SMOOTH_BASALT,
+                    Material.SOUL_SOIL,
+                    Material.COAL_ORE,
+                    Material.DEEPSLATE_COAL_ORE,
+                    Material.IRON_ORE,
+                    Material.DEEPSLATE_IRON_ORE,
+                    Material.COPPER_ORE,
+                    Material.DEEPSLATE_COPPER_ORE,
+                    Material.GOLD_ORE,
+                    Material.DEEPSLATE_GOLD_ORE,
+                    Material.REDSTONE_ORE,
+                    Material.DEEPSLATE_REDSTONE_ORE,
+                    Material.LAPIS_ORE,
+                    Material.DEEPSLATE_LAPIS_ORE,
+                    Material.DIAMOND_ORE,
+                    Material.DEEPSLATE_DIAMOND_ORE,
+                    Material.EMERALD_ORE,
+                    Material.DEEPSLATE_EMERALD_ORE,
+                    Material.RAW_COPPER_BLOCK,
+                    Material.RAW_IRON_BLOCK,
+                    Material.RAW_GOLD_BLOCK);
 
     @Override
     public String getName() {
@@ -208,6 +264,7 @@ public class EarthTunnelAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Digs a tunnel where you're looking. Use your held pickaxe's if you want to apply Fortune and Silk Touch. Use again to stop tunneling.";
+        return "Digs a tunnel where you're looking. Use your held pickaxe's if you want to apply"
+                   + " Fortune and Silk Touch. Use again to stop tunneling.";
     }
 }

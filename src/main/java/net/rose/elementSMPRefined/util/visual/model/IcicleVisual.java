@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -59,57 +60,115 @@ public final class IcicleVisual {
 
         for (int i = 0; i < count; i++) {
             final int index = i;
-            // The base material is irrelevant - the item_model component replaces its model entirely.
+            // The base material is irrelevant - the item_model component replaces its model
+            // entirely.
             final ItemStack item = ModelItems.of(modelFor(i, count));
             // The display's centre sits half a (scaled) segment above where the segment starts.
-            final Location centre = new Location(world, base.getX(),
-                    base.getY() + i * segmentHeight + 0.5 * segmentHeight, base.getZ(), 0f, 0f);
+            final Location centre =
+                    new Location(
+                            world,
+                            base.getX(),
+                            base.getY() + i * segmentHeight + 0.5 * segmentHeight,
+                            base.getZ(),
+                            0f,
+                            0f);
             final long spawnAt = (long) i * STAGGER_TICKS;
 
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                ItemDisplay display = world.spawn(centre, ItemDisplay.class, d -> {
-                    d.setItemStack(item);
-                    d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                    d.setBillboard(Display.Billboard.FIXED);
-                    d.setBrightness(new Display.Brightness(15, 15));
-                    d.setTransformation(pose(width, segmentHeight, COLLAPSED));
-                    d.setPersistent(false);
-                    d.setInvulnerable(true);
-                });
-                ACTIVE.add(display);
+            Bukkit.getScheduler()
+                    .runTaskLater(
+                            plugin,
+                            () -> {
+                                ItemDisplay display =
+                                        world.spawn(
+                                                centre,
+                                                ItemDisplay.class,
+                                                d -> {
+                                                    d.setItemStack(item);
+                                                    d.setItemDisplayTransform(
+                                                            ItemDisplay.ItemDisplayTransform.NONE);
+                                                    d.setBillboard(Display.Billboard.FIXED);
+                                                    d.setBrightness(new Display.Brightness(15, 15));
+                                                    d.setTransformation(
+                                                            pose(width, segmentHeight, COLLAPSED));
+                                                    d.setPersistent(false);
+                                                    d.setInvulnerable(true);
+                                                });
+                                ACTIVE.add(display);
 
-                if (index == 0) {
-                    world.spawnParticle(Particle.BLOCK, base.clone().add(0, 0.1, 0), 6, 0.3, 0.1, 0.3, 0.0,
-                            Material.PACKED_ICE.createBlockData(), true);
-                    world.spawnParticle(Particle.SNOWFLAKE, base.clone().add(0, 0.5, 0), 6, 0.3, 0.4, 0.3, 0.02, null, true);
-                }
+                                if (index == 0) {
+                                    world.spawnParticle(
+                                            Particle.BLOCK,
+                                            base.clone().add(0, 0.1, 0),
+                                            6,
+                                            0.3,
+                                            0.1,
+                                            0.3,
+                                            0.0,
+                                            Material.PACKED_ICE.createBlockData(),
+                                            true);
+                                    world.spawnParticle(
+                                            Particle.SNOWFLAKE,
+                                            base.clone().add(0, 0.5, 0),
+                                            6,
+                                            0.3,
+                                            0.4,
+                                            0.3,
+                                            0.02,
+                                            null,
+                                            true);
+                                }
 
-                // Interpolation only animates if the transformation changes after the entity has been
-                // sent to clients, so the growth starts a tick later.
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    if (!display.isValid()) return;
-                    display.setInterpolationDelay(0);
-                    display.setInterpolationDuration(GROW_TICKS);
-                    display.setTransformation(pose(width, segmentHeight, 1.0f));
-                }, 1L);
+                                // Interpolation only animates if the transformation changes after
+                                // the entity has been
+                                // sent to clients, so the growth starts a tick later.
+                                Bukkit.getScheduler()
+                                        .runTaskLater(
+                                                plugin,
+                                                () -> {
+                                                    if (!display.isValid()) return;
+                                                    display.setInterpolationDelay(0);
+                                                    display.setInterpolationDuration(GROW_TICKS);
+                                                    display.setTransformation(
+                                                            pose(width, segmentHeight, 1.0f));
+                                                },
+                                                1L);
 
-                // Every segment sinks at the same moment, so the spike never floats half-gone.
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    if (!display.isValid()) return;
-                    display.setInterpolationDelay(0);
-                    display.setInterpolationDuration(SHRINK_TICKS);
-                    display.setTransformation(pose(width, segmentHeight, COLLAPSED));
-                }, shrinkAt - spawnAt);
+                                // Every segment sinks at the same moment, so the spike never floats
+                                // half-gone.
+                                Bukkit.getScheduler()
+                                        .runTaskLater(
+                                                plugin,
+                                                () -> {
+                                                    if (!display.isValid()) return;
+                                                    display.setInterpolationDelay(0);
+                                                    display.setInterpolationDuration(SHRINK_TICKS);
+                                                    display.setTransformation(
+                                                            pose(width, segmentHeight, COLLAPSED));
+                                                },
+                                                shrinkAt - spawnAt);
 
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    if (display.isValid()) display.remove();
-                    ACTIVE.remove(display);
-                    if (index == 0) {
-                        world.spawnParticle(Particle.BLOCK, base.clone().add(0, 0.5, 0), 10, 0.4, 0.5, 0.4, 0.0,
-                                Material.ICE.createBlockData(), true);
-                    }
-                }, shrinkAt - spawnAt + SHRINK_TICKS + 2L);
-            }, spawnAt);
+                                Bukkit.getScheduler()
+                                        .runTaskLater(
+                                                plugin,
+                                                () -> {
+                                                    if (display.isValid()) display.remove();
+                                                    ACTIVE.remove(display);
+                                                    if (index == 0) {
+                                                        world.spawnParticle(
+                                                                Particle.BLOCK,
+                                                                base.clone().add(0, 0.5, 0),
+                                                                10,
+                                                                0.4,
+                                                                0.5,
+                                                                0.4,
+                                                                0.0,
+                                                                Material.ICE.createBlockData(),
+                                                                true);
+                                                    }
+                                                },
+                                                shrinkAt - spawnAt + SHRINK_TICKS + 2L);
+                            },
+                            spawnAt);
         }
     }
 

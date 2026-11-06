@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.listeners.combat;
 
 import net.rose.elementSMPRefined.managers.TeamManager;
+
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;

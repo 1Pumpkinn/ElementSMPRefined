@@ -1,11 +1,12 @@
 package net.rose.elementSMPRefined.ability.passive.basic.air;
 
+import net.rose.elementSMPRefined.ability.main.basic.air.AirCutterAbility;
+import net.rose.elementSMPRefined.ability.main.basic.air.AirDashAbility;
+import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.basic.air.AirDashAbility;
-import net.rose.elementSMPRefined.ability.main.basic.air.AirCutterAbility;
-import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,7 +17,9 @@ public class AirElement extends BaseElement {
     private AirAntiFallDmgListener fallImpactListener;
 
     public AirElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.AIR,
+        super(
+                plugin,
+                ElementType.AIR,
                 new AirDashAbility(plugin, configManager),
                 new AirCutterAbility(plugin, configManager));
     }
@@ -26,8 +29,7 @@ public class AirElement extends BaseElement {
     }
 
     @Override
-    public void applyUpsides(Player player, int upgradeLevel) {
-    }
+    public void applyUpsides(Player player, int upgradeLevel) {}
 
     @Override
     public String getDisplayName() {

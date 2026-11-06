@@ -1,28 +1,29 @@
 package net.rose.elementSMPRefined.managers;
 
+import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.ability.passive.basic.air.AirElement;
+import net.rose.elementSMPRefined.ability.passive.basic.earth.EarthElement;
+import net.rose.elementSMPRefined.ability.passive.basic.fire.FireElement;
+import net.rose.elementSMPRefined.ability.passive.basic.water.WaterElement;
+import net.rose.elementSMPRefined.ability.passive.mythic.death.DeathElement;
+import net.rose.elementSMPRefined.ability.passive.mythic.life.LifeElement;
+import net.rose.elementSMPRefined.ability.passive.upgraded.frost.FrostElement;
+import net.rose.elementSMPRefined.ability.passive.upgraded.lava.LavaElement;
+import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
+import net.rose.elementSMPRefined.ability.passive.upgraded.storm.StormElement;
 import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.event.AbilityActivateEvent;
 import net.rose.elementSMPRefined.core.API.event.ElementAssignEvent;
 import net.rose.elementSMPRefined.core.API.event.ElementSetEvent;
-import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.core.registry.ElementRegistry;
 import net.rose.elementSMPRefined.data.DataStore;
 import net.rose.elementSMPRefined.data.PlayerData;
-import net.rose.elementSMPRefined.ability.passive.basic.air.AirElement;
-import net.rose.elementSMPRefined.ability.passive.mythic.death.DeathElement;
-import net.rose.elementSMPRefined.ability.passive.basic.earth.EarthElement;
-import net.rose.elementSMPRefined.ability.passive.basic.fire.FireElement;
-import net.rose.elementSMPRefined.ability.passive.upgraded.frost.FrostElement;
-import net.rose.elementSMPRefined.ability.passive.upgraded.lava.LavaElement;
-import net.rose.elementSMPRefined.ability.passive.mythic.life.LifeElement;
-import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
-import net.rose.elementSMPRefined.ability.passive.upgraded.storm.StormElement;
-import net.rose.elementSMPRefined.ability.passive.basic.water.WaterElement;
-import net.rose.elementSMPRefined.core.registry.ElementRegistry;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
-import net.rose.elementSMPRefined.lang.Lang;
+
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -48,8 +49,12 @@ public class ElementManager {
     private final ElementRegistry elementRegistry;
     private final Set<UUID> currentlyRolling = new HashSet<>();
 
-    public ElementManager(JavaPlugin plugin, DataStore store, CooldownManager cooldownManager,
-                          TeamManager teamManager, ConfigManager configManager) {
+    public ElementManager(
+            JavaPlugin plugin,
+            DataStore store,
+            CooldownManager cooldownManager,
+            TeamManager teamManager,
+            ConfigManager configManager) {
         this.plugin = (ElementSMPRefined) plugin;
         this.store = store;
         this.cooldownManager = cooldownManager;
@@ -58,8 +63,14 @@ public class ElementManager {
         this.elementRegistry = new ElementRegistry(plugin);
         registerAllElements();
     }
-    public EffectService getEffectService() { return plugin.getEffectService(); }
-    public ElementRegistry getElementRegistry() { return elementRegistry; }
+
+    public EffectService getEffectService() {
+        return plugin.getEffectService();
+    }
+
+    public ElementRegistry getElementRegistry() {
+        return elementRegistry;
+    }
 
     /**
      * All basic elements that can be rolled initially (starter rolls, basic
@@ -251,8 +262,10 @@ public class ElementManager {
 
         boolean success = number == 1 ? element.ability1(ctx) : element.ability2(ctx);
         if (success) {
-            String abilityName = number == 1 ? element.getAbility1Name() : element.getAbility2Name();
-            plugin.getServer().getPluginManager()
+            String abilityName =
+                    number == 1 ? element.getAbility1Name() : element.getAbility2Name();
+            plugin.getServer()
+                    .getPluginManager()
                     .callEvent(new AbilityActivateEvent(player, type, number, abilityName));
         }
         return success;

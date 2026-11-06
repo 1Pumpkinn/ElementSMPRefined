@@ -1,8 +1,9 @@
 package net.rose.elementSMPRefined.core.registry;
 
+import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ElementSMPRefined;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Collection;
@@ -30,12 +31,14 @@ public class ElementRegistry {
      */
     public void register(Element element) {
         if (frozen) {
-            throw new IllegalStateException("Registry is frozen and cannot accept new registrations");
+            throw new IllegalStateException(
+                    "Registry is frozen and cannot accept new registrations");
         }
 
         ElementType type = element.getType();
         if (elements.containsKey(type)) {
-            plugin.getLogger().warning("Element " + type + " is already registered. Skipping duplicate.");
+            plugin.getLogger()
+                    .warning("Element " + type + " is already registered. Skipping duplicate.");
             return;
         }
 

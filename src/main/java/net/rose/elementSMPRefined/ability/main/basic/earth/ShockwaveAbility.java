@@ -1,14 +1,15 @@
 package net.rose.elementSMPRefined.ability.main.basic.earth;
 
-import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -43,32 +44,41 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ShockwaveAbility extends BaseAbility {
 
-    private static final double JUMP_VELOCITY = 1.1;   // ~6-7 blocks of hop
-    private static final double SLAM_SPEED = 1.5;      // downward velocity while slamming
-    private static final int MIN_RISE_TICKS = 8;       // don't check for the apex before this (the real apex is ~tick 12)
-    private static final double APEX_DROP = 0.15;      // must have fallen this far below the highest point to count as the apex
-    private static final int APEX_STALL_TICKS = 4;     // ...or sat at the highest point this long (ceiling bonk)
-    private static final int MAX_RISE_TICKS = 25;      // force the slam if they never peak (ceiling, etc.)
-    private static final int SLAM_TIMEOUT_TICKS = 100; // force the impact if they never land (void, water)
+    private static final double JUMP_VELOCITY = 1.1; // ~6-7 blocks of hop
+    private static final double SLAM_SPEED = 1.5; // downward velocity while slamming
+    private static final int MIN_RISE_TICKS =
+            8; // don't check for the apex before this (the real apex is ~tick 12)
+    private static final double APEX_DROP =
+            0.15; // must have fallen this far below the highest point to count as the apex
+    private static final int APEX_STALL_TICKS =
+            4; // ...or sat at the highest point this long (ceiling bonk)
+    private static final int MAX_RISE_TICKS =
+            25; // force the slam if they never peak (ceiling, etc.)
+    private static final int SLAM_TIMEOUT_TICKS =
+            100; // force the impact if they never land (void, water)
 
     private static final double MAX_RANGE = 10.0;
     private static final double START_RADIUS = 1.5;
-    private static final double STEP_PER_TICK = 0.8;   // how far the ring advances each tick
-    private static final double ARC_SPACING = 0.5;     // small enough that the ring has no gaps (columns are de-duplicated)
+    private static final double STEP_PER_TICK = 0.8; // how far the ring advances each tick
+    private static final double ARC_SPACING =
+            0.5; // small enough that the ring has no gaps (columns are de-duplicated)
 
-    private static final double LAUNCH_UP = 1.1;       // ~6-8 blocks of height
+    private static final double LAUNCH_UP = 1.1; // ~6-8 blocks of height
     private static final double LAUNCH_OUTWARD = 0.6;
-    private static final double DAMAGE = 8.0;                 // 4 hearts right next to the caster, falling off to DAMAGE_AT_MAX_RANGE
+    private static final double DAMAGE =
+            8.0; // 4 hearts right next to the caster, falling off to DAMAGE_AT_MAX_RANGE
     private static final double DAMAGE_AT_MAX_RANGE = 2.0;
     private static final double HIT_RADIUS_XZ = 1.5;
     private static final double HIT_RADIUS_Y = 3.0;
 
-    // Per-block animation, in ticks. Interpolation is linear, so a slightly longer settle reads smoother.
+    // Per-block animation, in ticks. Interpolation is linear, so a slightly longer settle reads
+    // smoother.
     private static final int RISE_TICKS = 2;
     private static final int HOLD_TICKS = 1;
     private static final int FALL_TICKS = 4;
-    private static final double RISE_HEIGHT = 1.0;     // how far each block heaves up, in blocks
-    private static final float CUBE_SCALE = 0.98f;     // slightly under 1 so the copy doesn't z-fight the real block
+    private static final double RISE_HEIGHT = 1.0; // how far each block heaves up, in blocks
+    private static final float CUBE_SCALE =
+            0.98f; // slightly under 1 so the copy doesn't z-fight the real block
 
     // Ticks after spawning at which each phase starts. The raise waits one tick because
     // interpolation only animates if the transformation changes after clients have the entity.
@@ -101,7 +111,13 @@ public class ShockwaveAbility extends BaseAbility {
     private record WaveBlock(BlockDisplay display, Transformation raised, int born) {}
 
     public ShockwaveAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("earth_shockwave", ElementType.EARTH, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
+        super(
+                "earth_shockwave",
+                ElementType.EARTH,
+                2,
+                Constants.Cooldown.ABILITY_2_SECONDS,
+                2,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -121,8 +137,16 @@ public class ShockwaveAbility extends BaseAbility {
 
         world.playSound(start, Sound.ENTITY_IRON_GOLEM_ATTACK, 1.2f, 0.6f);
         world.playSound(start, Sound.BLOCK_GRAVEL_BREAK, 1.5f, 0.5f);
-        world.spawnParticle(Particle.BLOCK, start.clone().add(0, 0.2, 0), 30, 0.6, 0.1, 0.6, 0.0,
-                Material.DIRT.createBlockData(), true);
+        world.spawnParticle(
+                Particle.BLOCK,
+                start.clone().add(0, 0.2, 0),
+                30,
+                0.6,
+                0.1,
+                0.6,
+                0.0,
+                Material.DIRT.createBlockData(),
+                true);
 
         new BukkitRunnable() {
             int ticks = 0;
@@ -156,9 +180,11 @@ public class ShockwaveAbility extends BaseAbility {
                     } else {
                         ticksSinceMax++;
                     }
-                    boolean peaked = ticks >= MAX_RISE_TICKS
-                            || (ticks >= MIN_RISE_TICKS
-                            && (y < maxY - APEX_DROP || ticksSinceMax >= APEX_STALL_TICKS));
+                    boolean peaked =
+                            ticks >= MAX_RISE_TICKS
+                                    || (ticks >= MIN_RISE_TICKS
+                                            && (y < maxY - APEX_DROP
+                                                    || ticksSinceMax >= APEX_STALL_TICKS));
                     if (!peaked) return;
 
                     slamming = true;
@@ -166,8 +192,16 @@ public class ShockwaveAbility extends BaseAbility {
                 }
 
                 caster.setVelocity(new Vector(0, -SLAM_SPEED, 0));
-                world.spawnParticle(Particle.BLOCK, caster.getLocation().add(0, 1, 0), 6, 0.3, 0.6, 0.3, 0.0,
-                        Material.STONE.createBlockData(), true);
+                world.spawnParticle(
+                        Particle.BLOCK,
+                        caster.getLocation().add(0, 1, 0),
+                        6,
+                        0.3,
+                        0.6,
+                        0.3,
+                        0.0,
+                        Material.STONE.createBlockData(),
+                        true);
 
                 if (caster.isOnGround() || isSolidBelow(caster) || ticks > SLAM_TIMEOUT_TICKS) {
                     cancel();
@@ -214,7 +248,8 @@ public class ShockwaveAbility extends BaseAbility {
                 advanceBlocks(now, toRaise, toFall, toRemove);
 
                 if (radius > MAX_RANGE) {
-                    // Ring is finished; stay alive only until the last display has settled and been removed.
+                    // Ring is finished; stay alive only until the last display has settled and been
+                    // removed.
                     if (toRaise.isEmpty() && toFall.isEmpty() && toRemove.isEmpty()) cancel();
                     return;
                 }
@@ -222,9 +257,11 @@ public class ShockwaveAbility extends BaseAbility {
                 int points = Math.max(8, (int) Math.ceil((2 * Math.PI * radius) / ARC_SPACING));
 
                 // Taller near the centre, tapering off toward the edge of the wave. The pose is the
-                // same for the whole ring step, so it is built once per tick instead of once per block.
+                // same for the whole ring step, so it is built once per tick instead of once per
+                // block.
                 double falloff = 1.0 - (radius / MAX_RANGE) * 0.4;
-                final Transformation raised = placed(-0.5f + (float) (RISE_HEIGHT * falloff), new Quaternionf());
+                final Transformation raised =
+                        placed(-0.5f + (float) (RISE_HEIGHT * falloff), new Quaternionf());
 
                 // Fetched once per tick, and only if a point actually finds ground.
                 List<LivingEntity> candidates = null;
@@ -250,22 +287,24 @@ public class ShockwaveAbility extends BaseAbility {
                         toRaise.add(new WaveBlock(spawnBlock(ground), raised, now));
                     }
 
-                    if (candidates == null) candidates = collectCandidates(caster, team, origin, radius, alreadyHit);
+                    if (candidates == null)
+                        candidates = collectCandidates(caster, team, origin, radius, alreadyHit);
                     if (!candidates.isEmpty()) {
                         launchNearby(caster, origin, candidates, ground, dirX, dirZ, alreadyHit);
                     }
                 }
 
                 if ((now & 1) == 0) {
-                    world.playSound(origin.clone().add(radius, 0, 0), Sound.BLOCK_STONE_BREAK, 0.5f, 0.7f);
+                    world.playSound(
+                            origin.clone().add(radius, 0, 0), Sound.BLOCK_STONE_BREAK, 0.5f, 0.7f);
                 }
                 radius += STEP_PER_TICK;
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    private static void advanceBlocks(int now, Deque<WaveBlock> toRaise, Deque<WaveBlock> toFall,
-                                      Deque<WaveBlock> toRemove) {
+    private static void advanceBlocks(
+            int now, Deque<WaveBlock> toRaise, Deque<WaveBlock> toFall, Deque<WaveBlock> toRemove) {
         WaveBlock b;
 
         while ((b = toRemove.peekFirst()) != null && now >= b.born() + REMOVE_AT) {
@@ -303,18 +342,32 @@ public class ShockwaveAbility extends BaseAbility {
         // pose sits exactly over the real block (translation -1 on Y).
         Location spawn = new Location(w, ground.getX(), ground.getY() + 1, ground.getZ());
 
-        BlockDisplay display = w.spawn(spawn, BlockDisplay.class, d -> {
-            d.setBlock(data);
-            d.setPersistent(false);
-            d.setViewRange(VIEW_RANGE);
-            d.setTransformation(RESTING);
-        });
+        BlockDisplay display =
+                w.spawn(
+                        spawn,
+                        BlockDisplay.class,
+                        d -> {
+                            d.setBlock(data);
+                            d.setPersistent(false);
+                            d.setViewRange(VIEW_RANGE);
+                            d.setTransformation(RESTING);
+                        });
         LIVE.add(display);
 
         // Checkerboard: dust on every other column only.
         if (((ground.getX() + ground.getZ()) & 1) == 0) {
-            w.spawnParticle(Particle.BLOCK, spawn.getX() + 0.5, spawn.getY() + 0.1, spawn.getZ() + 0.5,
-                    DUST_COUNT, 0.4, 0.1, 0.4, 0.0, data, true);
+            w.spawnParticle(
+                    Particle.BLOCK,
+                    spawn.getX() + 0.5,
+                    spawn.getY() + 0.1,
+                    spawn.getZ() + 0.5,
+                    DUST_COUNT,
+                    0.4,
+                    0.1,
+                    0.4,
+                    0.0,
+                    data,
+                    true);
         }
         return display;
     }
@@ -322,13 +375,17 @@ public class ShockwaveAbility extends BaseAbility {
     private static Transformation placed(float centerY, Quaternionf rotation) {
         float half = CUBE_SCALE / 2f;
         Vector3f rotatedHalf = new Vector3f(half, half, half).rotate(rotation);
-        Vector3f translation = new Vector3f(0.5f - rotatedHalf.x, centerY - rotatedHalf.y, 0.5f - rotatedHalf.z);
-        return new Transformation(translation, rotation,
-                new Vector3f(CUBE_SCALE, CUBE_SCALE, CUBE_SCALE), new Quaternionf());
+        Vector3f translation =
+                new Vector3f(0.5f - rotatedHalf.x, centerY - rotatedHalf.y, 0.5f - rotatedHalf.z);
+        return new Transformation(
+                translation,
+                rotation,
+                new Vector3f(CUBE_SCALE, CUBE_SCALE, CUBE_SCALE),
+                new Quaternionf());
     }
 
-    private List<LivingEntity> collectCandidates(Player caster, TeamManager team, Location origin,
-                                                 double radius, Set<UUID> alreadyHit) {
+    private List<LivingEntity> collectCandidates(
+            Player caster, TeamManager team, Location origin, double radius, Set<UUID> alreadyHit) {
         double reachXZ = radius + STEP_PER_TICK + HIT_RADIUS_XZ + 1.0;
         double reachY = SCAN_UP + SCAN_DOWN + 1 + HIT_RADIUS_Y + 1.0;
 
@@ -336,7 +393,8 @@ public class ShockwaveAbility extends BaseAbility {
         for (LivingEntity entity : origin.getNearbyLivingEntities(reachXZ, reachY, reachXZ)) {
             if (entity.equals(caster)) continue;
             if (entity instanceof ArmorStand) continue;
-            if (team != null && entity instanceof Player other
+            if (team != null
+                    && entity instanceof Player other
                     && team.isFriendly(caster.getUniqueId(), other.getUniqueId())) continue;
             if (alreadyHit.contains(entity.getUniqueId())) continue;
             out.add(entity);
@@ -344,11 +402,20 @@ public class ShockwaveAbility extends BaseAbility {
         return out;
     }
 
-    private void launchNearby(Player caster, Location origin, List<LivingEntity> candidates, Block ground,
-                              double outwardX, double outwardZ, Set<UUID> alreadyHit) {
-        BoundingBox zone = BoundingBox.of(
-                new Vector(ground.getX() + 0.5, ground.getY() + 1.0, ground.getZ() + 0.5),
-                HIT_RADIUS_XZ, HIT_RADIUS_Y, HIT_RADIUS_XZ);
+    private void launchNearby(
+            Player caster,
+            Location origin,
+            List<LivingEntity> candidates,
+            Block ground,
+            double outwardX,
+            double outwardZ,
+            Set<UUID> alreadyHit) {
+        BoundingBox zone =
+                BoundingBox.of(
+                        new Vector(ground.getX() + 0.5, ground.getY() + 1.0, ground.getZ() + 0.5),
+                        HIT_RADIUS_XZ,
+                        HIT_RADIUS_Y,
+                        HIT_RADIUS_XZ);
 
         for (Iterator<LivingEntity> it = candidates.iterator(); it.hasNext(); ) {
             LivingEntity entity = it.next();
@@ -359,9 +426,13 @@ public class ShockwaveAbility extends BaseAbility {
 
             // Damage first: it applies its own knockback, which would otherwise
             // overwrite the launch if we set velocity before it.
-            TrueDamage.of(damageAt(origin, entity)).attacker(caster).ability(getName()).apply(entity);
+            TrueDamage.of(damageAt(origin, entity))
+                    .attacker(caster)
+                    .ability(getName())
+                    .apply(entity);
 
-            entity.setVelocity(new Vector(outwardX * LAUNCH_OUTWARD, LAUNCH_UP, outwardZ * LAUNCH_OUTWARD));
+            entity.setVelocity(
+                    new Vector(outwardX * LAUNCH_OUTWARD, LAUNCH_UP, outwardZ * LAUNCH_OUTWARD));
         }
     }
 
@@ -379,7 +450,9 @@ public class ShockwaveAbility extends BaseAbility {
     }
 
     private static long columnKey(Block b) {
-        return ((long) b.getX() & 0x3FFFFFFL) << 38 | ((long) b.getZ() & 0x3FFFFFFL) << 12 | (b.getY() & 0xFFFL);
+        return ((long) b.getX() & 0x3FFFFFFL) << 38
+                | ((long) b.getZ() & 0x3FFFFFFL) << 12
+                | (b.getY() & 0xFFFL);
     }
 
     @Override

@@ -4,6 +4,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -30,12 +31,29 @@ public class ElementContext {
         this.plugin = builder.plugin;
     }
 
-    public Player getPlayer() { return player; }
-    public int getUpgradeLevel() { return upgradeLevel; }
-    public ElementType getElementType() { return elementType; }
-    public CooldownManager getCooldownManager() { return cooldownManager; }
-    public TeamManager getTeamManager() { return teamManager; }
-    public ConfigManager getConfigManager() { return configManager; }
+    public Player getPlayer() {
+        return player;
+    }
+
+    public int getUpgradeLevel() {
+        return upgradeLevel;
+    }
+
+    public ElementType getElementType() {
+        return elementType;
+    }
+
+    public CooldownManager getCooldownManager() {
+        return cooldownManager;
+    }
+
+    public TeamManager getTeamManager() {
+        return teamManager;
+    }
+
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
 
     public static Builder builder() {
         return new Builder();

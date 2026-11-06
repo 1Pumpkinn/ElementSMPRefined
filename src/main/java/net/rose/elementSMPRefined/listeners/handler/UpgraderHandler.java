@@ -1,14 +1,15 @@
 package net.rose.elementSMPRefined.listeners.handler;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.event.UpgradeLevelChangeEvent;
+import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.ItemKeys;
+import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
-import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -64,18 +65,25 @@ public class UpgraderHandler implements Listener {
         if (item == null) return false;
 
         Material type = item.getType();
-        // ECHO_SHARD is the old Upgrader II material - still accepted so existing items keep working.
+        // ECHO_SHARD is the old Upgrader II material - still accepted so existing items keep
+        // working.
         if (type != Material.AMETHYST_SHARD && type != Material.ECHO_SHARD) return false;
 
         return ItemUtil.hasTag(item, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER);
     }
 
     private int getUpgraderLevel(ItemStack item) {
-        return ItemUtil.getTag(item, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER).orElseThrow();
+        return ItemUtil.getTag(item, ItemKeys.upgraderLevel(plugin), PersistentDataType.INTEGER)
+                .orElseThrow();
     }
 
-    private void handleUpgradeI(Player player, ItemStack item, EquipmentSlot hand, PlayerData playerData,
-                                ElementType currentElement, int currentUpgradeLevel) {
+    private void handleUpgradeI(
+            Player player,
+            ItemStack item,
+            EquipmentSlot hand,
+            PlayerData playerData,
+            ElementType currentElement,
+            int currentUpgradeLevel) {
         if (currentUpgradeLevel >= 1) {
             player.sendMessage(Lang.UPGRADER_YOU_ALREADY_HAVE_UPGRADE_I);
             return;
@@ -86,8 +94,13 @@ public class UpgraderHandler implements Listener {
         }
     }
 
-    private void handleUpgradeII(Player player, ItemStack item, EquipmentSlot hand, PlayerData playerData,
-                                 ElementType currentElement, int currentUpgradeLevel) {
+    private void handleUpgradeII(
+            Player player,
+            ItemStack item,
+            EquipmentSlot hand,
+            PlayerData playerData,
+            ElementType currentElement,
+            int currentUpgradeLevel) {
         if (currentUpgradeLevel < 1) {
             player.sendMessage(Lang.UPGRADER_YOU_NEED_UPGRADE_I_BEFORE);
             return;
@@ -103,10 +116,16 @@ public class UpgraderHandler implements Listener {
         }
     }
 
-    private boolean applyUpgrade(Player player, ItemStack item, EquipmentSlot hand, PlayerData playerData,
-                                 ElementType currentElement, int level) {
+    private boolean applyUpgrade(
+            Player player,
+            ItemStack item,
+            EquipmentSlot hand,
+            PlayerData playerData,
+            ElementType currentElement,
+            int level) {
         int previousLevel = playerData.getUpgradeLevel(currentElement);
-        UpgradeLevelChangeEvent changeEvent = new UpgradeLevelChangeEvent(player, currentElement, previousLevel, level);
+        UpgradeLevelChangeEvent changeEvent =
+                new UpgradeLevelChangeEvent(player, currentElement, previousLevel, level);
         plugin.getServer().getPluginManager().callEvent(changeEvent);
         if (changeEvent.isCancelled()) return false;
 

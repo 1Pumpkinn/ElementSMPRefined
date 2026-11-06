@@ -1,12 +1,13 @@
 package net.rose.elementSMPRefined.ability.passive.basic.earth;
 
+import net.rose.elementSMPRefined.ability.main.basic.earth.EarthTunnelAbility;
+import net.rose.elementSMPRefined.ability.main.basic.earth.ShockwaveAbility;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.ability.main.basic.earth.EarthTunnelAbility;
-import net.rose.elementSMPRefined.ability.main.basic.earth.ShockwaveAbility;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.services.EffectService;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,14 +21,22 @@ public class EarthElement extends BaseElement {
     public static final String META_TUNNELING = "earth_tunneling";
 
     public EarthElement(JavaPlugin plugin, ConfigManager configManager) {
-        super(plugin, ElementType.EARTH,
+        super(
+                plugin,
+                ElementType.EARTH,
                 new EarthTunnelAbility(plugin, configManager),
                 new ShockwaveAbility(plugin, configManager));
     }
 
     @Override
     public void applyUpsides(Player player, int upgradeLevel) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE, PotionEffect.INFINITE_DURATION, 0, true, false));
+        player.addPotionEffect(
+                new PotionEffect(
+                        PotionEffectType.HERO_OF_THE_VILLAGE,
+                        PotionEffect.INFINITE_DURATION,
+                        0,
+                        true,
+                        false));
     }
 
     @Override
@@ -51,8 +60,6 @@ public class EarthElement extends BaseElement {
 
     @Override
     public List<String> getPassiveBenefits() {
-        return List.of(
-                "Hero of the Village",
-                "Vein Miner (Upgrade II)");
+        return List.of("Hero of the Village", "Vein Miner (Upgrade II)");
     }
 }

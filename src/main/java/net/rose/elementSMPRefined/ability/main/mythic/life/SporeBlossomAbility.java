@@ -14,6 +14,7 @@ import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
@@ -56,32 +57,40 @@ import java.util.Set;
  */
 public class SporeBlossomAbility extends BaseAbility {
 
-    // ---- Per generation: index 0 = the big blossom, 1 = its 4 children, 2 = the 8 grandchildren of each ----
-    private static final float[] SIZE = {2.2f, 1.3f, 0.75f};          // display scale in blocks
-    private static final double[] RADIUS = {3.5, 2.4, 1.6};           // burst radius
-    private static final double[] DAMAGE = {8.0, 5.0, 3.0};           // true damage per burst (1.0 = half a heart)
-    private static final int[] POISON_TICKS = {180, 120, 60};         // poison length per burst
-    private static final int[] SPLIT_INTO = {4, 8, 0};                // children a burst throws out
-    private static final int[] MAX_FLIGHT_TICKS = {0, 80, 80};      // children burst when they land; this is only a safety net
-    private static final double[] FLIGHT_SPEED = {0.0, 0.45, 0.40};   // horizontal blocks per tick
+    // ---- Per generation: index 0 = the big blossom, 1 = its 4 children, 2 = the 8 grandchildren
+    // of each ----
+    private static final float[] SIZE = {2.2f, 1.3f, 0.75f}; // display scale in blocks
+    private static final double[] RADIUS = {3.5, 2.4, 1.6}; // burst radius
+    private static final double[] DAMAGE = {
+        8.0, 5.0, 3.0
+    }; // true damage per burst (1.0 = half a heart)
+    private static final int[] POISON_TICKS = {180, 120, 60}; // poison length per burst
+    private static final int[] SPLIT_INTO = {4, 8, 0}; // children a burst throws out
+    private static final int[] MAX_FLIGHT_TICKS = {
+        0, 80, 80
+    }; // children burst when they land; this is only a safety net
+    private static final double[] FLIGHT_SPEED = {0.0, 0.45, 0.40}; // horizontal blocks per tick
 
     private static final int POISON_AMPLIFIER = 0;
 
-    private static final double RANGE = 20.0;                         // how far away the first blossom can bloom
-    private static final double MAX_HEIGHT_ABOVE_GROUND = 8.0;        // the first blossom can hover in the air, but never higher than this
-    private static final double GROUND_SEARCH = 48.0;                 // how far down to look for ground under the aim point
-    private static final int FIRST_FUSE_TICKS = 14;                   // the big blossom grows, then bursts
-    private static final int MIN_FUSE_TICKS = 4;                      // a child that lands at once still waits this long
-    private static final double POP_SPEED = 0.2;                      // upward pop when a child is thrown out
-    private static final double GRAVITY = 0.035;                      // blocks per tick^2
+    private static final double RANGE = 20.0; // how far away the first blossom can bloom
+    private static final double MAX_HEIGHT_ABOVE_GROUND =
+            8.0; // the first blossom can hover in the air, but never higher than this
+    private static final double GROUND_SEARCH =
+            48.0; // how far down to look for ground under the aim point
+    private static final int FIRST_FUSE_TICKS = 14; // the big blossom grows, then bursts
+    private static final int MIN_FUSE_TICKS = 4; // a child that lands at once still waits this long
+    private static final double POP_SPEED = 0.2; // upward pop when a child is thrown out
+    private static final double GRAVITY = 0.035; // blocks per tick^2
     private static final float SPIN_PER_TICK = 0.3f;
-    private static final float THROB = 0.07f;                         // +-7% size throb
+    private static final float THROB = 0.07f; // +-7% size throb
 
     private static final Random RANDOM = new Random();
     private static final Set<Cast> ACTIVE = new HashSet<>();
 
     private static final Component NO_GROUND =
-            Component.text("There's no ground there for a blossom to bloom on!", NamedTextColor.RED);
+            Component.text(
+                    "There's no ground there for a blossom to bloom on!", NamedTextColor.RED);
 
     private static final Component ALREADY_ACTIVE =
             Component.text("Spore Blossom is already blooming!", NamedTextColor.RED);
@@ -89,7 +98,13 @@ public class SporeBlossomAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public SporeBlossomAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("spore_blossom", ElementType.LIFE, 2, Constants.Cooldown.ABILITY_2_SECONDS, 2, configManager);
+        super(
+                "spore_blossom",
+                ElementType.LIFE,
+                2,
+                Constants.Cooldown.ABILITY_2_SECONDS,
+                2,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -127,15 +142,23 @@ public class SporeBlossomAbility extends BaseAbility {
         Location eye = player.getEyeLocation();
         Vector dir = eye.getDirection().normalize();
 
-        RayTraceResult hit = w.rayTrace(eye, dir, RANGE, FluidCollisionMode.NEVER, true, 0.3,
-                e -> e instanceof LivingEntity le && !le.equals(player));
+        RayTraceResult hit =
+                w.rayTrace(
+                        eye,
+                        dir,
+                        RANGE,
+                        FluidCollisionMode.NEVER,
+                        true,
+                        0.3,
+                        e -> e instanceof LivingEntity le && !le.equals(player));
         if (hit == null) {
             return limitHeight(eye.clone().add(dir.clone().multiply(RANGE)));
         }
 
         Vector at = hit.getHitPosition();
         if (hit.getHitBlockFace() != null) {
-            // The blossom is centred on this point and grows to SIZE[0] blocks, so back off by its full
+            // The blossom is centred on this point and grows to SIZE[0] blocks, so back off by its
+            // full
             // half-size (a flat 0.6 left it sunk into the ground when you aimed down).
             at = at.clone().add(hit.getHitBlockFace().getDirection().multiply(clearance(0)));
         }
@@ -157,8 +180,14 @@ public class SporeBlossomAbility extends BaseAbility {
         at.setYaw(0f);
         at.setPitch(0f);
 
-        RayTraceResult down = at.getWorld().rayTraceBlocks(at, new Vector(0, -1, 0), GROUND_SEARCH,
-                FluidCollisionMode.NEVER, true);
+        RayTraceResult down =
+                at.getWorld()
+                        .rayTraceBlocks(
+                                at,
+                                new Vector(0, -1, 0),
+                                GROUND_SEARCH,
+                                FluidCollisionMode.NEVER,
+                                true);
         if (down == null) return null;
 
         double groundY = down.getHitPosition().getY();
@@ -235,7 +264,8 @@ public class SporeBlossomAbility extends BaseAbility {
             this.cast = cast;
             this.generation = generation;
             this.pos = pos.clone();
-            // The bloom point can be a clone of the caster's eye location; it must never carry their yaw/pitch,
+            // The bloom point can be a clone of the caster's eye location; it must never carry
+            // their yaw/pitch,
             // or the display entity itself tilts to wherever they were looking.
             this.pos.setYaw(0f);
             this.pos.setPitch(0f);
@@ -245,10 +275,12 @@ public class SporeBlossomAbility extends BaseAbility {
 
         /** @return true once it has burst and can be dropped */
         boolean tick() {
-            // Gravity applies to every generation; the big blossom descends and bursts in the air, the children fall and burst on landing.
+            // Gravity applies to every generation; the big blossom descends and bursts in the air,
+            // the children fall and burst on landing.
             fly();
             if (generation == 0) {
-                // The big blossom descends while it grows and bursts in the air when its fuse runs out.
+                // The big blossom descends while it grows and bursts in the air when its fuse runs
+                // out.
                 if (age >= FIRST_FUSE_TICKS) {
                     burst();
                     return true;
@@ -274,14 +306,27 @@ public class SporeBlossomAbility extends BaseAbility {
             if (speed < 1.0E-6) return;
             Vector dir = velocity.clone().multiply(1.0 / speed);
 
-            // Look ahead by this blossom's own clearance, not a flat 0.2: the landing spot is a full clearance
-            // above the surface, so a shorter ray lets it sink into the ground first and then snap back up.
-            RayTraceResult hit = pos.getWorld().rayTraceBlocks(pos, dir, speed + clearance(generation),
-                    FluidCollisionMode.NEVER, true);
+            // Look ahead by this blossom's own clearance, not a flat 0.2: the landing spot is a
+            // full clearance
+            // above the surface, so a shorter ray lets it sink into the ground first and then snap
+            // back up.
+            RayTraceResult hit =
+                    pos.getWorld()
+                            .rayTraceBlocks(
+                                    pos,
+                                    dir,
+                                    speed + clearance(generation),
+                                    FluidCollisionMode.NEVER,
+                                    true);
             if (hit != null) {
                 Vector at = hit.getHitPosition();
                 if (hit.getHitBlockFace() != null) {
-                    at = at.clone().add(hit.getHitBlockFace().getDirection().multiply(clearance(generation)));
+                    at =
+                            at.clone()
+                                    .add(
+                                            hit.getHitBlockFace()
+                                                    .getDirection()
+                                                    .multiply(clearance(generation)));
                 }
                 pos = at.toLocation(pos.getWorld());
                 velocity.zero();
@@ -325,10 +370,18 @@ public class SporeBlossomAbility extends BaseAbility {
             for (int i = 0; i < count; i++) {
                 final float pitch = Math.min(2.0f, notes[i] * (1f + 0.12f * generation));
                 final float noteVol = (0.55f - 0.1f * generation) * (0.8f + 0.05f * i);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    w.playSound(at, Sound.BLOCK_NOTE_BLOCK_CHIME, noteVol, pitch);
-                    w.playSound(at, Sound.BLOCK_AMETHYST_CLUSTER_BREAK, noteVol * 0.6f, pitch);
-                }, 2L * (i + 1));
+                Bukkit.getScheduler()
+                        .runTaskLater(
+                                plugin,
+                                () -> {
+                                    w.playSound(at, Sound.BLOCK_NOTE_BLOCK_CHIME, noteVol, pitch);
+                                    w.playSound(
+                                            at,
+                                            Sound.BLOCK_AMETHYST_CLUSTER_BREAK,
+                                            noteVol * 0.6f,
+                                            pitch);
+                                },
+                                2L * (i + 1));
             }
         }
 
@@ -337,8 +390,12 @@ public class SporeBlossomAbility extends BaseAbility {
             for (LivingEntity e : at.getWorld().getNearbyLivingEntities(at, RADIUS[generation])) {
                 if (!AbilityTargets.isValid(caster, e, cast.team)) continue;
 
-                boolean dealt = TrueDamage.of(DAMAGE[generation]).attacker(caster).ability(getName())
-                        .ignoreIFrames(true).apply(e);
+                boolean dealt =
+                        TrueDamage.of(DAMAGE[generation])
+                                .attacker(caster)
+                                .ability(getName())
+                                .ignoreIFrames(true)
+                                .apply(e);
                 if (dealt) {
                     poison(e, POISON_TICKS[generation]);
                 }
@@ -348,10 +405,14 @@ public class SporeBlossomAbility extends BaseAbility {
         /** Never shortens poison the target already has, so a big dose isn't cut down by a small one. */
         private void poison(LivingEntity target, int ticks) {
             PotionEffect current = target.getPotionEffect(PotionEffectType.POISON);
-            if (current != null && current.getAmplifier() >= POISON_AMPLIFIER && current.getDuration() >= ticks) {
+            if (current != null
+                    && current.getAmplifier() >= POISON_AMPLIFIER
+                    && current.getDuration() >= ticks) {
                 return;
             }
-            target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, ticks, POISON_AMPLIFIER, false, true, true));
+            target.addPotionEffect(
+                    new PotionEffect(
+                            PotionEffectType.POISON, ticks, POISON_AMPLIFIER, false, true, true));
         }
 
         private void split(Location at) {
@@ -362,7 +423,8 @@ public class SporeBlossomAbility extends BaseAbility {
             double base = RANDOM.nextDouble() * Math.PI * 2.0;
             for (int i = 0; i < count; i++) {
                 // Evenly spread around the burst, each nudged a little so the ring isn't perfect.
-                double angle = base + i * (Math.PI * 2.0 / count) + (RANDOM.nextDouble() - 0.5) * 0.5;
+                double angle =
+                        base + i * (Math.PI * 2.0 / count) + (RANDOM.nextDouble() - 0.5) * 0.5;
                 double speed = FLIGHT_SPEED[child] * (0.8 + RANDOM.nextDouble() * 0.4);
                 Vector v = new Vector(Math.cos(angle) * speed, POP_SPEED, Math.sin(angle) * speed);
                 cast.add(new Blossom(cast, child, at.clone().add(0, 0.3, 0), v));
@@ -381,34 +443,43 @@ public class SporeBlossomAbility extends BaseAbility {
                 size *= 1f + THROB * (float) Math.sin(age * 1.6 + spinOffset);
             }
 
-            // The spore blossom block model hangs from a ceiling (flower pointing down), so flip it 180 degrees
-            // around X first to make the flower face up, then spin around the world's vertical axis.
-            // Entity yaw/pitch is always 0 and billboarding is off, so this is the only rotation applied
+            // The spore blossom block model hangs from a ceiling (flower pointing down), so flip it
+            // 180 degrees
+            // around X first to make the flower face up, then spin around the world's vertical
+            // axis.
+            // Entity yaw/pitch is always 0 and billboarding is off, so this is the only rotation
+            // applied
             // and the blossom looks the same no matter where the caster is looking.
-            Quaternionf rotation = new Quaternionf()
-                    .rotateY(spinOffset + age * SPIN_PER_TICK)
-                    .rotateX((float) Math.PI);
-            // Scale and spin both happen around the block's corner, so shift it back to keep the centre on pos.
+            Quaternionf rotation =
+                    new Quaternionf()
+                            .rotateY(spinOffset + age * SPIN_PER_TICK)
+                            .rotateX((float) Math.PI);
+            // Scale and spin both happen around the block's corner, so shift it back to keep the
+            // centre on pos.
             Vector3f shift = new Vector3f(size / 2f).rotate(rotation).negate();
-            Transformation transformation = new Transformation(
-                    shift, rotation, new Vector3f(size), new Quaternionf());
+            Transformation transformation =
+                    new Transformation(shift, rotation, new Vector3f(size), new Quaternionf());
 
             World w = pos.getWorld();
             if (!GroundScan.isLoaded(pos)) return;
 
             if (display == null || !display.isValid()) {
                 final Transformation initial = transformation;
-                display = w.spawn(pos, BlockDisplay.class, d -> {
-                    d.setBlock(Material.SPORE_BLOSSOM.createBlockData());
-                    d.setBillboard(Display.Billboard.FIXED);
-                    d.setRotation(0f, 0f);
-                    d.setBrightness(new Display.Brightness(15, 15));
-                    d.setTransformation(initial);
-                    d.setTeleportDuration(smoothing);
-                    d.setInterpolationDuration(smoothing);
-                    d.setPersistent(false);
-                    d.setInvulnerable(true);
-                });
+                display =
+                        w.spawn(
+                                pos,
+                                BlockDisplay.class,
+                                d -> {
+                                    d.setBlock(Material.SPORE_BLOSSOM.createBlockData());
+                                    d.setBillboard(Display.Billboard.FIXED);
+                                    d.setRotation(0f, 0f);
+                                    d.setBrightness(new Display.Brightness(15, 15));
+                                    d.setTransformation(initial);
+                                    d.setTeleportDuration(smoothing);
+                                    d.setInterpolationDuration(smoothing);
+                                    d.setPersistent(false);
+                                    d.setInvulnerable(true);
+                                });
                 return;
             }
 
@@ -445,7 +516,7 @@ public class SporeBlossomAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Bloom a spore blossom where you aim. It bursts in poison, splits into 4 smaller blossoms that "
-                + "each burst and split into 8 more.";
+        return "Bloom a spore blossom where you aim. It bursts in poison, splits into 4 smaller"
+                   + " blossoms that each burst and split into 8 more.";
     }
 }

@@ -46,9 +46,21 @@ public final class ShieldBlocking {
         EquipmentSlot slot = findShieldSlot(victim);
         if (slot == null) return false;
 
-        victim.getWorld().playSound(victim.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 0.9f + ThreadLocalRandom.current().nextFloat() * 0.2f);
-        victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1.2, 0)
-                .add(flat.clone().multiply(-0.6)), 6, 0.15, 0.2, 0.15, 0.1);
+        victim.getWorld()
+                .playSound(
+                        victim.getLocation(),
+                        Sound.ITEM_SHIELD_BLOCK,
+                        1.0f,
+                        0.9f + ThreadLocalRandom.current().nextFloat() * 0.2f);
+        victim.getWorld()
+                .spawnParticle(
+                        Particle.CRIT,
+                        victim.getLocation().add(0, 1.2, 0).add(flat.clone().multiply(-0.6)),
+                        6,
+                        0.15,
+                        0.2,
+                        0.15,
+                        0.1);
 
         wearShield(victim, slot, 1 + (int) Math.floor(Math.max(0.0, damage)));
         return true;
@@ -79,22 +91,37 @@ public final class ShieldBlocking {
         }
         if (wear == 0) return;
 
-        int max = damageable.hasMaxDamage() ? damageable.getMaxDamage() : shield.getType().getMaxDurability();
+        int max =
+                damageable.hasMaxDamage()
+                        ? damageable.getMaxDamage()
+                        : shield.getType().getMaxDurability();
         int next = damageable.getDamage() + wear;
 
         if (next >= max) {
             player.getInventory().setItem(slot, null);
             player.getWorld().playSound(player.getLocation(), Sound.ITEM_SHIELD_BREAK, 1.0f, 1.0f);
-            player.getWorld().spawnParticle(Particle.ITEM, player.getLocation().add(0, 1.2, 0), 12, 0.3, 0.3, 0.3, 0.1, shield);
+            player.getWorld()
+                    .spawnParticle(
+                            Particle.ITEM,
+                            player.getLocation().add(0, 1.2, 0),
+                            12,
+                            0.3,
+                            0.3,
+                            0.3,
+                            0.1,
+                            shield);
             return;
         }
 
         damageable.setDamage(next);
         shield.setItemMeta(damageable);
 
-        // The inventory normally hands back the live stack, but make sure the wear sticks if it was a copy.
+        // The inventory normally hands back the live stack, but make sure the wear sticks if it was
+        // a copy.
         ItemStack held = player.getInventory().getItem(slot);
-        if (held != null && held.getItemMeta() instanceof Damageable now && now.getDamage() != next) {
+        if (held != null
+                && held.getItemMeta() instanceof Damageable now
+                && now.getDamage() != next) {
             player.getInventory().setItem(slot, shield);
         }
     }

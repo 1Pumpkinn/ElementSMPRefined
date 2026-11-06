@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.util.server;
 import net.rose.elementSMPRefined.commands.server.DimensionCommand;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -95,9 +96,10 @@ public class DimensionDisable implements Listener {
         // Unrecognized portal block (target == null): fail closed only if
         // *something* is disabled, so we don't silently let an edge case
         // (e.g. an End Gateway variant) slip through untouched.
-        boolean shouldCancel = target != null
-                ? isDisabled(target)
-                : (configManager.isNetherDisabled() || configManager.isEndDisabled());
+        boolean shouldCancel =
+                target != null
+                        ? isDisabled(target)
+                        : (configManager.isNetherDisabled() || configManager.isEndDisabled());
 
         if (shouldCancel) {
             event.setCancelled(true);
@@ -114,7 +116,9 @@ public class DimensionDisable implements Listener {
         if (dimension == null) {
             return false;
         }
-        return dimension == Dimension.NETHER ? configManager.isNetherDisabled() : configManager.isEndDisabled();
+        return dimension == Dimension.NETHER
+                ? configManager.isNetherDisabled()
+                : configManager.isEndDisabled();
     }
 
     private static Dimension fromCause(PlayerTeleportEvent.TeleportCause cause) {
@@ -136,11 +140,13 @@ public class DimensionDisable implements Listener {
     }
 
     private void pushOutOfPortal(Player player) {
-        Vector pushback = player.getLocation().getDirection()
-                .multiply(-1)
-                .setY(0.2)
-                .normalize()
-                .multiply(configManager.getDimensionPushbackStrength());
+        Vector pushback =
+                player.getLocation()
+                        .getDirection()
+                        .multiply(-1)
+                        .setY(0.2)
+                        .normalize()
+                        .multiply(configManager.getDimensionPushbackStrength());
         player.setVelocity(pushback);
     }
 

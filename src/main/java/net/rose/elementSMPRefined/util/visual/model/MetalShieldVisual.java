@@ -1,8 +1,9 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Display;
@@ -26,9 +27,9 @@ public final class MetalShieldVisual {
 
     private static final float SCALE = 1.0f;
 
-    private static final double RADIUS = 1.4;           // distance from the owner
-    private static final double HEIGHT = 0.85;          // shield centre above the owner's feet
-    private static final double BOB = 0.04;             // gentle vertical drift
+    private static final double RADIUS = 1.4; // distance from the owner
+    private static final double HEIGHT = 0.85; // shield centre above the owner's feet
+    private static final double BOB = 0.04; // gentle vertical drift
     private static final double SPIN_DEGREES_PER_TICK = 6.0; // one lap every 3 seconds
     private static final double MAX_LEAD_BLOCKS = 2.5;
 
@@ -52,17 +53,27 @@ public final class MetalShieldVisual {
 
         for (int i = 0; i < count; i++) {
             double slot = i * (360.0 / count);
-            ItemDisplay display = start.getWorld().spawn(place(start, slot, 0, i), ItemDisplay.class, d -> {
-                d.setItemStack(modelItem);
-                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                d.setBillboard(Display.Billboard.FIXED);
-                d.setBrightness(new Display.Brightness(15, 15));
-                d.setTransformation(new Transformation(
-                        new Vector3f(), new Quaternionf(), new Vector3f(SCALE), new Quaternionf()));
-                d.setTeleportDuration(smoothing);
-                d.setPersistent(false);
-                d.setInvulnerable(true);
-            });
+            ItemDisplay display =
+                    start.getWorld()
+                            .spawn(
+                                    place(start, slot, 0, i),
+                                    ItemDisplay.class,
+                                    d -> {
+                                        d.setItemStack(modelItem);
+                                        d.setItemDisplayTransform(
+                                                ItemDisplay.ItemDisplayTransform.NONE);
+                                        d.setBillboard(Display.Billboard.FIXED);
+                                        d.setBrightness(new Display.Brightness(15, 15));
+                                        d.setTransformation(
+                                                new Transformation(
+                                                        new Vector3f(),
+                                                        new Quaternionf(),
+                                                        new Vector3f(SCALE),
+                                                        new Quaternionf()));
+                                        d.setTeleportDuration(smoothing);
+                                        d.setPersistent(false);
+                                        d.setInvulnerable(true);
+                                    });
             orbiters.add(new Orbiter(display, slot, i));
         }
         ACTIVE.add(this);
@@ -135,10 +146,12 @@ public final class MetalShieldVisual {
         double radialZ = Math.sin(a);
         double bob = Math.sin(tick * 0.12 + index * 2.1) * BOB;
 
-        Location loc = new Location(owner.getWorld(),
-                owner.getX() + radialX * RADIUS,
-                owner.getY() + HEIGHT + bob,
-                owner.getZ() + radialZ * RADIUS);
+        Location loc =
+                new Location(
+                        owner.getWorld(),
+                        owner.getX() + radialX * RADIUS,
+                        owner.getY() + HEIGHT + bob,
+                        owner.getZ() + radialZ * RADIUS);
         loc.setYaw((float) Math.toDegrees(Math.atan2(-radialX, radialZ)));
         loc.setPitch(0f);
         return loc;

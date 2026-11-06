@@ -39,7 +39,8 @@ public final class YamlFiles {
     private YamlFiles() {}
 
     /** Loads a YAML file, throwing if it can't be read or parsed. A missing/empty file is an empty config. */
-    public static YamlConfiguration loadStrict(File file) throws IOException, InvalidConfigurationException {
+    public static YamlConfiguration loadStrict(File file)
+            throws IOException, InvalidConfigurationException {
         YamlConfiguration yaml = new YamlConfiguration();
         if (file.exists() && file.length() > 0) {
             yaml.load(file);
@@ -57,7 +58,11 @@ public final class YamlFiles {
         Path temp = target.resolveSibling(file.getName() + ".tmp");
         Files.writeString(temp, yaml.saveToString(), StandardCharsets.UTF_8);
         try {
-            Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            Files.move(
+                    temp,
+                    target,
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
         } catch (AtomicMoveNotSupportedException e) {
             Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
         }
@@ -69,15 +74,23 @@ public final class YamlFiles {
      * backup is younger than {@code minAgeMinutes} - so a flurry of restarts after a bad update
      * can't push the last good backup out of the rotation.
      */
-    public static void backup(File file, File backupDir, String prefix, int keep, long minAgeMinutes) throws IOException {
+    public static void backup(
+            File file, File backupDir, String prefix, int keep, long minAgeMinutes)
+            throws IOException {
         if (!file.exists() || file.length() == 0) return;
         if (!backupDir.exists() && !backupDir.mkdirs()) {
             throw new IOException("Could not create backup directory " + backupDir);
         }
 
-        File[] existing = backupDir.listFiles((dir, name) -> name.startsWith(prefix + "-") && name.endsWith(".yml"));
-        List<File> backups = existing == null ? List.of()
-                : Arrays.stream(existing).sorted(Comparator.comparingLong(File::lastModified).reversed()).toList();
+        File[] existing =
+                backupDir.listFiles(
+                        (dir, name) -> name.startsWith(prefix + "-") && name.endsWith(".yml"));
+        List<File> backups =
+                existing == null
+                        ? List.of()
+                        : Arrays.stream(existing)
+                                .sorted(Comparator.comparingLong(File::lastModified).reversed())
+                                .toList();
 
         if (!backups.isEmpty()) {
             long ageMillis = System.currentTimeMillis() - backups.getFirst().lastModified();
@@ -95,7 +108,10 @@ public final class YamlFiles {
 
     /** Copies a broken file next to itself as {@code <name>.broken-<timestamp>} so it can be repaired by hand. */
     public static File quarantine(File file) throws IOException {
-        File copy = new File(file.getParentFile(), file.getName() + ".broken-" + LocalDateTime.now().format(STAMP));
+        File copy =
+                new File(
+                        file.getParentFile(),
+                        file.getName() + ".broken-" + LocalDateTime.now().format(STAMP));
         Files.copy(file.toPath(), copy.toPath(), StandardCopyOption.REPLACE_EXISTING);
         return copy;
     }
@@ -122,7 +138,8 @@ public final class YamlFiles {
             changed = true;
         }
 
-        // Comments last: setting them needs the path to exist, and sections only exist once a child was set.
+        // Comments last: setting them needs the path to exist, and sections only exist once a child
+        // was set.
         for (String key : added) {
             if (!live.contains(key, true)) continue;
             List<String> comments = defaults.getComments(key);

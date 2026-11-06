@@ -1,16 +1,17 @@
 package net.rose.elementSMPRefined.ability.main.upgraded.lava;
 
-import net.rose.elementSMPRefined.util.damage.AbilityTargets;
-import net.rose.elementSMPRefined.core.Constants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
@@ -53,7 +54,8 @@ public class EruptionAbility extends BaseAbility {
     private static final double LAUNCH_VELOCITY = 1.0;
     private static final int BURN_TICKS = 80;
 
-    private static final Component NO_TARGET = Component.text("No target in sight!", NamedTextColor.RED);
+    private static final Component NO_TARGET =
+            Component.text("No target in sight!", NamedTextColor.RED);
     private static final BlockData MAGMA = Material.MAGMA_BLOCK.createBlockData();
     private static final BlockData BASALT = Material.BASALT.createBlockData();
 
@@ -62,7 +64,13 @@ public class EruptionAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public EruptionAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("lava_magma_eruption", ElementType.LAVA, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
+        super(
+                "lava_magma_eruption",
+                ElementType.LAVA,
+                1,
+                Constants.Cooldown.ABILITY_1_SECONDS,
+                1,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -86,18 +94,32 @@ public class EruptionAbility extends BaseAbility {
         Location eye = player.getEyeLocation();
         Vector dir = eye.getDirection();
 
-        RayTraceResult blocks = world.rayTraceBlocks(eye, dir, RANGE, FluidCollisionMode.NEVER, true);
-        double maxDistance = blocks == null ? RANGE : blocks.getHitPosition().distance(eye.toVector());
+        RayTraceResult blocks =
+                world.rayTraceBlocks(eye, dir, RANGE, FluidCollisionMode.NEVER, true);
+        double maxDistance =
+                blocks == null ? RANGE : blocks.getHitPosition().distance(eye.toVector());
 
-        RayTraceResult hit = world.rayTraceEntities(eye, dir, maxDistance, RAY_SIZE,
-                e -> e instanceof LivingEntity living && AbilityTargets.isValid(player, living, team));
+        RayTraceResult hit =
+                world.rayTraceEntities(
+                        eye,
+                        dir,
+                        maxDistance,
+                        RAY_SIZE,
+                        e ->
+                                e instanceof LivingEntity living
+                                        && AbilityTargets.isValid(player, living, team));
         return hit != null && hit.getHitEntity() instanceof LivingEntity living ? living : null;
     }
 
     private Location groundBelow(Location from) {
         World world = from.getWorld();
-        RayTraceResult down = world.rayTraceBlocks(from.clone().add(0, 0.5, 0), new Vector(0, -1, 0),
-                12.0, FluidCollisionMode.NEVER, true);
+        RayTraceResult down =
+                world.rayTraceBlocks(
+                        from.clone().add(0, 0.5, 0),
+                        new Vector(0, -1, 0),
+                        12.0,
+                        FluidCollisionMode.NEVER,
+                        true);
         Location ground = down == null ? from.clone() : down.getHitPosition().toLocation(world);
         ground.add(0, 0.05, 0);
         ground.setYaw(0f);
@@ -115,7 +137,8 @@ public class EruptionAbility extends BaseAbility {
         double[] crackPhase = new double[CRACKS];
         double crackOffset = rng.nextDouble() * Math.PI * 2;
         for (int c = 0; c < CRACKS; c++) {
-            crackAngle[c] = crackOffset + c * (Math.PI * 2 / CRACKS) + (rng.nextDouble() - 0.5) * 0.5;
+            crackAngle[c] =
+                    crackOffset + c * (Math.PI * 2 / CRACKS) + (rng.nextDouble() - 0.5) * 0.5;
             crackPhase[c] = rng.nextDouble() * Math.PI * 2;
         }
 
@@ -141,31 +164,80 @@ public class EruptionAbility extends BaseAbility {
                         double perpX = -dirZ;
                         double perpZ = dirX;
                         for (double d = 0.25; d <= reach; d += 0.25) {
-                            double wobble = Math.sin(d * 4.5 + crackPhase[c]) * 0.18 * Math.min(1.0, d);
-                            Location p = center.clone().add(dirX * d + perpX * wobble, 0.08, dirZ * d + perpZ * wobble);
-                            world.spawnParticle(Particle.DUST_COLOR_TRANSITION, p, 1, 0.02, 0.0, 0.02, 0.0, CRACK_DUST, true);
+                            double wobble =
+                                    Math.sin(d * 4.5 + crackPhase[c]) * 0.18 * Math.min(1.0, d);
+                            Location p =
+                                    center.clone()
+                                            .add(
+                                                    dirX * d + perpX * wobble,
+                                                    0.08,
+                                                    dirZ * d + perpZ * wobble);
+                            world.spawnParticle(
+                                    Particle.DUST_COLOR_TRANSITION,
+                                    p,
+                                    1,
+                                    0.02,
+                                    0.0,
+                                    0.02,
+                                    0.0,
+                                    CRACK_DUST,
+                                    true);
                         }
                         Location end = center.clone().add(dirX * reach, 0.12, dirZ * reach);
-                        world.spawnParticle(Particle.SMALL_FLAME, end, 1, 0.03, 0.03, 0.03, 0.0, null, true);
+                        world.spawnParticle(
+                                Particle.SMALL_FLAME, end, 1, 0.03, 0.03, 0.03, 0.0, null, true);
                     }
 
                     // Thin ring marking the blast radius, tightening as the timer runs out.
                     double ringRadius = RADIUS * (1.0 - 0.2 * progress);
                     for (int i = 0; i < RING_POINTS; i++) {
                         double angle = i * (Math.PI * 2 / RING_POINTS);
-                        Location p = center.clone().add(Math.cos(angle) * ringRadius, 0.1, Math.sin(angle) * ringRadius);
+                        Location p =
+                                center.clone()
+                                        .add(
+                                                Math.cos(angle) * ringRadius,
+                                                0.1,
+                                                Math.sin(angle) * ringRadius);
                         world.spawnParticle(Particle.DUST, p, 1, 0, 0, 0, 0.0, EDGE_DUST, true);
                     }
                 }
 
                 // Heat rising out of the cracked ground.
-                world.spawnParticle(Particle.ASH, center.clone().add(0, 0.3, 0), 3, RADIUS * 0.5, 0.3, RADIUS * 0.5, 0.0, null, true);
+                world.spawnParticle(
+                        Particle.ASH,
+                        center.clone().add(0, 0.3, 0),
+                        3,
+                        RADIUS * 0.5,
+                        0.3,
+                        RADIUS * 0.5,
+                        0.0,
+                        null,
+                        true);
                 if (ticks % 3 == 0) {
-                    world.spawnParticle(Particle.LAVA, center.clone().add(0, 0.2, 0), 2, RADIUS * 0.5, 0.1, RADIUS * 0.5, 0.0, null, true);
-                    world.spawnParticle(Particle.BLOCK, center.clone().add(0, 0.15, 0), 6, RADIUS * 0.4, 0.05, RADIUS * 0.4, 0.0, MAGMA, true);
+                    world.spawnParticle(
+                            Particle.LAVA,
+                            center.clone().add(0, 0.2, 0),
+                            2,
+                            RADIUS * 0.5,
+                            0.1,
+                            RADIUS * 0.5,
+                            0.0,
+                            null,
+                            true);
+                    world.spawnParticle(
+                            Particle.BLOCK,
+                            center.clone().add(0, 0.15, 0),
+                            6,
+                            RADIUS * 0.4,
+                            0.05,
+                            RADIUS * 0.4,
+                            0.0,
+                            MAGMA,
+                            true);
                 }
                 if (ticks % 5 == 0) {
-                    world.playSound(center, Sound.BLOCK_LAVA_POP, 0.8f, 0.8f + (float) progress * 0.6f);
+                    world.playSound(
+                            center, Sound.BLOCK_LAVA_POP, 0.8f, 0.8f + (float) progress * 0.6f);
                 }
                 ticks++;
             }
@@ -180,7 +252,8 @@ public class EruptionAbility extends BaseAbility {
         world.playSound(center, Sound.ITEM_FIRECHARGE_USE, 1.4f, 0.5f);
         world.playSound(center, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 0.6f);
 
-        world.spawnParticle(Particle.EXPLOSION, center.clone().add(0, 0.4, 0), 1, 0, 0, 0, 0.0, null, true);
+        world.spawnParticle(
+                Particle.EXPLOSION, center.clone().add(0, 0.4, 0), 1, 0, 0, 0, 0.0, null, true);
         world.spawnParticle(Particle.LAVA, mid, 25, 0.7, 0.8, 0.7, 0.0, null, true);
         world.spawnParticle(Particle.LARGE_SMOKE, mid, 14, 0.6, 1.0, 0.6, 0.03, null, true);
         world.spawnParticle(Particle.BLOCK, mid, 45, 0.9, 1.0, 0.9, 0.0, MAGMA, true);
@@ -192,7 +265,9 @@ public class EruptionAbility extends BaseAbility {
         // Damage follows the visuals exactly: a round blast the size of the shockwave ring, as tall
         // as the fountain. Anyone who has stepped out of the particles and spikes is not hit.
         Location column = center.clone().add(0, COLUMN_HEIGHT / 2, 0);
-        for (LivingEntity e : column.getNearbyLivingEntities(RADIUS + 1.0, COLUMN_HEIGHT / 2 + 1.0, RADIUS + 1.0)) {
+        for (LivingEntity e :
+                column.getNearbyLivingEntities(
+                        RADIUS + 1.0, COLUMN_HEIGHT / 2 + 1.0, RADIUS + 1.0)) {
             if (!AbilityTargets.isValid(caster, e, team)) continue;
             if (!insideBlast(center, e)) continue;
 
@@ -219,15 +294,21 @@ public class EruptionAbility extends BaseAbility {
     private static final int CRACKS = 9;
     private static final int RING_POINTS = (int) Math.round(RADIUS * 11);
 
-    private static final Particle.DustOptions CORE_DUST = new Particle.DustOptions(Color.fromRGB(255, 130, 25), 1.5f);
-    private static final Particle.DustOptions EDGE_DUST = new Particle.DustOptions(Color.fromRGB(210, 45, 0), 1.0f);
-    private static final Particle.DustOptions DROP_DUST = new Particle.DustOptions(Color.fromRGB(255, 160, 40), 1.1f);
+    private static final Particle.DustOptions CORE_DUST =
+            new Particle.DustOptions(Color.fromRGB(255, 130, 25), 1.5f);
+    private static final Particle.DustOptions EDGE_DUST =
+            new Particle.DustOptions(Color.fromRGB(210, 45, 0), 1.0f);
+    private static final Particle.DustOptions DROP_DUST =
+            new Particle.DustOptions(Color.fromRGB(255, 160, 40), 1.1f);
     private static final Particle.DustTransition CRACK_DUST =
-            new Particle.DustTransition(Color.fromRGB(255, 150, 30), Color.fromRGB(120, 15, 0), 0.9f);
+            new Particle.DustTransition(
+                    Color.fromRGB(255, 150, 30), Color.fromRGB(120, 15, 0), 0.9f);
     private static final Particle.DustTransition RISING_DUST =
-            new Particle.DustTransition(Color.fromRGB(255, 175, 45), Color.fromRGB(110, 20, 0), 1.4f);
+            new Particle.DustTransition(
+                    Color.fromRGB(255, 175, 45), Color.fromRGB(110, 20, 0), 1.4f);
     private static final Particle.DustTransition TIP_DUST =
-            new Particle.DustTransition(Color.fromRGB(255, 200, 80), Color.fromRGB(200, 40, 0), 1.0f);
+            new Particle.DustTransition(
+                    Color.fromRGB(255, 200, 80), Color.fromRGB(200, 40, 0), 1.0f);
 
     private static final double COLUMN_HEIGHT = 3.2;
     private static final int RISE_TICKS = 4;
@@ -271,9 +352,11 @@ public class EruptionAbility extends BaseAbility {
                         double cos = Math.cos(a);
                         double sin = Math.sin(a);
                         Location p = center.clone().add(cos * ringRadius, 0.12, sin * ringRadius);
-                        world.spawnParticle(Particle.DUST, p, 1, 0.04, 0.03, 0.04, 0.0, EDGE_DUST, true);
+                        world.spawnParticle(
+                                Particle.DUST, p, 1, 0.04, 0.03, 0.04, 0.0, EDGE_DUST, true);
                         if (i % 5 == 0) {
-                            world.spawnParticle(Particle.SMALL_FLAME, p, 1, 0, 0.03, 0, 0.01, null, true);
+                            world.spawnParticle(
+                                    Particle.SMALL_FLAME, p, 1, 0, 0.03, 0, 0.01, null, true);
                         }
                     }
 
@@ -282,8 +365,18 @@ public class EruptionAbility extends BaseAbility {
                         for (int s = 0; s < 4; s++) {
                             double a = rng.nextDouble() * Math.PI * 2;
                             double r = rng.nextDouble() * CORE_RADIUS;
-                            Location inner = center.clone().add(Math.cos(a) * r, 0.2, Math.sin(a) * r);
-                            world.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, inner, 0, 0, 0.06, 0, 1.0, null, true);
+                            Location inner =
+                                    center.clone().add(Math.cos(a) * r, 0.2, Math.sin(a) * r);
+                            world.spawnParticle(
+                                    Particle.CAMPFIRE_COSY_SMOKE,
+                                    inner,
+                                    0,
+                                    0,
+                                    0.06,
+                                    0,
+                                    1.0,
+                                    null,
+                                    true);
                         }
                     }
                 }
@@ -298,19 +391,45 @@ public class EruptionAbility extends BaseAbility {
                         double r = COLUMN_RADIUS * taper;
                         Location level = center.clone().add(0, y, 0);
 
-                        world.spawnParticle(Particle.DUST_COLOR_TRANSITION, level, Math.max(1, (int) Math.round(2 * fade)),
-                                r * 0.4, 0.12, r * 0.4, 0.0, RISING_DUST, true);
+                        world.spawnParticle(
+                                Particle.DUST_COLOR_TRANSITION,
+                                level,
+                                Math.max(1, (int) Math.round(2 * fade)),
+                                r * 0.4,
+                                0.12,
+                                r * 0.4,
+                                0.0,
+                                RISING_DUST,
+                                true);
                         if (fade > 0.4) {
-                            world.spawnParticle(Particle.DUST, level, 1, r * 0.2, 0.08, r * 0.2, 0.0, CORE_DUST, true);
+                            world.spawnParticle(
+                                    Particle.DUST,
+                                    level,
+                                    1,
+                                    r * 0.2,
+                                    0.08,
+                                    r * 0.2,
+                                    0.0,
+                                    CORE_DUST,
+                                    true);
                         }
 
                         double a = t * 0.8 + y * 2.4;
-                        Location s = level.clone().add(Math.cos(a) * r * 1.4, 0, Math.sin(a) * r * 1.4);
+                        Location s =
+                                level.clone().add(Math.cos(a) * r * 1.4, 0, Math.sin(a) * r * 1.4);
                         world.spawnParticle(Particle.DUST, s, 1, 0, 0, 0, 0.0, CORE_DUST, true);
                     }
                     if (t % 2 == 0) {
-                        world.spawnParticle(Particle.FLAME, center.clone().add(0, height * 0.5, 0), 2,
-                                COLUMN_RADIUS * 0.3, height * 0.4, COLUMN_RADIUS * 0.3, 0.03, null, true);
+                        world.spawnParticle(
+                                Particle.FLAME,
+                                center.clone().add(0, height * 0.5, 0),
+                                2,
+                                COLUMN_RADIUS * 0.3,
+                                height * 0.4,
+                                COLUMN_RADIUS * 0.3,
+                                0.03,
+                                null,
+                                true);
                     }
                 }
 
@@ -324,16 +443,35 @@ public class EruptionAbility extends BaseAbility {
                         if (y <= 0.05) {
                             landed[i] = true;
                             double d = horizontal[i] * tau;
-                            Location splash = center.clone().add(Math.cos(angle[i]) * d, 0.1, Math.sin(angle[i]) * d);
-                            world.spawnParticle(Particle.LAVA, splash, 1, 0.05, 0.0, 0.05, 0.0, null, true);
-                            world.spawnParticle(Particle.SMALL_FLAME, splash, 2, 0.08, 0.02, 0.08, 0.02, null, true);
+                            Location splash =
+                                    center.clone()
+                                            .add(
+                                                    Math.cos(angle[i]) * d,
+                                                    0.1,
+                                                    Math.sin(angle[i]) * d);
+                            world.spawnParticle(
+                                    Particle.LAVA, splash, 1, 0.05, 0.0, 0.05, 0.0, null, true);
+                            world.spawnParticle(
+                                    Particle.SMALL_FLAME,
+                                    splash,
+                                    2,
+                                    0.08,
+                                    0.02,
+                                    0.08,
+                                    0.02,
+                                    null,
+                                    true);
                             break;
                         }
                         double d = horizontal[i] * tau;
-                        Location p = center.clone().add(Math.cos(angle[i]) * d, y, Math.sin(angle[i]) * d);
-                        world.spawnParticle(Particle.DUST, p, 1, 0.02, 0.02, 0.02, 0.0, DROP_DUST, true);
+                        Location p =
+                                center.clone()
+                                        .add(Math.cos(angle[i]) * d, y, Math.sin(angle[i]) * d);
+                        world.spawnParticle(
+                                Particle.DUST, p, 1, 0.02, 0.02, 0.02, 0.0, DROP_DUST, true);
                         if (sub == 0 && vertical[i] - GRAVITY * tau < 0 && (t + i) % 3 == 0) {
-                            world.spawnParticle(Particle.FALLING_LAVA, p, 1, 0, 0, 0, 0.0, null, true);
+                            world.spawnParticle(
+                                    Particle.FALLING_LAVA, p, 1, 0, 0, 0, 0.0, null, true);
                         }
                     }
                 }
@@ -341,15 +479,53 @@ public class EruptionAbility extends BaseAbility {
                 // Glowing tip and a lava drip on every spike while it stands.
                 if (t >= 1 && t <= 14) {
                     for (Location tip : tips) {
-                        world.spawnParticle(Particle.DUST_COLOR_TRANSITION, tip, 2, 0.08, 0.08, 0.08, 0.0, TIP_DUST, true);
-                        if (t % 2 == 0) world.spawnParticle(Particle.SMALL_FLAME, tip, 1, 0.05, 0.05, 0.05, 0.01, null, true);
-                        if (t % 4 == 0) world.spawnParticle(Particle.DRIPPING_LAVA, tip.clone().add(0, -0.3, 0), 1, 0.1, 0.0, 0.1, 0.0, null, true);
+                        world.spawnParticle(
+                                Particle.DUST_COLOR_TRANSITION,
+                                tip,
+                                2,
+                                0.08,
+                                0.08,
+                                0.08,
+                                0.0,
+                                TIP_DUST,
+                                true);
+                        if (t % 2 == 0)
+                            world.spawnParticle(
+                                    Particle.SMALL_FLAME,
+                                    tip,
+                                    1,
+                                    0.05,
+                                    0.05,
+                                    0.05,
+                                    0.01,
+                                    null,
+                                    true);
+                        if (t % 4 == 0)
+                            world.spawnParticle(
+                                    Particle.DRIPPING_LAVA,
+                                    tip.clone().add(0, -0.3, 0),
+                                    1,
+                                    0.1,
+                                    0.0,
+                                    0.1,
+                                    0.0,
+                                    null,
+                                    true);
                     }
                 }
 
                 // Embers drifting up over the whole blast area.
                 if (t < 16) {
-                    world.spawnParticle(Particle.ASH, center.clone().add(0, 1.0, 0), 4, RADIUS * 0.8, 1.0, RADIUS * 0.8, 0.0, null, true);
+                    world.spawnParticle(
+                            Particle.ASH,
+                            center.clone().add(0, 1.0, 0),
+                            4,
+                            RADIUS * 0.8,
+                            1.0,
+                            RADIUS * 0.8,
+                            0.0,
+                            null,
+                            true);
                 }
                 t++;
             }
@@ -383,11 +559,22 @@ public class EruptionAbility extends BaseAbility {
             int count = Math.max(4, (int) Math.round(Math.PI * 2 * ringRadius / SLAB_SPACING));
             double offset = rng.nextDouble() * Math.PI * 2;
             for (int i = 0; i < count; i++) {
-                double angle = offset + i * (Math.PI * 2 / count) + (rng.nextDouble() - 0.5) * (0.5 / count * Math.PI);
+                double angle =
+                        offset
+                                + i * (Math.PI * 2 / count)
+                                + (rng.nextDouble() - 0.5) * (0.5 / count * Math.PI);
                 double dist = ringRadius + (rng.nextDouble() - 0.5) * 0.5;
-                tips.add(spawnSlab(center, (float) (Math.cos(angle) * dist), (float) (Math.sin(angle) * dist),
-                        SLAB_WIDTH, SLAB_HEIGHT, SLAB_DEPTH, SLAB_TILT, (float) angle,
-                        (i + ringIndex) % 3 == 0 ? SMOOTH_BASALT : BASALT));
+                tips.add(
+                        spawnSlab(
+                                center,
+                                (float) (Math.cos(angle) * dist),
+                                (float) (Math.sin(angle) * dist),
+                                SLAB_WIDTH,
+                                SLAB_HEIGHT,
+                                SLAB_DEPTH,
+                                SLAB_TILT,
+                                (float) angle,
+                                (i + ringIndex) % 3 == 0 ? SMOOTH_BASALT : BASALT));
             }
             ringIndex++;
         }
@@ -398,8 +585,17 @@ public class EruptionAbility extends BaseAbility {
         for (int i = 0; i < core; i++) {
             double angle = coreOffset + i * (Math.PI * 2 / core) + (rng.nextDouble() - 0.5) * 0.6;
             double dist = RADIUS * 0.12 + rng.nextDouble() * 0.3;
-            tips.add(spawnSlab(center, (float) (Math.cos(angle) * dist), (float) (Math.sin(angle) * dist),
-                    SLAB_WIDTH, SLAB_HEIGHT, SLAB_DEPTH, SLAB_TILT, (float) angle, BASALT));
+            tips.add(
+                    spawnSlab(
+                            center,
+                            (float) (Math.cos(angle) * dist),
+                            (float) (Math.sin(angle) * dist),
+                            SLAB_WIDTH,
+                            SLAB_HEIGHT,
+                            SLAB_DEPTH,
+                            SLAB_TILT,
+                            (float) angle,
+                            BASALT));
         }
         return tips;
     }
@@ -412,8 +608,16 @@ public class EruptionAbility extends BaseAbility {
      * @param leanDir horizontal direction the slab leans towards, in radians
      * @return world position of the top of the slab
      */
-    private Location spawnSlab(Location center, float dx, float dz, float width, float height, float depth,
-                               float tilt, float leanDir, BlockData block) {
+    private Location spawnSlab(
+            Location center,
+            float dx,
+            float dz,
+            float width,
+            float height,
+            float depth,
+            float tilt,
+            float leanDir,
+            BlockData block) {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         World world = center.getWorld();
 
@@ -430,55 +634,82 @@ public class EruptionAbility extends BaseAbility {
         Transformation overshoot = slabTransform(base, rotation, width, height * 1.12f, depth);
         Transformation grown = slabTransform(base, rotation, width, height, depth);
 
-        BlockDisplay slab = world.spawn(center, BlockDisplay.class, d -> {
-            d.setBlock(block);
-            d.setBrightness(new Display.Brightness(10, 12));
-            d.setTransformation(hidden);
-            d.setInterpolationDuration(2);
-            d.setShadowRadius(0f);
-            d.setPersistent(false);
-            d.setInvulnerable(true);
-        });
+        BlockDisplay slab =
+                world.spawn(
+                        center,
+                        BlockDisplay.class,
+                        d -> {
+                            d.setBlock(block);
+                            d.setBrightness(new Display.Brightness(10, 12));
+                            d.setTransformation(hidden);
+                            d.setInterpolationDuration(2);
+                            d.setShadowRadius(0f);
+                            d.setPersistent(false);
+                            d.setInvulnerable(true);
+                        });
         ACTIVE_PILLARS.add(slab);
 
         long delay = 1L + rng.nextInt(3);
 
         // Burst out past full height, settle back, hold, sink away, remove.
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            if (!slab.isValid()) return;
-            slab.setInterpolationDelay(0);
-            slab.setInterpolationDuration(2);
-            slab.setTransformation(overshoot);
-        }, delay);
+        plugin.getServer()
+                .getScheduler()
+                .runTaskLater(
+                        plugin,
+                        () -> {
+                            if (!slab.isValid()) return;
+                            slab.setInterpolationDelay(0);
+                            slab.setInterpolationDuration(2);
+                            slab.setTransformation(overshoot);
+                        },
+                        delay);
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            if (!slab.isValid()) return;
-            slab.setInterpolationDelay(0);
-            slab.setInterpolationDuration(3);
-            slab.setTransformation(grown);
-        }, delay + 2);
+        plugin.getServer()
+                .getScheduler()
+                .runTaskLater(
+                        plugin,
+                        () -> {
+                            if (!slab.isValid()) return;
+                            slab.setInterpolationDelay(0);
+                            slab.setInterpolationDuration(3);
+                            slab.setTransformation(grown);
+                        },
+                        delay + 2);
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            if (!slab.isValid()) return;
-            slab.setInterpolationDelay(0);
-            slab.setInterpolationDuration(6);
-            slab.setTransformation(hidden);
-        }, 14L);
+        plugin.getServer()
+                .getScheduler()
+                .runTaskLater(
+                        plugin,
+                        () -> {
+                            if (!slab.isValid()) return;
+                            slab.setInterpolationDelay(0);
+                            slab.setInterpolationDuration(6);
+                            slab.setTransformation(hidden);
+                        },
+                        14L);
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            if (slab.isValid()) slab.remove();
-            ACTIVE_PILLARS.remove(slab);
-        }, 21L);
+        plugin.getServer()
+                .getScheduler()
+                .runTaskLater(
+                        plugin,
+                        () -> {
+                            if (slab.isValid()) slab.remove();
+                            ACTIVE_PILLARS.remove(slab);
+                        },
+                        21L);
 
         Vector3f top = rotation.transform(new Vector3f(0f, height, 0f));
         return center.clone().add(base.x + top.x, base.y + top.y, base.z + top.z);
     }
 
-    private static Transformation slabTransform(Vector3f base, Quaternionf rotation,
-                                                float width, float height, float depth) {
+    private static Transformation slabTransform(
+            Vector3f base, Quaternionf rotation, float width, float height, float depth) {
         Vector3f baseCentre = rotation.transform(new Vector3f(0.5f * width, 0f, 0.5f * depth));
-        return new Transformation(new Vector3f(base).sub(baseCentre), new Quaternionf(rotation),
-                new Vector3f(width, height, depth), new Quaternionf());
+        return new Transformation(
+                new Vector3f(base).sub(baseCentre),
+                new Quaternionf(rotation),
+                new Vector3f(width, height, depth),
+                new Quaternionf());
     }
 
     public static void removeAll() {
@@ -495,6 +726,7 @@ public class EruptionAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Look at an entity to crack the ground under them. After a short delay it erupts, damaging, burning and launching anyone still in the area.";
+        return "Look at an entity to crack the ground under them. After a short delay it erupts,"
+                   + " damaging, burning and launching anyone still in the area.";
     }
 }

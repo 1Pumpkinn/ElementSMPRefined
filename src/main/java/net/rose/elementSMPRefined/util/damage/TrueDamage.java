@@ -1,11 +1,11 @@
 package net.rose.elementSMPRefined.util.damage;
 
 import org.bukkit.GameMode;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.damage.DamageSource;
-import org.bukkit.damage.DamageType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -136,7 +136,8 @@ public final class TrueDamage implements Listener {
             UUID id = target.getUniqueId();
             if (PENDING.containsKey(id)) return false; // prevent re-entrancy / recursion
 
-            if (shieldDirection != null && target instanceof Player victim
+            if (shieldDirection != null
+                    && target instanceof Player victim
                     && ShieldBlocking.tryBlock(victim, shieldDirection, amount)) {
                 return false;
             }
@@ -181,7 +182,8 @@ public final class TrueDamage implements Listener {
         if (event.deathMessage() == null) return; // death messages are turned off
         Player victim = event.getEntity();
         Pending pending = PENDING.get(victim.getUniqueId());
-        String abilityName = pending != null ? pending.abilityName() : AbilityDamage.abilityName(victim);
+        String abilityName =
+                pending != null ? pending.abilityName() : AbilityDamage.abilityName(victim);
         if (abilityName == null) return;
         event.deathMessage(AbilityDamage.deathMessage(victim, abilityName));
     }

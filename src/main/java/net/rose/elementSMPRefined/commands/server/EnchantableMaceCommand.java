@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.commands.server;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.items.EnchantableMace;
 import net.rose.elementSMPRefined.lang.Lang;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -52,7 +53,8 @@ public class EnchantableMaceCommand implements CommandExecutor, TabCompleter {
         ItemStack mace = EnchantableMace.make(plugin);
         Map<Integer, ItemStack> leftover = target.getInventory().addItem(mace);
         if (!leftover.isEmpty()) {
-            leftover.values().forEach(item -> target.getWorld().dropItem(target.getLocation(), item));
+            leftover.values()
+                    .forEach(item -> target.getWorld().dropItem(target.getLocation(), item));
             target.sendMessage(Lang.ENCHANTABLE_MACE_INVENTORY_FULL);
         }
 
@@ -64,7 +66,8 @@ public class EnchantableMaceCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String alias, String[] args) {
         List<String> out = new ArrayList<>();
         if (args.length == 1 && sender.hasPermission("element.admin")) {
             String prefix = args[0].toLowerCase(Locale.ROOT);

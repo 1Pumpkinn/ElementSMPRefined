@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.util.server.potplugin.enchantlimits;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Player;
@@ -84,14 +85,17 @@ public final class EnchantLimitsListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (limits.isEmpty() || limits.isExempt(event.getItem()) || canBypass(event.getEnchanter())) {
+        if (limits.isEmpty()
+                || limits.isExempt(event.getItem())
+                || canBypass(event.getEnchanter())) {
             return;
         }
 
         EnchantmentOffer[] offers = event.getOffers();
         for (int i = 0; i < offers.length; i++) {
             EnchantmentOffer offer = offers[i];
-            if (offer == null || !limits.exceeds(offer.getEnchantment(), offer.getEnchantmentLevel())) {
+            if (offer == null
+                    || !limits.exceeds(offer.getEnchantment(), offer.getEnchantmentLevel())) {
                 continue;
             }
 
@@ -122,7 +126,9 @@ public final class EnchantLimitsListener implements Listener {
                 event.setCancelled(true);
                 alert(player, "That enchantment is restricted on this server.");
             } else {
-                alert(player, "Some enchantments were lowered or removed because they are restricted.");
+                alert(
+                        player,
+                        "Some enchantments were lowered or removed because they are restricted.");
             }
         }
     }
@@ -137,7 +143,8 @@ public final class EnchantLimitsListener implements Listener {
         if (limits.isLockedMace(result)
                 && !(event.getView().getPlayer() instanceof Player p && canBypass(p))) {
             ItemStack base = event.getInventory().getFirstItem();
-            boolean addsEnchants = base == null || !result.getEnchantments().equals(base.getEnchantments());
+            boolean addsEnchants =
+                    base == null || !result.getEnchantments().equals(base.getEnchantments());
             if (addsEnchants) {
                 event.setResult(null);
                 if (event.getView().getPlayer() instanceof Player player) {

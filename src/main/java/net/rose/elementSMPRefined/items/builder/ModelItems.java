@@ -20,14 +20,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ModelItems {
     private static final Map<NamespacedKey, ItemStack> CACHE = new ConcurrentHashMap<>();
-    private static final Map<NamespacedKey, ItemStack> TRANSLUCENT_CACHE = new ConcurrentHashMap<>();
+    private static final Map<NamespacedKey, ItemStack> TRANSLUCENT_CACHE =
+            new ConcurrentHashMap<>();
 
     private ModelItems() {}
 
     /** A stick whose model is {@code model}. Built once, then reused. */
     public static ItemStack of(NamespacedKey model) {
-        return CACHE.computeIfAbsent(model,
-                key -> ItemBuilder.of(Material.STICK).itemModel(key).build());
+        return CACHE.computeIfAbsent(
+                model, key -> ItemBuilder.of(Material.STICK).itemModel(key).build());
     }
 
     /**
@@ -39,7 +40,7 @@ public final class ModelItems {
      * semi-transparent textures, such as soft glows.
      */
     public static ItemStack translucent(NamespacedKey model) {
-        return TRANSLUCENT_CACHE.computeIfAbsent(model,
-                key -> ItemBuilder.of(Material.WHITE_STAINED_GLASS).itemModel(key).build());
+        return TRANSLUCENT_CACHE.computeIfAbsent(
+                model, key -> ItemBuilder.of(Material.WHITE_STAINED_GLASS).itemModel(key).build());
     }
 }

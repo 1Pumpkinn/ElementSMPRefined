@@ -9,6 +9,7 @@ import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
 import net.rose.elementevents.api.config.EventVillagerConfig;
 import net.rose.elementevents.command.EventVillagerCommand;
 import net.rose.elementevents.listener.EventVillagerListener;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -79,9 +80,13 @@ public class CustomEventVillager {
     public boolean setType(Villager villager, String typeId, @Nullable String nameOverride) {
         ConfigurationSection section = config.getType(typeId);
         if (section == null) return false;
-        villager.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, typeId.toLowerCase(Locale.ROOT));
-        villager.customName(parseName(nameOverride == null || nameOverride.isBlank()
-                ? section.getString("name", DEFAULT_NAME) : nameOverride));
+        villager.getPersistentDataContainer()
+                .set(typeKey, PersistentDataType.STRING, typeId.toLowerCase(Locale.ROOT));
+        villager.customName(
+                parseName(
+                        nameOverride == null || nameOverride.isBlank()
+                                ? section.getString("name", DEFAULT_NAME)
+                                : nameOverride));
         villager.setProfession(parseProfession(section.getString("profession", "librarian")));
         villager.setRecipes(buildRecipes(typeId));
         return true;
@@ -100,34 +105,55 @@ public class CustomEventVillager {
      */
     public Villager spawn(Location at, String typeId, @Nullable String name) {
         World world = at.getWorld();
-        Location loc = new Location(world, at.getBlockX() + 0.5, at.getY(), at.getBlockZ() + 0.5, at.getYaw(), 0f);
+        Location loc =
+                new Location(
+                        world,
+                        at.getBlockX() + 0.5,
+                        at.getY(),
+                        at.getBlockZ() + 0.5,
+                        at.getYaw(),
+                        0f);
 
         ConfigurationSection section = config.getType(typeId);
-        String displayName = (name == null || name.isBlank())
-                ? (section == null ? DEFAULT_NAME : section.getString("name", DEFAULT_NAME))
-                : name;
-        Villager.Profession profession = parseProfession(
-                section == null ? "librarian" : section.getString("profession", "librarian"));
+        String displayName =
+                (name == null || name.isBlank())
+                        ? (section == null ? DEFAULT_NAME : section.getString("name", DEFAULT_NAME))
+                        : name;
+        Villager.Profession profession =
+                parseProfession(
+                        section == null
+                                ? "librarian"
+                                : section.getString("profession", "librarian"));
         List<MerchantRecipe> recipes = buildRecipes(typeId);
 
-        // The consumer runs before the entity is added to the world, so it never ticks un-configured.
-        return world.spawn(loc, Villager.class, villager -> {
-            villager.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
-            villager.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, typeId.toLowerCase(Locale.ROOT));
-            villager.customName(parseName(displayName));
-            villager.setCustomNameVisible(true);
-            villager.setProfession(profession);
-            villager.setVillagerLevel(5);
-            villager.setRecipes(recipes);
+        // The consumer runs before the entity is added to the world, so it never ticks
+        // un-configured.
+        return world.spawn(
+                loc,
+                Villager.class,
+                villager -> {
+                    villager.getPersistentDataContainer()
+                            .set(key, PersistentDataType.BYTE, (byte) 1);
+                    villager.getPersistentDataContainer()
+                            .set(
+                                    typeKey,
+                                    PersistentDataType.STRING,
+                                    typeId.toLowerCase(Locale.ROOT));
+                    villager.customName(parseName(displayName));
+                    villager.setCustomNameVisible(true);
+                    villager.setProfession(profession);
+                    villager.setVillagerLevel(5);
+                    villager.setRecipes(recipes);
 
-            villager.setInvulnerable(true);
-            villager.setAware(false);          // never wanders, panics, sleeps or looks for a workstation
-            villager.setCollidable(false);
-            villager.setSilent(true);
-            villager.setCanPickupItems(false);
-            villager.setPersistent(true);
-            villager.setRemoveWhenFarAway(false);
-        });
+                    villager.setInvulnerable(true);
+                    villager.setAware(
+                            false); // never wanders, panics, sleeps or looks for a workstation
+                    villager.setCollidable(false);
+                    villager.setSilent(true);
+                    villager.setCanPickupItems(false);
+                    villager.setPersistent(true);
+                    villager.setRemoveWhenFarAway(false);
+                });
     }
 
     /** Every loaded event villager, across all worlds. */
@@ -157,7 +183,11 @@ public class CustomEventVillager {
         List<MerchantRecipe> recipes = new ArrayList<>();
         ConfigurationSection section = config.getType(typeId);
         if (section == null) {
-            plugin.getLogger().warning("Event villager type '" + typeId + "' is not in event_villagers.yml - it has no trades.");
+            plugin.getLogger()
+                    .warning(
+                            "Event villager type '"
+                                    + typeId
+                                    + "' is not in event_villagers.yml - it has no trades.");
             return recipes;
         }
         List<Map<?, ?>> entries = section.getMapList("trades");
@@ -167,10 +197,14 @@ public class CustomEventVillager {
             String label = "event_villagers.yml villagers." + typeId + ".trades[" + i + "]";
             try {
                 ItemStack cost = parseStack(entry.get("cost"));
-                ItemStack cost2 = entry.get("cost2") == null ? null : parseStack(entry.get("cost2"));
+                ItemStack cost2 =
+                        entry.get("cost2") == null ? null : parseStack(entry.get("cost2"));
                 ItemStack result = parseStack(entry.get("result"));
-                if (cost == null || result == null || (entry.get("cost2") != null && cost2 == null)) {
-                    plugin.getLogger().warning("Skipping " + label + ": unknown item in cost/cost2/result.");
+                if (cost == null
+                        || result == null
+                        || (entry.get("cost2") != null && cost2 == null)) {
+                    plugin.getLogger()
+                            .warning("Skipping " + label + ": unknown item in cost/cost2/result.");
                     continue;
                 }
 
@@ -196,16 +230,19 @@ public class CustomEventVillager {
             amount = Integer.parseInt(parts[1].trim());
         }
 
-        ItemStack stack = switch (id) {
-            case "upgrader_1" -> UpgraderItem.make(plugin, 1);
-            case "upgrader_2" -> UpgraderItem.make(plugin, 2);
-            case "reroller" -> RerollerItem.make(plugin);
-            case "forged_upgrader" -> ForgedUpgraderItem.make(plugin);
-            default -> {
-                Material material = Material.matchMaterial(id);
-                yield (material == null || material.isAir() || !material.isItem()) ? null : new ItemStack(material);
-            }
-        };
+        ItemStack stack =
+                switch (id) {
+                    case "upgrader_1" -> UpgraderItem.make(plugin, 1);
+                    case "upgrader_2" -> UpgraderItem.make(plugin, 2);
+                    case "reroller" -> RerollerItem.make(plugin);
+                    case "forged_upgrader" -> ForgedUpgraderItem.make(plugin);
+                    default -> {
+                        Material material = Material.matchMaterial(id);
+                        yield (material == null || material.isAir() || !material.isItem())
+                                ? null
+                                : new ItemStack(material);
+                    }
+                };
         if (stack == null) return null;
 
         stack.setAmount(Math.max(1, Math.min(amount, stack.getMaxStackSize())));
@@ -213,8 +250,9 @@ public class CustomEventVillager {
     }
 
     private static Villager.Profession parseProfession(String name) {
-        Villager.Profession profession = Registry.VILLAGER_PROFESSION.get(
-                NamespacedKey.minecraft(name.trim().toLowerCase(Locale.ROOT)));
+        Villager.Profession profession =
+                Registry.VILLAGER_PROFESSION.get(
+                        NamespacedKey.minecraft(name.trim().toLowerCase(Locale.ROOT)));
         return profession != null ? profession : Villager.Profession.LIBRARIAN;
     }
 

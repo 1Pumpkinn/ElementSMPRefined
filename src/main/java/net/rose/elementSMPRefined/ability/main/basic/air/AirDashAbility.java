@@ -1,11 +1,12 @@
 package net.rose.elementSMPRefined.ability.main.basic.air;
 
-import net.rose.elementSMPRefined.core.Constants;
+import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
-import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,7 +22,13 @@ public class AirDashAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
 
     public AirDashAbility(JavaPlugin plugin, ConfigManager configManager) {
-        super("air_dash", ElementType.AIR, 1, Constants.Cooldown.ABILITY_1_SECONDS, 1, configManager);
+        super(
+                "air_dash",
+                ElementType.AIR,
+                1,
+                Constants.Cooldown.ABILITY_1_SECONDS,
+                1,
+                configManager);
         this.plugin = (ElementSMPRefined) plugin;
     }
 
@@ -39,6 +46,7 @@ public class AirDashAbility extends BaseAbility {
 
         new BukkitRunnable() {
             int ticks = 0;
+
             @Override
             public void run() {
                 if (ticks >= durationTicks || !player.isOnline()) {
@@ -47,10 +55,12 @@ public class AirDashAbility extends BaseAbility {
                 }
 
                 Location loc = player.getLocation();
-                player.getWorld().spawnParticle(Particle.CLOUD, loc, 5, 0.3, 0.3, 0.3, 0.05, null, true);
+                player.getWorld()
+                        .spawnParticle(Particle.CLOUD, loc, 5, 0.3, 0.3, 0.3, 0.05, null, true);
 
                 if (ticks % 5 == 0) {
-                    for (LivingEntity entity : loc.getNearbyLivingEntities(Constants.Distance.AIR_DASH_RADIUS)) {
+                    for (LivingEntity entity :
+                            loc.getNearbyLivingEntities(Constants.Distance.AIR_DASH_RADIUS)) {
                         if (entity.equals(player)) continue;
                         if (!AirDashAbility.this.isValidTarget(context, entity)) continue;
 
@@ -61,7 +71,17 @@ public class AirDashAbility extends BaseAbility {
                         Vector knockback = offset.normalize();
                         knockback.setY(0.2);
                         entity.setVelocity(knockback.multiply(1.0));
-                        entity.getWorld().spawnParticle(Particle.CLOUD, entity.getLocation(), 10, 0.3, 0.3, 0.3, 0.05, null, true);
+                        entity.getWorld()
+                                .spawnParticle(
+                                        Particle.CLOUD,
+                                        entity.getLocation(),
+                                        10,
+                                        0.3,
+                                        0.3,
+                                        0.3,
+                                        0.05,
+                                        null,
+                                        true);
                     }
                 }
 

@@ -182,7 +182,8 @@ public class EarthTunnelAbility extends BaseAbility {
             Material.PACKED_ICE,
 
             Material.GRAVEL, Material.SAND, Material.RED_SAND, Material.SANDSTONE,
-            Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK,
+            Material.TUFF, Material.CALCITE, Material.DRIPSTONE_BLOCK, Material.SULFUR,
+            Material.CINNABAR,
 
             Material.BLACKSTONE, Material.CRIMSON_NYLIUM, Material.WARPED_NYLIUM,
             Material.SOUL_SAND, Material.BASALT,  Material.SMOOTH_BASALT, Material.SOUL_SOIL,

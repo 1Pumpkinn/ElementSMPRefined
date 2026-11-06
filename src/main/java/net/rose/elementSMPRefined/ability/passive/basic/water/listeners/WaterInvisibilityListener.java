@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WaterInvisibilityListener implements Listener {
 
     private static final long MONITOR_PERIOD_TICKS = 4L;
+    private static final long BLANK_PERIOD_TICKS = 2L;
     private static final int IDLE_SECONDS_REQUIRED = 10;
     private static final int IDLE_CHECKS_REQUIRED = (int) (IDLE_SECONDS_REQUIRED * 20L / MONITOR_PERIOD_TICKS);
 
@@ -57,12 +58,14 @@ public class WaterInvisibilityListener implements Listener {
     private final Set<UUID> trulyInvisible = ConcurrentHashMap.newKeySet();
 
     private BukkitTask monitorTask;
+    private BukkitTask blankTask;
 
     public WaterInvisibilityListener(ElementSMPRefined plugin, ElementManager elementManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
         this.markerKey = new NamespacedKey(plugin, "water_invisible");
         startMonitor();
+        startBlankTask();
         // Plugin (re)enabled with players already online: clear any invisibility left by a previous run.
         Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getOnlinePlayers().forEach(this::clearStaleInvisibility));
     }
@@ -81,6 +84,21 @@ public class WaterInvisibilityListener implements Listener {
                 }
             }
         }, 20L, MONITOR_PERIOD_TICKS);
+    }
+
+    private void startBlankTask() {
+        // Observers who walk into range, teleport or respawn get the real gear from vanilla's spawn
+        // packet, so concealed players are blanked again every couple of ticks. They are never hidden
+        // from the tab list or the spectator teleport menu, only their gear is blanked.
+        blankTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (trulyInvisible.isEmpty()) return;
+            for (UUID id : trulyInvisible) {
+                Player subject = Bukkit.getPlayer(id);
+                if (subject != null && subject.isOnline()) {
+                    sendEquipment(subject, blankEquipment());
+                }
+            }
+        }, 20L, BLANK_PERIOD_TICKS);
     }
 
     private boolean hasPassive(Player player) {
@@ -271,6 +289,9 @@ public class WaterInvisibilityListener implements Listener {
     public void cleanup() {
         if (monitorTask != null) {
             monitorTask.cancel();
+        }
+        if (blankTask != null) {
+            blankTask.cancel();
         }
         // Server stop / plugin disable: actually take the invisibility off everyone, otherwise the
         // infinite potion effect is saved with the player and never ends.

@@ -54,7 +54,7 @@ public class DeathVoidAbility extends BaseAbility {
     private static final double PULSE_DAMAGE = 4.0;     // 2 hearts
     private static final double PULSE_KNOCKBACK = 1.1;
 
-    private static final int DEBUFF_TICKS = 80;         // Slowness + Darkness on anything the blades or pulse hit
+    private static final int DEBUFF_TICKS = 80;
 
     private static final Particle.DustOptions PURPLE_DUST =
             new Particle.DustOptions(Color.fromRGB(150, 30, 210), 1.6F);
@@ -197,7 +197,6 @@ public class DeathVoidAbility extends BaseAbility {
         playPulseSound(world, at);
         world.spawnParticle(Particle.DUST, at, 80, PULSE_RADIUS * 0.5, PULSE_RADIUS * 0.4, PULSE_RADIUS * 0.5, 0, PURPLE_DUST, true);
         world.spawnParticle(Particle.DUST, at, 60, PULSE_RADIUS * 0.5, PULSE_RADIUS * 0.4, PULSE_RADIUS * 0.5, 0, DARK_DUST, true);
-        world.spawnParticle(Particle.EXPLOSION, at, 1, 0, 0, 0, 0, null, true);
 
         // Expanding ring
         for (int i = 0; i < 40; i++) {
@@ -278,8 +277,7 @@ public class DeathVoidAbility extends BaseAbility {
     }
 
     private void debuff(LivingEntity target) {
-        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, DEBUFF_TICKS, 1));
-        target.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, DEBUFF_TICKS, 0));
+        target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, DEBUFF_TICKS, 1));
     }
 
     @Override

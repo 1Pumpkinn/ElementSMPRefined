@@ -50,8 +50,12 @@ public class LifeGoldenAppleAbsorptionListener implements Listener {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (!player.isOnline() || player.isDead()) return;
             PotionEffect current = player.getPotionEffect(PotionEffectType.ABSORPTION);
-            if (current != null && current.getAmplifier() >= amplifier) return;
-            player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, DURATION_TICKS, amplifier, false, true, true));
+            if (current == null || current.getAmplifier() < amplifier) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, DURATION_TICKS, amplifier, false, true, true));
+            }
+            // The effect can still be active after its hearts were soaked up, and vanilla only refills them when
+            // the effect is added or upgraded, so top the hearts up directly.
+            player.setAbsorptionAmount(Math.max(player.getAbsorptionAmount(), 4.0 * (amplifier + 1)));
         });
     }
 }

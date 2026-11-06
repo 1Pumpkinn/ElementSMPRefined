@@ -9,10 +9,10 @@ import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBarrage
 import net.rose.elementSMPRefined.ability.main.upgraded.lava.EruptionAbility;
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
 import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
-import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
-import net.rose.elementSMPRefined.util.visual.model.DarkBladeVisual;
+import net.rose.elementSMPRefined.util.visual.model.HellsChainVisual;
+import net.rose.elementSMPRefined.util.visual.model.DeathsVoidVisual;
 import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
-import net.rose.elementSMPRefined.util.visual.model.IceBlockVisual;
+import net.rose.elementSMPRefined.util.visual.model.FreezeEffectVisual;
 import net.rose.elementSMPRefined.util.visual.model.IceSpikeVisual;
 import net.rose.elementSMPRefined.util.visual.model.LightningSpearVisual;
 import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
@@ -32,7 +32,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         // Sweep up any entities on plugin disable / restart. Each sweep is isolated so one
         // failure can't leave the others' entities behind.
         sweep("StarFall", StarFallAbility::removeAll);
-        sweep("Chain", ChainVisual::removeAll);
+        sweep("Chain", HellsChainVisual::removeAll);
         sweep("AirCutter", AirCutterVisual::removeAll);
         sweep("LightningSpear", LightningSpearVisual::removeAll);
         sweep("MagmaBeam", MagmaBeamVisual::removeAll);
@@ -41,9 +41,9 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         sweep("ElementGemOrbit", ElementGemOrbitVisual::removeAll);
         sweep("Magnetar", MagnetarVisual::removeAll);
         sweep("Tornado", TornadoVisual::removeAll);
-        sweep("DarkBlade", DarkBladeVisual::removeAll);
+        sweep("DarkBlade", DeathsVoidVisual::removeAll);
         sweep("IceSpike", IceSpikeVisual::removeAll);
-        sweep("IceBlock", IceBlockVisual::removeAll);
+        sweep("FreezeEffect", FreezeEffectVisual::removeAll);
         sweep("FrostIcicleBarrage", FrostIcicleBarrageAbility::removeAll);
         sweep("Eruption", EruptionAbility::removeAll);
         sweep("LifeTotem", LifeTotemAbility::removeAll);

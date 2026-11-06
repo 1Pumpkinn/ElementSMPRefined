@@ -10,7 +10,7 @@ import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
-import net.rose.elementSMPRefined.util.visual.model.ChainVisual;
+import net.rose.elementSMPRefined.util.visual.model.HellsChainVisual;
 
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
@@ -223,7 +223,7 @@ public class HellChainAbility extends BaseAbility {
         final int maxTicks = maxTicksFor(player.getLocation().distance(target.getLocation()));
 
         new BukkitRunnable() {
-            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
+            final HellsChainVisual chain = new HellsChainVisual(HellsChainVisual.HELL_CHAIN, player);
             int ticks = 0;
 
             @Override
@@ -327,7 +327,7 @@ public class HellChainAbility extends BaseAbility {
                 maxTicksFor(player.getEyeLocation().distance(projectile.getLocation()));
 
         new BukkitRunnable() {
-            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
+            final HellsChainVisual chain = new HellsChainVisual(HellsChainVisual.HELL_CHAIN, player);
             int ticks = 0;
 
             @Override
@@ -411,7 +411,7 @@ public class HellChainAbility extends BaseAbility {
         final double climbCeilingY = Math.floor(hookLocation.getY()) + 1.0 + CLIMB_LEDGE_ALLOWANCE;
 
         new BukkitRunnable() {
-            final ChainVisual chain = new ChainVisual(ChainVisual.HELL_CHAIN, player);
+            final HellsChainVisual chain = new HellsChainVisual(HellsChainVisual.HELL_CHAIN, player);
             int ticks = 0;
             boolean climbing = false;
             double bestDistance =

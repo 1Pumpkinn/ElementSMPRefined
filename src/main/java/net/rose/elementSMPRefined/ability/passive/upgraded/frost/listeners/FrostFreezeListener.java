@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.status.StatusEffectType;
-import net.rose.elementSMPRefined.util.visual.model.IceBlockVisual;
+import net.rose.elementSMPRefined.util.visual.model.FreezeEffectVisual;
 
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -102,7 +102,7 @@ public class FrostFreezeListener implements Listener {
                                             StatusEffectType.STUN,
                                             FREEZE_TICKS,
                                             1);
-                            IceBlockVisual.encase(plugin, victim, FREEZE_TICKS);
+                            FreezeEffectVisual.encase(plugin, victim, FREEZE_TICKS);
 
                             plugin.getServer()
                                     .getScheduler()

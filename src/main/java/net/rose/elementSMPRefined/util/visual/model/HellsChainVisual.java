@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public final class ChainVisual {
+public final class HellsChainVisual {
 
     public static final NamespacedKey HELL_CHAIN =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:hell_chain"));
@@ -40,7 +40,7 @@ public final class ChainVisual {
     private static final double MIN_OVERLAP = 0.1;
     private static final double MAX_OVERLAP = 0.9;
 
-    private static final Set<ChainVisual> ACTIVE = new HashSet<>();
+    private static final Set<HellsChainVisual> ACTIVE = new HashSet<>();
 
     private final ItemStack modelItem;
     private final List<ItemDisplay> segments = new ArrayList<>();
@@ -48,7 +48,7 @@ public final class ChainVisual {
     private final PingCompensation.Tracker tracker; // null when owner is null
     private int smoothing = 1;
 
-    public ChainVisual(NamespacedKey model) {
+    public HellsChainVisual(NamespacedKey model) {
         this(model, null);
     }
 
@@ -56,7 +56,7 @@ public final class ChainVisual {
      * @param owner the player the chain is attached to: their ping leads the anchor end ahead of
      *              the server position (so it stays on them on screen) and sets the smoothing
      */
-    public ChainVisual(NamespacedKey model, Player owner) {
+    public HellsChainVisual(NamespacedKey model, Player owner) {
         this.owner = owner;
         this.tracker = owner == null ? null : new PingCompensation.Tracker(owner, MAX_LEAD_BLOCKS);
         // The base material is irrelevant - the item_model component replaces its model entirely.
@@ -177,7 +177,7 @@ public final class ChainVisual {
     }
 
     public static void removeAll() {
-        for (ChainVisual visual : new ArrayList<>(ACTIVE)) {
+        for (HellsChainVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();
         }
     }

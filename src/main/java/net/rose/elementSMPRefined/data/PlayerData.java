@@ -37,6 +37,18 @@ public final class PlayerData {
         return uuid;
     }
 
+    /** Independent snapshot of this data, safe to hand to another thread (e.g. an async save). */
+    public PlayerData copy() {
+        PlayerData copy = new PlayerData(uuid);
+        copy.currentElement = currentElement;
+        copy.currentElementUpgradeLevel = currentElementUpgradeLevel;
+        copy.pendingRerollerRefunds = pendingRerollerRefunds;
+        copy.pendingAdvancedRerollerRefunds = pendingAdvancedRerollerRefunds;
+        copy.disabledToggles.addAll(disabledToggles);
+        copy.windBurstLevel = windBurstLevel;
+        return copy;
+    }
+
     public ElementType getCurrentElement() {
         return currentElement;
     }

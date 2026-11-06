@@ -1,5 +1,7 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
+import net.rose.elementSMPRefined.util.visual.PingCompensation;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -7,6 +9,7 @@ import org.bukkit.World;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
@@ -18,18 +21,20 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class IceBlockVisual {
+public final class FreezeEffectVisual {
 
     private static final double PADDING = 0.3;
+    private static final int MAX_SMOOTHING_TICKS = 2;
 
-    private static final Set<IceBlockVisual> ACTIVE = new HashSet<>();
+    private static final Set<FreezeEffectVisual> ACTIVE = new HashSet<>();
 
     private final BlockDisplay display;
     private final BlockDisplay inside;
     private final LivingEntity target;
     private boolean removed = false;
+    private int smoothing = 1;
 
-    private IceBlockVisual(JavaPlugin plugin, LivingEntity target, int ticks) {
+    private FreezeEffectVisual(JavaPlugin plugin, LivingEntity target, int ticks) {
         this.target = target;
 
         BoundingBox box = target.getBoundingBox();
@@ -86,6 +91,15 @@ public final class IceBlockVisual {
                     cancel();
                     return;
                 }
+                // The frozen player is the one who sees the box ride along as they fall, so their ping
+                // decides the smoothing (mobs have no ping and keep the 1-tick window).
+                int wanted = PingCompensation.smoothingTicks(
+                        target instanceof Player player ? player : null, MAX_SMOOTHING_TICKS);
+                if (wanted != smoothing) {
+                    smoothing = wanted;
+                    display.setTeleportDuration(wanted);
+                    inside.setTeleportDuration(wanted);
+                }
                 Location at = fixedRotation(target.getLocation());
                 display.teleport(at);
                 inside.teleport(at);
@@ -117,8 +131,8 @@ public final class IceBlockVisual {
         return copy;
     }
 
-    public static IceBlockVisual encase(JavaPlugin plugin, LivingEntity target, int ticks) {
-        return new IceBlockVisual(plugin, target, ticks);
+    public static FreezeEffectVisual encase(JavaPlugin plugin, LivingEntity target, int ticks) {
+        return new FreezeEffectVisual(plugin, target, ticks);
     }
 
     private void shatter() {
@@ -138,7 +152,7 @@ public final class IceBlockVisual {
     }
 
     public static void removeAll() {
-        for (IceBlockVisual visual : new ArrayList<>(ACTIVE)) {
+        for (FreezeEffectVisual visual : new ArrayList<>(ACTIVE)) {
             visual.remove();
         }
     }

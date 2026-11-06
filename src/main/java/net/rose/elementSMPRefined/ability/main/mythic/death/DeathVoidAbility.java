@@ -7,7 +7,7 @@ import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
-import net.rose.elementSMPRefined.util.visual.model.DarkBladeVisual;
+import net.rose.elementSMPRefined.util.visual.model.DeathsVoidVisual;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -43,7 +43,7 @@ public class DeathVoidAbility extends BaseAbility {
     private static final double MIN_PARTICLE_DISTANCE = 2.5;
 
     private static final double SPEED = 1.5; // blocks per tick
-    private static final double MAX_DISTANCE = 24.0;
+    private static final double MAX_DISTANCE = 32;
     private static final double TRAIL_START_DISTANCE = 4.0;
     private static final double HIT_RADIUS = 2.4;
     private static final float BLADE_SCALE = 4.0f;
@@ -138,7 +138,7 @@ public class DeathVoidAbility extends BaseAbility {
 
         playLaunchSound(world, start);
 
-        DarkBladeVisual visual = new DarkBladeVisual(start, dir, BLADE_SCALE);
+        DeathsVoidVisual visual = new DeathsVoidVisual(start, dir, BLADE_SCALE, player);
         Set<UUID> alreadyHit = new HashSet<>();
         Location pos = start.clone();
 

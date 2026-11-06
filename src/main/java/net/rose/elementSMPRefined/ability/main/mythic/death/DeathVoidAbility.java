@@ -220,40 +220,33 @@ public class DeathVoidAbility extends BaseAbility {
         }
     }
 
-    // ---- Sounds -------------------------------------------------------------------------------------------
-    // Same idea as Spore Blossom: stack unrelated vanilla sounds into one signature sound, then play a short
-    // scheduled note run. Spore Blossom blooms up a pleasant pentatonic scale; the Void falls down a dissonant one
-    // (a tritone against a fifth), on bells and bass.
+    // Sound layout: the cast and charge-up are an evoker's spell winding up with a rising vex whine, the launch
+    // plays bells and a ghast shot, the flight is silent, and the pulse is an amethyst crack followed by a
+    // heartbeat that gives out.
 
-    /** Falling, uneasy notes (pitch multipliers). 1.41 vs 1.5 is the tritone-ish clash that makes it eerie. */
+    /** Falling, uneasy notes (pitch multipliers) used by the launch sound. */
     private static final float[] VOID_NOTES = {1.89f, 1.5f, 1.41f, 1.19f, 1.0f, 0.71f, 0.59f};
 
+    /** The wind-up: an evoker's spell preparing, pitched low. */
     private void playCastSound(World w, Location at) {
-        w.playSound(at, Sound.BLOCK_BELL_RESONATE, 0.9f, 0.5f);
-        w.playSound(at, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 0.8f, 0.6f);
-        w.playSound(at, Sound.BLOCK_SCULK_SENSOR_CLICKING, 1.0f, 0.5f);
+        w.playSound(at, Sound.ENTITY_EVOKER_PREPARE_ATTACK, 0.5f, 0.6f);
     }
 
-    /** Light, high charge notes (flute, no bass) - still sinking, just airier than the rest of the Void. */
-    private static final float[] CHARGE_NOTES = {2.0f, 1.78f, 1.5f, 1.41f};
-    /** Swap for BLOCK_NOTE_BLOCK_BIT, _HARP, _PLING, _XYLOPHONE, _IRON_XYLOPHONE, _GUITAR... to taste. */
-    private static final Sound CHARGE_INSTRUMENT = Sound.BLOCK_NOTE_BLOCK_FLUTE;
-
-    /** One falling note per call, so the charge-up sinks as it gathers. */
+    /** A rising vex whine, one per call (every 3 ticks), so the charge-up climbs until the blades fire. */
     private void playChargeNote(World w, Location at, int index) {
-        float pitch = CHARGE_NOTES[Math.min(index, CHARGE_NOTES.length - 1)];
-        w.playSound(at, CHARGE_INSTRUMENT, 0.5f, pitch);
+        float pitch = Math.min(1.4f, 0.6f + 0.2f * index);
+        w.playSound(at, Sound.ENTITY_VEX_CHARGE, 0.5f, pitch);
     }
 
     private void playLaunchSound(World w, Location at) {
-        w.playSound(at, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.9f, 0.6f);
-        w.playSound(at, Sound.ENTITY_GHAST_SHOOT, 0.5f, 0.5f);
-        w.playSound(at, Sound.BLOCK_BELL_USE, 0.8f, 0.5f);
-        w.playSound(at, Sound.ITEM_TRIDENT_THROW, 1.0f, 0.5f);
+        w.playSound(at, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 0.45f, 0.6f);
+        w.playSound(at, Sound.ENTITY_GHAST_SHOOT, 0.25f, 0.5f);
+        w.playSound(at, Sound.BLOCK_BELL_USE, 0.4f, 0.5f);
+        w.playSound(at, Sound.ITEM_TRIDENT_THROW, 0.5f, 0.5f);
         // The fall: bells sinking away from the caster as the blades leave.
         for (int i = 0; i < 5; i++) {
             final float pitch = VOID_NOTES[i];
-            final float vol = 0.6f - 0.08f * i;
+            final float vol = 0.3f - 0.04f * i;
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BELL, vol, pitch);
                 w.playSound(at, Sound.BLOCK_AMETHYST_CLUSTER_BREAK, vol * 0.5f, pitch * 0.5f);
@@ -261,26 +254,21 @@ public class DeathVoidAbility extends BaseAbility {
         }
     }
 
-    /** A soft, wobbling hum that follows the blades. */
+    /** Currently silent. Called every 5 ticks while the blades fly. */
     private void playFlightHum(World w, Location at, int index) {
-        float pitch = VOID_NOTES[index % VOID_NOTES.length] * 0.5f;
-        w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BASS, 0.5f, Math.max(0.5f, pitch));
-        w.playSound(at, Sound.ENTITY_VEX_AMBIENT, 0.3f, 0.5f);
+        float wobble = 0.5f + 0.08f * (index % 3);
     }
 
     private void playPulseSound(World w, Location at) {
-        w.playSound(at, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1.0f, 0.5f);
-        w.playSound(at, Sound.BLOCK_BELL_RESONATE, 1.0f, 0.5f);
-        w.playSound(at, Sound.BLOCK_END_PORTAL_FRAME_FILL, 1.0f, 0.5f);
+        w.playSound(at, Sound.BLOCK_AMETHYST_BLOCK_BREAK, 0.8f, 0.6f);
+        w.playSound(at, Sound.ENTITY_WARDEN_HEARTBEAT, 1.0f, 0.5f);
         w.playSound(at, Sound.ENTITY_GENERIC_EXPLODE, 0.4f, 0.5f);
-        // Collapse: the run falls all the way down.
-        for (int i = 0; i < VOID_NOTES.length; i++) {
-            final float pitch = VOID_NOTES[i];
-            final float vol = 0.7f - 0.07f * i;
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BELL, vol, pitch);
-                w.playSound(at, Sound.BLOCK_NOTE_BLOCK_BASS, vol, pitch * 0.6f);
-            }, 2L * (i + 1));
+        // The heart gives out: three beats, slower and quieter each time.
+        for (int i = 1; i <= 3; i++) {
+            final float vol = 1.0f - 0.25f * i;
+            final float pitch = 0.5f - 0.05f * i;
+            Bukkit.getScheduler().runTaskLater(plugin, () ->
+                    w.playSound(at, Sound.ENTITY_WARDEN_HEARTBEAT, vol, pitch), 6L * i);
         }
     }
 

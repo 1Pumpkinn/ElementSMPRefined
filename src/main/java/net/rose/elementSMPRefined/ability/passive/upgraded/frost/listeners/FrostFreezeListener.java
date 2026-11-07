@@ -26,7 +26,7 @@ public class FrostFreezeListener implements Listener {
 
     private static final double CHANCE = 0.03; // 3% (keep FrostElement's info text in sync)
     private static final int CHANCE_PERCENT = 3;
-    private static final int FREEZE_TICKS = 30; // 1.5 seconds
+    private static final int FREEZE_TICKS = 40; // 2.0 seconds
 
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;

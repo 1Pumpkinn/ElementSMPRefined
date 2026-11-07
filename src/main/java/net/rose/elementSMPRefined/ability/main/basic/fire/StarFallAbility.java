@@ -50,8 +50,8 @@ public class StarFallAbility extends BaseAbility {
     private static final int LAUNCH_DELAY_TICKS = 2;
 
     private static final Material METEOR_BLOCK = Material.MAGMA_BLOCK;
-    private static final float METEOR_MIN_SIZE = 1.0f;
-    private static final float METEOR_MAX_SIZE = 1.7f;
+    private static final float METEOR_MIN_SIZE = 1.9f;
+    private static final float METEOR_MAX_SIZE = 2.0f;
     private static final Color METEOR_GLOW = Color.fromRGB(204, 85, 0);
     private static final float TOTAL_SPIN = (float) Math.PI * 1.5f;
 

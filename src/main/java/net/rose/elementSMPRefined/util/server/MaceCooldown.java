@@ -6,6 +6,8 @@ import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -34,6 +36,12 @@ import org.bukkit.plugin.java.JavaPlugin;
  * <p>
  * Mace melee hits are also capped at {@link Constants.Mace#MAX_DAMAGE_HEARTS} hearts of final
  * damage (after armor/resistance, counting absorption/golden hearts toward the cap), smash bonus included.
+ * <p>
+ * A smash hit (falling more than {@link #MIN_SMASH_FALL_DISTANCE} blocks, not gliding) scales with how
+ * far the attacker has fallen: a mace's plain hit damage at the smallest smash, rising linearly to the
+ * full cap at {@link #FULL_DAMAGE_FALL_DISTANCE} blocks. The vanilla smash bonus alone already passes the
+ * cap at the smallest smash, so this is what makes height matter. The scaling only ever lowers a
+ * hit, it never raises damage above what vanilla dealt.
  */
 public class MaceCooldown implements Listener {
 
@@ -42,6 +50,10 @@ public class MaceCooldown implements Listener {
     private static final int COOLDOWN_TICKS = COOLDOWN_SECONDS * 20;
 
     private static final long REAPPLY_DELAY_TICKS = 1L;
+
+    private static final double MIN_SMASH_FALL_DISTANCE = 1.5;
+    private static final double FULL_DAMAGE_FALL_DISTANCE = 25.0;
+    private static final double DEFAULT_MACE_DAMAGE = 6.0;
 
     private static int ignoreDepth = 0;
 
@@ -155,23 +167,51 @@ public class MaceCooldown implements Listener {
         return total;
     }
 
+    private static boolean isSmashing(Player player) {
+        return player.getFallDistance() > MIN_SMASH_FALL_DISTANCE && !player.isGliding();
+    }
+
+    /** The attacker's plain mace hit damage, before any smash bonus, limited to the cap. */
+    private static double plainHitDamage(Player player, double max) {
+        AttributeInstance attack = player.getAttribute(Attribute.ATTACK_DAMAGE);
+        double plain = attack != null ? attack.getValue() : DEFAULT_MACE_DAMAGE;
+        return Math.min(max, plain);
+    }
+
+    /**
+     * The most final damage this hit may deal. A normal hit is only limited by the cap. A smash hit
+     * scales from the plain hit damage up to the cap as the fall distance goes from the smash
+     * minimum to {@link #FULL_DAMAGE_FALL_DISTANCE}.
+     */
+    private static double allowedDamage(Player player, double max) {
+        if (!isSmashing(player)) {
+            return max;
+        }
+
+        double plain = plainHitDamage(player, max);
+        double span = FULL_DAMAGE_FALL_DISTANCE - MIN_SMASH_FALL_DISTANCE;
+        double progress = (player.getFallDistance() - MIN_SMASH_FALL_DISTANCE) / span;
+        progress = Math.max(0.0, Math.min(1.0, progress));
+        return plain + (max - plain) * progress;
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCapDamage(EntityDamageByEntityEvent event) {
         Player player = meleeAttacker(event);
         if (player == null) return;
         if (!isMace(player.getInventory().getItemInMainHand())) return;
 
-        double max = Constants.Mace.MAX_DAMAGE;
+        double allowed = allowedDamage(player, Constants.Mace.MAX_DAMAGE);
         double total = damageBeforeAbsorption(event);
-        if (total <= max) return;
+        if (total <= allowed) return;
 
         // Armor reduction isn't perfectly linear in the base damage, so scale and re-check a few
         // times.
-        // Setting the base damage also re-runs the absorption modifier, so the cap holds with
+        // Setting the base damage also re-runs the absorption modifier, so the limit holds with
         // golden hearts.
         double base = event.getDamage();
-        for (int i = 0; i < 5 && total > max + 1.0E-6; i++) {
-            base *= max / total;
+        for (int i = 0; i < 5 && total > allowed + 1.0E-6; i++) {
+            base *= allowed / total;
             event.setDamage(base);
             total = damageBeforeAbsorption(event);
         }

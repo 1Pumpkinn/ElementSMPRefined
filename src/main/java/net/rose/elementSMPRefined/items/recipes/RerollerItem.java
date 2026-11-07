@@ -37,7 +37,7 @@ public final class RerollerItem {
             recipe.shape("GWG", "FPB", "GRG");
             recipe.setIngredient('W', Material.WIND_CHARGE);
             recipe.setIngredient('F', Material.FIRE_CHARGE);
-            recipe.setIngredient('P', Material.PAPER);
+            recipe.setIngredient('P', Material.ENCHANTING_TABLE);
             recipe.setIngredient('B', Material.WATER_BUCKET);
             recipe.setIngredient('R', Material.GRASS_BLOCK);
             recipe.setIngredient('G', Material.GOLD_BLOCK);

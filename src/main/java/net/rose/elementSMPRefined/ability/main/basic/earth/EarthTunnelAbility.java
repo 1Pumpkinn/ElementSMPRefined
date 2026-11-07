@@ -237,6 +237,7 @@ public class EarthTunnelAbility extends BaseAbility {
                     Material.BASALT,
                     Material.SMOOTH_BASALT,
                     Material.SOUL_SOIL,
+                    Material.MAGMA_BLOCK,
                     Material.COAL_ORE,
                     Material.DEEPSLATE_COAL_ORE,
                     Material.IRON_ORE,

@@ -38,8 +38,8 @@ import java.util.UUID;
 public class AirWindBurstListener implements Listener {
 
     private static final double MIN_FALL_DISTANCE = 1.5;
-    // Same strengths as the Wind Burst enchantment: level I / II / III.
-    private static final double[] LEVEL_MULTIPLIERS = {1.2, 1.5, 1.75};
+    // Exactly the Wind Burst enchantment's knockback multiplier lookup: level I / II / III.
+    private static final double[] LEVEL_MULTIPLIERS = {1.2, 1.75, 2.2};
     private static final double BASE_LAUNCH_VELOCITY_Y = 0.75;
     private static final double BURST_RADIUS = 3.5;
     private static final double BASE_BURST_STRENGTH = 0.6;
@@ -145,6 +145,8 @@ public class AirWindBurstListener implements Listener {
 
     private double effectiveFallDistance(Player player) {
         double fall = player.getFallDistance();
+        // Standing on something / in water / etc.: the fall is over, a stale peak must not revive it.
+        if (isSupported(player)) return fall;
         Double peak = peakY.get(player.getUniqueId());
         if (peak != null) {
             fall = Math.max(fall, peak - player.getLocation().getY());
@@ -189,8 +191,9 @@ public class AirWindBurstListener implements Listener {
             return;
         }
 
+        // Vanilla: Doubles.atLeast(1.5), so exactly 1.5 counts.
         double fall = effectiveFallDistance(attacker);
-        if (fall <= MIN_FALL_DISTANCE) {
+        if (fall < MIN_FALL_DISTANCE) {
             debug(
                     attacker,
                     "fall distance too low: "
@@ -200,26 +203,11 @@ public class AirWindBurstListener implements Listener {
                             + ")");
             return;
         }
-        if (attacker.isOnGround()
-                || attacker.isFlying()
-                || attacker.isGliding()
-                || attacker.isInsideVehicle()
-                || attacker.isClimbing()
-                || attacker.isSwimming()) {
-            debug(
-                    attacker,
-                    "blocked by state: onGround="
-                            + attacker.isOnGround()
-                            + " flying="
-                            + attacker.isFlying()
-                            + " gliding="
-                            + attacker.isGliding()
-                            + " vehicle="
-                            + attacker.isInsideVehicle()
-                            + " climbing="
-                            + attacker.isClimbing()
-                            + " swimming="
-                            + attacker.isSwimming());
+        // Vanilla only rejects an attacker that is fall-flying (elytra). Every other "supported"
+        // state already zeroes the fall distance, so it is not checked again here: re-checking the
+        // client-reported onGround/climbing/swimming flags is what made the burst randomly fail.
+        if (attacker.isGliding()) {
+            debug(attacker, "gliding");
             return;
         }
 
@@ -291,7 +279,7 @@ public class AirWindBurstListener implements Listener {
             push.setY(0.3);
             living.setVelocity(living.getVelocity().add(push));
         }
-        world.spawnParticle(Particle.GUST_EMITTER_SMALL, center, 1);
+        world.spawnParticle(Particle.GUST_EMITTER_LARGE, center, 1);
         world.playSound(center, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1.0f, 1.0f);
     }
 }

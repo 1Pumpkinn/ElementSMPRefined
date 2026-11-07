@@ -24,12 +24,14 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -278,6 +280,15 @@ public class SporeBlossomAbility extends BaseAbility {
             // Gravity applies to every generation; the big blossom descends and bursts in the air,
             // the children fall and burst on landing.
             fly();
+
+            // Touching a valid target sets it off at once instead of waiting for the fuse / landing.
+            // The big blossom reacts immediately; children keep the short minimum fuse so they
+            // don't pop inside the burst that just threw them.
+            if (age >= (generation == 0 ? 0 : MIN_FUSE_TICKS) && touchesTarget()) {
+                burst();
+                return true;
+            }
+
             if (generation == 0) {
                 // The big blossom descends while it grows and bursts in the air when its fuse runs
                 // out.
@@ -295,6 +306,21 @@ public class SporeBlossomAbility extends BaseAbility {
 
             draw();
             age++;
+            return false;
+        }
+
+        /** True if a living entity this ability can hit overlaps the blossom's body. */
+        private boolean touchesTarget() {
+            World w = pos.getWorld();
+            if (w == null || !GroundScan.isLoaded(pos)) return false;
+            double half = SIZE[generation] * 0.5 * 0.8;
+            BoundingBox box = BoundingBox.of(pos.toVector(), half, half, half);
+            for (Entity e : w.getNearbyEntities(box)) {
+                if (e instanceof LivingEntity le
+                        && AbilityTargets.isValid(cast.caster, le, cast.team)) {
+                    return true;
+                }
+            }
             return false;
         }
 

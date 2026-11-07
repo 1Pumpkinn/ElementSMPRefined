@@ -279,7 +279,7 @@ public class AirWindBurstListener implements Listener {
             push.setY(0.3);
             living.setVelocity(living.getVelocity().add(push));
         }
-        world.spawnParticle(Particle.GUST_EMITTER_LARGE, center, 1);
+        world.spawnParticle(Particle.GUST_EMITTER_SMALL, center, 1);
         world.playSound(center, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1.0f, 1.0f);
     }
 }

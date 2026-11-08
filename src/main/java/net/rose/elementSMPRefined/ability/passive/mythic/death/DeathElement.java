@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.mythic.death;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.ability.main.mythic.death.DeathSoulSiphonAbility;
 import net.rose.elementSMPRefined.ability.main.mythic.death.DeathVoidAbility;
+import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathKillHealListener;
 import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathNightInvisibilityListener;
 import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathWitherOnHitListener;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
@@ -37,6 +38,8 @@ public class DeathElement extends BaseElement implements ListenerProvider {
         return List.of(
                 nightInvisibilityListener,
                 new DeathWitherOnHitListener(
+                        elementPlugin.getElementManager(), elementPlugin.getTeamManager()),
+                new DeathKillHealListener(
                         elementPlugin.getElementManager(), elementPlugin.getTeamManager()));
     }
 
@@ -59,6 +62,8 @@ public class DeathElement extends BaseElement implements ListenerProvider {
     @Override
     public List<String> getPassiveBenefits() {
         return List.of(
-                "Invisible at night", "35% chance to apply Wither for 5s on hit (Upgrade II)");
+                "Invisible at night",
+                "35% chance to apply Wither for 5s on hit (Upgrade II)",
+                "Killing a player restores 3 hearts (Upgrade II)");
     }
 }

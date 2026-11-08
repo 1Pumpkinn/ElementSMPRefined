@@ -24,6 +24,7 @@ import org.bukkit.util.RayTraceResult;
  * Drains the player the caster is looking at: their element abilities are disabled for two
  * minutes, and for the same two minutes the caster casts that player's abilities in place of
  * their own.
+ * The drained player sees a countdown boss bar, and sneaking while casting ability 2 ends it early.
  */
 public class DeathSoulSiphonAbility extends BaseAbility {
     private static final double RANGE = 20.0;
@@ -71,7 +72,7 @@ public class DeathSoulSiphonAbility extends BaseAbility {
         }
 
         plugin.getDisarmManager().applyAbilityDisarm(target, DURATION_TICKS);
-        plugin.getStolenAbilityManager().steal(caster, targetType, DURATION_TICKS);
+        plugin.getStolenAbilityManager().steal(caster, target, targetType, DURATION_TICKS);
 
         target.sendMessage(Lang.deathSoulSiphonVictim(caster.getName()));
 
@@ -134,6 +135,6 @@ public class DeathSoulSiphonAbility extends BaseAbility {
     @Override
     public String getDescription() {
         return "Drain the player you're looking at: their abilities are disabled for 2 minutes,"
-                + " and you wield them instead of your own.";
+                + " and you wield them instead of your own. Sneak and cast ability 2 to end it early.";
     }
 }

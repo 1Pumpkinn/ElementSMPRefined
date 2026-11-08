@@ -113,7 +113,8 @@ public class CooldownActionBarTask implements Listener {
                         ability2Name,
                         remaining2,
                         pd.getCurrentElementUpgradeLevel(),
-                        abilitiesDisabled(player));
+                        abilitiesDisabled(player),
+                        plugin.getStolenAbilityManager().getDrainedRemainingSeconds(player));
         player.sendActionBar(bar);
     }
 }

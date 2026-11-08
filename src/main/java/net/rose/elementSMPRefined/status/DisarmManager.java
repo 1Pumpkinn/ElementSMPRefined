@@ -82,7 +82,11 @@ public class DisarmManager {
     }
 
     public void clearAbilityDisarm(Player player) {
-        abilityDisarmExpiry.remove(player.getUniqueId());
+        clearAbilityDisarm(player.getUniqueId());
+    }
+
+    public void clearAbilityDisarm(UUID uuid) {
+        abilityDisarmExpiry.remove(uuid);
     }
 
     /**

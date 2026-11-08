@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.managers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.ability.main.mythic.death.DeathSoulSiphonAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.AirElement;
 import net.rose.elementSMPRefined.ability.passive.basic.earth.EarthElement;
 import net.rose.elementSMPRefined.ability.passive.basic.fire.FireElement;
@@ -257,6 +258,13 @@ public class ElementManager {
 
         // Soul Siphon: for its duration the caster casts the drained player's abilities instead.
         ElementType stolenType = plugin.getStolenAbilityManager().getStolenElement(player);
+
+        // Sneaking while casting ability 2 cancels the siphon, so a plain ability 2 still casts
+        // the stolen element's second ability.
+        if (stolenType != null && number == 2 && player.isSneaking()) {
+            cancelSoulSiphon(player);
+            return false;
+        }
         ElementType type = stolenType != null ? stolenType : ownType;
 
         Element element = elementRegistry.get(type);
@@ -276,6 +284,17 @@ public class ElementManager {
                     .callEvent(new AbilityActivateEvent(player, type, number, abilityName));
         }
         return success;
+    }
+
+    private void cancelSoulSiphon(Player caster) {
+        UUID victimId = plugin.getStolenAbilityManager().cancel(caster);
+        if (victimId == null) return;
+
+        plugin.getDisarmManager().clearAbilityDisarm(victimId);
+        cooldownManager.startCooldown(
+                caster,
+                DeathSoulSiphonAbility.ID,
+                DeathSoulSiphonAbility.COOLDOWN_AFTER_STEAL_SECONDS);
     }
 
     private ElementContext buildContext(Player player, PlayerData pd, ElementType type) {

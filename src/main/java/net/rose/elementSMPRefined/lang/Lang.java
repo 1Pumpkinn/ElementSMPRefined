@@ -17,6 +17,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.rose.elementSMPRefined.hud.RaisedText;
 
 /**
  * Every player-facing message, grouped by feature. Constants are fixed messages; methods take
@@ -589,6 +590,8 @@ public final class Lang {
 
     private static final Key ICON_FONT = Key.key("elementsmp", "icons");
     private static final String LOCK_GLYPH = "\uE000";
+    private static final int LOCK_GLYPH_WIDTH = 8;
+    private static final String BAR_SEPARATOR = "   ";
 
     public static Component cooldownActionBar(
             String ability1Name,
@@ -596,17 +599,41 @@ public final class Lang {
             String ability2Name,
             long ability2RemainingSeconds,
             int upgradeLevel,
-            boolean abilitiesDisabled) {
-        return textOfChildren(
-                cooldownBarSegment(
-                        ability1Name,
-                        ability1RemainingSeconds,
-                        abilitiesDisabled || upgradeLevel < ABILITY1_REQUIRED_UPGRADE),
-                text("   ", DARK_GRAY),
-                cooldownBarSegment(
-                        ability2Name,
-                        ability2RemainingSeconds,
-                        abilitiesDisabled || upgradeLevel < ABILITY2_REQUIRED_UPGRADE));
+            boolean abilitiesDisabled,
+            long drainedRemainingSeconds) {
+        boolean locked1 = abilitiesDisabled || upgradeLevel < ABILITY1_REQUIRED_UPGRADE;
+        boolean locked2 = abilitiesDisabled || upgradeLevel < ABILITY2_REQUIRED_UPGRADE;
+        Component bar =
+                textOfChildren(
+                        cooldownBarSegment(ability1Name, ability1RemainingSeconds, locked1),
+                        text(BAR_SEPARATOR, DARK_GRAY),
+                        cooldownBarSegment(ability2Name, ability2RemainingSeconds, locked2));
+        if (drainedRemainingSeconds <= 0) {
+            return bar;
+        }
+
+        // Soul Siphon timer: one line above the bar, same size, centred over it.
+        int barWidth =
+                cooldownBarSegmentWidth(ability1Name, ability1RemainingSeconds, locked1)
+                        + RaisedText.width(BAR_SEPARATOR)
+                        + cooldownBarSegmentWidth(ability2Name, ability2RemainingSeconds, locked2);
+        String label = "Drained ";
+        String time =
+                "%d:%02d".formatted(drainedRemainingSeconds / 60, drainedRemainingSeconds % 60);
+        return RaisedText.above(
+                textOfChildren(text(label, DARK_PURPLE), text(time, WHITE)),
+                RaisedText.width(label) + RaisedText.width(time),
+                bar,
+                barWidth);
+    }
+
+    private static int cooldownBarSegmentWidth(
+            String abilityName, long remainingSeconds, boolean locked) {
+        int width = RaisedText.width(truncateAbilityName(abilityName)) + RaisedText.width(" ");
+        if (locked) {
+            return width + LOCK_GLYPH_WIDTH;
+        }
+        return width + RaisedText.width(remainingSeconds <= 0 ? "Ready" : remainingSeconds + "s");
     }
 
     private static Component cooldownBarSegment(

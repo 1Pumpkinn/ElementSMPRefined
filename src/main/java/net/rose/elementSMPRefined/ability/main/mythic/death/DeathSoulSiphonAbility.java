@@ -10,7 +10,6 @@ import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -31,11 +30,6 @@ public class DeathSoulSiphonAbility extends BaseAbility {
     private static final double RANGE = 20.0;
     private static final double RAY_SIZE = 0.6;
     private static final int DURATION_TICKS = 20 * 60 * 2;
-
-    private static final Particle.DustOptions SOUL_DUST =
-            new Particle.DustOptions(Color.fromRGB(110, 20, 170), 1.4F);
-    private static final Particle.DustOptions DARK_DUST =
-            new Particle.DustOptions(Color.fromRGB(10, 0, 20), 1.6F);
 
     private final ElementSMPRefined plugin;
 
@@ -116,9 +110,7 @@ public class DeathSoulSiphonAbility extends BaseAbility {
         Location from = target.getLocation().add(0, 1, 0);
         Location to = caster.getLocation().add(0, 1, 0);
 
-        world.spawnParticle(Particle.DUST, from, 50, 0.4, 0.6, 0.4, 0, SOUL_DUST, true);
-        world.spawnParticle(Particle.DUST, from, 30, 0.4, 0.6, 0.4, 0, DARK_DUST, true);
-        world.spawnParticle(Particle.SOUL, from, 20, 0.3, 0.5, 0.3, 0.05, null, true);
+        world.spawnParticle(Particle.SOUL, from, 40, 0.4, 0.6, 0.4, 0.05, null, true);
         world.playSound(from, Sound.ENTITY_WITHER_SPAWN, 0.4f, 1.8f);
         world.playSound(from, Sound.PARTICLE_SOUL_ESCAPE, 1f, 0.6f);
 
@@ -131,11 +123,10 @@ public class DeathSoulSiphonAbility extends BaseAbility {
                                     (to.getX() - from.getX()) * t,
                                     (to.getY() - from.getY()) * t + Math.sin(t * Math.PI) * 0.8,
                                     (to.getZ() - from.getZ()) * t);
-            world.spawnParticle(Particle.DUST, point, 2, 0.05, 0.05, 0.05, 0, SOUL_DUST, true);
-            world.spawnParticle(Particle.SOUL, point, 1, 0.05, 0.05, 0.05, 0.01, null, true);
+            world.spawnParticle(Particle.SOUL, point, 2, 0.05, 0.05, 0.05, 0.01, null, true);
         }
 
-        world.spawnParticle(Particle.DUST, to, 40, 0.4, 0.6, 0.4, 0, SOUL_DUST, true);
+        world.spawnParticle(Particle.SOUL, to, 30, 0.4, 0.6, 0.4, 0.05, null, true);
         world.playSound(to, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.8f, 0.7f);
     }
 

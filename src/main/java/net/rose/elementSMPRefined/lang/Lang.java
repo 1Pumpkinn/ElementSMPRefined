@@ -91,14 +91,6 @@ public final class Lang {
     public static final Component DEATH_SOUL_SIPHON_TARGET_ALREADY_DRAINED =
             red("That player's abilities are already drained.");
 
-    public static Component deathSoulSiphonCaster(Object targetName, Object abilityNames) {
-        return text("You drained ", GRAY)
-                .append(text(String.valueOf(targetName), WHITE))
-                .append(gray(" and now wield "))
-                .append(legacy(abilityNames, DARK_PURPLE))
-                .append(gray(" for 2 minutes."));
-    }
-
     public static Component deathSoulSiphonVictim(Object casterName) {
         return text(String.valueOf(casterName), WHITE)
                 .append(red(" drained your abilities for 2 minutes."));

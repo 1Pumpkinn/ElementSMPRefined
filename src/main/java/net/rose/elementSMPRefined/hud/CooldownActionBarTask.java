@@ -10,6 +10,8 @@ import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.CooldownManager;
 import net.rose.elementSMPRefined.managers.ElementManager;
+import net.rose.elementSMPRefined.status.StatusEffectManager;
+import net.rose.elementSMPRefined.status.StatusEffectType;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
 
 import org.bukkit.ChatColor;
@@ -63,10 +65,22 @@ public class CooldownActionBarTask implements Listener {
         updateFor(event.getPlayer());
     }
 
+    private boolean abilitiesDisabled(Player player) {
+        StatusEffectManager statuses = plugin.getStatusEffectManager();
+        return plugin.getDisarmManager().isAbilityDisarmed(player)
+                || statuses.isSilenced(player)
+                || statuses.hasEffect(player, StatusEffectType.FULL_STUN);
+    }
+
     private void updateFor(Player player) {
         PlayerData pd = elementManager.data(player.getUniqueId());
         ElementType type = pd.getCurrentElement();
         if (type == null) return;
+
+        ElementType stolenType = plugin.getStolenAbilityManager().getStolenElement(player);
+        if (stolenType != null) {
+            type = stolenType;
+        }
 
         Element element = elementManager.get(type);
         if (element == null) return;
@@ -98,7 +112,8 @@ public class CooldownActionBarTask implements Listener {
                         remaining1,
                         ability2Name,
                         remaining2,
-                        pd.getCurrentElementUpgradeLevel());
+                        pd.getCurrentElementUpgradeLevel(),
+                        abilitiesDisabled(player));
         player.sendActionBar(bar);
     }
 }

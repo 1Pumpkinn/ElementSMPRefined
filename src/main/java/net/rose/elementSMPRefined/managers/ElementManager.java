@@ -252,13 +252,20 @@ public class ElementManager {
 
     private boolean useAbility(Player player, int number) {
         PlayerData pd = data(player.getUniqueId());
-        ElementType type = pd.getCurrentElement();
-        if (type == null) return false;
+        ElementType ownType = pd.getCurrentElement();
+        if (ownType == null) return false;
+
+        // Soul Siphon: for its duration the caster casts the drained player's abilities instead.
+        ElementType stolenType = plugin.getStolenAbilityManager().getStolenElement(player);
+        ElementType type = stolenType != null ? stolenType : ownType;
 
         Element element = elementRegistry.get(type);
         if (element == null) return false;
 
-        ElementContext ctx = buildContext(player, pd, type);
+        ElementContext ctx =
+                stolenType != null
+                        ? buildContext(player, type, pd.getUpgradeLevel(ownType))
+                        : buildContext(player, pd, type);
 
         boolean success = number == 1 ? element.ability1(ctx) : element.ability2(ctx);
         if (success) {
@@ -272,9 +279,13 @@ public class ElementManager {
     }
 
     private ElementContext buildContext(Player player, PlayerData pd, ElementType type) {
+        return buildContext(player, type, pd.getUpgradeLevel(type));
+    }
+
+    private ElementContext buildContext(Player player, ElementType type, int upgradeLevel) {
         return ElementContext.builder()
                 .player(player)
-                .upgradeLevel(pd.getUpgradeLevel(type))
+                .upgradeLevel(upgradeLevel)
                 .elementType(type)
                 .cooldownManager(cooldownManager)
                 .teamManager(teamManager)

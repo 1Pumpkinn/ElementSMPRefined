@@ -13,6 +13,7 @@ import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.services.EffectService;
 import net.rose.elementSMPRefined.status.DisarmManager;
 import net.rose.elementSMPRefined.status.StatusEffectManager;
+import net.rose.elementSMPRefined.status.StolenAbilityManager;
 import net.rose.elementSMPRefined.util.bukkit.MetadataHelper;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scheduling.TaskScheduler;
@@ -47,6 +48,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     protected StatusEffectManager statusEffectManager;
     protected DisarmManager disarmManager;
+    protected StolenAbilityManager stolenAbilityManager;
     protected EffectService effectService;
     protected CooldownActionBarTask cooldownActionBarTask;
 
@@ -165,6 +167,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
         this.statusEffectManager = new StatusEffectManager(this);
         this.disarmManager = new DisarmManager(this);
+        this.stolenAbilityManager = new StolenAbilityManager();
         this.reforgeAltarManager = new ReforgeAltarManager(this);
         this.eventVillager =
                 new CustomEventVillager((net.rose.elementSMPRefined.ElementSMPRefined) this);
@@ -268,6 +271,10 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
             disarmManager.cleanup();
         }
 
+        if (stolenAbilityManager != null) {
+            stolenAbilityManager.cleanup();
+        }
+
         if (listenerInitializer != null) {
             listenerInitializer.cleanup();
         }
@@ -311,6 +318,10 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     public DisarmManager getDisarmManager() {
         return disarmManager;
+    }
+
+    public StolenAbilityManager getStolenAbilityManager() {
+        return stolenAbilityManager;
     }
 
     public EffectService getEffectService() {

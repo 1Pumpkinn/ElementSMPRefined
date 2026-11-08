@@ -83,7 +83,26 @@ public final class Lang {
 
     // Abilities
 
-    public static final Component DEATH_BACKSTAB_NO_TARGET_IN_RANGE = red("No target in range.");
+    public static final Component DEATH_SOUL_SIPHON_NO_TARGET_IN_RANGE = red("No player in range.");
+
+    public static final Component DEATH_SOUL_SIPHON_TARGET_HAS_NO_ELEMENT =
+            red("That player has no abilities to siphon.");
+
+    public static final Component DEATH_SOUL_SIPHON_TARGET_ALREADY_DRAINED =
+            red("That player's abilities are already drained.");
+
+    public static Component deathSoulSiphonCaster(Object targetName, Object abilityNames) {
+        return text("You drained ", GRAY)
+                .append(text(String.valueOf(targetName), WHITE))
+                .append(gray(" and now wield "))
+                .append(legacy(abilityNames, DARK_PURPLE))
+                .append(gray(" for 2 minutes."));
+    }
+
+    public static Component deathSoulSiphonVictim(Object casterName) {
+        return text(String.valueOf(casterName), WHITE)
+                .append(red(" drained your abilities for 2 minutes."));
+    }
 
     public static final Component EARTH_TUNNEL_TUNNELING_CANCELLED = yellow("Tunneling cancelled");
 
@@ -584,17 +603,18 @@ public final class Lang {
             long ability1RemainingSeconds,
             String ability2Name,
             long ability2RemainingSeconds,
-            int upgradeLevel) {
+            int upgradeLevel,
+            boolean abilitiesDisabled) {
         return textOfChildren(
                 cooldownBarSegment(
                         ability1Name,
                         ability1RemainingSeconds,
-                        upgradeLevel < ABILITY1_REQUIRED_UPGRADE),
+                        abilitiesDisabled || upgradeLevel < ABILITY1_REQUIRED_UPGRADE),
                 text("   ", DARK_GRAY),
                 cooldownBarSegment(
                         ability2Name,
                         ability2RemainingSeconds,
-                        upgradeLevel < ABILITY2_REQUIRED_UPGRADE));
+                        abilitiesDisabled || upgradeLevel < ABILITY2_REQUIRED_UPGRADE));
     }
 
     private static Component cooldownBarSegment(
@@ -602,7 +622,7 @@ public final class Lang {
         String label = truncateAbilityName(abilityName);
 
         if (locked) {
-            // Upgrade not reached yet: dark grey and struck through, with a red lock.
+            // Upgrade not reached or abilities disabled: dark grey and struck through, with a red lock.
             return textOfChildren(
                     text(label, DARK_GRAY).decoration(TextDecoration.STRIKETHROUGH, true),
                     text(" "),

@@ -192,6 +192,7 @@ public class PlayerLifecycle implements Listener {
         // Same cache-growth issue as DataStore above, applied to the pending team invites.
         plugin.getTeamManager().onPlayerQuit(playerUuid);
         plugin.getCooldownManager().pruneExpired();
+        plugin.getStolenAbilityManager().pruneExpired();
         if (metalMagnetarAbility != null) {
             metalMagnetarAbility.onPlayerQuit(playerUuid);
         }
@@ -202,6 +203,7 @@ public class PlayerLifecycle implements Listener {
         Player player = event.getEntity();
         PlayerData pd = elementManager.data(player.getUniqueId());
         plugin.getStatusEffectManager().clearEffects(player);
+        plugin.getStolenAbilityManager().clear(player);
         effectService.clearElementEffects(player, pd.getCurrentElement());
     }
 

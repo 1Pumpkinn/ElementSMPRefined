@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.ability.passive.mythic.death;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.ability.main.mythic.death.DeathBackstabAbility;
+import net.rose.elementSMPRefined.ability.main.mythic.death.DeathSoulSiphonAbility;
 import net.rose.elementSMPRefined.ability.main.mythic.death.DeathVoidAbility;
 import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathNightInvisibilityListener;
 import net.rose.elementSMPRefined.ability.passive.mythic.death.listeners.DeathWitherOnHitListener;
@@ -25,7 +25,7 @@ public class DeathElement extends BaseElement implements ListenerProvider {
                 plugin,
                 ElementType.DEATH,
                 new DeathVoidAbility(plugin, configManager),
-                new DeathBackstabAbility(plugin, configManager));
+                new DeathSoulSiphonAbility(plugin, configManager));
     }
 
     @Override

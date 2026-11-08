@@ -1,9 +1,11 @@
 package net.rose.elementSMPRefined.ability.passive.upgraded.storm.listeners;
 
+import com.destroystokyo.paper.event.entity.EntityZapEvent;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -73,6 +75,10 @@ public class StormTridentLightningListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        if (AbilityTargets.isProtected(event.getEntity()) && strikes.containsKey(strike.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
         if (isProtected(strike, event.getEntity().getUniqueId())) {
             event.setCancelled(true);
             return;
@@ -92,6 +98,14 @@ public class StormTridentLightningListener implements Listener {
                             if (victim.isValid() && victim.getFireTicks() > 0)
                                 victim.setFireTicks(0);
                         });
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onStrikeZapVillager(EntityZapEvent event) {
+        if (AbilityTargets.isProtected(event.getEntity())
+                && strikes.containsKey(event.getBolt().getUniqueId())) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

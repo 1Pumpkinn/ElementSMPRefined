@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.core.API.ability;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 
 import org.bukkit.entity.Player;
 
@@ -106,7 +107,7 @@ public abstract class BaseAbility implements Ability {
      */
     protected boolean isValidTarget(ElementContext context, org.bukkit.entity.LivingEntity target) {
         Player caster = context.getPlayer();
-        if (target.equals(caster)) return false;
+        if (target.equals(caster) || AbilityTargets.isProtected(target)) return false;
         if (target instanceof Player other && context.getTeamManager() != null) {
             return !context.getTeamManager().isFriendly(caster.getUniqueId(), other.getUniqueId());
         }

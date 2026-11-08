@@ -6,6 +6,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.visual.model.DeathsVoidVisual;
 
@@ -321,7 +322,7 @@ public class DeathVoidAbility extends BaseAbility {
     }
 
     private boolean isValidTarget(Player player, TeamManager teams, LivingEntity target) {
-        if (target.equals(player)) return false;
+        if (target.equals(player) || AbilityTargets.isProtected(target)) return false;
         return !(target instanceof Player other
                 && teams.isFriendly(player.getUniqueId(), other.getUniqueId()));
     }

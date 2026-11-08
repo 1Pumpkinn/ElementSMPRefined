@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 
 import org.bukkit.ChatColor;
@@ -242,7 +243,7 @@ public class StarFallAbility extends BaseAbility {
         // Damage is applied manually instead of World#createExplosion to avoid block damage and
         // double hits
         for (LivingEntity entity : impact.getNearbyLivingEntities(IMPACT_RADIUS)) {
-            if (entity.equals(caster)) continue;
+            if (entity.equals(caster) || AbilityTargets.isProtected(entity)) continue;
             if (team != null
                     && entity instanceof Player other
                     && team.isFriendly(caster.getUniqueId(), other.getUniqueId())) continue;

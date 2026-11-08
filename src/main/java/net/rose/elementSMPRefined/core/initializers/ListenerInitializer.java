@@ -21,6 +21,7 @@ import net.rose.elementSMPRefined.listeners.player.InvisibilityNameHider;
 import net.rose.elementSMPRefined.listeners.player.PlayerDeathListener;
 import net.rose.elementSMPRefined.listeners.player.PlayerLifecycle;
 import net.rose.elementSMPRefined.listeners.status.StatusEffectListener;
+import net.rose.elementSMPRefined.util.damage.VillagerAbilityProtection;
 import net.rose.elementSMPRefined.util.server.DimensionDisable;
 import net.rose.elementSMPRefined.util.server.GracePeriod;
 import net.rose.elementSMPRefined.util.server.MaceCooldown;
@@ -57,6 +58,7 @@ public class ListenerInitializer {
 
     private void registerCoreListeners() {
         pluginManager.registerEvents(new InvisibilityNameHider(), plugin);
+        pluginManager.registerEvents(new VillagerAbilityProtection(), plugin);
         pluginManager.registerEvents(plugin.getEffectService(), plugin);
         pluginManager.registerEvents(
                 new net.rose.elementSMPRefined.listeners.combat.CombatListener(

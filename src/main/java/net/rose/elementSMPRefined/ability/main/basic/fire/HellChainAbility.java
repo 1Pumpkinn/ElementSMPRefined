@@ -11,6 +11,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.bukkit.WebUtil;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
+import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.visual.model.HellsChainVisual;
 
 import org.bukkit.ChatColor;
@@ -270,9 +271,11 @@ public class HellChainAbility extends BaseAbility {
 
                 if (horizontal < DRAG_STOP_DISTANCE || passedCaster) {
                     target.setVelocity(new Vector(0, 0, 0));
-                    target.setFireTicks(Math.max(target.getFireTicks(), BURN_FIRE_TICKS));
-                    AbilityDamage.deal(
-                            target, getName(), () -> target.damage(IMPACT_DAMAGE, player));
+                    if (!AbilityTargets.isProtected(target)) {
+                        target.setFireTicks(Math.max(target.getFireTicks(), BURN_FIRE_TICKS));
+                        AbilityDamage.deal(
+                                target, getName(), () -> target.damage(IMPACT_DAMAGE, player));
+                    }
                     player.getWorld()
                             .spawnParticle(Particle.LAVA, targetLoc, 15, 0.3, 0.3, 0.3, 0.05);
                     player.getWorld().playSound(targetLoc, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
@@ -700,7 +703,7 @@ public class HellChainAbility extends BaseAbility {
 
     private void burnNearby(Player player, Location at, TeamManager team) {
         for (LivingEntity nearby : at.getNearbyLivingEntities(BURN_RADIUS)) {
-            if (nearby.equals(player)) continue;
+            if (nearby.equals(player) || AbilityTargets.isProtected(nearby)) continue;
             if (nearby instanceof Player nearbyPlayer
                     && team.isFriendly(player.getUniqueId(), nearbyPlayer.getUniqueId())) continue;
             nearby.setFireTicks(Math.max(nearby.getFireTicks(), BURN_FIRE_TICKS));

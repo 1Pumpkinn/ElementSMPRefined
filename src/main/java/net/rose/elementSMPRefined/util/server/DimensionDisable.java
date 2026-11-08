@@ -4,7 +4,9 @@ import net.rose.elementSMPRefined.commands.server.DimensionCommand;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -87,15 +89,15 @@ public class DimensionDisable implements Listener {
             return;
         }
 
-        Material portalBlock = event.getFrom().getBlock().getType();
-        Dimension target = fromBlock(portalBlock);
+        // Work out which dimension the portal leads to from the worlds on either side.
+        // This keeps boats, minecarts, mounts and other entities moving normally through
+        // an enabled dimension, even if the other one is disabled.
+        Dimension target = fromWorlds(event);
+        if (target == null) {
+            target = fromBlock(event.getFrom().getBlock().getType());
+        }
 
-        // Covers vehicles (boats, horses, minecarts) with or without a
-        // passenger, thrown ender pearls, dropped items, arrows - anything
-        // that isn't a player but could still teleport through a portal.
-        // Unrecognized portal block (target == null): fail closed only if
-        // *something* is disabled, so we don't silently let an edge case
-        // (e.g. an End Gateway variant) slip through untouched.
+        // Only an unidentifiable portal fails closed, and only when something is disabled.
         boolean shouldCancel =
                 target != null
                         ? isDisabled(target)
@@ -127,6 +129,22 @@ public class DimensionDisable implements Listener {
             case END_PORTAL, END_GATEWAY -> Dimension.END;
             default -> null;
         };
+    }
+
+    private static Dimension fromWorlds(EntityPortalEvent event) {
+        Location to = event.getTo();
+        if (to == null || to.getWorld() == null) {
+            return null;
+        }
+        World.Environment from = event.getFrom().getWorld().getEnvironment();
+        World.Environment dest = to.getWorld().getEnvironment();
+        if (from == World.Environment.NETHER || dest == World.Environment.NETHER) {
+            return Dimension.NETHER;
+        }
+        if (from == World.Environment.THE_END || dest == World.Environment.THE_END) {
+            return Dimension.END;
+        }
+        return null;
     }
 
     private static Dimension fromBlock(Material type) {

@@ -18,6 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class FireSmeltListener implements Listener {
 
@@ -76,6 +77,16 @@ public class FireSmeltListener implements Listener {
             return;
         }
 
+        // Nether gold ore drops nuggets in vanilla, so it can't go through SMELT_RESULTS.
+        // A furnace turns the ore block into one gold ingot, so drop ingots directly.
+        if (block.getType() == Material.NETHER_GOLD_ORE) {
+            event.setDropItems(false);
+            int amount = 1 + fortuneBonus(tool.getEnchantmentLevel(Enchantment.FORTUNE));
+            block.getWorld()
+                    .dropItemNaturally(block.getLocation(), new ItemStack(Material.GOLD_INGOT, amount));
+            return;
+        }
+
         boolean anySmeltable =
                 drops.stream().anyMatch(drop -> SMELT_RESULTS.containsKey(drop.getType()));
         if (!anySmeltable) {
@@ -88,5 +99,13 @@ public class FireSmeltListener implements Listener {
             ItemStack toDrop = smelted != null ? new ItemStack(smelted, drop.getAmount()) : drop;
             block.getWorld().dropItemNaturally(block.getLocation(), toDrop);
         }
+    }
+
+    /** Vanilla ore Fortune formula: extra multiplier of 0..level, so the total is 1 * (1 + bonus). */
+    private static int fortuneBonus(int fortuneLevel) {
+        if (fortuneLevel <= 0) {
+            return 0;
+        }
+        return Math.max(0, ThreadLocalRandom.current().nextInt(fortuneLevel + 2) - 1);
     }
 }

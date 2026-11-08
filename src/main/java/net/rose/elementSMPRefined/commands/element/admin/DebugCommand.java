@@ -59,7 +59,6 @@ public class DebugCommand implements ElementSubCommand {
                     StatusEffectType.FREEZE,
                     StatusEffectType.BLEED,
                     StatusEffectType.BURN,
-                    StatusEffectType.ROOT,
                     StatusEffectType.FULL_STUN,
                     StatusEffectType.PARTIAL_STUN,
                     StatusEffectType.STUN);

@@ -7,7 +7,6 @@ public enum StatusEffectType {
     FREEZE,
     BLEED,
     BURN,
-    ROOT,
 
     FULL_STUN, // Cannot move, look around, or interact
     PARTIAL_STUN, // Cannot move or look around, but can interact

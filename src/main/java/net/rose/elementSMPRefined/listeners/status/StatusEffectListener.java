@@ -40,10 +40,9 @@ public class StatusEffectListener implements Listener {
         boolean isPartiallyStunned =
                 statusEffectManager.hasEffect(player, StatusEffectType.PARTIAL_STUN);
         boolean isStunned = statusEffectManager.hasEffect(player, StatusEffectType.STUN);
-        boolean isRooted = statusEffectManager.hasEffect(player, StatusEffectType.ROOT);
         boolean isFrozen = statusEffectManager.hasEffect(player, StatusEffectType.FREEZE);
 
-        if (!isFullyStunned && !isPartiallyStunned && !isStunned && !isRooted && !isFrozen) {
+        if (!isFullyStunned && !isPartiallyStunned && !isStunned && !isFrozen) {
             return;
         }
 

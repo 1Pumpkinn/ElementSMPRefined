@@ -96,23 +96,6 @@ public class StatusEffectManager {
                         .maxDuration(400) // 8 seconds max
                         .build());
 
-        // Root - same as STUN (cannot move but can look and interact)
-        registerEffectData(
-                StatusEffectType.ROOT,
-                StatusEffectData.builder()
-                        .displayName("Root")
-                        .description("Rooted in place")
-                        .potionEffect(
-                                new PotionEffect(
-                                        PotionEffectType.SLOWNESS,
-                                        PotionEffect.INFINITE_DURATION,
-                                        6,
-                                        false,
-                                        false))
-                        .isStackable(false)
-                        .maxDuration(400) // 8 seconds max
-                        .build());
-
         registerEffectData(
                 StatusEffectType.SLOW,
                 StatusEffectData.builder()
@@ -339,7 +322,6 @@ public class StatusEffectManager {
         setJumpLock(
                 player,
                 active.containsKey(StatusEffectType.STUN)
-                        || active.containsKey(StatusEffectType.ROOT)
                         || active.containsKey(StatusEffectType.FREEZE));
     }
 

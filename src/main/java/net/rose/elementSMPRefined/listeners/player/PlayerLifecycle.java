@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.listeners.player;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.ability.main.mythic.death.DeathSoulSiphonAbility;
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -203,6 +204,13 @@ public class PlayerLifecycle implements Listener {
         Player player = event.getEntity();
         PlayerData pd = elementManager.data(player.getUniqueId());
         plugin.getStatusEffectManager().clearEffects(player);
+        if (plugin.getStolenAbilityManager().getStolenElement(player) != null) {
+            plugin.getCooldownManager()
+                    .startCooldown(
+                            player,
+                            DeathSoulSiphonAbility.ID,
+                            DeathSoulSiphonAbility.COOLDOWN_AFTER_STEAL_SECONDS);
+        }
         plugin.getStolenAbilityManager().clear(player);
         effectService.clearElementEffects(player, pd.getCurrentElement());
     }

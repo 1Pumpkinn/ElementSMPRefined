@@ -2,7 +2,6 @@ package net.rose.elementSMPRefined.ability.main.mythic.death;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
-import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
@@ -29,16 +28,22 @@ import org.bukkit.util.RayTraceResult;
 public class DeathSoulSiphonAbility extends BaseAbility {
     private static final double RANGE = 20.0;
     private static final double RAY_SIZE = 0.6;
-    private static final int DURATION_TICKS = 20 * 60 * 2;
+    private static final int DURATION_SECONDS = 120;
+    private static final int DURATION_TICKS = DURATION_SECONDS * 20;
+
+    public static final String ID = "death_soul_siphon";
+
+    /** Cooldown that starts when the stolen abilities are given back. */
+    public static final int COOLDOWN_AFTER_STEAL_SECONDS = Constants.Cooldown.ABILITY_2_SECONDS;
 
     private final ElementSMPRefined plugin;
 
     public DeathSoulSiphonAbility(JavaPlugin plugin, ConfigManager configManager) {
         super(
-                "death_soul_siphon",
+                ID,
                 ElementType.DEATH,
                 2,
-                Constants.Cooldown.ABILITY_2_SECONDS,
+                DURATION_SECONDS + COOLDOWN_AFTER_STEAL_SECONDS,
                 2,
                 configManager);
         this.plugin = (ElementSMPRefined) plugin;
@@ -60,9 +65,7 @@ public class DeathSoulSiphonAbility extends BaseAbility {
         }
 
         ElementType targetType = plugin.getElementManager().getPlayerElement(target);
-        Element targetElement =
-                targetType != null ? plugin.getElementManager().get(targetType) : null;
-        if (targetElement == null) {
+        if (targetType == null || plugin.getElementManager().get(targetType) == null) {
             caster.sendMessage(Lang.DEATH_SOUL_SIPHON_TARGET_HAS_NO_ELEMENT);
             return false;
         }
@@ -70,13 +73,6 @@ public class DeathSoulSiphonAbility extends BaseAbility {
         plugin.getDisarmManager().applyAbilityDisarm(target, DURATION_TICKS);
         plugin.getStolenAbilityManager().steal(caster, targetType, DURATION_TICKS);
 
-        caster.sendMessage(
-                Lang.deathSoulSiphonCaster(
-                        target.getName(),
-                        targetElement.getAbility1Name()
-                                + ChatColor.GRAY
-                                + " & "
-                                + targetElement.getAbility2Name()));
         target.sendMessage(Lang.deathSoulSiphonVictim(caster.getName()));
 
         playEffects(caster, target);

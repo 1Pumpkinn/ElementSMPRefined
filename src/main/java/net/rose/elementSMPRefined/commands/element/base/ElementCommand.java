@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.commands.element.admin.CastAllCommand;
 import net.rose.elementSMPRefined.commands.element.admin.ConfigCommand;
 import net.rose.elementSMPRefined.commands.element.admin.DataCommand;
 import net.rose.elementSMPRefined.commands.element.admin.DebugCommand;
+import net.rose.elementSMPRefined.commands.element.admin.PackCommand;
 import net.rose.elementSMPRefined.commands.element.admin.SetCommand;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
@@ -56,6 +57,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                         plugin.getTeamManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
         commands.put("castall", new CastAllCommand(plugin));
+        commands.put("pack", new PackCommand(plugin.getResourcePackManager()));
         return commands;
     }
 
@@ -128,6 +130,10 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                 Component.text(
                         "/element castall <1|2> [players...|*] [at <target>] - Fire an ability for"
                             + " several players on the same tick (testing)",
+                        NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text(
+                        "/element pack <status|resend [player|*]|reload> - Built-in resource pack",
                         NamedTextColor.YELLOW));
         sender.sendMessage(
                 Component.text(

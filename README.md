@@ -17,6 +17,12 @@ needs Upgrade I and ability 2 needs Upgrade II, and rerollers change a player's 
 
 `src/main/resources/elementsmprefined` is the resource pack the item-display visuals need.
 
+The plugin hosts it itself: it zips the pack from its own jar, serves it over a small built-in HTTP
+server and sends it to players when they join, so there is no link to upload or paste anywhere.
+Set `resource_pack.host` (your public IP or domain) and open `resource_pack.port` (default 8080) in
+`config.yml`. Updating the pack is just rebuilding the plugin; players re-download automatically
+because the SHA-1 changes with the contents. `/element pack <status|resend|reload>` manages it.
+
 Life's Spore Blossom uses vanilla block displays and needs nothing from the pack.
 
 ## Commands

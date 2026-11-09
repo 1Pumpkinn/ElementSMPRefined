@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.ability.main.mythic.life.SporeBlossomAbility;
 import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBarrageAbility;
 import net.rose.elementSMPRefined.ability.main.upgraded.lava.EruptionAbility;
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
+import net.rose.elementSMPRefined.util.server.pack.ResourcePackManager;
 import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import net.rose.elementSMPRefined.util.visual.model.HellsChainVisual;
 import net.rose.elementSMPRefined.util.visual.model.DeathsVoidVisual;
@@ -22,6 +23,18 @@ import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
 
 public final class ElementSMPRefined extends AbstractElementPlugin {
 
+    private ResourcePackManager resourcePackManager;
+
+    @Override
+    protected void beforeRegisterComponents() {
+        resourcePackManager = new ResourcePackManager(this, getFile());
+        resourcePackManager.start();
+    }
+
+    public ResourcePackManager getResourcePackManager() {
+        return resourcePackManager;
+    }
+
     @Override
     protected void onPluginEnable() {
         getLogger().info("ElementSMPRefined enabled successfully!");
@@ -29,6 +42,9 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
 
     @Override
     protected void onPluginDisable() {
+        if (resourcePackManager != null) {
+            resourcePackManager.stop();
+        }
         // Sweep up any entities on plugin disable / restart. Each sweep is isolated so one
         // failure can't leave the others' entities behind.
         sweep("StarFall", StarFallAbility::removeAll);

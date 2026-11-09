@@ -15,6 +15,24 @@ team:
   # Most teams one team can be allied with (0 turns alliances off)
   max_allies: 1
 
+# Resource Pack
+# The plugin hosts the pack bundled in its jar (src/main/resources/elementsmprefined) itself and
+# sends it to players when they join, so there is no link to upload or paste anywhere. To update
+# the pack, change the files, rebuild and restart: the hash changes with the contents, so players
+# re-download automatically. After editing this section run /element config reload and then
+# /element pack reload.
+resource_pack:
+  enabled: true
+  # What players connect to for the download: your server's public IP or domain, without
+  # http:// or a port (use localhost when testing on your own PC)
+  host: localhost
+  # TCP port the plugin opens for the download. It has to be open / forwarded on your server.
+  port: 8080
+  # Interface to listen on (0.0.0.0 = all)
+  bind_address: 0.0.0.0
+  # Kick players who decline the pack or fail to download it
+  required: true
+
 # Dimension Settings
 dimensions:
   # When true the dimension will not allow anyone to enter

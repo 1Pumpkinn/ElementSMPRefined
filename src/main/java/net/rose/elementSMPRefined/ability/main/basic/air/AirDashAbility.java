@@ -20,6 +20,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class AirDashAbility extends BaseAbility {
+    private static final double GROUND_LIFT = 0.1;
+
     private final ElementSMPRefined plugin;
 
     public AirDashAbility(JavaPlugin plugin, ConfigManager configManager) {
@@ -41,8 +43,12 @@ public class AirDashAbility extends BaseAbility {
         double dashPower = inWater ? 0.8 : 2.5;
         int durationTicks = inWater ? 6 : 20;
 
-        Vector direction = player.getLocation().getDirection();
-        direction.setY(Math.max(direction.getY(), 0.5));
+        // Dash exactly where the caster is looking. On the ground a small lift is kept so the
+        // dash isn't eaten by ground friction (and so looking down doesn't drive into the floor).
+        Vector direction = player.getLocation().getDirection().normalize();
+        if (player.isOnGround()) {
+            direction.setY(Math.max(direction.getY(), GROUND_LIFT));
+        }
         final Vector dashVelocity = direction.multiply(dashPower);
         // In a web the dash is driven by teleport steps (see the runnable) - setting velocity
         // there only makes the server rubber-band the player.
@@ -126,6 +132,6 @@ public class AirDashAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Dash forward and push away enemies near you.";
+        return "Dash in the direction you are looking and push away enemies near you.";
     }
 }

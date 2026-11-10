@@ -547,7 +547,7 @@ public final class ReforgeAltarManager {
         Component msg = Component.text("A Reforge Altar has appeared", NamedTextColor.GOLD);
         if (cfg().getBoolean("reforge_altar.announce_coordinates", true)) {
             msg =
-                    msg.append(Component.text(" near ", NamedTextColor.GOLD))
+                    msg.append(Component.text(" at ", NamedTextColor.GOLD))
                             .append(
                                     Component.text(
                                             a.lodestoneX()
@@ -557,7 +557,6 @@ public final class ReforgeAltarManager {
                                                     + a.lodestoneZ(),
                                             NamedTextColor.YELLOW));
         }
-        Bukkit.broadcast(msg.append(Component.text("!", NamedTextColor.GOLD)));
     }
 
     /**

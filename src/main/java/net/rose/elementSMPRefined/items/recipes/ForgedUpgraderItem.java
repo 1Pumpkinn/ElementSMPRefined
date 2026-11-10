@@ -18,6 +18,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class ForgedUpgraderItem {
     public static final TextColor COLOR = TextColor.color(0xAD1457);
+    public static final TextColor COLOR_LIGHT = TextColor.color(0xF06292);
+    public static final TextColor COLOR_SOFT = TextColor.color(0xF8BBD0);
 
     private ForgedUpgraderItem() {}
 

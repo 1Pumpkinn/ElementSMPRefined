@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.YamlFiles;
+import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -22,12 +23,17 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.structure.Palette;
 import org.bukkit.structure.Structure;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,7 +86,11 @@ public final class ReforgeAltarManager {
     private static final String STRUCTURE_RESOURCE = "structures/reforge_altar.nbt";
     private static final long RETRY_AFTER_FAILED_SPAWN_MS = 5 * 60 * 1000L;
     private static final long HOUR_MS = 60 * 60 * 1000L;
-    private static final double DISPLAY_HEIGHT = 1.9;
+    private static final double DISPLAY_HEIGHT = 2.5;
+    private static final double ITEM_DISPLAY_HEIGHT = 1.45;
+    private static final float ITEM_DISPLAY_SCALE = 0.75f;
+    private static final float ITEM_SPIN_STEP = (float) Math.toRadians(120);
+    private static final int ITEM_SPIN_TICKS = 40;
     private static final double DISPLAY_RANGE_SQ = 128.0 * 128.0;
     private static final int MAX_FILL_DEPTH = 16;
 
@@ -118,6 +128,8 @@ public final class ReforgeAltarManager {
     private boolean spawning;
     private long nextSpawnAtMillis;
     private final Map<ForgeRecipe, UUID> displayIds = new EnumMap<>(ForgeRecipe.class);
+    private UUID itemDisplayId;
+    private float itemSpin;
     private BukkitTask tickTask;
 
     public ReforgeAltarManager(JavaPlugin plugin) {
@@ -544,10 +556,13 @@ public final class ReforgeAltarManager {
         if (!cfg().getBoolean("reforge_altar.announce", true)) return;
         Altar a = active;
         if (a == null) return;
-        Component msg = Component.text("A Reforge Altar has appeared", NamedTextColor.GOLD);
+        Component msg =
+                Component.text("A ", ForgedUpgraderItem.COLOR_LIGHT)
+                        .append(Component.text("Reforge Altar", ForgedUpgraderItem.COLOR))
+                        .append(Component.text(" has appeared", ForgedUpgraderItem.COLOR_LIGHT));
         if (cfg().getBoolean("reforge_altar.announce_coordinates", true)) {
             msg =
-                    msg.append(Component.text(" at ", NamedTextColor.GOLD))
+                    msg.append(Component.text(" at ", ForgedUpgraderItem.COLOR_LIGHT))
                             .append(
                                     Component.text(
                                             a.lodestoneX()
@@ -555,8 +570,9 @@ public final class ReforgeAltarManager {
                                                     + a.lodestoneY()
                                                     + ", "
                                                     + a.lodestoneZ(),
-                                            NamedTextColor.YELLOW));
+                                            ForgedUpgraderItem.COLOR_SOFT));
         }
+        Bukkit.broadcast(msg.append(Component.text("!", ForgedUpgraderItem.COLOR_LIGHT)));
     }
 
     /**
@@ -591,7 +607,7 @@ public final class ReforgeAltarManager {
             plugin.getLogger()
                     .warning(
                             "Reforge Altar: no saved terrain to restore, only removing the"
-                                + " lodestone.");
+                                    + " lodestone.");
             world.getBlockAt(a.lodestoneX(), a.lodestoneY(), a.lodestoneZ())
                     .setType(Material.AIR, false);
             return;
@@ -640,7 +656,7 @@ public final class ReforgeAltarManager {
             plugin.getLogger()
                     .warning(
                             "Reforge Altar: saved altar is missing from the world and has no saved"
-                                + " blocks to re-place.");
+                                    + " blocks to re-place.");
             return;
         }
         loadFootprint(world, a.originX(), a.originZ())
@@ -652,7 +668,7 @@ public final class ReforgeAltarManager {
                                             plugin.getLogger()
                                                     .info(
                                                             "Reforge Altar: structure was missing"
-                                                                + " after restart, re-placed "
+                                                                    + " after restart, re-placed "
                                                                     + n
                                                                     + " blocks.");
                                         }));
@@ -661,7 +677,7 @@ public final class ReforgeAltarManager {
     private Component buildDisplayText(ForgeRecipe recipe) {
         List<Component> lines = new ArrayList<>();
         lines.add(
-                Component.text("Forged Upgrader", NamedTextColor.GOLD)
+                Component.text("Forged Upgrader", ForgedUpgraderItem.COLOR)
                         .decorate(TextDecoration.BOLD));
         for (ForgeRecipe.Ingredient ing : recipe.ingredients()) {
             lines.add(Component.text(ing.label(), NamedTextColor.WHITE));
@@ -673,6 +689,54 @@ public final class ReforgeAltarManager {
         for (ForgeRecipe recipe : ForgeRecipe.values()) {
             spawnDisplay(recipe);
         }
+        spawnItemDisplay();
+    }
+
+    private void spawnItemDisplay() {
+        Altar a = active;
+        if (a == null) return;
+        World world = Bukkit.getWorld(a.worldName());
+        if (world == null) return;
+
+        Location loc =
+                new Location(
+                        world,
+                        a.lodestoneX() + 0.5,
+                        a.lodestoneY() + ITEM_DISPLAY_HEIGHT,
+                        a.lodestoneZ() + 0.5);
+        ItemDisplay display =
+                world.spawn(
+                        loc,
+                        ItemDisplay.class,
+                        d -> {
+                            d.setItemStack(ForgedUpgraderItem.make(plugin));
+                            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
+                            d.setBillboard(Display.Billboard.FIXED);
+                            d.setBrightness(new Display.Brightness(15, 15));
+                            d.setViewRange(1.0f);
+                            d.setInvulnerable(true);
+                            d.setPersistent(false);
+                            d.setTransformation(itemTransformation(0f));
+                        });
+        itemDisplayId = display.getUniqueId();
+        itemSpin = 0f;
+    }
+
+    private static Transformation itemTransformation(float angle) {
+        return new Transformation(
+                new Vector3f(),
+                new Quaternionf(new AxisAngle4f(angle, 0f, 1f, 0f)),
+                new Vector3f(ITEM_DISPLAY_SCALE),
+                new Quaternionf());
+    }
+
+    private void spinItemDisplay() {
+        Entity e = itemDisplayId == null ? null : Bukkit.getEntity(itemDisplayId);
+        if (!(e instanceof ItemDisplay display) || !display.isValid()) return;
+        itemSpin += ITEM_SPIN_STEP;
+        display.setInterpolationDelay(0);
+        display.setInterpolationDuration(ITEM_SPIN_TICKS);
+        display.setTransformation(itemTransformation(itemSpin));
     }
 
     private void spawnDisplay(ForgeRecipe recipe) {
@@ -719,6 +783,11 @@ public final class ReforgeAltarManager {
             if (e != null) e.remove();
         }
         displayIds.clear();
+        if (itemDisplayId != null) {
+            Entity e = Bukkit.getEntity(itemDisplayId);
+            if (e != null) e.remove();
+            itemDisplayId = null;
+        }
     }
 
     private void maintainDisplays() {
@@ -733,6 +802,12 @@ public final class ReforgeAltarManager {
             UUID id = displayIds.get(recipe);
             Entity e = id == null ? null : Bukkit.getEntity(id);
             if (e == null || !e.isValid()) spawnDisplay(recipe);
+        }
+        Entity item = itemDisplayId == null ? null : Bukkit.getEntity(itemDisplayId);
+        if (item == null || !item.isValid()) {
+            spawnItemDisplay();
+        } else {
+            spinItemDisplay();
         }
         updateDisplayVisibility(world, a);
     }
@@ -818,7 +893,7 @@ public final class ReforgeAltarManager {
                     .log(
                             Level.SEVERE,
                             "reforge_altar.yml is unreadable - altar state will not be saved until"
-                                + " it is fixed",
+                                    + " it is fixed",
                             e);
             return;
         }

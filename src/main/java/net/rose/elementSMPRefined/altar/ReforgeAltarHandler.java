@@ -77,10 +77,9 @@ public class ReforgeAltarHandler implements Listener {
         }
         if (!missing.isEmpty()) {
             player.sendMessage(
-                    Component.text("The altar needs more: ", NamedTextColor.RED)
-                            .append(
-                                    Component.text(
-                                            String.join(", ", missing), NamedTextColor.YELLOW)));
+                    Component.text(
+                            "The altar needs more: " + String.join(", ", missing),
+                            NamedTextColor.WHITE));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.6f);
             return;
         }
@@ -103,8 +102,10 @@ public class ReforgeAltarHandler implements Listener {
 
         // Server-wide announcement of who crafted the Forged Upgrader.
         Bukkit.broadcast(
-                Component.text(player.getName(), NamedTextColor.YELLOW)
-                        .append(Component.text(" has crafted the ", NamedTextColor.GOLD))
+                Component.text(player.getName(), ForgedUpgraderItem.COLOR_SOFT)
+                        .append(
+                                Component.text(
+                                        " has crafted the ", ForgedUpgraderItem.COLOR_LIGHT))
                         .append(Component.text("Forged Upgrader", ForgedUpgraderItem.COLOR)));
 
         altar.completeAltar();

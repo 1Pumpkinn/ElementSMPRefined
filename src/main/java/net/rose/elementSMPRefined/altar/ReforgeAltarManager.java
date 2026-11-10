@@ -81,7 +81,7 @@ public final class ReforgeAltarManager {
     private static final long RETRY_AFTER_FAILED_SPAWN_MS = 5 * 60 * 1000L;
     private static final long HOUR_MS = 60 * 60 * 1000L;
     private static final double DISPLAY_HEIGHT = 2.5;
-    private static final double ITEM_DISPLAY_HEIGHT = 1.45;
+    private static final double ITEM_DISPLAY_HEIGHT = 1.6;
     private static final float ITEM_DISPLAY_SCALE = 0.75f;
     private static final float ITEM_SPIN_STEP = (float) Math.toRadians(120);
     private static final int ITEM_SPIN_TICKS = 40;
@@ -227,6 +227,60 @@ public final class ReforgeAltarManager {
                 && block.getY() == a.lodestoneY()
                 && block.getZ() == a.lodestoneZ()
                 && block.getWorld().getName().equals(a.worldName());
+    }
+
+    /**
+     * True if {@code block} is inside the active altar's protected volume: the whole structure
+     * footprint plus the filled-in ground column underneath it. Hot path for the protection
+     * listeners, so it is plain integer comparisons.
+     */
+    public boolean isInsideAltar(Block block) {
+        Altar a = active;
+        if (a == null) return false;
+        int x = block.getX();
+        int y = block.getY();
+        int z = block.getZ();
+        return x >= a.originX()
+                && x < a.originX() + SIZE_X
+                && z >= a.originZ()
+                && z < a.originZ() + SIZE_Z
+                && y >= a.originY() - MAX_FILL_DEPTH
+                && y < a.originY() + SIZE_Y
+                && block.getWorld().getName().equals(a.worldName());
+    }
+
+    /**
+     * If {@code target} is close enough to the active altar that a nether portal generated there
+     * could overlap it, returns a copy of {@code target} pushed just outside the altar's
+     * footprint plus {@code clearance} blocks (portal creation radius + portal size). Returns
+     * {@code null} when no change is needed (no altar, other world, or already far enough away).
+     */
+    public Location relocateOutOfAltar(Location target, int clearance) {
+        Altar a = active;
+        World world = target.getWorld();
+        if (a == null || world == null || !world.getName().equals(a.worldName())) return null;
+
+        int minX = a.originX() - clearance;
+        int maxX = a.originX() + SIZE_X + clearance; // exclusive
+        int minZ = a.originZ() - clearance;
+        int maxZ = a.originZ() + SIZE_Z + clearance; // exclusive
+        double x = target.getX();
+        double z = target.getZ();
+        if (x < minX || x >= maxX || z < minZ || z >= maxZ) return null;
+
+        // Candidate spots just outside each edge, nearest first.
+        double[][] candidates = {
+            {minX - 0.5, z, x - (minX - 0.5)},
+            {maxX + 0.5, z, (maxX + 0.5) - x},
+            {x, minZ - 0.5, z - (minZ - 0.5)},
+            {x, maxZ + 0.5, (maxZ + 0.5) - z}
+        };
+        java.util.Arrays.sort(candidates, java.util.Comparator.comparingDouble(c -> c[2]));
+        for (double[] c : candidates) {
+            Location moved = new Location(world, c[0], target.getY(), c[1], target.getYaw(), target.getPitch());
+            if (world.getWorldBorder().isInside(moved)) return moved;
+        }
+        return null;
     }
 
     public Location getLodestoneLocation() {

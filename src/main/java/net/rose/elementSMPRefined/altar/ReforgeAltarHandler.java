@@ -11,6 +11,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,11 +22,17 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.world.PortalCreateEvent;
+import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -151,39 +160,111 @@ public class ReforgeAltarHandler implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityExplode(EntityExplodeEvent event) {
-        event.blockList().removeIf(altar::isAltarLodestone);
+        event.blockList().removeIf(altar::isInsideAltar);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockExplode(BlockExplodeEvent event) {
-        event.blockList().removeIf(altar::isAltarLodestone);
+        event.blockList().removeIf(altar::isInsideAltar);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        if (altar.isAltarLodestone(event.getBlock())) {
+        if (altar.isInsideAltar(event.getBlock())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBurn(BlockBurnEvent event) {
-        if (altar.isAltarLodestone(event.getBlock())) {
+        if (altar.isInsideAltar(event.getBlock())) {
             event.setCancelled(true);
+        }
+    }
+
+    /** Extra blocks beyond the portal creation radius to cover the portal frame + platform. */
+    private static final int PORTAL_MARGIN = 8;
+
+    private static final int DEFAULT_PORTAL_CREATION_RADIUS = 16;
+
+    /**
+     * Someone arriving through a nether portal: if the spot where the game would generate the
+     * destination portal is near the altar, move the target outside it first, so the portal is
+     * built (or an existing one found) away from the altar and the player still travels normally.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerPortal(PlayerPortalEvent event) {
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL) return;
+        Location to = event.getTo();
+        if (to == null) return;
+        Location safe =
+                altar.relocateOutOfAltar(to, event.getCreationRadius() + PORTAL_MARGIN);
+        if (safe != null) event.setTo(safe);
+    }
+
+    /** Same as above for mobs/items/minecarts that travel through a nether portal. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityPortal(EntityPortalEvent event) {
+        Location to = event.getTo();
+        if (to == null) return;
+        Location safe =
+                altar.relocateOutOfAltar(to, DEFAULT_PORTAL_CREATION_RADIUS + PORTAL_MARGIN);
+        if (safe != null) event.setTo(safe);
+    }
+
+    /** Last line of defence: any portal that would still overlap the altar is cancelled. */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPortalCreate(PortalCreateEvent event) {
+        for (BlockState state : event.getBlocks()) {
+            if (altar.isInsideAltar(state.getBlock())) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    /** Water/lava flowing into the altar and replacing its blocks. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onLiquidFlow(BlockFromToEvent event) {
+        if (altar.isInsideAltar(event.getToBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** Trees/huge mushrooms growing into the altar. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onStructureGrow(StructureGrowEvent event) {
+        for (BlockState state : event.getBlocks()) {
+            if (altar.isInsideAltar(state.getBlock())) {
+                event.setCancelled(true);
+                return;
+            }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPistonExtend(BlockPistonExtendEvent event) {
-        if (event.getBlocks().stream().anyMatch(altar::isAltarLodestone)) {
+        BlockFace dir = event.getDirection();
+        if (altar.isInsideAltar(event.getBlock().getRelative(dir))) {
             event.setCancelled(true);
+            return;
+        }
+        for (Block moved : event.getBlocks()) {
+            if (altar.isInsideAltar(moved) || altar.isInsideAltar(moved.getRelative(dir))) {
+                event.setCancelled(true);
+                return;
+            }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPistonRetract(BlockPistonRetractEvent event) {
-        if (event.getBlocks().stream().anyMatch(altar::isAltarLodestone)) {
-            event.setCancelled(true);
+        BlockFace dir = event.getDirection();
+        for (Block moved : event.getBlocks()) {
+            if (altar.isInsideAltar(moved) || altar.isInsideAltar(moved.getRelative(dir))) {
+                event.setCancelled(true);
+                return;
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
+import net.rose.elementSMPRefined.util.movement.AbilityLaunch;
 import net.rose.elementSMPRefined.util.visual.model.DeathsVoidVisual;
 
 import org.bukkit.Bukkit;
@@ -35,6 +36,9 @@ import java.util.UUID;
  * Darkrai-style: the caster gathers dark energy (purple vortex, short charge), then hurls a spinning fan of
  * purple blades straight ahead. The blades pierce everything in their path (each target is hit once), and
  * burst in a Dark Pulse where they stop - on a wall or at the end of their range.
+ * <p>
+ * The pulse also boosts the caster forward if it bursts right beneath them: aim the blades straight down at
+ * your feet and the explosion throws you the way you are facing.
  */
 public class DeathVoidAbility extends BaseAbility {
 
@@ -55,6 +59,10 @@ public class DeathVoidAbility extends BaseAbility {
     private static final double PULSE_RADIUS = 4.0;
     private static final double PULSE_DAMAGE = 4.0; // 2 hearts
     private static final double PULSE_KNOCKBACK = 1.1;
+
+    private static final double SELF_BOOST = 2.5; // forward speed at the centre of your own pulse
+    private static final double SELF_BOOST_LIFT = 0.5; // small hop so the boost doesn't scrape the ground
+    private static final double SELF_BOOST_MIN_UP = 0.7; // the pulse must be mostly beneath you
 
     private static final int DEBUFF_TICKS = 80;
 
@@ -242,6 +250,8 @@ public class DeathVoidAbility extends BaseAbility {
             world.spawnParticle(Particle.DUST, ring, 2, 0.1, 0.1, 0.1, 0, PURPLE_DUST, true);
         }
 
+        boostCaster(player, at);
+
         for (LivingEntity target : at.getNearbyLivingEntities(PULSE_RADIUS)) {
             if (!isValidTarget(player, teams, target)) continue;
 
@@ -254,6 +264,39 @@ public class DeathVoidAbility extends BaseAbility {
                 target.setVelocity(target.getVelocity().add(away));
             }
         }
+    }
+
+    /**
+     * Blast boost: the Dark Pulse throws the caster forward, the way they are facing, if it goes off right
+     * beneath them, which means aiming the blades straight down at your feet. A pulse beside or above you does
+     * nothing. The closer the pulse, the harder the push.
+     */
+    private void boostCaster(Player player, Location at) {
+        if (!player.getWorld().equals(at.getWorld())) return;
+
+        Location body = player.getLocation().add(0, player.getHeight() * 0.5, 0);
+        double distance = body.distance(at);
+        if (distance > PULSE_RADIUS) return;
+
+        Vector away = body.toVector().subtract(at.toVector());
+        if (away.lengthSquared() < 1.0E-6) {
+            away = new Vector(0, 1, 0);
+        }
+        if (away.normalize().getY() < SELF_BOOST_MIN_UP) return;
+
+        double yaw = Math.toRadians(player.getLocation().getYaw());
+        Vector forward = new Vector(-Math.sin(yaw), 0, Math.cos(yaw));
+
+        double falloff = 1.0 - 0.5 * (distance / PULSE_RADIUS);
+        Vector boost = forward.multiply(SELF_BOOST * falloff);
+        boost.setY(SELF_BOOST_LIFT);
+
+        AbilityLaunch.launch(player, boost);
+
+        World world = at.getWorld();
+        world.spawnParticle(
+                Particle.DUST, player.getLocation(), 25, 0.4, 0.2, 0.4, 0, PURPLE_DUST, true);
+        world.playSound(player.getLocation(), Sound.ENTITY_WARDEN_SONIC_BOOM, 0.3f, 1.6f);
     }
 
     // Sound layout: the cast and charge-up are an evoker's spell winding up with a rising vex
@@ -339,6 +382,6 @@ public class DeathVoidAbility extends BaseAbility {
     @Override
     public String getDescription() {
         return "Shoot corrupted blades that damages everything in its path and bursts into"
-                   + " corrupted energy.";
+                   + " corrupted energy. Aim straight down at your feet and the explosion boosts you forward.";
     }
 }

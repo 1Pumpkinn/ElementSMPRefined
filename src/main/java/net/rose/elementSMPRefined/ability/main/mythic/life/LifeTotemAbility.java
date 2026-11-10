@@ -9,6 +9,7 @@ import net.rose.elementSMPRefined.items.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.particles.element.LifeParticles;
+import net.rose.elementSMPRefined.util.movement.AbilityLaunch;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 
@@ -109,6 +110,12 @@ public class LifeTotemAbility extends BaseAbility {
     private static final int REGEN_TICKS = 60; // each pulse refreshes Regeneration II for 3s
     private static final int REGEN_AMPLIFIER = 1;
     private static final int RING_TICKS = 8; // how long a pulse ring takes to expand
+
+    // Growth surge: a totem that sprouts right under the caster heaves them into the air.
+    private static final double SURGE_RADIUS = 2.5; // horizontal reach of the surge from the base
+    private static final double SURGE_MAX_HEIGHT_ABOVE_BASE = 3.0; // too high above it and it misses
+    private static final double SURGE_LIFT = 1.15; // upward speed, blocks per tick
+    private static final double SURGE_FORWARD = 0.3; // horizontal push the way the caster faces
 
     private static final List<Totem> ACTIVE = new ArrayList<>();
 
@@ -408,6 +415,8 @@ public class LifeTotemAbility extends BaseAbility {
                             });
             BY_HITBOX.put(hitbox.getUniqueId(), this);
 
+            surgeOwner(spot);
+
             spawnBar(spot.clone().add(0, HITBOX_HEIGHT + BAR_OFFSET, 0));
 
             Block under =
@@ -427,6 +436,32 @@ public class LifeTotemAbility extends BaseAbility {
                     true);
             world.playSound(spot, Sound.BLOCK_STONE_PLACE, SoundCategory.PLAYERS, 1.2f, 0.7f);
             world.playSound(spot, Sound.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 0.8f, 1.6f);
+        }
+
+        /** Throws the owner upward if the totem just sprouted under or beside them (aim it at your feet). */
+        private void surgeOwner(Location spot) {
+            Player owner = Bukkit.getPlayer(ownerId);
+            if (owner == null || !owner.isOnline() || owner.isDead()) return;
+            if (!owner.getWorld().equals(world)) return;
+
+            Location at = owner.getLocation();
+            double dx = at.getX() - spot.getX();
+            double dz = at.getZ() - spot.getZ();
+            double above = at.getY() - spot.getY();
+            if (dx * dx + dz * dz > SURGE_RADIUS * SURGE_RADIUS) return;
+            if (above < -1.0 || above > SURGE_MAX_HEIGHT_ABOVE_BASE) return;
+
+            Vector facing = at.getDirection().setY(0);
+            Vector velocity = new Vector(0, SURGE_LIFT, 0);
+            if (facing.lengthSquared() > 1.0E-6) {
+                velocity.add(facing.normalize().multiply(SURGE_FORWARD));
+            }
+            AbilityLaunch.launch(owner, velocity);
+
+            world.spawnParticle(
+                    Particle.HAPPY_VILLAGER, at.clone().add(0, 0.2, 0), 25, 0.5, 0.1, 0.5, 0.0, null, true);
+            world.playSound(spot, Sound.BLOCK_AZALEA_LEAVES_BREAK, SoundCategory.PLAYERS, 1.2f, 0.6f);
+            world.playSound(spot, Sound.ENTITY_GOAT_LONG_JUMP, SoundCategory.PLAYERS, 1.0f, 1.4f);
         }
 
         private void tickPlanted() {
@@ -698,6 +733,6 @@ public class LifeTotemAbility extends BaseAbility {
 
     public String getDescription() {
         return "Launch a totem that plants in the ground and regenerates you and your teammates and"
-                   + " allies nearby.";
+                   + " allies nearby. Aim it at your feet and it launches you upward.";
     }
 }

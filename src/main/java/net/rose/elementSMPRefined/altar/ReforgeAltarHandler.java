@@ -78,8 +78,8 @@ public class ReforgeAltarHandler implements Listener {
         if (!missing.isEmpty()) {
             player.sendMessage(
                     Component.text(
-                            "The altar needs more: " + String.join(", ", missing),
-                            NamedTextColor.WHITE));
+                            "The altar needs: " + String.join(", ", missing),
+                            ForgedUpgraderItem.COLOR_SOFT));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.6f);
             return;
         }

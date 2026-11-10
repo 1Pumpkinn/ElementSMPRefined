@@ -7,13 +7,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.YamlFiles;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.HeightMap;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Tag;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -557,12 +551,12 @@ public final class ReforgeAltarManager {
         Altar a = active;
         if (a == null) return;
         Component msg =
-                Component.text("A ", ForgedUpgraderItem.COLOR_LIGHT)
+                Component.text("A ", NamedTextColor.WHITE)
                         .append(Component.text("Reforge Altar", ForgedUpgraderItem.COLOR))
-                        .append(Component.text(" has appeared", ForgedUpgraderItem.COLOR_LIGHT));
+                        .append(Component.text(" has appeared", NamedTextColor.WHITE));
         if (cfg().getBoolean("reforge_altar.announce_coordinates", true)) {
             msg =
-                    msg.append(Component.text(" at ", ForgedUpgraderItem.COLOR_LIGHT))
+                    msg.append(Component.text(" at ", NamedTextColor.WHITE))
                             .append(
                                     Component.text(
                                             a.lodestoneX()

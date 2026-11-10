@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.ability.passive.basic.earth.listeners;
 
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.managers.ElementManager;
 
 import org.bukkit.GameMode;
@@ -60,12 +61,7 @@ public class EarthVeinMinerListener implements Listener {
         }
 
         var playerData = elementManager.data(player.getUniqueId());
-        ElementType current = playerData.getCurrentElement();
-        if (current != ElementType.EARTH && current != ElementType.METAL) {
-            return;
-        }
-
-        if (playerData.getUpgradeLevel(current) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) {
+        if (!hasVeinMiner(playerData)) {
             return;
         }
 
@@ -75,21 +71,41 @@ public class EarthVeinMinerListener implements Listener {
 
         // Wrong tool (e.g. bare hands): the first ore yields nothing, so don't also destroy 15
         // neighbours for free.
-        if (!block.isPreferredTool(player.getInventory().getItemInMainHand())) {
+        ItemStack tool = player.getInventory().getItemInMainHand();
+        if (!block.isPreferredTool(tool)) {
             return;
         }
 
-        breakConnectedOres(block, player);
+        breakConnectedOres(block, tool);
     }
 
-    private boolean isMineable(Block block, ItemStack tool) {
+    /** True if the player's current element has the vein miner passive unlocked. */
+    public static boolean hasVeinMiner(PlayerData playerData) {
+        if (playerData == null) {
+            return false;
+        }
+        ElementType current = playerData.getCurrentElement();
+        if (current != ElementType.EARTH && current != ElementType.METAL) {
+            return false;
+        }
+        return playerData.getUpgradeLevel(current) >= BaseElement.PASSIVE_2_UPGRADE_LEVEL;
+    }
+
+    public static boolean isOre(Material type) {
+        return ORES.contains(type);
+    }
+
+    private static boolean isMineable(Block block, ItemStack tool) {
         return ORES.contains(block.getType()) && block.isPreferredTool(tool);
     }
 
-    private void breakConnectedOres(Block startBlock, Player player) {
+    /**
+     * Breaks the ores connected to {@code startBlock} (not the block itself) with {@code tool}.
+     * Used by the block break listener and by Earth Tunnel.
+     */
+    public static void breakConnectedOres(Block startBlock, ItemStack tool) {
         Set<Block> visited = new HashSet<>();
         Queue<Block> queue = new LinkedList<>();
-        ItemStack tool = player.getInventory().getItemInMainHand();
 
         // Start with adjacent blocks (don't include start block since it's already being broken)
         for (int x = -1; x <= 1; x++) {

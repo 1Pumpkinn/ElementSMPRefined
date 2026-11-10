@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.ability.main.basic.earth;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.ability.passive.basic.earth.EarthElement;
+import net.rose.elementSMPRefined.ability.passive.basic.earth.listeners.EarthVeinMinerListener;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
@@ -35,7 +36,6 @@ public class EarthTunnelAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
     private final MetadataHelper metadataHelper;
 
-    private final Map<UUID, ItemStack> tunnelTools = new HashMap<>();
     private final Map<UUID, Long> tunnelStartTimes = new HashMap<>();
     // One token per running tunnel. A timer whose token no longer matches is stale (the tunnel was
     // cancelled and recast before it noticed) and must stop WITHOUT touching the new run's state,
@@ -61,7 +61,6 @@ public class EarthTunnelAbility extends BaseAbility {
         // If ability is already active (check metadata), cancel it WITHOUT consuming mana
         if (metadataHelper.hasFlag(player, EarthElement.META_TUNNELING)) {
             metadataHelper.remove(player, EarthElement.META_TUNNELING);
-            tunnelTools.remove(player.getUniqueId());
             tunnelTokens.remove(player.getUniqueId());
             applyEarlyCancelCooldown(player, context);
             player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_CANCELLED);
@@ -76,15 +75,6 @@ public class EarthTunnelAbility extends BaseAbility {
         metadataHelper.setLong(
                 player, EarthElement.META_TUNNELING, now + Constants.Duration.EARTH_TUNNEL_MS);
         tunnelStartTimes.put(player.getUniqueId(), now);
-
-        // If a pickaxe is in hand right now, lock it in for the whole tunnel (Fortune / Silk Touch
-        // included).
-        ItemStack started = player.getInventory().getItemInMainHand();
-        if (Tag.ITEMS_PICKAXES.isTagged(started.getType())) {
-            tunnelTools.put(player.getUniqueId(), started.clone());
-        } else {
-            tunnelTools.remove(player.getUniqueId());
-        }
 
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_STONE_BREAK, 1f, 0.8f);
         player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_STARTED_PRESS_AGAIN_CANCEL);
@@ -103,8 +93,7 @@ public class EarthTunnelAbility extends BaseAbility {
 
                             if (!player.isOnline()
                                     || !metadataHelper.hasFlag(
-                                            player, EarthElement.META_TUNNELING)) {
-                                tunnelTools.remove(player.getUniqueId());
+                                    player, EarthElement.META_TUNNELING)) {
                                 tunnelStartTimes.remove(player.getUniqueId());
                                 tunnelTokens.remove(player.getUniqueId());
                                 setActive(player, false);
@@ -117,7 +106,6 @@ public class EarthTunnelAbility extends BaseAbility {
                             if (System.currentTimeMillis() > until) {
                                 metadataHelper.remove(player, EarthElement.META_TUNNELING);
                                 player.sendMessage(Lang.EARTH_TUNNEL_TUNNELING_ENDED);
-                                tunnelTools.remove(player.getUniqueId());
                                 tunnelStartTimes.remove(player.getUniqueId());
                                 tunnelTokens.remove(player.getUniqueId());
                                 setActive(player, false);
@@ -181,8 +169,13 @@ public class EarthTunnelAbility extends BaseAbility {
         World world = center.getWorld();
         if (world == null) return;
 
-        // Pickaxe locked in when the tunnel started (null if none was in hand then).
-        ItemStack tool = tunnelTools.get(player.getUniqueId());
+        // Whatever pickaxe is held right now, so switching pickaxes mid-tunnel switches the
+        // Fortune / Silk Touch used. Null when no pickaxe is held.
+        ItemStack held = player.getInventory().getItemInMainHand();
+        ItemStack tool = Tag.ITEMS_PICKAXES.isTagged(held.getType()) ? held : null;
+        boolean veinMiner =
+                EarthVeinMinerListener.hasVeinMiner(
+                        plugin.getElementManager().data(player.getUniqueId()));
 
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
@@ -192,9 +185,18 @@ public class EarthTunnelAbility extends BaseAbility {
 
                     if (TUNNELABLE.contains(block.getType())) {
                         if (tool != null) {
-                            // Drops are rolled against the locked-in pickaxe, so Fortune / Silk
-                            // Touch apply.
+                            // Vein miner passive: tunnelling through an ore also mines the ores
+                            // connected to it. Checked before the block is broken.
+                            boolean veinMine =
+                                    veinMiner
+                                            && EarthVeinMinerListener.isOre(block.getType())
+                                            && block.isPreferredTool(tool);
+                            // Drops are rolled against the held pickaxe, so Fortune / Silk Touch
+                            // apply.
                             block.breakNaturally(tool);
+                            if (veinMine) {
+                                EarthVeinMinerListener.breakConnectedOres(block, tool);
+                            }
                         } else {
                             block.breakNaturally();
                         }
@@ -266,6 +268,6 @@ public class EarthTunnelAbility extends BaseAbility {
     @Override
     public String getDescription() {
         return "Digs a tunnel where you're looking. Use your held pickaxe's if you want to apply"
-                   + " Fortune and Silk Touch. Use again to stop tunneling.";
+                + " Fortune and Silk Touch. Use again to stop tunneling.";
     }
 }

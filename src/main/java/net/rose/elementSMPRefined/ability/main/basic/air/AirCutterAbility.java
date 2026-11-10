@@ -13,9 +13,13 @@ import net.rose.elementSMPRefined.util.visual.model.AirCutterVisual;
 import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.Tag;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -133,6 +137,10 @@ public class AirCutterAbility extends BaseAbility {
                 double stepLength = step.length();
                 boolean blocked = false;
                 if (stepLength > 1.0E-4) {
+                    // Leaves and cobwebs get cut instead of stopping the blade. Webs have no
+                    // collision so the ray below would skip them, and leaves would block it, so
+                    // both are cleared first.
+                    cutFoliage(w, previous, step.clone().normalize(), stepLength);
                     RayTraceResult wall =
                             w.rayTraceBlocks(
                                     previous,
@@ -219,6 +227,29 @@ public class AirCutterAbility extends BaseAbility {
                 }
             }
         }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    private static boolean isCuttable(Material type) {
+        return type == Material.COBWEB || Tag.LEAVES.isTagged(type);
+    }
+
+    private static void cutFoliage(World w, Location from, Vector dir, double length) {
+        for (double d = 0; d <= length + 0.5; d += 0.5) {
+            Location point = from.clone().add(dir.clone().multiply(Math.min(d, length)));
+            for (double dx = -0.5; dx <= 0.5; dx += 0.5) {
+                for (double dy = -0.5; dy <= 0.5; dy += 0.5) {
+                    for (double dz = -0.5; dz <= 0.5; dz += 0.5) {
+                        Block block = point.clone().add(dx, dy, dz).getBlock();
+                        if (!isCuttable(block.getType())) continue;
+                        Location center = block.getLocation().add(0.5, 0.5, 0.5);
+                        BlockData data = block.getBlockData();
+                        w.spawnParticle(Particle.BLOCK, center, 12, 0.3, 0.3, 0.3, 0.0, data);
+                        w.playSound(center, data.getSoundGroup().getBreakSound(), 0.6f, 1.2f);
+                        block.breakNaturally();
+                    }
+                }
+            }
+        }
     }
 
     @Override

@@ -94,30 +94,12 @@ public class HellChainAbility extends BaseAbility {
     private static final double STEP_UP_VELOCITY =
             0.42; // roughly vanilla jump height, enough to clear 1 block
 
-    // Wall-scaling mode (hook lands on a vertical block face rather than a flat/top surface -
-    // e.g. a cliff face directly ahead, as opposed to the ground or the top of a ledge). Instead
-    // of the caster stopping dead at the wall like a flat-terrain hit, they climb it.
-    private static final double WALL_STOP_DISTANCE =
-            1.0; // get this close to the wall before switching from approach to climbing
-    private static final double WALL_CHECK_DISTANCE =
-            0.35; // how far ahead (into the wall) to check whether there's still wall left to climb
-    private static final double CLIMB_SPEED = 0.28; // vertical speed while scaling the wall
-    private static final double CLIMB_STICK_STRENGTH =
-            0.12; // small push into the wall each tick so the caster stays pressed against it
-                  // instead of drifting off mid-climb
-    private static final double MANTLE_FORWARD_VELOCITY =
-            0.45; // boost onto the ledge once the top of the wall is cleared
-    private static final double MANTLE_UPWARD_VELOCITY = 0.25;
-    // Wall-climb limits. The climb used to run until the TOP of the wall (or the tick cap), no
-    // matter
-    // where the hook landed, so hooking the base of any tall wall (e.g. aiming steeply down at it)
-    // and
-    // then pressing/strafing against it let the caster crawl all the way up. It now only goes as
-    // far as
-    // the point that was hooked, and it lets go if the caster stops touching the wall.
-    private static final double CLIMB_LEDGE_ALLOWANCE = 1.5;
-    private static final double WALL_CONTACT_DISTANCE = 0.8;
-    private static final int CLIMB_CONTACT_GRACE_TICKS = 6;
+    // Wall-dash mode (hook lands on a flat vertical block face): once the caster reaches the wall
+    // they get a single upward dash instead of climbing. 0.47 blocks/tick rises about 1.5 blocks
+    // under vanilla gravity and drag.
+    private static final double WALL_STOP_DISTANCE = 1.0;
+    private static final double WALL_DASH_UPWARD = 1.0;
+    private static final double WALL_DASH_FORWARD = 0.0;
 
     // Entity-drag mode (hook lands directly on a living entity)
     private static final double DRAG_MAX_SPEED = 0.8;
@@ -410,23 +392,15 @@ public class HellChainAbility extends BaseAbility {
         final boolean startedOnGround = player.isOnGround();
         final int latencyTicks = pingTicks(player);
         final int maxTicks = maxTicksFor(player.getEyeLocation().distance(hookLocation));
-        // Highest the caster's eyes may get while climbing: the top of the hooked block plus a
-        // ledge's worth.
-        final double climbCeilingY = Math.floor(hookLocation.getY()) + 1.0 + CLIMB_LEDGE_ALLOWANCE;
 
         new BukkitRunnable() {
             final HellsChainVisual chain = new HellsChainVisual(HellsChainVisual.HELL_CHAIN, player);
             int ticks = 0;
-            boolean climbing = false;
             double bestDistance =
                     Double
                             .MAX_VALUE; // approach-phase progress tracking (closest point reached
                                         // so far)
             int approachStuckTicks = 0;
-            double bestClimbY =
-                    Double.NaN; // climb-phase progress tracking (highest point reached so far)
-            int climbStuckTicks = 0;
-            int climbTicks = 0;
 
             @Override
             public synchronized void cancel() throws IllegalStateException {
@@ -463,111 +437,13 @@ public class HellChainAbility extends BaseAbility {
 
                 Location currentLoc = player.getEyeLocation();
 
-                if (climbing) {
-                    // Came off the wall (strafing / backing away, knocked off...): let go instead
-                    // of
-                    // rising through open air. Skipped for the first few ticks while the
-                    // stick-to-wall
-                    // push settles them against it (longer on high ping).
-                    if (climbTicks >= CLIMB_CONTACT_GRACE_TICKS + latencyTicks
-                            && !touchingWall(currentLoc, intoWall)) {
-                        debug(
-                                player,
-                                "came off the wall while climbing",
-                                ticks,
-                                currentLoc.distance(hookLocation));
-                        player.setVelocity(player.getVelocity().multiply(0.3));
-                        cancel();
-                        return;
-                    }
-
-                    Location aheadHead =
-                            currentLoc.clone().add(intoWall.clone().multiply(WALL_CHECK_DISTANCE));
-                    if (!aheadHead.getBlock().getType().isSolid()) {
-                        // Cleared the top of the wall - vault onto the ledge instead of just
-                        // stopping mid-climb.
-                        mantleOntoLedge(player, currentLoc, intoWall, team);
-                        cancel();
-                        return;
-                    }
-
-                    // Reached the hooked point and the wall keeps going: stop here. Without this
-                    // cap
-                    // the caster kept climbing to the top of ANY wall, whatever they aimed at.
-                    if (currentLoc.getY() >= climbCeilingY) {
-                        debug(
-                                player,
-                                "reached hooked height",
-                                ticks,
-                                currentLoc.distance(hookLocation));
-                        player.setVelocity(player.getVelocity().multiply(0.2));
-                        player.setFallDistance(0f);
-                        player.getWorld()
-                                .playSound(hookLocation, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
-                        burnNearby(player, currentLoc, team);
-                        cancel();
-                        return;
-                    }
-
-                    // Climb-phase snag guard: if height gained per tick stalls (e.g. a ceiling
-                    // or overhang above blocking further ascent), the wall ahead never actually
-                    // clears, so the check above alone would pin the caster there for the rest
-                    // of MAX_TICKS. Let go once that stall persists for a few ticks running.
-                    // Compared against the best height reached (not just last tick) and given a
-                    // ping-based grace period, so delayed position updates on high ping don't read
-                    // as "stuck".
-                    double currentY = currentLoc.getY();
-                    if (Double.isNaN(bestClimbY) || currentY > bestClimbY + PROGRESS_EPSILON) {
-                        bestClimbY = currentY;
-                        climbStuckTicks = 0;
-                    } else if (climbTicks >= latencyTicks) {
-                        climbStuckTicks++;
-                        if (climbStuckTicks >= MAX_CONSECUTIVE_BLOCKED_TICKS + latencyTicks) {
-                            debug(
-                                    player,
-                                    "snagged while climbing",
-                                    ticks,
-                                    currentLoc.distance(hookLocation));
-                            player.setVelocity(player.getVelocity().multiply(0.2));
-                            cancel();
-                            return;
-                        }
-                    }
-                    climbTicks++;
-
-                    // Keep rising, with a small push into the wall each tick so the caster
-                    // stays pressed against it rather than drifting off and falling away
-                    // mid-climb.
-                    player.setVelocity(
-                            WebUtil.compensate(
-                                    player,
-                                    new Vector(
-                                            intoWall.getX() * CLIMB_STICK_STRENGTH,
-                                            CLIMB_SPEED,
-                                            intoWall.getZ() * CLIMB_STICK_STRENGTH)));
-                    player.setFallDistance(0f);
-
-                    // Keep the chain anchored where it hit the wall while that anchor is still
-                    // above the caster; once they've climbed past it there's nothing left to
-                    // hang the chain from, so it drops away for the final vault.
-                    if (hookLocation.getY() > currentLoc.getY() + 0.5) {
-                        chain.update(chainStart(player), hookLocation);
-                    } else {
-                        chain.hide();
-                    }
-                    playChainStep(player, currentLoc, ticks);
-                    ticks++;
-                    return;
-                }
-
                 double distance = currentLoc.distance(hookLocation);
 
                 double stopDistance = wallHit ? WALL_STOP_DISTANCE : STOP_DISTANCE;
                 if (distance < stopDistance) {
                     if (wallHit) {
-                        // Close enough to start scaling the wall instead of just stopping at
-                        // its base - the next tick takes over with climb movement.
-                        climbing = true;
+                        wallDash(player, currentLoc, intoWall, team);
+                        cancel();
                         return;
                     }
 
@@ -676,14 +552,6 @@ public class HellChainAbility extends BaseAbility {
         return Math.min(MAX_PING_TICKS, (int) Math.ceil(ping / MS_PER_TICK));
     }
 
-    private boolean touchingWall(Location eye, Vector intoWall) {
-        Location lowerChest =
-                eye.clone()
-                        .subtract(0, 0.9, 0)
-                        .add(intoWall.clone().multiply(WALL_CONTACT_DISTANCE));
-        return lowerChest.getBlock().getType().isSolid();
-    }
-
     private boolean isWallFace(BlockFace face) {
         return face == BlockFace.NORTH
                 || face == BlockFace.SOUTH
@@ -691,10 +559,10 @@ public class HellChainAbility extends BaseAbility {
                 || face == BlockFace.WEST;
     }
 
-    private void mantleOntoLedge(Player player, Location at, Vector intoWall, TeamManager team) {
-        Vector boost = intoWall.clone().multiply(MANTLE_FORWARD_VELOCITY);
-        boost.setY(MANTLE_UPWARD_VELOCITY);
-        player.setVelocity(WebUtil.compensate(player, boost));
+    private void wallDash(Player player, Location at, Vector intoWall, TeamManager team) {
+        Vector dash = intoWall.clone().multiply(WALL_DASH_FORWARD);
+        dash.setY(WALL_DASH_UPWARD);
+        player.setVelocity(WebUtil.compensate(player, dash));
         player.setFallDistance(0f);
         player.getWorld().playSound(at, Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.2f);
         player.getWorld().spawnParticle(Particle.LAVA, at, 15, 0.4, 0.2, 0.4, 0.05);

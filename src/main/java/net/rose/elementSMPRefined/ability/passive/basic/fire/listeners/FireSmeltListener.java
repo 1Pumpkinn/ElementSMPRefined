@@ -28,7 +28,6 @@ public class FireSmeltListener implements Listener {
         SMELT_RESULTS.put(Material.RAW_IRON, Material.IRON_INGOT);
         SMELT_RESULTS.put(Material.RAW_GOLD, Material.GOLD_INGOT);
         SMELT_RESULTS.put(Material.RAW_COPPER, Material.COPPER_INGOT);
-        SMELT_RESULTS.put(Material.ANCIENT_DEBRIS, Material.NETHERITE_SCRAP);
     }
 
     private final ElementManager elementManager;
@@ -68,6 +67,21 @@ public class FireSmeltListener implements Listener {
 
         // Silk Touch keeps the raw block/ore as-is - no smelting at all
         if (tool.getEnchantmentLevel(Enchantment.SILK_TOUCH) > 0) {
+            return;
+        }
+
+        // Ancient debris only drops with a diamond/netherite pickaxe and ignores Fortune, so it
+        // is handled directly instead of relying on the loot table lookup below.
+        if (block.getType() == Material.ANCIENT_DEBRIS) {
+            if (tool.getType() != Material.DIAMOND_PICKAXE
+                    && tool.getType() != Material.NETHERITE_PICKAXE) {
+                return;
+            }
+            event.setDropItems(false);
+            block.getWorld()
+                    .dropItemNaturally(
+                            block.getLocation().add(0.5, 0.5, 0.5),
+                            new ItemStack(Material.NETHERITE_SCRAP));
             return;
         }
 

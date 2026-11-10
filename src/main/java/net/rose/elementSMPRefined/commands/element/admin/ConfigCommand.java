@@ -27,6 +27,7 @@ public class ConfigCommand implements ElementSubCommand {
                     "grace_period.",
                     "banned-potions",
                     "enchant-limits",
+                    "element_info.",
                     "reforge_altar.enabled");
 
     private final ElementSMPRefined plugin;

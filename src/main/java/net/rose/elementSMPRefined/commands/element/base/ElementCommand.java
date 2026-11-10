@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.commands.element.admin.CastAllCommand;
 import net.rose.elementSMPRefined.commands.element.admin.ConfigCommand;
 import net.rose.elementSMPRefined.commands.element.admin.DataCommand;
 import net.rose.elementSMPRefined.commands.element.admin.DebugCommand;
+import net.rose.elementSMPRefined.commands.element.admin.HideCommand;
 import net.rose.elementSMPRefined.commands.element.admin.PackCommand;
 import net.rose.elementSMPRefined.commands.element.admin.SetCommand;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
@@ -58,6 +59,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
         commands.put("castall", new CastAllCommand(plugin));
         commands.put("pack", new PackCommand(plugin.getResourcePackManager()));
+        commands.put("hide", new HideCommand(plugin.getConfigManager(), true));
+        commands.put("unhide", new HideCommand(plugin.getConfigManager(), false));
         return commands;
     }
 
@@ -134,6 +137,11 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(
                 Component.text(
                         "/element pack <status|resend [player|*]|reload> - Built-in resource pack",
+                        NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text(
+                        "/element hide <element|list> | unhide <element> - Hide unreleased elements"
+                            + " from /elements",
                         NamedTextColor.YELLOW));
         sender.sendMessage(
                 Component.text(

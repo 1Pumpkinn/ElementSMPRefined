@@ -97,6 +97,15 @@ reforge_altar:
   announce: true
   announce_coordinates: true
 
+# Element info (/elements, /elementinfo)
+# Elements listed here are hidden from /elements: they are left out of the list and tab completion
+# and can't be looked up by name. Use this for elements that are not released yet. Players with
+# element.admin still see them (marked "hidden"). Manage in-game with
+# /element hide <element>, /element unhide <element> and /element hide list.
+# Example: [lava, storm]
+element_info:
+  hidden_elements: []
+
 # Potion limits
 # Potion types nobody can brew, hold, drink, or have applied through
 # dispensers / trial chambers. Manage in-game with /potlimits add|remove|list.

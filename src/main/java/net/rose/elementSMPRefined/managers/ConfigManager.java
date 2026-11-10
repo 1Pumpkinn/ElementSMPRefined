@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.managers;
 
 import net.kyori.adventure.bossbar.BossBar;
+import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.YamlFiles;
 
@@ -11,6 +12,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -28,6 +33,8 @@ public class ConfigManager {
     private static final boolean DEFAULT_END_DISABLED = Constants.Dimension.DEFAULT_END_DISABLED;
     private static final int DEFAULT_GRACE_PERIOD_DURATION_SECONDS =
             Constants.GracePeriod.DEFAULT_DURATION_SECONDS;
+
+    private static final String HIDDEN_INFO_ELEMENTS_PATH = "element_info.hidden_elements";
 
     private final JavaPlugin plugin;
     private FileConfiguration config;
@@ -339,5 +346,46 @@ public class ConfigManager {
     public boolean isGracePeriodEnableEndOnEnd() {
         return getBooleanSafe(
                 "grace_period.on_end.enable_end", Constants.GracePeriod.DEFAULT_ENABLE_END_ON_END);
+    }
+
+    /**
+     * Elements hidden from /elements (not released yet). Read live from config.yml so a reload or
+     * /element hide takes effect immediately; names that aren't elements are ignored with a warning.
+     */
+    public Set<ElementType> getHiddenInfoElements() {
+        Set<ElementType> hidden = EnumSet.noneOf(ElementType.class);
+        for (String raw : config.getStringList(HIDDEN_INFO_ELEMENTS_PATH)) {
+            ElementType.parse(raw)
+                    .ifPresentOrElse(
+                            hidden::add,
+                            () ->
+                                    plugin.getLogger()
+                                            .warning(
+                                                    "Ignoring unknown element in "
+                                                            + HIDDEN_INFO_ELEMENTS_PATH
+                                                            + ": "
+                                                            + raw));
+        }
+        return hidden;
+    }
+
+    public boolean isInfoElementHidden(ElementType type) {
+        return getHiddenInfoElements().contains(type);
+    }
+
+    /** Hides or shows an element in /elements and persists it. Returns false if nothing changed. */
+    public boolean setInfoElementHidden(ElementType type, boolean hidden) {
+        Set<ElementType> current = getHiddenInfoElements();
+        boolean changed = hidden ? current.add(type) : current.remove(type);
+        if (!changed) {
+            return false;
+        }
+        List<String> names = new ArrayList<>();
+        for (ElementType element : current) {
+            names.add(element.name().toLowerCase(Locale.ROOT));
+        }
+        config.set(HIDDEN_INFO_ELEMENTS_PATH, names);
+        plugin.saveConfig();
+        return true;
     }
 }

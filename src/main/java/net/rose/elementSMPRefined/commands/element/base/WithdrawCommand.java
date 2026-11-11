@@ -15,6 +15,7 @@ import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.ElementColours;
+import net.rose.elementevents.mythic.MythicBook;
 
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -31,11 +32,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * <pre>
  * /withdraw upgrader    turn your highest upgrade back into an Upgrader item
  * /withdraw forged      turn a forged element back into its basic element + a Forged Upgrader
+ * /withdraw mythic      turn a mythic element back into its book (you get a random basic element)
  * </pre>
  * <p>
  * <b>upgrader</b>: withdraws ONE upgrade level at a time, highest first. At level 2 it
@@ -45,9 +48,13 @@ import java.util.Optional;
  * <b>forged</b>: the reverse of the Forged Upgrader (Lava -&gt; Fire, Metal -&gt; Earth,
  * Frost -&gt; Water, Storm -&gt; Air). Your upgrade level is kept, exactly as it is when
  * a Forged Upgrader is used.
+ * <p>
+ * <b>mythic</b>: gives the Life/Death book back and frees that mythic element so anyone can
+ * claim it again. You are left with a random basic element (as after a reroll) and keep your
+ * upgrade level.
  */
 public class WithdrawCommand implements CommandExecutor, TabCompleter {
-    private static final List<String> SUBCOMMANDS = List.of("upgrader", "forged");
+    private static final List<String> SUBCOMMANDS = List.of("upgrader", "forged", "mythic");
 
     private final ElementSMPRefined plugin;
     private final ElementManager elementManager;
@@ -85,6 +92,7 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "upgrader" -> withdrawUpgrader(player, data, current);
             case "forged" -> withdrawForged(player, current);
+            case "mythic" -> withdrawMythic(player, current);
             default -> player.sendMessage(Lang.WITHDRAW_USAGE);
         }
         return true;
@@ -146,6 +154,47 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
         // instead.
         player.stopSound(SoundUtils.UI.SUCCESS.sound());
         SoundUtils.playTo(player, SoundUtils.UI.WITHDRAW);
+    }
+
+    private void withdrawMythic(Player player, ElementType current) {
+        MythicBook.Kind kind = MythicBook.kindFor(current);
+        if (kind == null) {
+            player.sendMessage(Lang.WITHDRAW_NOT_MYTHIC);
+            return;
+        }
+
+        ElementType[] basics = elementManager.getBasicElements();
+        ElementType base = basics[ThreadLocalRandom.current().nextInt(basics.length)];
+
+        plugin.getMythicElements().release(current, player.getUniqueId());
+        elementManager.assignBasicElement(player, base);
+        MythicBook.giveOrDrop(plugin, player, kind);
+
+        var element = elementManager.get(base);
+        NamedTextColor color =
+                element != null
+                        ? ElementColours.fromLegacy(element.getDisplayName())
+                        : NamedTextColor.AQUA;
+        player.showTitle(
+                Title.title(
+                        Component.text("Element Withdrawn").color(NamedTextColor.GOLD),
+                        Component.text(current.name() + " -> " + base.name()).color(color),
+                        Title.Times.times(
+                                Duration.ofMillis(500),
+                                Duration.ofMillis(2000),
+                                Duration.ofMillis(500))));
+
+        player.stopSound(SoundUtils.UI.SUCCESS.sound());
+        SoundUtils.playTo(player, SoundUtils.UI.WITHDRAW);
+
+        plugin.getServer()
+                .broadcast(
+                        Component.text(
+                                player.getName()
+                                        + " has withdrawn the "
+                                        + kind.elementName()
+                                        + ". Its book is free to claim again.",
+                                NamedTextColor.GOLD));
     }
 
     /** Adds the item to the inventory, dropping whatever doesn't fit. @return true if anything was dropped */

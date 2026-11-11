@@ -1,5 +1,7 @@
 package net.rose.elementevents.mythic;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementevents.mythic.MythicBook.Kind;
 
@@ -145,8 +147,15 @@ public class MythicBookProtection implements Listener {
 
         Location where = item.getLocation().clone();
         ItemStack copy = item.getItemStack().clone();
+        boolean voided = e.getCause().name().equals("OUT_OF_WORLD");
         plugin.getTaskScheduler()
-                .runLater(() -> redrop(copy, safeSpot(where)), 1L);
+                .runLater(
+                        () -> {
+                            Location spot = safeSpot(where);
+                            redrop(copy, spot);
+                            if (voided) announceVoid(kind, spot);
+                        },
+                        1L);
     }
 
     /** A book can't be burned up as a crafting ingredient (bookshelves, etc). */
@@ -168,11 +177,33 @@ public class MythicBookProtection implements Listener {
         for (Item item : tracked.values().toArray(new Item[0])) {
             World world = item.getWorld();
             if (item.getLocation().getY() < world.getMinHeight() - VOID_RESCUE_DEPTH) {
+                Kind kind = MythicBook.kindOf(plugin, item.getItemStack());
                 Location spot = safeSpot(item.getLocation());
                 item.setVelocity(new Vector(0, 0, 0));
                 item.teleport(spot);
+                announceVoid(kind, spot);
             }
         }
+    }
+
+    /** Tells the whole server a book fell into the void and where it came back. */
+    private void announceVoid(Kind kind, Location spot) {
+        if (kind == null) return;
+        Bukkit.broadcast(
+                Component.text(
+                        "The Book of "
+                                + kind.id().substring(0, 1).toUpperCase()
+                                + kind.id().substring(1)
+                                + " fell into the void and has returned at "
+                                + spot.getBlockX()
+                                + ", "
+                                + spot.getBlockY()
+                                + ", "
+                                + spot.getBlockZ()
+                                + " ("
+                                + spot.getWorld().getName()
+                                + ").",
+                        NamedTextColor.GOLD));
     }
 
     private void redrop(ItemStack stack, Location at) {

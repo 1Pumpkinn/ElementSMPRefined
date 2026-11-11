@@ -390,7 +390,10 @@ public final class Lang {
 
     public static final Component WITHDRAW_PLAYERS_ONLY = COMMAND_PLAYERS_ONLY;
 
-    public static final Component WITHDRAW_USAGE = red("Usage: /withdraw <upgrader|forged>");
+    public static final Component WITHDRAW_USAGE = red("Usage: /withdraw <upgrader|forged|mythic>");
+
+    public static final Component WITHDRAW_NOT_MYTHIC =
+            red("You don't have a mythic element.");
 
     public static final Component WITHDRAW_CANCELLED = red("Something stopped the withdrawal.");
 

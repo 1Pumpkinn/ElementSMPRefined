@@ -60,8 +60,8 @@ commands:
     aliases: [ toggles ]
 
   withdraw:
-    description: Withdraw your highest upgrade or your forged element as an item
-    usage: /withdraw <upgrader|forged>
+    description: Withdraw your highest upgrade, forged element or mythic element as an item
+    usage: /withdraw <upgrader|forged|mythic>
 
   reforgealtar:
     description: Spawn, remove or inspect the Reforge Altar

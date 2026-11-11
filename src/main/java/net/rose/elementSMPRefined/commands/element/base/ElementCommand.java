@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.commands.element.admin.CastAllCommand;
 import net.rose.elementSMPRefined.commands.element.admin.ConfigCommand;
 import net.rose.elementSMPRefined.commands.element.admin.DataCommand;
 import net.rose.elementSMPRefined.commands.element.admin.DebugCommand;
+import net.rose.elementSMPRefined.commands.element.admin.EventCommand;
 import net.rose.elementSMPRefined.commands.element.admin.HideCommand;
 import net.rose.elementSMPRefined.commands.element.admin.PackCommand;
 import net.rose.elementSMPRefined.commands.element.admin.SetCommand;
@@ -58,6 +59,7 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                         plugin.getTeamManager()));
         commands.put("config", new ConfigCommand(plugin, plugin.getConfigManager()));
         commands.put("castall", new CastAllCommand(plugin));
+        commands.put("event", new EventCommand(plugin));
         commands.put("pack", new PackCommand(plugin.getResourcePackManager()));
         commands.put("hide", new HideCommand(plugin.getConfigManager(), true));
         commands.put("unhide", new HideCommand(plugin.getConfigManager(), false));
@@ -133,6 +135,11 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                 Component.text(
                         "/element castall <1|2> [players...|*] [at <target>] - Fire an ability for"
                             + " several players on the same tick (testing)",
+                        NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text(
+                        "/element event <start [duration]|end|cancel|status|give <life|death>"
+                            + " [player]> - Life & Death event",
                         NamedTextColor.YELLOW));
         sender.sendMessage(
                 Component.text(

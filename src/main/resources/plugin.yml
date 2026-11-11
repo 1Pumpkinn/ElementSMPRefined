@@ -36,7 +36,7 @@ commands:
 
   element:
     description: Element admin commands
-    usage: /element <set|data|debug|castall|config|pack|hide|unhide> [player] [element]
+    usage: /element <set|data|debug|castall|event|config|pack|hide|unhide> [player] [element]
     permission: element.admin
 
   util:

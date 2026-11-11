@@ -10,6 +10,7 @@ import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.ElementGemOrbitVisual;
+import net.rose.elementevents.mythic.MythicBook;
 
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -56,10 +57,12 @@ public class RerollerHandler implements Listener {
         // back.
         ElementType before = elementManager.getPlayerElement(player);
         boolean wasForged = before != null && ForgeRecipe.forTarget(before).isPresent();
+        // A mythic element is unique on the server, so rerolling away from one returns its book.
+        MythicBook.Kind wasMythic = MythicBook.kindFor(before);
 
         consumeItem(player, item);
         clearOldElementEffects(player);
-        performBasicRoll(player, newElement, wasForged);
+        performBasicRoll(player, newElement, wasForged, wasMythic);
     }
 
     private boolean isReroller(ItemStack item) {
@@ -115,7 +118,11 @@ public class RerollerHandler implements Listener {
         }
     }
 
-    private void performBasicRoll(Player player, ElementType targetElement, boolean wasForged) {
+    private void performBasicRoll(
+            Player player,
+            ElementType targetElement,
+            boolean wasForged,
+            MythicBook.Kind wasMythic) {
         SoundUtils.playTo(player, SoundUtils.UI.ROLL);
 
         ElementType[] basicElements = elementManager.getBasicElements();
@@ -159,6 +166,7 @@ public class RerollerHandler implements Listener {
                     assigned = true;
                     elementManager.assignBasicElement(player, targetElement);
                     if (wasForged) giveForgedUpgraderBack(player);
+                    if (wasMythic != null) MythicBook.giveOrDrop(plugin, player, wasMythic);
                 }
 
                 // Whole animation finished (survivor has burst) - release the lock.

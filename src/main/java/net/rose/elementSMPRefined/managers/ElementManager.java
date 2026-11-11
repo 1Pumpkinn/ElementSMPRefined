@@ -83,12 +83,13 @@ public class ElementManager {
 
     /**
      * All advanced (non-basic) elements that can be rolled with the advanced
-     * reroller. Always the exact complement of {@link #getBasicElements()} -
-     * every playable {@link ElementType} lands in exactly one of the two lists.
+     * reroller. The complement of {@link #getBasicElements()} minus the mythic
+     * elements, which can only be claimed through a mythic book.
      */
     public ElementType[] getAdvancedElements() {
         EnumSet<ElementType> advanced = ElementType.playable();
         advanced.removeAll(classifyBasicElements());
+        advanced.removeIf(ElementType::isMythic);
         return advanced.toArray(new ElementType[0]);
     }
 

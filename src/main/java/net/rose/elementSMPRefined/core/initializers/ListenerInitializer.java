@@ -26,7 +26,9 @@ import net.rose.elementSMPRefined.util.server.DimensionDisable;
 import net.rose.elementSMPRefined.util.server.GracePeriod;
 import net.rose.elementSMPRefined.util.server.MaceCooldown;
 import net.rose.elementSMPRefined.util.visual.ElementSmpTablist;
+import net.rose.elementevents.lifedeath.LifeDeathListener;
 import net.rose.elementevents.listener.EventVillagerListener;
+import net.rose.elementevents.mythic.MythicBookHandler;
 
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -103,6 +105,13 @@ public class ListenerInitializer {
         pluginManager.registerEvents(advancements, plugin);
         pluginManager.registerEvents(
                 new EventVillagerListener(plugin, plugin.getEventVillager()), plugin);
+        pluginManager.registerEvents(plugin.getMythicBookProtection(), plugin);
+        pluginManager.registerEvents(
+                new MythicBookHandler(
+                        plugin, plugin.getElementManager(), plugin.getMythicElements()),
+                plugin);
+        pluginManager.registerEvents(
+                new LifeDeathListener(plugin, plugin.getLifeDeathEvent()), plugin);
     }
 
     private void registerElementListeners() {

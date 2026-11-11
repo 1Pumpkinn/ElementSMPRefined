@@ -42,6 +42,15 @@ public enum ElementType {
         return playable;
     }
 
+    /**
+     * Mythic elements: only one player on the whole server can hold each, and they are obtained
+     * through a mythic book (see {@code net.rose.elementevents.mythic.MythicBook}) rather than
+     * rerolling.
+     */
+    public boolean isMythic() {
+        return this == LIFE || this == DEATH;
+    }
+
     /** All types that can actually be given to players. */
     public static EnumSet<ElementType> playable() {
         EnumSet<ElementType> result = EnumSet.noneOf(ElementType.class);

@@ -186,24 +186,25 @@ public class MythicBookProtection implements Listener {
         }
     }
 
-    /** Tells the whole server a book fell into the void and where it came back. */
+    /** Tells the whole server a mythic element's book fell into the void and where it is now. */
     private void announceVoid(Kind kind, Location spot) {
         if (kind == null) return;
+        NamedTextColor colour = kind == Kind.LIFE ? NamedTextColor.GREEN : NamedTextColor.DARK_PURPLE;
+        String name = kind.id().substring(0, 1).toUpperCase() + kind.id().substring(1);
         Bukkit.broadcast(
-                Component.text(
-                        "The Book of "
-                                + kind.id().substring(0, 1).toUpperCase()
-                                + kind.id().substring(1)
-                                + " fell into the void and has returned at "
-                                + spot.getBlockX()
-                                + ", "
-                                + spot.getBlockY()
-                                + ", "
-                                + spot.getBlockZ()
-                                + " ("
-                                + spot.getWorld().getName()
-                                + ").",
-                        NamedTextColor.GOLD));
+                Component.text(name + " Element", colour)
+                        .append(
+                                Component.text(
+                                        " fell into the void and is now at ", NamedTextColor.GRAY))
+                        .append(
+                                Component.text(
+                                        spot.getBlockX()
+                                                + ", "
+                                                + spot.getBlockY()
+                                                + ", "
+                                                + spot.getBlockZ(),
+                                        colour))
+                        .append(Component.text(".", NamedTextColor.GRAY)));
     }
 
     private void redrop(ItemStack stack, Location at) {

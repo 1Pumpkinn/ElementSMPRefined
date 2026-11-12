@@ -209,16 +209,6 @@ public class LifeDeathEvent {
         int i = kind.ordinal();
         score.counts[i]++;
         score.reachedAt[i] = System.nanoTime();
-        killer.sendActionBar(
-                Component.text(
-                        "+1 "
-                                + capitalise(kind)
-                                + "  (Life "
-                                + score.counts[Kind.LIFE.ordinal()]
-                                + " | Death "
-                                + score.counts[Kind.DEATH.ordinal()]
-                                + ")",
-                        kind == Kind.LIFE ? NamedTextColor.GREEN : NamedTextColor.DARK_PURPLE));
     }
 
     /** Opens the current standings in a dialog for {@code viewer}. */

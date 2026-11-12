@@ -36,9 +36,8 @@ import java.util.logging.Level;
  *       points (see {@link LifeDeathListener} for what counts as which).</li>
  *   <li>When the timer runs out (or {@code /element event end}) the player with the most Death
  *       points receives the {@link Kind#DEATH} book and the player with the most Life points the
- *       {@link Kind#LIFE} book. Ties go to whoever reached the score first. One player never wins
- *       both: if the same player tops both, they keep the book of the category they scored more in
- *       and the other book goes to the next best player in that category.</li>
+ *       {@link Kind#LIFE} book. Ties go to whoever reached the score first. A player who tops both
+ *       categories wins both books.</li>
  *   <li>The book goes into the winner's inventory; if it is full it is dropped at their feet
  *       (protected by {@link MythicBookProtection}). A winner who is offline gets it the next time
  *       they join - those are kept in {@code life_death_pending.yml}.</li>
@@ -96,7 +95,7 @@ public class LifeDeathEvent {
 
         bossBar =
                 BossBar.bossBar(
-                        TITLE, 1.0f, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
+                        TITLE, 1.0f, BossBar.Color.PURPLE, BossBar.Overlay.PROGRESS);
         Bukkit.getOnlinePlayers().forEach(p -> p.showBossBar(bossBar));
         task =
                 plugin.getTaskScheduler()
@@ -255,26 +254,9 @@ public class LifeDeathEvent {
     /** One winner per {@link Kind} (indexed by ordinal), null where nobody scored. */
     private UUID[] pickWinners() {
         UUID[] winners = new UUID[Kind.values().length];
-        List<UUID> life = ranked(Kind.LIFE);
-        List<UUID> death = ranked(Kind.DEATH);
-        UUID topLife = life.isEmpty() ? null : life.getFirst();
-        UUID topDeath = death.isEmpty() ? null : death.getFirst();
-
-        if (topLife != null && topLife.equals(topDeath)) {
-            Score s = scores.get(topLife);
-            int l = Kind.LIFE.ordinal();
-            int d = Kind.DEATH.ordinal();
-            boolean keepsLife =
-                    s.counts[l] != s.counts[d]
-                            ? s.counts[l] > s.counts[d]
-                            : s.reachedAt[l] < s.reachedAt[d];
-            List<UUID> other = keepsLife ? death : life;
-            UUID runnerUp = other.size() > 1 ? other.get(1) : null;
-            winners[l] = keepsLife ? topLife : runnerUp;
-            winners[d] = keepsLife ? runnerUp : topLife;
-        } else {
-            winners[Kind.LIFE.ordinal()] = topLife;
-            winners[Kind.DEATH.ordinal()] = topDeath;
+        for (Kind kind : Kind.values()) {
+            List<UUID> ranked = ranked(kind);
+            winners[kind.ordinal()] = ranked.isEmpty() ? null : ranked.getFirst();
         }
         return winners;
     }

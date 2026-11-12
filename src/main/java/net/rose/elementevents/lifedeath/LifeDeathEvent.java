@@ -105,14 +105,17 @@ public class LifeDeathEvent {
                                 Constants.Timing.TICKS_PER_SECOND);
 
         Bukkit.broadcast(
-                Component.text("The Life & Death event has begun! ", NamedTextColor.GOLD)
+                Component.text("The Event has begun! ", NamedTextColor.DARK_GREEN)
                         .append(
                                 Component.text(
-                                        "Kill hostile mobs for Death, passive mobs for Life. "
-                                                + "Ends in "
+                                        "Kill hostile mobs for Death, passive mobs for Life. ",
+                                        NamedTextColor.DARK_GREEN))
+                        .append(
+                                Component.text(
+                                        "Ends in "
                                                 + ParseUtil.formatCompact(totalSeconds)
                                                 + ".",
-                                        NamedTextColor.YELLOW)));
+                                        NamedTextColor.GREEN)));
         return true;
     }
 
@@ -145,7 +148,7 @@ public class LifeDeathEvent {
             award(winner, kind);
             lines.add(kind.id() + ": " + nameOf(winner));
         }
-        Bukkit.broadcast(Component.text("The Life & Death event has ended!", NamedTextColor.GOLD));
+        Bukkit.broadcast(Component.text("The event has ended!", NamedTextColor.GREEN));
         Map<Kind, String> winnerNames = new EnumMap<>(Kind.class);
         for (Kind kind : Kind.values()) {
             UUID winner = winners[kind.ordinal()];
@@ -275,7 +278,9 @@ public class LifeDeathEvent {
                             NamedTextColor.YELLOW));
         }
         player.sendMessage(
-                Component.text("You received the " + bookName(kind) + "!", NamedTextColor.GOLD));
+                Component.text(
+                        "You received the " + capitalise(kind) + " Element!",
+                        NamedTextColor.GOLD));
     }
 
     private void queuePending(UUID id, Kind kind) {

@@ -18,11 +18,17 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * {@code /element event <start [duration]|end|cancel|status|give <life|death> [player]>}
- * - runs the Life &amp; Death event (see {@link LifeDeathEvent}).
+ * {@code /element event <start <event_name> [duration]|end|cancel|status|give <life|death>
+ * [player]>} - runs server events. Right now the only event is {@code life_death} (see {@link
+ * LifeDeathEvent}); new events go into {@link #EVENT_ALIASES} and the switch in {@link
+ * #start(CommandSender, String[])}.
  */
 public class EventCommand implements ElementSubCommand {
     private static final List<String> SUBS = List.of("start", "end", "cancel", "status", "give");
+
+    private static final String LIFE_DEATH = "life_death";
+    private static final List<String> EVENT_NAMES = List.of(LIFE_DEATH);
+    private static final Map<String, String> EVENT_ALIASES = Map.of("lifedeath", LIFE_DEATH);
 
     private final ElementSMPRefined plugin;
 
@@ -36,39 +42,7 @@ public class EventCommand implements ElementSubCommand {
         String sub = args.length > 1 ? args[1].toLowerCase(Locale.ROOT) : "";
 
         switch (sub) {
-            case "start" -> {
-                int seconds = event.defaultDurationSeconds();
-                if (args.length > 2) {
-                    Integer parsed = ParseUtil.parseSeconds(args[2], false);
-                    if (parsed == null) {
-                        sender.sendMessage(
-                                Component.text(
-                                        "Invalid duration. Examples: 30m, 1h30m, 90",
-                                        NamedTextColor.RED));
-                        return true;
-                    }
-                    seconds = parsed;
-                }
-                if (!event.start(seconds)) {
-                    sender.sendMessage(
-                            Component.text(
-                                    "The event is already running. Use /element event end or cancel.",
-                                    NamedTextColor.RED));
-                    return true;
-                }
-                for (Kind kind : Kind.values()) {
-                    if (plugin.getMythicElements().isClaimed(kind.element())) {
-                        sender.sendMessage(
-                                Component.text(
-                                        "Note: the "
-                                                + kind.elementName()
-                                                + " is already claimed, so no "
-                                                + kind.id()
-                                                + " book will be awarded.",
-                                        NamedTextColor.YELLOW));
-                    }
-                }
-            }
+            case "start" -> start(sender, args);
             case "end" -> {
                 if (!event.end()) {
                     sender.sendMessage(
@@ -86,16 +60,88 @@ public class EventCommand implements ElementSubCommand {
             default ->
                     sender.sendMessage(
                             Component.text(
-                                    "Usage: /element event <start [duration]|end|cancel|status|give"
-                                            + " <life|death> [player]>",
+                                    "Usage: /element event <start <event_name> [duration]|end|cancel"
+                                            + "|status|give <life|death> [player]>",
                                     NamedTextColor.YELLOW));
         }
         return true;
     }
 
+    private void start(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sendStartUsage(sender);
+            return;
+        }
+        String name = resolveEventName(args[2]);
+        if (name == null) {
+            sender.sendMessage(Component.text("Unknown event: " + args[2], NamedTextColor.RED));
+            sendStartUsage(sender);
+            return;
+        }
+        switch (name) {
+            case LIFE_DEATH -> startLifeDeath(sender, args);
+            default -> sendStartUsage(sender);
+        }
+    }
+
+    private void startLifeDeath(CommandSender sender, String[] args) {
+        LifeDeathEvent event = plugin.getLifeDeathEvent();
+        int seconds = event.defaultDurationSeconds();
+        if (args.length > 3) {
+            Integer parsed = ParseUtil.parseSeconds(args[3], false);
+            if (parsed == null) {
+                sender.sendMessage(
+                        Component.text(
+                                "Invalid duration. Examples: 30m, 1h30m, 90", NamedTextColor.RED));
+                return;
+            }
+            seconds = parsed;
+        }
+        if (!event.start(seconds)) {
+            sender.sendMessage(
+                    Component.text(
+                            "The event is already running. Use /element event end or cancel.",
+                            NamedTextColor.RED));
+            return;
+        }
+        for (Kind kind : Kind.values()) {
+            if (plugin.getMythicElements().isClaimed(kind.element())) {
+                sender.sendMessage(
+                        Component.text(
+                                "Note: the "
+                                        + kind.elementName()
+                                        + " is already claimed, so no "
+                                        + kind.id()
+                                        + " book will be awarded.",
+                                NamedTextColor.YELLOW));
+            }
+        }
+    }
+
+    private void sendStartUsage(CommandSender sender) {
+        sender.sendMessage(
+                Component.text(
+                        "Usage: /element event start <event_name> [duration]",
+                        NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text(
+                        "Events: " + String.join(", ", EVENT_NAMES), NamedTextColor.YELLOW));
+    }
+
+    /** @return the canonical event name for {@code raw} (ignoring case, '-' and '_'), or null. */
+    private static String resolveEventName(String raw) {
+        String key = raw.toLowerCase(Locale.ROOT).replaceAll("[-_\\s]", "");
+        if (EVENT_ALIASES.containsKey(key)) return EVENT_ALIASES.get(key);
+        return null;
+    }
+
     private void status(CommandSender sender, LifeDeathEvent event) {
         if (!event.isActive()) {
             sender.sendMessage(Component.text("No event is running.", NamedTextColor.YELLOW));
+            return;
+        }
+        if (sender instanceof Player player) {
+            event.showStandings(player);
             return;
         }
         sender.sendMessage(
@@ -159,8 +205,11 @@ public class EventCommand implements ElementSubCommand {
             }
             if (args.length == 4) return CommandSupport.getOnlinePlayerNames(args[3]);
         }
-        if (sub.equals("start") && args.length == 3) {
-            return CommandSupport.filterStartingWith(List.of("10m", "30m", "1h"), args[2]);
+        if (sub.equals("start")) {
+            if (args.length == 3) return CommandSupport.filterStartingWith(EVENT_NAMES, args[2]);
+            if (args.length == 4 && LIFE_DEATH.equals(resolveEventName(args[2]))) {
+                return CommandSupport.filterStartingWith(List.of("10m", "30m", "1h"), args[3]);
+            }
         }
         return List.of();
     }

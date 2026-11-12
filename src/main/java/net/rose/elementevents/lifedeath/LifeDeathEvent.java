@@ -1,8 +1,11 @@
 package net.rose.elementevents.lifedeath;
 
+import io.papermc.paper.dialog.Dialog;
+
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.YamlFiles;
@@ -19,6 +22,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +47,10 @@ import java.util.logging.Level;
  */
 public class LifeDeathEvent {
     private static final String PENDING_FILE = "life_death_pending.yml";
+    static final Component TITLE =
+            MiniMessage.miniMessage()
+                    .deserialize(
+                            "<bold><white>Life & Death Event</white></bold>");
 
     private static final class Score {
         final int[] counts = new int[Kind.values().length];
@@ -88,7 +96,7 @@ public class LifeDeathEvent {
 
         bossBar =
                 BossBar.bossBar(
-                        title(), 1.0f, BossBar.Color.PURPLE, BossBar.Overlay.PROGRESS);
+                        TITLE, 1.0f, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
         Bukkit.getOnlinePlayers().forEach(p -> p.showBossBar(bossBar));
         task =
                 plugin.getTaskScheduler()
@@ -139,21 +147,13 @@ public class LifeDeathEvent {
             lines.add(kind.id() + ": " + nameOf(winner));
         }
         Bukkit.broadcast(Component.text("The Life & Death event has ended!", NamedTextColor.GOLD));
+        Map<Kind, String> winnerNames = new EnumMap<>(Kind.class);
         for (Kind kind : Kind.values()) {
             UUID winner = winners[kind.ordinal()];
-            Bukkit.broadcast(
-                    Component.text(
-                            winner == null
-                                    ? " - No winner for the Book of " + capitalise(kind)
-                                    : " - "
-                                            + nameOf(winner)
-                                            + " wins the Book of "
-                                            + capitalise(kind)
-                                            + " ("
-                                            + scores.get(winner).counts[kind.ordinal()]
-                                            + " kills)",
-                            NamedTextColor.YELLOW));
+            winnerNames.put(kind, winner == null ? null : nameOf(winner));
         }
+        Dialog results = LifeDeathDialogs.results(allStandings(), winnerNames);
+        Bukkit.getOnlinePlayers().forEach(p -> p.showDialog(results));
         plugin.getLogger().info("Life & Death event ended - " + String.join(", ", lines));
         scores.clear();
         return true;
@@ -193,15 +193,8 @@ public class LifeDeathEvent {
             return;
         }
         if (bossBar != null) {
-            bossBar.name(title());
             bossBar.progress(Math.max(0f, Math.min(1f, (float) remainingSeconds / totalSeconds)));
         }
-    }
-
-    private Component title() {
-        return Component.text(
-                "Life & Death Event - " + ParseUtil.formatClock(remainingSeconds),
-                NamedTextColor.LIGHT_PURPLE);
     }
 
     /** Shows the boss bar to someone who joined mid-event. */
@@ -227,6 +220,17 @@ public class LifeDeathEvent {
                                 + score.counts[Kind.DEATH.ordinal()]
                                 + ")",
                         kind == Kind.LIFE ? NamedTextColor.GREEN : NamedTextColor.DARK_PURPLE));
+    }
+
+    /** Opens the current standings in a dialog for {@code viewer}. */
+    public void showStandings(Player viewer) {
+        viewer.showDialog(LifeDeathDialogs.standings(remainingSeconds, allStandings()));
+    }
+
+    private Map<Kind, Map<String, Integer>> allStandings() {
+        Map<Kind, Map<String, Integer>> out = new EnumMap<>(Kind.class);
+        for (Kind kind : Kind.values()) out.put(kind, standings(kind));
+        return out;
     }
 
     /** The players ranked best-first for {@code kind}, as {@code name -> kills}. */
@@ -344,7 +348,7 @@ public class LifeDeathEvent {
         return name != null ? name : id.toString();
     }
 
-    private static String capitalise(Kind kind) {
+    static String capitalise(Kind kind) {
         return kind.id().substring(0, 1).toUpperCase() + kind.id().substring(1);
     }
 

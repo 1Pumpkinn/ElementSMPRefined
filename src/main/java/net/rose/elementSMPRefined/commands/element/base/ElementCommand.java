@@ -138,8 +138,8 @@ public class ElementCommand implements CommandExecutor, TabCompleter {
                         NamedTextColor.YELLOW));
         sender.sendMessage(
                 Component.text(
-                        "/element event <start [duration]|end|cancel|status|give <life|death>"
-                            + " [player]> - Life & Death event",
+                        "/element event <start <event_name> [duration]|end|cancel|status|give"
+                            + " <life|death> [player]> - Server events (life_death)",
                         NamedTextColor.YELLOW));
         sender.sendMessage(
                 Component.text(

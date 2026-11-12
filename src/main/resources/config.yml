@@ -106,12 +106,12 @@ reforge_altar:
 element_info:
   hidden_elements: []
 
-# Life & Death event (/element event start [duration])
+# Life & Death event (/element event start life_death [duration])
 # Kill hostile mobs for Death points and passive mobs for Life points. When it ends the top Death
 # player gets the Book of Death and the top Life player gets the Book of Life.
 events:
   life_death:
-    # Used when /element event start is run without a duration
+    # Used when /element event start life_death is run without a duration
     duration_seconds: 1800
 
 # Potion limits

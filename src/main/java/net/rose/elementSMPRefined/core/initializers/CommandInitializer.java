@@ -1,6 +1,7 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
+import net.rose.elementSMPRefined.commands.element.admin.EventAliasCommand;
 import net.rose.elementSMPRefined.commands.element.admin.ReforgeAltarCommand;
 import net.rose.elementSMPRefined.commands.element.admin.UtilCommand;
 import net.rose.elementSMPRefined.commands.element.base.AbilityCommand;
@@ -42,6 +43,7 @@ public class CommandInitializer {
                 .command("withdraw", new WithdrawCommand(plugin))
                 .command("team", new TeamCommand(plugin.getTeamManager()))
                 .command("element", new ElementCommand(plugin))
+                .command("event", new EventAliasCommand(plugin))
                 .command("util", new UtilCommand(plugin))
                 .command("enchantablemace", new EnchantableMaceCommand(plugin))
                 .command("reforgealtar", new ReforgeAltarCommand(plugin.getReforgeAltarManager()))

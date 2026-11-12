@@ -39,6 +39,11 @@ commands:
     usage: /element <set|data|debug|castall|event|config|pack|hide|unhide> [player] [element]
     permission: element.admin
 
+  event:
+    description: Shortcut for /element event
+    usage: /event <start <event> [duration]|end [event]|cancel [event]|status [event]|list|give <life|death> [player]>
+    permission: element.admin
+
   util:
     description: Get utility items (upgraders and reroller)
     usage: /util

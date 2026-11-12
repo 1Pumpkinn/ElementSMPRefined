@@ -6,8 +6,10 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.commands.supporters.ElementSubCommand;
 import net.rose.elementSMPRefined.util.parse.ParseUtil;
-import net.rose.elementevents.mythic.MythicBook.Kind;
+import net.rose.elementevents.api.EventManager;
+import net.rose.elementevents.api.ServerEvent;
 import net.rose.elementevents.lifedeath.LifeDeathEvent;
+import net.rose.elementevents.mythic.MythicBook.Kind;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -15,20 +17,20 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import java.util.Optional;
 
 /**
- * {@code /element event <start <event_name> [duration]|end|cancel|status|give <life|death>
- * [player]>} - runs server events. Right now the only event is {@code life_death} (see {@link
- * LifeDeathEvent}); new events go into {@link #EVENT_ALIASES} and the switch in {@link
- * #start(CommandSender, String[])}.
+ * {@code /element event <start <event> [duration]|end [event]|cancel [event]|status [event]|list
+ * |give <life|death> [player]>} - runs server events.
+ * <p>
+ * Events come from the {@link EventManager}: registering a new {@link ServerEvent} there is all it
+ * takes for it to show up here, with tab completion. {@code end}, {@code cancel} and {@code status}
+ * can leave the event out when exactly one is running.
  */
 public class EventCommand implements ElementSubCommand {
-    private static final List<String> SUBS = List.of("start", "end", "cancel", "status", "give");
-
-    private static final String LIFE_DEATH = "life_death";
-    private static final List<String> EVENT_NAMES = List.of(LIFE_DEATH);
-    private static final Map<String, String> EVENT_ALIASES = Map.of("lifedeath", LIFE_DEATH);
+    private static final List<String> SUBS =
+            List.of("start", "end", "cancel", "status", "list", "give");
+    private static final List<String> DURATION_SUGGESTIONS = List.of("10m", "30m", "1h");
 
     private final ElementSMPRefined plugin;
 
@@ -36,32 +38,28 @@ public class EventCommand implements ElementSubCommand {
         this.plugin = plugin;
     }
 
+    private EventManager events() {
+        return plugin.getEventManager();
+    }
+
     @Override
     public boolean execute(CommandSender sender, String[] args) {
-        LifeDeathEvent event = plugin.getLifeDeathEvent();
         String sub = args.length > 1 ? args[1].toLowerCase(Locale.ROOT) : "";
 
         switch (sub) {
             case "start" -> start(sender, args);
-            case "end" -> {
-                if (!event.end()) {
-                    sender.sendMessage(
-                            Component.text("No event is running.", NamedTextColor.RED));
-                }
-            }
-            case "cancel" -> {
-                if (!event.cancel()) {
-                    sender.sendMessage(
-                            Component.text("No event is running.", NamedTextColor.RED));
-                }
-            }
-            case "status" -> status(sender, event);
-            case "give" -> give(sender, args, event);
+            case "end" -> targetOf(sender, args).ifPresent(event -> finish(sender, event, true));
+            case "cancel" ->
+                    targetOf(sender, args).ifPresent(event -> finish(sender, event, false));
+            case "status" -> status(sender, args);
+            case "list" -> list(sender);
+            case "give" -> give(sender, args);
             default ->
                     sender.sendMessage(
                             Component.text(
-                                    "Usage: /element event <start <event_name> [duration]|end|cancel"
-                                            + "|status|give <life|death> [player]>",
+                                    "Usage: /element event <start <event> [duration]|end [event]"
+                                            + "|cancel [event]|status [event]|list"
+                                            + "|give <life|death> [player]>",
                                     NamedTextColor.YELLOW));
         }
         return true;
@@ -72,20 +70,14 @@ public class EventCommand implements ElementSubCommand {
             sendStartUsage(sender);
             return;
         }
-        String name = resolveEventName(args[2]);
-        if (name == null) {
+        Optional<ServerEvent> found = events().find(args[2]);
+        if (found.isEmpty()) {
             sender.sendMessage(Component.text("Unknown event: " + args[2], NamedTextColor.RED));
             sendStartUsage(sender);
             return;
         }
-        switch (name) {
-            case LIFE_DEATH -> startLifeDeath(sender, args);
-            default -> sendStartUsage(sender);
-        }
-    }
+        ServerEvent event = found.get();
 
-    private void startLifeDeath(CommandSender sender, String[] args) {
-        LifeDeathEvent event = plugin.getLifeDeathEvent();
         int seconds = event.defaultDurationSeconds();
         if (args.length > 3) {
             Integer parsed = ParseUtil.parseSeconds(args[3], false);
@@ -97,79 +89,113 @@ public class EventCommand implements ElementSubCommand {
             }
             seconds = parsed;
         }
-        if (!event.start(seconds)) {
+
+        if (event.isActive()) {
             sender.sendMessage(
                     Component.text(
-                            "The event is already running. Use /element event end or cancel.",
+                            "The " + event.getId() + " event is already running. Use /element"
+                                    + " event end or cancel.",
                             NamedTextColor.RED));
             return;
         }
-        for (Kind kind : Kind.values()) {
-            if (plugin.getMythicElements().isClaimed(kind.element())) {
-                sender.sendMessage(
-                        Component.text(
-                                "Note: the "
-                                        + kind.elementName()
-                                        + " is already claimed, so no "
-                                        + kind.id()
-                                        + " book will be awarded.",
-                                NamedTextColor.YELLOW));
-            }
+        if (!event.start(seconds)) {
+            sender.sendMessage(
+                    Component.text(
+                            "The " + event.getId() + " event was not started (cancelled by"
+                                    + " another plugin).",
+                            NamedTextColor.RED));
+            return;
         }
+        event.startNotes().forEach(sender::sendMessage);
     }
 
     private void sendStartUsage(CommandSender sender) {
         sender.sendMessage(
                 Component.text(
-                        "Usage: /element event start <event_name> [duration]",
-                        NamedTextColor.YELLOW));
+                        "Usage: /element event start <event> [duration]", NamedTextColor.YELLOW));
         sender.sendMessage(
                 Component.text(
-                        "Events: " + String.join(", ", EVENT_NAMES), NamedTextColor.YELLOW));
+                        "Events: " + String.join(", ", events().ids()), NamedTextColor.YELLOW));
     }
 
-    /** @return the canonical event name for {@code raw} (ignoring case, '-' and '_'), or null. */
-    private static String resolveEventName(String raw) {
-        String key = raw.toLowerCase(Locale.ROOT).replaceAll("[-_\\s]", "");
-        if (EVENT_ALIASES.containsKey(key)) return EVENT_ALIASES.get(key);
-        return null;
+    /**
+     * The event {@code end}/{@code cancel} applies to: the one named in {@code args[2]}, or the
+     * only running one. Tells the sender why and returns empty when there is no single target.
+     */
+    private Optional<ServerEvent> targetOf(CommandSender sender, String[] args) {
+        if (args.length > 2) {
+            Optional<ServerEvent> found = events().find(args[2]);
+            if (found.isEmpty()) {
+                sender.sendMessage(
+                        Component.text("Unknown event: " + args[2], NamedTextColor.RED));
+            }
+            return found;
+        }
+
+        List<ServerEvent> running = events().active();
+        if (running.isEmpty()) {
+            sender.sendMessage(Component.text("No event is running.", NamedTextColor.RED));
+            return Optional.empty();
+        }
+        if (running.size() > 1) {
+            sender.sendMessage(
+                    Component.text(
+                            "Several events are running - name one: "
+                                    + String.join(
+                                            ", ", running.stream().map(ServerEvent::getId).toList()),
+                            NamedTextColor.RED));
+            return Optional.empty();
+        }
+        return Optional.of(running.getFirst());
     }
 
-    private void status(CommandSender sender, LifeDeathEvent event) {
-        if (!event.isActive()) {
+    private void finish(CommandSender sender, ServerEvent event, boolean award) {
+        boolean done = award ? event.end() : event.cancel();
+        if (!done) {
+            sender.sendMessage(
+                    Component.text(
+                            "The " + event.getId() + " event is not running.",
+                            NamedTextColor.RED));
+        }
+    }
+
+    private void status(CommandSender sender, String[] args) {
+        if (args.length > 2) {
+            Optional<ServerEvent> found = events().find(args[2]);
+            if (found.isEmpty()) {
+                sender.sendMessage(
+                        Component.text("Unknown event: " + args[2], NamedTextColor.RED));
+                return;
+            }
+            found.get().sendStatus(sender);
+            return;
+        }
+
+        List<ServerEvent> running = events().active();
+        if (running.isEmpty()) {
             sender.sendMessage(Component.text("No event is running.", NamedTextColor.YELLOW));
             return;
         }
-        if (sender instanceof Player player) {
-            event.showStandings(player);
-            return;
-        }
-        sender.sendMessage(
-                Component.text(
-                        "Life & Death event - "
-                                + ParseUtil.formatCompact(event.getRemainingSeconds())
-                                + " left",
-                        NamedTextColor.GOLD));
-        for (Kind kind : Kind.values()) {
-            Map<String, Integer> top = event.standings(kind);
-            StringBuilder line = new StringBuilder(kind.id().toUpperCase(Locale.ROOT) + ": ");
-            if (top.isEmpty()) {
-                line.append("nobody yet");
-            } else {
-                int shown = 0;
-                for (Map.Entry<String, Integer> e : top.entrySet()) {
-                    if (shown++ == 5) break;
-                    line.append(shown > 1 ? ", " : "").append(e.getKey()).append(" ").append(e.getValue());
-                }
-            }
+        running.forEach(event -> event.sendStatus(sender));
+    }
+
+    private void list(CommandSender sender) {
+        sender.sendMessage(Component.text("Events:", NamedTextColor.GOLD));
+        for (ServerEvent event : events().all()) {
+            String state =
+                    event.isActive()
+                            ? "running, " + ParseUtil.formatCompact(event.getRemainingSeconds())
+                                    + " left"
+                            : "idle (default " + ParseUtil.formatCompact(event.defaultDurationSeconds())
+                                    + ")";
             sender.sendMessage(
                     Component.text(
-                            line.toString(),
-                            kind == Kind.LIFE ? NamedTextColor.GREEN : NamedTextColor.DARK_PURPLE));
+                            " - " + event.getId() + ": " + state,
+                            event.isActive() ? NamedTextColor.GREEN : NamedTextColor.GRAY));
         }
     }
 
-    private void give(CommandSender sender, String[] args, LifeDeathEvent event) {
+    private void give(CommandSender sender, String[] args) {
         Kind kind = args.length > 2 ? Kind.parse(args[2]) : null;
         if (kind == null) {
             sender.sendMessage(
@@ -182,8 +208,7 @@ public class EventCommand implements ElementSubCommand {
         if (args.length > 3) {
             target = Bukkit.getPlayerExact(args[3]);
             if (target == null) {
-                sender.sendMessage(
-                        Component.text("Not online: " + args[3], NamedTextColor.RED));
+                sender.sendMessage(Component.text("Not online: " + args[3], NamedTextColor.RED));
                 return;
             }
         } else if (sender instanceof Player self) {
@@ -192,24 +217,41 @@ public class EventCommand implements ElementSubCommand {
             sender.sendMessage(Component.text("Specify a player.", NamedTextColor.RED));
             return;
         }
-        event.give(target, kind);
+        // Books are handed out the same way the Life & Death event awards them.
+        Optional<LifeDeathEvent> lifeDeath = events().get(LifeDeathEvent.class);
+        if (lifeDeath.isEmpty()) {
+            sender.sendMessage(
+                    Component.text("The Life & Death event is not registered.", NamedTextColor.RED));
+            return;
+        }
+        lifeDeath.get().give(target, kind);
     }
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 2) return CommandSupport.filterStartingWith(SUBS, args[1]);
         String sub = args[1].toLowerCase(Locale.ROOT);
-        if (sub.equals("give")) {
-            if (args.length == 3) {
-                return CommandSupport.filterStartingWith(List.of("life", "death"), args[2]);
+        switch (sub) {
+            case "give" -> {
+                if (args.length == 3) {
+                    return CommandSupport.filterStartingWith(List.of("life", "death"), args[2]);
+                }
+                if (args.length == 4) return CommandSupport.getOnlinePlayerNames(args[3]);
             }
-            if (args.length == 4) return CommandSupport.getOnlinePlayerNames(args[3]);
-        }
-        if (sub.equals("start")) {
-            if (args.length == 3) return CommandSupport.filterStartingWith(EVENT_NAMES, args[2]);
-            if (args.length == 4 && LIFE_DEATH.equals(resolveEventName(args[2]))) {
-                return CommandSupport.filterStartingWith(List.of("10m", "30m", "1h"), args[3]);
+            case "start" -> {
+                if (args.length == 3) {
+                    return CommandSupport.filterStartingWith(events().ids(), args[2]);
+                }
+                if (args.length == 4 && events().find(args[2]).isPresent()) {
+                    return CommandSupport.filterStartingWith(DURATION_SUGGESTIONS, args[3]);
+                }
             }
+            case "end", "cancel", "status" -> {
+                if (args.length == 3) {
+                    return CommandSupport.filterStartingWith(events().ids(), args[2]);
+                }
+            }
+            default -> {}
         }
         return List.of();
     }

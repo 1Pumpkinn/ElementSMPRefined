@@ -1,5 +1,7 @@
 package net.rose.elementSMPRefined.core.API.element;
 
+import net.rose.elementSMPRefined.core.API.ability.Ability;
+
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -15,13 +17,26 @@ public interface Element {
 
     void applyUpsides(Player player, int upgradeLevel);
 
-    boolean ability1(net.rose.elementSMPRefined.core.API.element.ElementContext context);
+    boolean ability1(ElementContext context);
 
-    boolean ability2(net.rose.elementSMPRefined.core.API.element.ElementContext context);
+    boolean ability2(ElementContext context);
 
     void clearEffects(Player player);
 
     String getDisplayName();
+
+    /**
+     * The ability in {@code slot}.
+     *
+     * @param slot 1 or 2
+     * @throws IllegalArgumentException for any other slot
+     */
+    Ability getAbility(int slot);
+
+    /** Both abilities, slot 1 first. */
+    default List<Ability> getAbilities() {
+        return List.of(getAbility(1), getAbility(2));
+    }
 
     String getAbility1Name();
 

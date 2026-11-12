@@ -3,51 +3,30 @@ package net.rose.elementSMPRefined.core.API.event;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Fired after a player is assigned an element via
- * {@link net.rose.elementSMPRefined.managers.ElementManager#assignBasicElement(Player, ElementType)}
- * (the first-join roll and the basic reroller). The player's upgrade level is
- * kept, as opposed to {@link ElementSetEvent}, which resets it.
+ * Fired after a player is given an element through
+ * {@link net.rose.elementSMPRefined.managers.ElementManager#assignElement(Player, ElementType, Cause)}
+ * - the first-join roll, rerollers, forging, mythic books, withdrawing and death reverts.
+ * See {@link ElementSetEvent} for the admin route.
  * <p>
- * Fires after the assignment has already been saved, so this is purely
- * informational and is <b>not</b> cancellable. To block an assignment,
- * intervene before calling {@code assignBasicElement} in the first place.
+ * Fires after the assignment has already been saved, so this is purely informational and is
+ * <b>not</b> cancellable. The player's upgrade level is kept.
  */
-public class ElementAssignEvent extends Event {
-    private static final HandlerList HANDLERS = new HandlerList();
+public class ElementAssignEvent extends ElementChangeEvent {
 
-    private final Player player;
-    private final ElementType newElement;
-    private final ElementType previousElement;
-
-    public ElementAssignEvent(Player player, ElementType newElement, ElementType previousElement) {
-        this.player = player;
-        this.newElement = newElement;
-        this.previousElement = previousElement;
+    public ElementAssignEvent(
+            @NotNull Player player,
+            @NotNull ElementType newElement,
+            @Nullable ElementType previousElement,
+            @NotNull Cause cause) {
+        super(player, newElement, previousElement, cause);
     }
 
-    public Player getPlayer() {
-        return player;
-    }
-
-    public ElementType getNewElement() {
-        return newElement;
-    }
-
-    /** The element the player had before this assignment, or {@code null} if they had none. */
-    public ElementType getPreviousElement() {
-        return previousElement;
-    }
-
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLERS;
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
+    public static @NotNull HandlerList getHandlerList() {
+        return ElementChangeEvent.getHandlerList();
     }
 }

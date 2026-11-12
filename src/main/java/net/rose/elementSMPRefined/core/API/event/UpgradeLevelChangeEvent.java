@@ -9,25 +9,39 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Fired before a player's upgrade level for an element changes. Core fires it
- * when an upgrader item is right-clicked.
+ * Fired before a player's upgrade level for an element changes - when an upgrader item is
+ * right-clicked and when one is withdrawn with {@code /withdraw upgrader}.
  * <p>
  * Cancel this to block the level change - nothing is consumed or applied.
  */
 public class UpgradeLevelChangeEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();
 
+    /** What triggered the change. */
+    public enum Cause {
+        /** An upgrader item was used. */
+        UPGRADER,
+        /** The level was withdrawn back into an upgrader item. */
+        WITHDRAW
+    }
+
     private final ElementType element;
     private final int previousLevel;
     private final int newLevel;
+    private final Cause cause;
     private boolean cancelled;
 
     public UpgradeLevelChangeEvent(
-            @NotNull Player player, @NotNull ElementType element, int previousLevel, int newLevel) {
+            @NotNull Player player,
+            @NotNull ElementType element,
+            int previousLevel,
+            int newLevel,
+            @NotNull Cause cause) {
         super(player);
         this.element = element;
         this.previousLevel = previousLevel;
         this.newLevel = newLevel;
+        this.cause = cause;
     }
 
     public @NotNull ElementType getElement() {
@@ -40,6 +54,18 @@ public class UpgradeLevelChangeEvent extends PlayerEvent implements Cancellable 
 
     public int getNewLevel() {
         return newLevel;
+    }
+
+    public @NotNull Cause getCause() {
+        return cause;
+    }
+
+    public boolean isUpgrade() {
+        return newLevel > previousLevel;
+    }
+
+    public boolean isDowngrade() {
+        return newLevel < previousLevel;
     }
 
     @Override

@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.listeners.handler;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.event.ElementChangeEvent;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
@@ -164,7 +165,8 @@ public class RerollerHandler implements Listener {
                 // the element lines up with the gem appearing.
                 if (!assigned && visual.hasRevealed()) {
                     assigned = true;
-                    elementManager.assignBasicElement(player, targetElement);
+                    elementManager.assignElement(
+                            player, targetElement, ElementChangeEvent.Cause.REROLL);
                     if (wasForged) giveForgedUpgraderBack(player);
                     if (wasMythic != null) MythicBook.giveOrDrop(plugin, player, wasMythic);
                 }

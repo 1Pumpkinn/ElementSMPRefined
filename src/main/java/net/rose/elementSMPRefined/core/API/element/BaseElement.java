@@ -4,9 +4,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.Ability;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.CooldownManager;
-import net.rose.elementSMPRefined.managers.TeamManager;
 
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -40,8 +38,35 @@ public abstract class BaseElement implements Element {
     protected BaseElement(JavaPlugin plugin, ElementType type, Ability ability1, Ability ability2) {
         this.plugin = (ElementSMPRefined) plugin;
         this.type = Objects.requireNonNull(type, "type");
-        this.ability1 = ability1;
-        this.ability2 = ability2;
+        this.ability1 = Objects.requireNonNull(ability1, "ability1");
+        this.ability2 = Objects.requireNonNull(ability2, "ability2");
+        warnIfMisplaced(ability1, 1);
+        warnIfMisplaced(ability2, 2);
+    }
+
+    /**
+     * Abilities built with the element/slot constructor know where they belong; flag the
+     * copy-paste mistake of handing an element another element's ability, or the right ability
+     * in the wrong slot, instead of silently casting the wrong thing.
+     */
+    private void warnIfMisplaced(Ability ability, int slot) {
+        ElementType declaredType = ability.getElementType();
+        int declaredSlot = ability.getSlot();
+        if ((declaredType != null && declaredType != type)
+                || (declaredSlot != 0 && declaredSlot != slot)) {
+            this.plugin
+                    .getLogger()
+                    .warning(
+                            type
+                                    + " slot "
+                                    + slot
+                                    + " was given ability '"
+                                    + ability.getAbilityId()
+                                    + "' which is declared for "
+                                    + declaredType
+                                    + " slot "
+                                    + declaredSlot);
+        }
     }
 
     @Override
@@ -50,29 +75,31 @@ public abstract class BaseElement implements Element {
     }
 
     @Override
-    public final boolean ability1(
-            net.rose.elementSMPRefined.core.API.element.ElementContext context) {
-        return activate(context, ability1, 1, this::canCancelAbility1);
+    public final Ability getAbility(int slot) {
+        return switch (slot) {
+            case 1 -> ability1;
+            case 2 -> ability2;
+            default -> throw new IllegalArgumentException("Ability slot must be 1 or 2: " + slot);
+        };
     }
 
     @Override
-    public final boolean ability2(
-            net.rose.elementSMPRefined.core.API.element.ElementContext context) {
-        Player player = context.getPlayer();
-        if (context.getUpgradeLevel() < 1) {
-            player.sendMessage(Lang.BASE_ELEMENT_YOU_NEED_UPGRADE_I_BEFORE);
-            return false;
-        }
-        return activate(context, ability2, 2, this::canCancelAbility2);
+    public final boolean ability1(ElementContext context) {
+        return activate(context, ability1, this::canCancelAbility1);
+    }
+
+    @Override
+    public final boolean ability2(ElementContext context) {
+        return activate(context, ability2, this::canCancelAbility2);
     }
 
     private boolean activate(
-            net.rose.elementSMPRefined.core.API.element.ElementContext context,
-            Ability ability,
-            int requiredLevel,
-            Predicate<net.rose.elementSMPRefined.core.API.element.ElementContext> canCancel) {
+            ElementContext context, Ability ability, Predicate<ElementContext> canCancel) {
         Player player = context.getPlayer();
-        if (!checkUpgradeLevel(player, context.getUpgradeLevel(), requiredLevel)) return false;
+        if (!checkUpgradeLevel(
+                player, context.getUpgradeLevel(), ability.getRequiredUpgradeLevel())) {
+            return false;
+        }
 
         if (canCancel.test(context)) {
             ability.execute(context);
@@ -91,11 +118,26 @@ public abstract class BaseElement implements Element {
     }
 
     protected boolean checkUpgradeLevel(Player player, int upgradeLevel, int requiredLevel) {
-        if (upgradeLevel < requiredLevel) {
-            player.sendMessage(Lang.baseElementYouNeedUpgrade((requiredLevel == 1 ? "I" : "II")));
-            return false;
+        if (upgradeLevel >= requiredLevel) {
+            return true;
         }
-        return true;
+        // A player with no upgrade at all is pointed at Upgrade I first, even for an
+        // Upgrade II ability.
+        if (upgradeLevel < 1 && requiredLevel > 1) {
+            player.sendMessage(Lang.BASE_ELEMENT_YOU_NEED_UPGRADE_I_BEFORE);
+        } else {
+            player.sendMessage(Lang.baseElementYouNeedUpgrade(romanNumeral(requiredLevel)));
+        }
+        return false;
+    }
+
+    private static String romanNumeral(int level) {
+        return switch (level) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            default -> String.valueOf(level);
+        };
     }
 
     protected boolean checkCooldown(
@@ -118,16 +160,6 @@ public abstract class BaseElement implements Element {
      */
     protected boolean canCancelAbility2(ElementContext context) {
         return false;
-    }
-
-    protected boolean isValidTarget(Player player, LivingEntity target, TeamManager team) {
-        if (target.equals(player)) return false;
-        return !(target instanceof Player other)
-                || !team.isFriendly(player.getUniqueId(), other.getUniqueId());
-    }
-
-    protected boolean isValidTarget(ElementContext context, LivingEntity target) {
-        return isValidTarget(context.getPlayer(), target, context.getTeamManager());
     }
 
     /**

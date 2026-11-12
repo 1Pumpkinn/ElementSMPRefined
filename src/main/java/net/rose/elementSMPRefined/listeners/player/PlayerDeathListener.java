@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.listeners.player;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.event.ElementChangeEvent;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
@@ -70,7 +71,7 @@ public class PlayerDeathListener implements Listener {
 
     /**
      * If {@code element} is an advanced element, adds a Forged Upgrader to the drops and moves the
-     * player back to its basic element (the upgrade level is kept by {@code assignBasicElement}).
+     * player back to its basic element (the upgrade level is kept by {@code assignElement}).
      *
      * @return true if the player was reverted
      */
@@ -90,7 +91,8 @@ public class PlayerDeathListener implements Listener {
         }
 
         event.getDrops().add(forged);
-        elements.assignBasicElement(player, forge.get().base());
+        elements.assignElement(
+                player, forge.get().base(), ElementChangeEvent.Cause.DEATH_REVERT);
         return true;
     }
 

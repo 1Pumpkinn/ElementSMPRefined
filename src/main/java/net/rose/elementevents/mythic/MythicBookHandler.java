@@ -5,8 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.core.API.event.ElementAssignEvent;
-import net.rose.elementSMPRefined.core.API.event.ElementSetEvent;
+import net.rose.elementSMPRefined.core.API.event.ElementChangeEvent;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementevents.mythic.MythicBook.Kind;
@@ -85,7 +84,7 @@ public class MythicBookHandler implements Listener {
         Kind previousMythic = MythicBook.kindFor(before);
         if (previousMythic != null) registry.release(before, player.getUniqueId());
 
-        elements.assignBasicElement(player, type);
+        elements.assignElement(player, type, ElementChangeEvent.Cause.MYTHIC_CLAIM);
 
         if (wasForged) {
             dropOrGive(player, ForgedUpgraderItem.make(plugin));
@@ -112,13 +111,9 @@ public class MythicBookHandler implements Listener {
 
     // ---- keep the registry in sync with every other way an element can change ---------------
 
+    /** Covers every route: rerolls, forging, withdrawing, mythic books and {@code /element set}. */
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onAssign(ElementAssignEvent event) {
-        sync(event.getPlayer(), event.getPreviousElement(), event.getNewElement());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onSet(ElementSetEvent event) {
+    public void onElementChange(ElementChangeEvent event) {
         sync(event.getPlayer(), event.getPreviousElement(), event.getNewElement());
     }
 

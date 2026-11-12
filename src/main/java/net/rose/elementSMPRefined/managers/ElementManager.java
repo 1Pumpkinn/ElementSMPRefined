@@ -12,11 +12,13 @@ import net.rose.elementSMPRefined.ability.passive.upgraded.frost.FrostElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.lava.LavaElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.storm.StormElement;
+import net.rose.elementSMPRefined.core.API.ability.Ability;
 import net.rose.elementSMPRefined.core.API.element.Element;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.event.AbilityActivateEvent;
 import net.rose.elementSMPRefined.core.API.event.ElementAssignEvent;
+import net.rose.elementSMPRefined.core.API.event.ElementChangeEvent;
 import net.rose.elementSMPRefined.core.API.event.ElementSetEvent;
 import net.rose.elementSMPRefined.core.registry.ElementRegistry;
 import net.rose.elementSMPRefined.data.DataStore;
@@ -29,19 +31,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 public class ElementManager {
-    // Basic/advanced classification. Kept as a single set (rather than separate
-    // basic/advanced arrays) so every ElementType is classified exactly once -
-    // "advanced" is always just "everything not basic", never a second,
-    // independently-maintained list that could drift out of sync with it.
-    private static final EnumSet<ElementType> DEFAULT_BASIC_ELEMENTS =
-            EnumSet.of(ElementType.AIR, ElementType.WATER, ElementType.FIRE, ElementType.EARTH);
-
     private final ElementSMPRefined plugin;
     private final DataStore store;
     private final CooldownManager cooldownManager;
@@ -74,27 +69,20 @@ public class ElementManager {
     }
 
     /**
-     * All basic elements that can be rolled initially (starter rolls, basic
-     * reroller), (see {@link #DEFAULT_BASIC_ELEMENTS}).
+     * All basic elements that can be rolled initially (starter rolls, basic reroller): every
+     * {@link ElementType.Tier#BASIC} type, in declaration order.
      */
     public ElementType[] getBasicElements() {
-        return classifyBasicElements().toArray(new ElementType[0]);
+        return ElementType.ofTier(ElementType.Tier.BASIC).toArray(new ElementType[0]);
     }
 
     /**
-     * All advanced (non-basic) elements that can be rolled with the advanced
-     * reroller. The complement of {@link #getBasicElements()} minus the mythic
-     * elements, which can only be claimed through a mythic book.
+     * All advanced elements that can be rolled with the advanced reroller: every
+     * {@link ElementType.Tier#FORGED} type. Mythic elements are not part of this - they can only
+     * be claimed through a mythic book.
      */
     public ElementType[] getAdvancedElements() {
-        EnumSet<ElementType> advanced = ElementType.playable();
-        advanced.removeAll(classifyBasicElements());
-        advanced.removeIf(ElementType::isMythic);
-        return advanced.toArray(new ElementType[0]);
-    }
-
-    private EnumSet<ElementType> classifyBasicElements() {
-        return EnumSet.copyOf(DEFAULT_BASIC_ELEMENTS);
+        return ElementType.ofTier(ElementType.Tier.FORGED).toArray(new ElementType[0]);
     }
 
     public Collection<Element> getAllElements() {
@@ -177,24 +165,16 @@ public class ElementManager {
     }
 
     /**
-     * Assigns a specific basic element, chosen by {@code RerollerHandler}'s
-     * own {@code determineNewElement}. This stays in ElementManager (rather
-     * than moving fully into the handler like the advanced reroller does)
-     * because it handles the old-element switch and fires
-     * {@code ElementAssignEvent} - shared machinery, not reroller-specific code.
-     * The upgrade level is kept.
+     * Gives the player {@code type} for {@code cause} - chosen by whatever handler is running
+     * the roll, forge, withdraw or claim. This stays in ElementManager (rather than in each
+     * handler) because it handles the old-element switch and fires {@link ElementAssignEvent} -
+     * shared machinery, not handler-specific code. The upgrade level is kept.
      */
-    public void assignBasicElement(Player player, ElementType type) {
+    public void assignElement(Player player, ElementType type, ElementChangeEvent.Cause cause) {
+        Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(cause, "cause");
         PlayerData pd = data(player.getUniqueId());
-        ElementType old = pd.getCurrentElement();
-
-        if (old != null && old != type) {
-            handleElementSwitch(player, old);
-        }
-
-        int currentUpgrade = pd.getCurrentElementUpgradeLevel();
-        pd.setCurrentElementWithoutReset(type);
-        pd.setCurrentElementUpgradeLevel(currentUpgrade);
+        ElementType old = switchElement(player, pd, type);
 
         // saveAsync() updates the in-memory cache immediately (so the player's
         // effects/data are correct right away) and defers the actual YAML
@@ -206,12 +186,31 @@ public class ElementManager {
         applyUpsides(player);
         SoundUtils.playTo(player, SoundUtils.UI.SUCCESS);
 
-        plugin.getServer().getPluginManager().callEvent(new ElementAssignEvent(player, type, old));
+        plugin.getServer()
+                .getPluginManager()
+                .callEvent(new ElementAssignEvent(player, type, old, cause));
     }
 
     /** Admin set (/element set). The player's upgrade level is kept. */
     public void setElement(Player player, ElementType type) {
+        Objects.requireNonNull(type, "type");
         PlayerData pd = data(player.getUniqueId());
+        ElementType old = switchElement(player, pd, type);
+        store.save(pd);
+
+        player.sendMessage(Lang.elementManagerYourElementIsNow(displayNameOf(type)));
+        applyUpsides(player);
+
+        plugin.getServer().getPluginManager().callEvent(new ElementSetEvent(player, type, old));
+    }
+
+    /**
+     * Shared by {@link #assignElement} and {@link #setElement}: clears the element being left and
+     * records the new one with the upgrade level kept.
+     *
+     * @return the element the player had before, or null
+     */
+    private ElementType switchElement(Player player, PlayerData pd, ElementType type) {
         ElementType old = pd.getCurrentElement();
 
         if (old != null && old != type) {
@@ -221,12 +220,7 @@ public class ElementManager {
         int currentUpgrade = pd.getCurrentElementUpgradeLevel();
         pd.setCurrentElementWithoutReset(type);
         pd.setCurrentElementUpgradeLevel(currentUpgrade);
-        store.save(pd);
-
-        player.sendMessage(Lang.elementManagerYourElementIsNow(displayNameOf(type)));
-        applyUpsides(player);
-
-        plugin.getServer().getPluginManager().callEvent(new ElementSetEvent(player, type, old));
+        return old;
     }
 
     private String displayNameOf(ElementType type) {
@@ -271,18 +265,25 @@ public class ElementManager {
         Element element = elementRegistry.get(type);
         if (element == null) return false;
 
+        boolean stolen = stolenType != null;
         ElementContext ctx =
-                stolenType != null
-                        ? buildContext(player, type, pd.getUpgradeLevel(ownType))
-                        : buildContext(player, pd, type);
+                stolen
+                        ? buildContext(player, type, pd.getUpgradeLevel(ownType), true)
+                        : buildContext(player, type, pd.getUpgradeLevel(type), false);
 
         boolean success = number == 1 ? element.ability1(ctx) : element.ability2(ctx);
         if (success) {
-            String abilityName =
-                    number == 1 ? element.getAbility1Name() : element.getAbility2Name();
+            Ability ability = element.getAbility(number);
             plugin.getServer()
                     .getPluginManager()
-                    .callEvent(new AbilityActivateEvent(player, type, number, abilityName));
+                    .callEvent(
+                            new AbilityActivateEvent(
+                                    player,
+                                    type,
+                                    number,
+                                    ability.getAbilityId(),
+                                    ability.getName(),
+                                    stolen));
         }
         return success;
     }
@@ -298,11 +299,8 @@ public class ElementManager {
                 DeathSoulSiphonAbility.COOLDOWN_AFTER_STEAL_SECONDS);
     }
 
-    private ElementContext buildContext(Player player, PlayerData pd, ElementType type) {
-        return buildContext(player, type, pd.getUpgradeLevel(type));
-    }
-
-    private ElementContext buildContext(Player player, ElementType type, int upgradeLevel) {
+    private ElementContext buildContext(
+            Player player, ElementType type, int upgradeLevel, boolean stolen) {
         return ElementContext.builder()
                 .player(player)
                 .upgradeLevel(upgradeLevel)
@@ -311,6 +309,7 @@ public class ElementManager {
                 .teamManager(teamManager)
                 .configManager(configManager)
                 .plugin(plugin)
+                .stolen(stolen)
                 .build();
     }
 

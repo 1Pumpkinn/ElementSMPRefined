@@ -26,7 +26,6 @@ import net.rose.elementSMPRefined.util.server.DimensionDisable;
 import net.rose.elementSMPRefined.util.server.GracePeriod;
 import net.rose.elementSMPRefined.util.server.MaceCooldown;
 import net.rose.elementSMPRefined.util.visual.ElementSmpTablist;
-import net.rose.elementevents.lifedeath.LifeDeathListener;
 import net.rose.elementevents.listener.EventVillagerListener;
 import net.rose.elementevents.mythic.MythicBookHandler;
 
@@ -110,8 +109,8 @@ public class ListenerInitializer {
                 new MythicBookHandler(
                         plugin, plugin.getElementManager(), plugin.getMythicElements()),
                 plugin);
-        pluginManager.registerEvents(
-                new LifeDeathListener(plugin, plugin.getLifeDeathEvent()), plugin);
+        // Join handling plus the listeners of every registered server event (Life & Death...).
+        plugin.getEventManager().registerListeners();
     }
 
     private void registerElementListeners() {

@@ -5,62 +5,74 @@ import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Base class every ability should extend. Provides the id / cooldown / required-level
+ * bookkeeping, per-player "currently active" tracking and the shared target check, so a
+ * concrete ability only has to describe itself and implement {@link #execute}.
+ * <p>
+ * You never call {@code execute} yourself - {@code BaseElement.ability1()/ability2()} do,
+ * after the upgrade level and cooldown have been checked. The cooldown only starts when
+ * {@code execute} returns {@code true}, so a failed cast stays free.
+ */
 public abstract class BaseAbility implements Ability {
     private final String abilityId;
     private final int cooldownSeconds;
     private final int requiredUpgradeLevel;
-    private final ElementType elementType; // non-null for the "live" constructor
-    private final int abilitySlot; // 1 or 2, paired with elementType
-    private final ConfigManager configManager; // non-null for the "live" constructor
+    private final @Nullable ElementType elementType; // null for template abilities
+    private final int abilitySlot; // 1 or 2, paired with elementType; 0 when unassigned
+    private final @Nullable ConfigManager configManager;
     private final Set<UUID> activePlayers = new HashSet<>();
 
     /**
-     * Create a new ability with a fixed mana cost baked in at construction time.
-     * Kept for addons and anything without a per-element config entry to key off
-     * of. Every built-in ability should prefer the constructor below instead, so
-     * its cost stays in sync with config.yml automatically.
+     * Create an ability that isn't bound to a specific element slot (templates such as
+     * {@code ExampleAbility}). Built-in abilities should use the constructor below so they
+     * know which element and slot they occupy.
      *
      * @param abilityId The unique identifier for this ability
      * @param cooldownSeconds The cooldown in seconds
      * @param requiredUpgradeLevel The minimum upgrade level required
      */
     public BaseAbility(String abilityId, int cooldownSeconds, int requiredUpgradeLevel) {
-        this.abilityId = abilityId;
-        this.cooldownSeconds = cooldownSeconds;
-        this.requiredUpgradeLevel = requiredUpgradeLevel;
-        this.elementType = null;
-        this.abilitySlot = 0;
-        this.configManager = null;
+        this(abilityId, null, 0, cooldownSeconds, requiredUpgradeLevel, null);
     }
 
     /**
-     * Create a new ability whose mana cost is read live from ConfigManager instead
-     * of being hardcoded here. This is the constructor every built-in ability should
-     * use - change the cost once in config.yml (mana.ability1_cost/ability2_cost, or
-     * a specific element's ability1_cost/ability2_cost) and it applies everywhere
-     * that ability's cost is checked, with no Java edits or recompile needed.
+     * Create an ability bound to a slot of an element.
      *
      * @param abilityId The unique identifier for this ability
      * @param elementType The element this ability belongs to
-     * @param abilitySlot 1 for ability1, 2 for ability2 - determines which config cost applies
+     * @param abilitySlot 1 for ability1, 2 for ability2
      * @param cooldownSeconds The cooldown in seconds
      * @param requiredUpgradeLevel The minimum upgrade level required
-     * @param configManager Source of truth for the live mana cost lookup
+     * @param configManager Live config access, available to the ability through {@link
+     *     #getConfigManager()} so tunables can be read at cast time instead of hardcoded
      */
     public BaseAbility(
             String abilityId,
-            ElementType elementType,
+            @Nullable ElementType elementType,
             int abilitySlot,
             int cooldownSeconds,
             int requiredUpgradeLevel,
-            ConfigManager configManager) {
-        this.abilityId = abilityId;
+            @Nullable ConfigManager configManager) {
+        this.abilityId = Objects.requireNonNull(abilityId, "abilityId");
+        if (abilityId.isBlank()) {
+            throw new IllegalArgumentException("abilityId must not be blank");
+        }
+        if (cooldownSeconds < 0) {
+            throw new IllegalArgumentException(abilityId + ": cooldownSeconds must be >= 0");
+        }
+        if (abilitySlot < 0 || abilitySlot > 2) {
+            throw new IllegalArgumentException(abilityId + ": abilitySlot must be 0, 1 or 2");
+        }
         this.cooldownSeconds = cooldownSeconds;
         this.requiredUpgradeLevel = requiredUpgradeLevel;
         this.elementType = elementType;
@@ -84,6 +96,21 @@ public abstract class BaseAbility implements Ability {
     }
 
     @Override
+    public @Nullable ElementType getElementType() {
+        return elementType;
+    }
+
+    @Override
+    public int getSlot() {
+        return abilitySlot;
+    }
+
+    /** Live config access, or {@code null} for abilities created without one. */
+    protected @Nullable ConfigManager getConfigManager() {
+        return configManager;
+    }
+
+    @Override
     public boolean isActiveFor(Player player) {
         return activePlayers.contains(player.getUniqueId());
     }
@@ -97,20 +124,18 @@ public abstract class BaseAbility implements Ability {
         }
     }
 
+    @Override
     public abstract String getName();
 
+    @Override
     public abstract String getDescription();
 
     /**
-     * Helper method to check if a target is valid for an ability.
-     * Override in subclasses for more complex logic.
+     * Whether {@code target} may be hit by this ability: see {@link AbilityTargets#isValid} (not
+     * the caster, alive, not an armor stand or villager, not a creative/spectator player and not
+     * on the caster's team or an allied team). Override for more complex logic.
      */
-    protected boolean isValidTarget(ElementContext context, org.bukkit.entity.LivingEntity target) {
-        Player caster = context.getPlayer();
-        if (target.equals(caster) || AbilityTargets.isProtected(target)) return false;
-        if (target instanceof Player other && context.getTeamManager() != null) {
-            return !context.getTeamManager().isFriendly(caster.getUniqueId(), other.getUniqueId());
-        }
-        return true;
+    protected boolean isValidTarget(ElementContext context, LivingEntity target) {
+        return AbilityTargets.isValid(context.getPlayer(), target, context.getTeamManager());
     }
 }

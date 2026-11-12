@@ -6,6 +6,7 @@ import net.kyori.adventure.title.Title;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.event.ElementChangeEvent;
 import net.rose.elementSMPRefined.items.ItemKeys;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ElementManager;
@@ -78,7 +79,8 @@ public class ForgedUpgraderHandler implements Listener {
         }
 
         ElementType target = forge.get().target();
-        elementManager.assignBasicElement(player, target);
+        elementManager.assignElement(
+                player, target, ElementChangeEvent.Cause.FORGE);
         consume(player, hand);
         showForgedTitle(player, current, target);
         advancements.awardReforged(player);
@@ -100,7 +102,7 @@ public class ForgedUpgraderHandler implements Listener {
                         ? ElementColours.fromLegacy(element.getDisplayName())
                         : NamedTextColor.AQUA;
 
-        // Replaces the generic "Element Assigned!" title assignBasicElement() just showed.
+        // Replaces the generic "Element Assigned!" title assignElement() just showed.
         player.showTitle(
                 Title.title(
                         Component.text("Element Forged!").color(NamedTextColor.GOLD),

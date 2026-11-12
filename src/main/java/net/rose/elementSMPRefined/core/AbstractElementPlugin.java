@@ -26,9 +26,10 @@ import net.rose.elementSMPRefined.util.server.potplugin.potlimits.PotLimitsListe
 import net.rose.elementSMPRefined.util.server.potplugin.potlimits.PotionLimits;
 import net.rose.elementSMPRefined.util.server.potplugin.util.ExtensionRecipes;
 import net.rose.elementevents.CustomEventVillager;
+import net.rose.elementevents.api.EventManager;
+import net.rose.elementevents.lifedeath.LifeDeathEvent;
 import net.rose.elementevents.mythic.MythicBookProtection;
 import net.rose.elementevents.mythic.MythicElements;
-import net.rose.elementevents.lifedeath.LifeDeathEvent;
 
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -57,7 +58,7 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     protected ReforgeAltarManager reforgeAltarManager;
     protected CustomEventVillager eventVillager;
-    protected LifeDeathEvent lifeDeathEvent;
+    protected EventManager eventManager;
     protected MythicBookProtection mythicBookProtection;
     protected MythicElements mythicElements;
     protected TaskScheduler taskScheduler;
@@ -177,8 +178,9 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         this.reforgeAltarManager = new ReforgeAltarManager(this);
         this.eventVillager =
                 new CustomEventVillager((net.rose.elementSMPRefined.ElementSMPRefined) this);
-        this.lifeDeathEvent =
-                new LifeDeathEvent((net.rose.elementSMPRefined.ElementSMPRefined) this);
+        this.eventManager = new EventManager((net.rose.elementSMPRefined.ElementSMPRefined) this);
+        this.eventManager.register(
+                new LifeDeathEvent((net.rose.elementSMPRefined.ElementSMPRefined) this));
         this.mythicElements =
                 new MythicElements((net.rose.elementSMPRefined.ElementSMPRefined) this);
         this.mythicBookProtection =
@@ -272,8 +274,8 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
 
     private void cleanup() {
 
-        if (lifeDeathEvent != null) {
-            lifeDeathEvent.cleanup();
+        if (eventManager != null) {
+            eventManager.cleanup();
         }
 
         if (mythicBookProtection != null) {
@@ -361,8 +363,8 @@ public abstract class AbstractElementPlugin extends JavaPlugin {
         return eventVillager;
     }
 
-    public LifeDeathEvent getLifeDeathEvent() {
-        return lifeDeathEvent;
+    public EventManager getEventManager() {
+        return eventManager;
     }
 
     public MythicElements getMythicElements() {

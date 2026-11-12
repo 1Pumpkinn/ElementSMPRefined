@@ -7,6 +7,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.commands.supporters.CommandSupport;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.event.ElementChangeEvent;
 import net.rose.elementSMPRefined.core.API.event.UpgradeLevelChangeEvent;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
@@ -107,7 +108,12 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
         int newLevel = level - 1;
 
         UpgradeLevelChangeEvent event =
-                new UpgradeLevelChangeEvent(player, current, level, newLevel);
+                new UpgradeLevelChangeEvent(
+                        player,
+                        current,
+                        level,
+                        newLevel,
+                        UpgradeLevelChangeEvent.Cause.WITHDRAW);
         plugin.getServer().getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             player.sendMessage(Lang.WITHDRAW_CANCELLED);
@@ -132,7 +138,7 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
         }
 
         ElementType base = forge.get().base();
-        elementManager.assignBasicElement(player, base);
+        elementManager.assignElement(player, base, ElementChangeEvent.Cause.UNFORGE);
         boolean dropped = give(player, ForgedUpgraderItem.make(plugin));
 
         var element = elementManager.get(base);
@@ -140,7 +146,7 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
                 element != null
                         ? ElementColours.fromLegacy(element.getDisplayName())
                         : NamedTextColor.AQUA;
-        // Replaces the generic "Element Assigned!" title assignBasicElement() just showed.
+        // Replaces the generic "Element Assigned!" title assignElement() just showed.
         player.showTitle(
                 Title.title(
                         Component.text("Element Unforged").color(NamedTextColor.GOLD),
@@ -150,7 +156,7 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
                                 Duration.ofMillis(2000),
                                 Duration.ofMillis(500))));
 
-        // assignBasicElement() just played the success jingle - cut it and play the power-down
+        // assignElement() just played the success jingle - cut it and play the power-down
         // instead.
         player.stopSound(SoundUtils.UI.SUCCESS.sound());
         SoundUtils.playTo(player, SoundUtils.UI.WITHDRAW);
@@ -167,7 +173,7 @@ public class WithdrawCommand implements CommandExecutor, TabCompleter {
         ElementType base = basics[ThreadLocalRandom.current().nextInt(basics.length)];
 
         plugin.getMythicElements().release(current, player.getUniqueId());
-        elementManager.assignBasicElement(player, base);
+        elementManager.assignElement(player, base, ElementChangeEvent.Cause.MYTHIC_WITHDRAW);
         MythicBook.giveOrDrop(plugin, player, kind);
 
         var element = elementManager.get(base);

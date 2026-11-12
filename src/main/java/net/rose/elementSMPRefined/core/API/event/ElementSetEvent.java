@@ -3,50 +3,28 @@ package net.rose.elementSMPRefined.core.API.event;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Fired after a player's element is directly set via
+ * Fired after a player's element is directly set by an admin via
  * {@link net.rose.elementSMPRefined.managers.ElementManager#setElement(Player, ElementType)}
- * (e.g. a GUI reroll) - preserves the player's existing upgrade level, as
- * opposed to {@link ElementAssignEvent} which resets it.
+ * ({@code /element set}). The cause is always {@link Cause#ADMIN}.
  * <p>
- * Fires after the change has already been saved, so this is purely
- * informational and is <b>not</b> cancellable.
+ * Fires after the change has already been saved, so this is purely informational and is
+ * <b>not</b> cancellable. The player's upgrade level is kept.
  */
-public class ElementSetEvent extends Event {
-    private static final HandlerList HANDLERS = new HandlerList();
+public class ElementSetEvent extends ElementChangeEvent {
 
-    private final Player player;
-    private final ElementType newElement;
-    private final ElementType previousElement;
-
-    public ElementSetEvent(Player player, ElementType newElement, ElementType previousElement) {
-        this.player = player;
-        this.newElement = newElement;
-        this.previousElement = previousElement;
+    public ElementSetEvent(
+            @NotNull Player player,
+            @NotNull ElementType newElement,
+            @Nullable ElementType previousElement) {
+        super(player, newElement, previousElement, Cause.ADMIN);
     }
 
-    public Player getPlayer() {
-        return player;
-    }
-
-    public ElementType getNewElement() {
-        return newElement;
-    }
-
-    /** The element the player had before this change, or {@code null} if they had none. */
-    public ElementType getPreviousElement() {
-        return previousElement;
-    }
-
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLERS;
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
+    public static @NotNull HandlerList getHandlerList() {
+        return ElementChangeEvent.getHandlerList();
     }
 }

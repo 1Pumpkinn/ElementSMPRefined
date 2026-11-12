@@ -17,7 +17,10 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.Nullable;
 
-/** Counts kills for the Life &amp; Death event and delivers books won while offline. */
+/**
+ * Counts kills for the Life &amp; Death event and delivers books won while offline. (Showing the
+ * boss bar to late joiners is handled for every event by the {@code EventManager}.)
+ */
 public class LifeDeathListener implements Listener {
 
     private final ElementSMPRefined plugin;
@@ -55,7 +58,6 @@ public class LifeDeathListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player player = e.getPlayer();
-        event.showTo(player);
         plugin.getTaskScheduler()
                 .runAfterPlayerLoad(
                         () -> {

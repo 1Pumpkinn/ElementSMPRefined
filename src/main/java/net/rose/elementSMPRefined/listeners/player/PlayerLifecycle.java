@@ -5,6 +5,7 @@ import net.rose.elementSMPRefined.ability.main.mythic.death.DeathSoulSiphonAbili
 import net.rose.elementSMPRefined.ability.main.upgraded.metal.MetalMagnetarAbility;
 import net.rose.elementSMPRefined.ability.passive.basic.air.listeners.AirAntiFallDmgListener;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.event.ElementChangeEvent;
 import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.PlayerData;
 import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
@@ -133,7 +134,8 @@ public class PlayerLifecycle implements Listener {
 
                 if (!assigned && visual.hasRevealed()) {
                     assigned = true;
-                    elementManager.assignBasicElement(player, targetElement);
+                    elementManager.assignElement(
+                            player, targetElement, ElementChangeEvent.Cause.FIRST_JOIN);
                 }
 
                 if (visual.isDone()) {

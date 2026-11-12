@@ -7,17 +7,18 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.data.YamlFiles;
 import net.rose.elementSMPRefined.util.parse.ParseUtil;
+import net.rose.elementevents.api.AbstractTimedEvent;
 import net.rose.elementevents.mythic.MythicBook;
 import net.rose.elementevents.mythic.MythicBook.Kind;
 import net.rose.elementevents.mythic.MythicBookProtection;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.event.Listener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -44,7 +46,8 @@ import java.util.logging.Level;
  * </ul>
  * Scores live in memory only: a restart mid-event cancels it (pending books are kept).
  */
-public class LifeDeathEvent {
+public class LifeDeathEvent extends AbstractTimedEvent {
+    public static final String ID = "life_death";
     private static final String PENDING_FILE = "life_death_pending.yml";
     static final Component TITLE =
             MiniMessage.miniMessage()
@@ -56,54 +59,19 @@ public class LifeDeathEvent {
         final long[] reachedAt = new long[Kind.values().length];
     }
 
-    private final ElementSMPRefined plugin;
     private final File pendingFile;
     private final Map<UUID, Score> scores = new LinkedHashMap<>();
 
-    private boolean active;
-    private int totalSeconds;
-    private int remainingSeconds;
-    private BossBar bossBar;
-    private BukkitTask task;
-
     public LifeDeathEvent(ElementSMPRefined plugin) {
-        this.plugin = plugin;
+        super(plugin, ID, TITLE, BossBar.Color.PURPLE, 1800);
         this.pendingFile = new File(plugin.getDataFolder(), PENDING_FILE);
     }
 
-    // ---- state ------------------------------------------------------------------------------
+    // ---- ServerEvent hooks ------------------------------------------------------------------
 
-    public boolean isActive() {
-        return active;
-    }
-
-    public int getRemainingSeconds() {
-        return remainingSeconds;
-    }
-
-    public int defaultDurationSeconds() {
-        return Math.max(1, plugin.getConfig().getInt("events.life_death.duration_seconds", 1800));
-    }
-
-    /** @return false if an event is already running. */
-    public boolean start(int durationSeconds) {
-        if (active) return false;
+    @Override
+    protected void onStart() {
         scores.clear();
-        active = true;
-        totalSeconds = Math.max(1, durationSeconds);
-        remainingSeconds = totalSeconds;
-
-        bossBar =
-                BossBar.bossBar(
-                        TITLE, 1.0f, BossBar.Color.PURPLE, BossBar.Overlay.PROGRESS);
-        Bukkit.getOnlinePlayers().forEach(p -> p.showBossBar(bossBar));
-        task =
-                plugin.getTaskScheduler()
-                        .runTimer(
-                                this::tick,
-                                Constants.Timing.TICKS_PER_SECOND,
-                                Constants.Timing.TICKS_PER_SECOND);
-
         Bukkit.broadcast(
                 Component.text("The Event has begun! ", NamedTextColor.DARK_GREEN)
                         .append(
@@ -113,18 +81,16 @@ public class LifeDeathEvent {
                         .append(
                                 Component.text(
                                         "Ends in "
-                                                + ParseUtil.formatCompact(totalSeconds)
+                                                + ParseUtil.formatCompact(getTotalSeconds())
                                                 + ".",
                                         NamedTextColor.GREEN)));
-        return true;
     }
 
-    /** Ends the event now and hands out the books. @return false if none was running. */
-    public boolean end() {
-        if (!active) return false;
+    /** Hands out the books. */
+    @Override
+    protected void onEnd() {
         List<String> lines = new ArrayList<>();
         UUID[] winners = pickWinners();
-        shutdown();
         // A mythic element can only be held by one player: don't hand out a book for one that is
         // already claimed.
         for (Kind kind : Kind.values()) {
@@ -158,56 +124,77 @@ public class LifeDeathEvent {
         Bukkit.getOnlinePlayers().forEach(p -> p.showDialog(results));
         plugin.getLogger().info("Life & Death event ended - " + String.join(", ", lines));
         scores.clear();
-        return true;
     }
 
-    /** Stops the event without awarding anything. @return false if none was running. */
-    public boolean cancel() {
-        if (!active) return false;
-        shutdown();
+    @Override
+    protected void onCancel() {
         scores.clear();
         Bukkit.broadcast(
                 Component.text("The Life & Death event was cancelled.", NamedTextColor.RED));
-        return true;
     }
 
-    /** Hides the boss bar and stops the timer. Idempotent; safe on plugin disable. */
-    public void cleanup() {
-        shutdown();
-    }
-
-    private void shutdown() {
-        active = false;
-        if (task != null) {
-            task.cancel();
-            task = null;
+    @Override
+    public List<Component> startNotes() {
+        List<Component> notes = new ArrayList<>();
+        for (Kind kind : Kind.values()) {
+            if (plugin.getMythicElements().isClaimed(kind.element())) {
+                notes.add(
+                        Component.text(
+                                "Note: the "
+                                        + kind.elementName()
+                                        + " is already claimed, so no "
+                                        + kind.id()
+                                        + " book will be awarded.",
+                                NamedTextColor.YELLOW));
+            }
         }
-        if (bossBar != null) {
-            Bukkit.getOnlinePlayers().forEach(p -> p.hideBossBar(bossBar));
-            bossBar = null;
-        }
+        return notes;
     }
 
-    private void tick() {
-        remainingSeconds--;
-        if (remainingSeconds <= 0) {
-            end();
+    @Override
+    public List<Listener> getListeners() {
+        return List.of(new LifeDeathListener(plugin, this));
+    }
+
+    @Override
+    public void sendStatus(CommandSender sender) {
+        if (!isActive()) {
+            sender.sendMessage(Component.text("No event is running.", NamedTextColor.YELLOW));
             return;
         }
-        if (bossBar != null) {
-            bossBar.progress(Math.max(0f, Math.min(1f, (float) remainingSeconds / totalSeconds)));
+        if (sender instanceof Player player) {
+            showStandings(player);
+            return;
         }
-    }
-
-    /** Shows the boss bar to someone who joined mid-event. */
-    public void showTo(Player player) {
-        if (active && bossBar != null) player.showBossBar(bossBar);
+        sender.sendMessage(
+                Component.text(
+                        "Life & Death event - "
+                                + ParseUtil.formatCompact(getRemainingSeconds())
+                                + " left",
+                        NamedTextColor.GOLD));
+        for (Kind kind : Kind.values()) {
+            Map<String, Integer> top = standings(kind);
+            StringBuilder line = new StringBuilder(kind.id().toUpperCase(Locale.ROOT) + ": ");
+            if (top.isEmpty()) {
+                line.append("nobody yet");
+            } else {
+                int shown = 0;
+                for (Map.Entry<String, Integer> e : top.entrySet()) {
+                    if (shown++ == 5) break;
+                    line.append(shown > 1 ? ", " : "").append(e.getKey()).append(" ").append(e.getValue());
+                }
+            }
+            sender.sendMessage(
+                    Component.text(
+                            line.toString(),
+                            kind == Kind.LIFE ? NamedTextColor.GREEN : NamedTextColor.DARK_PURPLE));
+        }
     }
 
     // ---- scoring ----------------------------------------------------------------------------
 
     public void recordKill(Player killer, Kind kind) {
-        if (!active) return;
+        if (!isActive()) return;
         Score score = scores.computeIfAbsent(killer.getUniqueId(), id -> new Score());
         int i = kind.ordinal();
         score.counts[i]++;
@@ -216,7 +203,7 @@ public class LifeDeathEvent {
 
     /** Opens the current standings in a dialog for {@code viewer}. */
     public void showStandings(Player viewer) {
-        viewer.showDialog(LifeDeathDialogs.standings(remainingSeconds, allStandings()));
+        viewer.showDialog(LifeDeathDialogs.standings(getRemainingSeconds(), allStandings()));
     }
 
     private Map<Kind, Map<String, Integer>> allStandings() {

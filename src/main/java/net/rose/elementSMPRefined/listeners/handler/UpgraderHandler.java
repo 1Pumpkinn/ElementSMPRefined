@@ -125,7 +125,12 @@ public class UpgraderHandler implements Listener {
             int level) {
         int previousLevel = playerData.getUpgradeLevel(currentElement);
         UpgradeLevelChangeEvent changeEvent =
-                new UpgradeLevelChangeEvent(player, currentElement, previousLevel, level);
+                new UpgradeLevelChangeEvent(
+                        player,
+                        currentElement,
+                        previousLevel,
+                        level,
+                        UpgradeLevelChangeEvent.Cause.UPGRADER);
         plugin.getServer().getPluginManager().callEvent(changeEvent);
         if (changeEvent.isCancelled()) return false;
 

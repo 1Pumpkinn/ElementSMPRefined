@@ -24,7 +24,8 @@ import java.util.List;
  * <p>
  * To wire it in:
  * <ol>
- *   <li>Add a constant to {@link ElementType}.</li>
+ *   <li>Add a constant to {@link ElementType} with the right {@link ElementType.Tier}
+ *       (BASIC, FORGED or MYTHIC decides how players can obtain it).</li>
  *   <li>Register it in {@code ElementManager.registerAllElements()} -
  *       {@code elementRegistry.register(new ExampleElement(plugin));}</li>
  *   <li>If it needs event listeners (combat hooks, item interactions, etc.),

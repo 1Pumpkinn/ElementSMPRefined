@@ -24,6 +24,8 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -107,8 +109,9 @@ public class LifeTotemAbility extends BaseAbility {
     private static final double RADIUS = Constants.Distance.LIFE_REGEN_RADIUS;
     private static final int PULSE_EVERY_TICKS = 20;
     private static final int PULSE_FIRST_TICK = 3; // just after it finished planting
-    private static final int REGEN_TICKS = 60; // each pulse refreshes Regeneration II for 3s
-    private static final int REGEN_AMPLIFIER = 1;
+    private static final int REGEN_TICKS = 60; // each pulse refreshes Regeneration III for 3s
+    private static final int REGEN_AMPLIFIER = 2;
+    private static final double HEAL_PER_PULSE = 2.0; // instant heal each pulse, in health points (1 heart)
     private static final int RING_TICKS = 8; // how long a pulse ring takes to expand
 
     // Growth surge: a totem that sprouts right under the caster heaves them into the air.
@@ -523,7 +526,9 @@ public class LifeTotemAbility extends BaseAbility {
                 boolean owner = other.getUniqueId().equals(ownerId);
                 boolean friendly = team != null && team.isFriendly(ownerId, other.getUniqueId());
                 if (!owner && !friendly) continue;
+                if (other.isDead() || other.getGameMode() == GameMode.SPECTATOR) continue;
 
+                healInstantly(other);
                 other.addPotionEffect(
                         new PotionEffect(
                                 PotionEffectType.REGENERATION,
@@ -535,6 +540,16 @@ public class LifeTotemAbility extends BaseAbility {
             }
             world.playSound(
                     base, Sound.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.PLAYERS, 2.0f, 0.8f);
+        }
+
+        private void healInstantly(Player target) {
+            AttributeInstance maxHealth = target.getAttribute(Attribute.MAX_HEALTH);
+            double max = maxHealth != null ? maxHealth.getValue() : 20.0;
+            if (target.getHealth() >= max) return;
+
+            target.setHealth(Math.min(max, target.getHealth() + HEAL_PER_PULSE));
+            world.spawnParticle(
+                    Particle.HEART, target.getLocation().add(0, 1.8, 0), 2, 0.25, 0.2, 0.25, 0.0, null, true);
         }
 
         private void drawRing(double radius) {
@@ -732,7 +747,8 @@ public class LifeTotemAbility extends BaseAbility {
     }
 
     public String getDescription() {
-        return "Launch a totem that plants in the ground and regenerates you and your teammates and"
-                   + " allies nearby. Aim it at your feet and it launches you upward.";
+        return "Launch a totem that plants in the ground and heals you and your teammates and"
+                   + " allies nearby with Regeneration III and a burst of healing every second."
+                   + " Aim it at your feet and it launches you upward.";
     }
 }

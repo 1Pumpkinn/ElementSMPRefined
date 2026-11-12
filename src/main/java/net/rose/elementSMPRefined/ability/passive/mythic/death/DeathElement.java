@@ -63,7 +63,7 @@ public class DeathElement extends BaseElement implements ListenerProvider {
     public List<String> getPassiveBenefits() {
         return List.of(
                 "Invisible at night",
-                "35% chance to apply Wither for 5s on hit (Upgrade II)",
+                "3% chance to apply Wither for 5s on hit (Upgrade II)",
                 "Killing a player restores 3 hearts (Upgrade II)");
     }
 }

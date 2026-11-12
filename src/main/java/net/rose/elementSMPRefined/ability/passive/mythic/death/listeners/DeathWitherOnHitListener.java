@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class DeathWitherOnHitListener implements Listener {
 
-    private static final double WITHER_CHANCE = 0.35; // 35%
+    private static final double WITHER_CHANCE = 0.03; // 3%
     private static final int WITHER_TICKS = 100; // 5 seconds
 
     private final ElementManager elementManager;
@@ -44,6 +44,8 @@ public class DeathWitherOnHitListener implements Listener {
                 && teamManager.isFriendly(attacker.getUniqueId(), targetPlayer.getUniqueId())) {
             return;
         }
+
+        if (victim.hasPotionEffect(PotionEffectType.WITHER)) return;
 
         if (ThreadLocalRandom.current().nextDouble() > WITHER_CHANCE) return;
 

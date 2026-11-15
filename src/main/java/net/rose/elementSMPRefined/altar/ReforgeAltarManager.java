@@ -624,6 +624,29 @@ public final class ReforgeAltarManager {
     }
 
     /**
+     * Tells one player where the active altar is. Used when a player joins while an altar is up.
+     * Does nothing if there is no altar, or if coordinates are hidden
+     * ({@code reforge_altar.announce_coordinates}).
+     */
+    public void sendAltarLocation(Player player) {
+        Altar a = active;
+        if (a == null || !cfg().getBoolean("reforge_altar.announce_coordinates", true)) return;
+        player.sendMessage(
+                Component.text("There is a ", NamedTextColor.WHITE)
+                        .append(Component.text("Reforge Altar", ForgedUpgraderItem.COLOR))
+                        .append(Component.text(" at: ", NamedTextColor.WHITE))
+                        .append(
+                                Component.text(
+                                        a.lodestoneX()
+                                                + ", "
+                                                + a.lodestoneY()
+                                                + ", "
+                                                + a.lodestoneZ(),
+                                        ForgedUpgraderItem.COLOR_SOFT))
+                        .append(Component.text("!", ForgedUpgraderItem.COLOR_LIGHT)));
+    }
+
+    /**
      * Ends the active altar: removes the text display and puts the terrain
      * back exactly as it was before the altar spawned (which also removes the
      * structure and repairs anything it overwrote). The caller is responsible

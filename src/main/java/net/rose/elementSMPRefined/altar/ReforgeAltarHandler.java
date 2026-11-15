@@ -29,6 +29,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.PortalCreateEvent;
@@ -48,6 +49,20 @@ public class ReforgeAltarHandler implements Listener {
     public ReforgeAltarHandler(ElementSMPRefined plugin, ReforgeAltarManager altar) {
         this.plugin = plugin;
         this.altar = altar;
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        if (!altar.hasActiveAltar()) return;
+        Player player = event.getPlayer();
+        // Delayed so it lands after the join messages instead of getting buried.
+        Bukkit.getScheduler()
+                .runTaskLater(
+                        plugin,
+                        () -> {
+                            if (player.isOnline()) altar.sendAltarLocation(player);
+                        },
+                        40L);
     }
 
     @EventHandler(priority = EventPriority.HIGH)

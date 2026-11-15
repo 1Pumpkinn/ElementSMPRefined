@@ -58,18 +58,30 @@ public class DeathNightInvisibilityListener implements Listener {
         boolean night = isNight(player.getWorld());
         UUID uuid = player.getUniqueId();
 
-        if (night && nightInvisible.add(uuid)) {
-            PassiveInvisibility.mark(player);
-            player.addPotionEffect(
-                    new PotionEffect(
-                            PotionEffectType.INVISIBILITY,
-                            PotionEffect.INFINITE_DURATION,
-                            0,
-                            true,
-                            false));
-        } else if (!night && nightInvisible.remove(uuid)) {
+        if (night) {
+            boolean newlyTracked = nightInvisible.add(uuid);
+            if (newlyTracked || !hasPassiveInvisibility(player)) {
+                applyInvisibility(player);
+            }
+        } else if (nightInvisible.remove(uuid)) {
             removeInvisibility(player);
         }
+    }
+
+    private boolean hasPassiveInvisibility(Player player) {
+        PotionEffect current = player.getPotionEffect(PotionEffectType.INVISIBILITY);
+        return current != null && current.getDuration() == PotionEffect.INFINITE_DURATION;
+    }
+
+    private void applyInvisibility(Player player) {
+        PassiveInvisibility.mark(player);
+        player.addPotionEffect(
+                new PotionEffect(
+                        PotionEffectType.INVISIBILITY,
+                        PotionEffect.INFINITE_DURATION,
+                        0,
+                        true,
+                        false));
     }
 
     private boolean isNight(World world) {

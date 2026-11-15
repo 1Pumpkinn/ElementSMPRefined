@@ -14,6 +14,7 @@ import net.rose.elementSMPRefined.util.visual.model.DeathsVoidVisual;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -164,7 +165,11 @@ public class DeathVoidAbility extends BaseAbility {
                 }
 
                 Location next = pos.clone().add(dir.clone().multiply(SPEED));
-                boolean blocked = !next.getBlock().isPassable();
+                boolean blocked =
+                        !next.getBlock().isPassable()
+                                || world.rayTraceBlocks(
+                                                pos, dir, SPEED, FluidCollisionMode.NEVER, true)
+                                        != null;
                 if (!blocked) {
                     pos.setX(next.getX());
                     pos.setY(next.getY());

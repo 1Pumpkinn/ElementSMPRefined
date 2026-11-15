@@ -3,6 +3,7 @@ package net.rose.elementSMPRefined.ability.passive.mythic.life.listeners;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.managers.ElementManager;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -129,12 +130,24 @@ public class LifeTreeChopListener implements Listener {
                 }
 
                 Block log = logs.get(index++);
-                chopping.remove(log);
                 // Changed since the chop started (broken, replaced, or now player-placed): skip it.
-                if (log.getType() != type || placedLogs.isPlaced(log)) return;
+                if (log.getType() != type || placedLogs.isPlaced(log)) {
+                    chopping.remove(log);
+                    return;
+                }
+
+                // The log stays in chopping while the event is fired so onBlockBreak ignores it.
+                BlockBreakEvent breakEvent = new BlockBreakEvent(log, player);
+                Bukkit.getPluginManager().callEvent(breakEvent);
+                chopping.remove(log);
+                if (breakEvent.isCancelled()) return;
 
                 playBreakEffect(log);
-                log.breakNaturally(tool);
+                if (breakEvent.isDropItems()) {
+                    log.breakNaturally(tool);
+                } else {
+                    log.setType(Material.AIR);
+                }
                 broken++;
             }
 

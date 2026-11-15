@@ -124,6 +124,7 @@ public class LifeTreeChopListener implements Listener {
                 if (index >= logs.size()
                         || !player.isOnline()
                         || player.isDead()
+                        || elementManager.getPlayerElement(player) != ElementType.LIFE
                         || !Tag.ITEMS_AXES.isTagged(tool.getType())) {
                     finish();
                     return;

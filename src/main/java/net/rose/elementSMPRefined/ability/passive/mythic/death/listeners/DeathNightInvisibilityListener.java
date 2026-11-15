@@ -2,6 +2,7 @@ package net.rose.elementSMPRefined.ability.passive.mythic.death.listeners;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
+import net.rose.elementSMPRefined.core.API.event.ElementChangeEvent;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.visual.PassiveInvisibility;
 
@@ -9,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffect;
@@ -47,6 +49,8 @@ public class DeathNightInvisibilityListener implements Listener {
                                         if (elementManager.getPlayerElement(player)
                                                 == ElementType.DEATH) {
                                             tick(player);
+                                        } else {
+                                            clear(player);
                                         }
                                     }
                                 },
@@ -85,6 +89,7 @@ public class DeathNightInvisibilityListener implements Listener {
     }
 
     private boolean isNight(World world) {
+        if (world.getEnvironment() != World.Environment.NORMAL) return false;
         long time = world.getTime();
         return time >= NIGHT_START && time < NIGHT_END;
     }
@@ -101,6 +106,17 @@ public class DeathNightInvisibilityListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         nightInvisible.remove(event.getPlayer().getUniqueId());
         PassiveInvisibility.unmark(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onElementChange(ElementChangeEvent event) {
+        if (event.getPreviousElement() != ElementType.DEATH
+                || event.getNewElement() == ElementType.DEATH) {
+            return;
+        }
+        Player player = event.getPlayer();
+        nightInvisible.remove(player.getUniqueId());
+        removeInvisibility(player);
     }
 
     public void clear(Player player) {

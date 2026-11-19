@@ -1,6 +1,6 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.item.builder.ModelItems;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

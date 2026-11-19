@@ -5,7 +5,7 @@ import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
 import net.rose.elementSMPRefined.core.API.element.ElementContext;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
-import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.item.builder.ModelItems;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.particles.element.LifeParticles;

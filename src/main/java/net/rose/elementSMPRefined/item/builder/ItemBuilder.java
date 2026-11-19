@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.items.builder;
+package net.rose.elementSMPRefined.item.builder;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;

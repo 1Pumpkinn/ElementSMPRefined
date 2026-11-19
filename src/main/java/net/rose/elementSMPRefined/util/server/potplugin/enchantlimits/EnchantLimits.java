@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.util.server.potplugin.enchantlimits;
 
 import net.rose.elementSMPRefined.core.AbstractElementPlugin;
-import net.rose.elementSMPRefined.items.EnchantableMace;
+import net.rose.elementSMPRefined.item.EnchantableMace;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;

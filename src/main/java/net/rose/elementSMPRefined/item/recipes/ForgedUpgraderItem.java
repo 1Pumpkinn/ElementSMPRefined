@@ -1,9 +1,9 @@
-package net.rose.elementSMPRefined.items.recipes;
+package net.rose.elementSMPRefined.item.recipes;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import net.rose.elementSMPRefined.items.ItemKeys;
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.item.ItemKeys;
+import net.rose.elementSMPRefined.item.builder.ItemBuilder;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;

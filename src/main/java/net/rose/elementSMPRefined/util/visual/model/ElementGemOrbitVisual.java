@@ -2,7 +2,7 @@ package net.rose.elementSMPRefined.util.visual.model;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.Constants;
-import net.rose.elementSMPRefined.items.builder.ModelItems;
+import net.rose.elementSMPRefined.item.builder.ModelItems;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
 import net.rose.elementSMPRefined.util.visual.PingCompensation;
 

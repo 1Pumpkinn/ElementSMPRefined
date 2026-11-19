@@ -6,7 +6,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.altar.ForgeRecipe;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.event.ElementChangeEvent;
-import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
+import net.rose.elementSMPRefined.item.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementevents.mythic.MythicBook.Kind;
 

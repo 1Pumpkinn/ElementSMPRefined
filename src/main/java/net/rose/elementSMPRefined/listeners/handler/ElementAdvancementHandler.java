@@ -2,7 +2,7 @@ package net.rose.elementSMPRefined.listeners.handler;
 
 import net.kyori.adventure.key.Key;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.items.ItemKeys;
+import net.rose.elementSMPRefined.item.ItemKeys;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;
 import net.rose.elementSMPRefined.util.damage.AbilityDamage;
 

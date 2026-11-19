@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.items.builder;
+package net.rose.elementSMPRefined.item.builder;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;

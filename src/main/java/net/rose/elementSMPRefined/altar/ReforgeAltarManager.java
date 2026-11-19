@@ -5,7 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.data.YamlFiles;
-import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
+import net.rose.elementSMPRefined.item.recipes.ForgedUpgraderItem;
 
 import org.bukkit.*;
 import org.bukkit.block.Biome;

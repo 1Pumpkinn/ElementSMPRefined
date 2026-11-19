@@ -1,6 +1,6 @@
 package net.rose.elementevents.lifedeath;
 
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.item.builder.ItemBuilder;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;

@@ -4,7 +4,7 @@ import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.event.UpgradeLevelChangeEvent;
 import net.rose.elementSMPRefined.data.PlayerData;
-import net.rose.elementSMPRefined.items.ItemKeys;
+import net.rose.elementSMPRefined.item.ItemKeys;
 import net.rose.elementSMPRefined.lang.Lang;
 import net.rose.elementSMPRefined.managers.ElementManager;
 import net.rose.elementSMPRefined.util.bukkit.ItemUtil;

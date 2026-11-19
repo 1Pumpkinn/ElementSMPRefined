@@ -1,9 +1,9 @@
 package net.rose.elementSMPRefined.commands.element.admin;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
-import net.rose.elementSMPRefined.items.recipes.RerollerItem;
-import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
+import net.rose.elementSMPRefined.item.recipes.ForgedUpgraderItem;
+import net.rose.elementSMPRefined.item.recipes.RerollerItem;
+import net.rose.elementSMPRefined.item.recipes.UpgraderItem;
 import net.rose.elementSMPRefined.lang.Lang;
 
 import org.bukkit.command.Command;

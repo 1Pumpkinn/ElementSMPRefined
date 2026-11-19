@@ -1,7 +1,7 @@
 package net.rose.elementevents.mythic;
 
 import net.rose.elementSMPRefined.core.API.element.ElementType;
-import net.rose.elementSMPRefined.items.builder.ItemBuilder;
+import net.rose.elementSMPRefined.item.builder.ItemBuilder;
 
 import org.bukkit.Location;
 import org.bukkit.Material;

@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.items;
+package net.rose.elementSMPRefined.item;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -11,6 +11,7 @@ public final class ItemKeys {
     public static final String KEY_REROLLER = "element_reroller";
     public static final String KEY_FORGED_UPGRADER = "forged_upgrader";
     public static final String KEY_ENCHANTABLE_MACE = "enchantable_mace";
+    public static final String KEY_THROWING_DISC = "throwing_disc";
 
     public static NamespacedKey namespaced(JavaPlugin plugin, String key) {
         return new NamespacedKey(plugin, key);
@@ -30,5 +31,9 @@ public final class ItemKeys {
 
     public static NamespacedKey enchantableMace(JavaPlugin plugin) {
         return namespaced(plugin, KEY_ENCHANTABLE_MACE);
+    }
+
+    public static NamespacedKey throwingDisc(JavaPlugin plugin) {
+        return namespaced(plugin, KEY_THROWING_DISC);
     }
 }

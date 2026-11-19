@@ -3,7 +3,7 @@ package net.rose.elementSMPRefined.altar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.items.recipes.ForgedUpgraderItem;
+import net.rose.elementSMPRefined.item.recipes.ForgedUpgraderItem;
 import net.rose.elementSMPRefined.lang.Lang;
 
 import org.bukkit.Bukkit;

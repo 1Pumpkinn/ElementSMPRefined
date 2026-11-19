@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.items;
+package net.rose.elementSMPRefined.item;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

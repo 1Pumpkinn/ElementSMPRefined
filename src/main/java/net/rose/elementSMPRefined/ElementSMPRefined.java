@@ -20,10 +20,12 @@ import net.rose.elementSMPRefined.util.visual.model.MagmaBeamVisual;
 import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 import net.rose.elementSMPRefined.util.visual.model.MetalShieldVisual;
 import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
+import net.rose.elementSMPRefined.weapon.disc.ThrowingDiscSystem;
 
 public final class ElementSMPRefined extends AbstractElementPlugin {
 
     private ResourcePackManager resourcePackManager;
+    private ThrowingDiscSystem throwingDiscSystem;
 
     @Override
     protected void beforeRegisterComponents() {
@@ -37,11 +39,17 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
 
     @Override
     protected void onPluginEnable() {
+        throwingDiscSystem = new ThrowingDiscSystem(this);
+        throwingDiscSystem.start();
         getLogger().info("ElementSMPRefined enabled successfully!");
     }
 
     @Override
     protected void onPluginDisable() {
+        // First, so a disc that is mid-flight is handed back before anything else shuts down.
+        if (throwingDiscSystem != null) {
+            sweep("ThrowingDisc", throwingDiscSystem::stop);
+        }
         if (resourcePackManager != null) {
             resourcePackManager.stop();
         }

@@ -2,7 +2,7 @@ name: ElementSMPRefined
 version: '${version}'
 main: net.rose.elementSMPRefined.ElementSMPRefined
 author: PumpkinDev
-contributors: [SantaEevee Magnet108]
+contributors: [Vishini SantaEevee Magnet108]
 api-version: '26.2'
 load: STARTUP
 softdepend: [ViaVersion]
@@ -78,6 +78,12 @@ commands:
     description: Spawn and manage unkillable event villagers with their own trades
     usage: /eventvillager <spawn <type> [name]|settype <type>|remove|list|types|reload>
     aliases: [ evillager ]
+    permission: element.admin
+
+  throwingdisc:
+    description: Give, inspect or reset the one throwing disc
+    usage: /throwingdisc <give [player]|status|reset confirm>
+    aliases: [ disc ]
     permission: element.admin
 
   enchantablemace:

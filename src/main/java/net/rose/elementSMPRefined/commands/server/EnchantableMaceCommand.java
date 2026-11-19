@@ -1,7 +1,7 @@
 package net.rose.elementSMPRefined.commands.server;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.items.EnchantableMace;
+import net.rose.elementSMPRefined.item.EnchantableMace;
 import net.rose.elementSMPRefined.lang.Lang;
 
 import org.bukkit.Bukkit;

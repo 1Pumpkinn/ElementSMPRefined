@@ -1,8 +1,8 @@
 package net.rose.elementSMPRefined.core.initializers;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.items.recipes.RerollerItem;
-import net.rose.elementSMPRefined.items.recipes.UpgraderItem;
+import net.rose.elementSMPRefined.item.recipes.RerollerItem;
+import net.rose.elementSMPRefined.item.recipes.UpgraderItem;
 
 import org.bukkit.plugin.java.JavaPlugin;
 

@@ -54,11 +54,11 @@ import java.util.logging.Level;
  */
 final class ThrownDisc {
     private static final double WIDTH = 0.6;
-    private static final double THROW_SPEED = 1.6;
+    private static final double THROW_SPEED = 1.4;
     private static final double SPAWN_FORWARD = 0.5;
     private static final double BASE_RANGE = 5.0;
-    private static final double RICOCHET_RANGE_BONUS = 9.0;
-    private static final int MAX_RICOCHETS = 4;
+    private static final double RICOCHET_RANGE_BONUS = 2.0;
+    private static final int MAX_RICOCHETS = 50;
     private static final double BOUNCE_SPEED_RETAIN = 0.6;
     private static final double MIN_BOUNCE_SPEED = 0.7;
     private static final int BOUNCE_COOLDOWN_TICKS = 3;
@@ -78,13 +78,8 @@ final class ThrownDisc {
     /** Blocks the disc never bounces off (it just stops and comes back). */
     private static final Set<Material> NO_RICOCHET =
             Set.of(
-                    Material.HAY_BLOCK,
                     Material.SLIME_BLOCK,
-                    Material.HONEY_BLOCK,
-                    Material.SNOW_BLOCK,
-                    Material.SPONGE,
-                    Material.WET_SPONGE,
-                    Material.MOSS_BLOCK);
+                    Material.HONEY_BLOCK);
 
     private final ElementSMPRefined plugin;
     private final ThrowingDiscSystem system;

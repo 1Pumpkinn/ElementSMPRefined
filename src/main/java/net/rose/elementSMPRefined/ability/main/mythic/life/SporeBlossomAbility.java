@@ -72,6 +72,13 @@ public class SporeBlossomAbility extends BaseAbility {
         0, 80, 80
     }; // children burst when they land; this is only a safety net
     private static final double[] FLIGHT_SPEED = {0.0, 0.45, 0.40}; // horizontal blocks per tick
+    private static final double[] MIN_SPLIT_ROOM = {
+        0.0, 1.0, 1.2
+    }; // free blocks a child needs in its throw direction, or it is never thrown
+    private static final double OPEN_SAMPLE = 6.0; // how far each openness ray looks
+    private static final double NO_SPLIT_BELOW = 1.3; // avg free space under this (1x1, 2x2): no children
+    private static final double NO_GRANDCHILDREN_BELOW =
+            2.6; // avg free space under this (3x3, 4x4): children burst but do not split again
 
     private static final int POISON_AMPLIFIER = 0;
 
@@ -205,6 +212,7 @@ public class SporeBlossomAbility extends BaseAbility {
         final TeamManager team;
         final List<Blossom> blossoms = new ArrayList<>();
         final List<Blossom> born = new ArrayList<>();
+        int maxGeneration = SIZE.length - 1; // set when the big blossom bursts, from how cramped it is
 
         Cast(Player caster, TeamManager team) {
             this.caster = caster;
@@ -371,7 +379,33 @@ public class SporeBlossomAbility extends BaseAbility {
             playBurstSound(w, at);
 
             hitNearby(at);
+            if (generation == 0) cast.maxGeneration = maxGenerationFor(at);
             split(at);
+        }
+
+        /**
+         * How deep the splitting may go here, from the average free space around the big blossom on eight
+         * horizontal rays: cramped spots (1x1, 2x2) only get the big burst, 3x3 and 4x4 spots also get the
+         * first children, and anything roomier splits all the way.
+         */
+        private int maxGenerationFor(Location at) {
+            World w = at.getWorld();
+            if (w == null) return 0;
+            double total = 0;
+            for (int i = 0; i < 8; i++) {
+                double a = i * Math.PI / 4.0;
+                Vector dir = new Vector(Math.cos(a), 0, Math.sin(a));
+                RayTraceResult wall =
+                        w.rayTraceBlocks(at, dir, OPEN_SAMPLE, FluidCollisionMode.NEVER, true);
+                total +=
+                        wall == null
+                                ? OPEN_SAMPLE
+                                : wall.getHitPosition().distance(at.toVector());
+            }
+            double average = total / 8.0;
+            if (average < NO_SPLIT_BELOW) return 0;
+            if (average < NO_GRANDCHILDREN_BELOW) return 1;
+            return SIZE.length - 1;
         }
 
         /**
@@ -415,6 +449,7 @@ public class SporeBlossomAbility extends BaseAbility {
             Player caster = cast.caster;
             for (LivingEntity e : at.getWorld().getNearbyLivingEntities(at, RADIUS[generation])) {
                 if (!AbilityTargets.isValid(caster, e, cast.team)) continue;
+                if (!hasLineOfSight(at, e)) continue;
 
                 boolean dealt =
                         TrueDamage.of(DAMAGE[generation])
@@ -426,6 +461,33 @@ public class SporeBlossomAbility extends BaseAbility {
                     poison(e, POISON_TICKS[generation]);
                 }
             }
+        }
+
+        /**
+         * True if the burst can reach the target: a clear line from the burst to its feet, middle or eyes.
+         * Anything with a collision box blocks it; cobwebs and other passable blocks do not.
+         */
+        private boolean hasLineOfSight(Location from, LivingEntity target) {
+            World w = from.getWorld();
+            if (w == null) return false;
+            Vector start = from.toVector();
+            Location feet = target.getLocation().add(0, 0.1, 0);
+            Location middle = target.getBoundingBox().getCenter().toLocation(w);
+            Location[] points = {middle, target.getEyeLocation(), feet};
+            for (Location point : points) {
+                Vector toPoint = point.toVector().subtract(start);
+                double distance = toPoint.length();
+                if (distance < 1.0E-4) return true;
+                RayTraceResult wall =
+                        w.rayTraceBlocks(
+                                from,
+                                toPoint.multiply(1.0 / distance),
+                                distance,
+                                FluidCollisionMode.NEVER,
+                                true);
+                if (wall == null) return true;
+            }
+            return false;
         }
 
         /** Never shortens poison the target already has, so a big dose isn't cut down by a small one. */
@@ -446,15 +508,35 @@ public class SporeBlossomAbility extends BaseAbility {
             if (count <= 0) return;
 
             int child = generation + 1;
+            if (child > cast.maxGeneration) return;
+            Location origin = at.clone().add(0, 0.3, 0);
             double base = RANDOM.nextDouble() * Math.PI * 2.0;
             for (int i = 0; i < count; i++) {
                 // Evenly spread around the burst, each nudged a little so the ring isn't perfect.
                 double angle =
                         base + i * (Math.PI * 2.0 / count) + (RANDOM.nextDouble() - 0.5) * 0.5;
+                double dx = Math.cos(angle);
+                double dz = Math.sin(angle);
+
+                // In a 1x1 hole or other tight spot every child would land on the spot at once, burst
+                // together and split again, stacking dozens of bursts. A child with no room to fly in
+                // its direction is simply not thrown, so a cramped blossom only does its own burst.
+                if (!hasRoom(origin, dx, dz, MIN_SPLIT_ROOM[child])) continue;
+
                 double speed = FLIGHT_SPEED[child] * (0.8 + RANDOM.nextDouble() * 0.4);
-                Vector v = new Vector(Math.cos(angle) * speed, POP_SPEED, Math.sin(angle) * speed);
-                cast.add(new Blossom(cast, child, at.clone().add(0, 0.3, 0), v));
+                Vector v = new Vector(dx * speed, POP_SPEED, dz * speed);
+                cast.add(new Blossom(cast, child, origin.clone(), v));
             }
+        }
+
+        /** True if there are at least {@code room} free blocks from {@code from} in the horizontal direction. */
+        private boolean hasRoom(Location from, double dx, double dz, double room) {
+            World w = from.getWorld();
+            if (w == null) return false;
+            RayTraceResult wall =
+                    w.rayTraceBlocks(
+                            from, new Vector(dx, 0, dz), room, FluidCollisionMode.NEVER, true);
+            return wall == null;
         }
 
         private void draw() {
@@ -543,6 +625,7 @@ public class SporeBlossomAbility extends BaseAbility {
     @Override
     public String getDescription() {
         return "Bloom a spore blossom where you aim. It bursts in poison, splits into 4 smaller"
-                   + " blossoms that each burst and split into 8 more.";
+                   + " blossoms that each burst and split into 8 more."
+                   + " Cramped spaces cut the splitting short, and blocks shield you from the burst.";
     }
 }

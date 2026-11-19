@@ -186,6 +186,16 @@ public class PlayerLifecycle implements Listener {
         UUID playerUuid = player.getUniqueId();
         elementManager.cancelRolling(player);
         plugin.getStatusEffectManager().clearEffects(player);
+        // A Soul Siphon caster who logs out gives the drained player their abilities back.
+        UUID drainedId = plugin.getStolenAbilityManager().cancel(player);
+        if (drainedId != null) {
+            plugin.getDisarmManager().clearAbilityDisarm(drainedId);
+            plugin.getCooldownManager()
+                    .startCooldown(
+                            player,
+                            DeathSoulSiphonAbility.ID,
+                            DeathSoulSiphonAbility.COOLDOWN_AFTER_STEAL_SECONDS);
+        }
         effectService.clearAllElementEffects(player);
         plugin.getDataStore().save(elementManager.data(playerUuid));
         // Drop the cached PlayerData now that it's safely on disk - without

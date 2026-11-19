@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class DeathWitherOnHitListener implements Listener {
 
-    private static final double WITHER_CHANCE = 0.03; // 3%
+    private static final double WITHER_CHANCE = 0.05; // 5%
     private static final int WITHER_TICKS = 100; // 5 seconds
 
     private final ElementManager elementManager;

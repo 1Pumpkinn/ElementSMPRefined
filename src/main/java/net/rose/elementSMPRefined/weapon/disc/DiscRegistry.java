@@ -54,8 +54,6 @@ public final class DiscRegistry {
         save();
     }
 
-    // ---- in flight --------------------------------------------------------------------------
-
     public void setInFlight(UUID owner, ItemStack disc) {
         yaml.set("inflight.owner", owner.toString());
         yaml.set("inflight.item", encode(disc));
@@ -82,8 +80,6 @@ public final class DiscRegistry {
         clearInFlight();
     }
 
-    // ---- pending ----------------------------------------------------------------------------
-
     public void queuePending(UUID owner, ItemStack disc) {
         List<String> list = new ArrayList<>(yaml.getStringList("pending." + owner));
         list.add(encode(disc));
@@ -107,8 +103,6 @@ public final class DiscRegistry {
         }
         return out;
     }
-
-    // ---- io ---------------------------------------------------------------------------------
 
     private void save() {
         try {

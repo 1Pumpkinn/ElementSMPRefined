@@ -95,8 +95,6 @@ public final class ThrowingDiscSystem {
         }
     }
 
-    // ---- accessors --------------------------------------------------------------------------
-
     ElementSMPRefined plugin() {
         return plugin;
     }
@@ -121,8 +119,6 @@ public final class ThrowingDiscSystem {
     void flightEnded(ThrownDisc flight) {
         flights.remove(flight);
     }
-
-    // ---- actions ----------------------------------------------------------------------------
 
     /** Takes the disc out of the player's hand and throws it. */
     void throwDisc(Player player, EquipmentSlot hand) {

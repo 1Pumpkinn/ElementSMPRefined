@@ -18,6 +18,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareGrindstoneEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
@@ -35,7 +37,8 @@ import java.util.UUID;
  * Only one throwing disc exists, so it must never be destroyed. Same approach as
  * {@link MythicBookProtection} for the Life/Death books: a dropped disc is invulnerable, never
  * despawns, can't be picked up by mobs, is lifted out of the void, and is dropped again if it is
- * ever removed anyway. It also can't be used up as a crafting, anvil or grindstone ingredient.
+ * ever removed anyway. It also can't be used up as a crafting, anvil or grindstone ingredient,
+ * and can't be cloned with a creative-mode middle click.
  */
 final class DiscProtection implements Listener {
     private static final Set<String> DESTROY_CAUSES =
@@ -78,8 +81,6 @@ final class DiscProtection implements Listener {
         MythicBookProtection.protect(item);
         tracked.put(item.getUniqueId(), item);
     }
-
-    // ---- dropped disc -----------------------------------------------------------------------
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSpawn(ItemSpawnEvent event) {
@@ -171,8 +172,6 @@ final class DiscProtection implements Listener {
         return new Location(world, spawn.getX() + 0.5, spawn.getY() + 1.25, spawn.getZ() + 0.5);
     }
 
-    // ---- can't be used up as an ingredient --------------------------------------------------
-
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPrepareCraft(PrepareItemCraftEvent event) {
         for (ItemStack stack : event.getInventory().getMatrix()) {
@@ -199,6 +198,15 @@ final class DiscProtection implements Listener {
         boolean both = upper != null && !upper.isEmpty() && lower != null && !lower.isEmpty();
         if (both && (ThrowingDisc.isDisc(plugin, upper) || ThrowingDisc.isDisc(plugin, lower))) {
             event.setResult(null);
+        }
+    }
+
+    /** Middle-clicking the disc in creative would hand out a second copy. */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onCreativeClone(InventoryCreativeEvent event) {
+        if (event.getAction() == InventoryAction.CLONE_STACK
+                && ThrowingDisc.isDisc(plugin, event.getCursor())) {
+            event.setCancelled(true);
         }
     }
 }

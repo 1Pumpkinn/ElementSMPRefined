@@ -35,8 +35,6 @@ final class DiscListener implements Listener {
         this.plugin = system.plugin();
     }
 
-    // ---- throwing ---------------------------------------------------------------------------
-
     // Not ignoreCancelled: a click on air has no block to use, so Bukkit reports it as cancelled
     // from the start. What matters is whether another plugin denied using the item.
     @EventHandler(priority = EventPriority.HIGH)
@@ -62,8 +60,6 @@ final class DiscListener implements Listener {
         system.throwDisc(player, hand);
     }
 
-    // ---- keeping the disc safe while it is away from the player -----------------------------
-
     /** A disc in the air would be lost if the player left, so it comes home first. */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onQuit(PlayerQuitEvent event) {
@@ -75,8 +71,6 @@ final class DiscListener implements Listener {
         Player player = event.getPlayer();
         plugin.getTaskScheduler().runLater(() -> system.deliverPending(player), 1L);
     }
-
-    // ---- crafting: only one disc ever -------------------------------------------------------
 
     private boolean isDiscRecipe(Recipe recipe) {
         return recipe instanceof Keyed keyed && keyed.getKey().equals(system.recipeKey());
@@ -122,8 +116,6 @@ final class DiscListener implements Listener {
             event.setCancelled(true);
         }
     }
-
-    // ---- netherite upgrade ------------------------------------------------------------------
 
     /**
      * Diamond disc + netherite upgrade template + netherite ingot gives the netherite disc. The

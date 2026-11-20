@@ -2,6 +2,8 @@ package net.rose.elementSMPRefined.weapon.disc;
 
 import net.rose.elementSMPRefined.item.ItemKeys;
 import net.rose.elementSMPRefined.item.builder.ItemBuilder;
+import com.google.common.collect.ImmutableMultimap;
+
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -10,7 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * Building and recognising the throwing disc item.
  * <p>
- * The disc is a hoe (diamond, later netherite) carrying the {@code elementsmp:throwing_disc} data
+ * The disc is a sword (diamond, later netherite; never a hoe, see {@link DiscTier}) carrying the {@code elementsmp:throwing_disc} data
  * tag and a custom {@code item_model}. There is only ever one of them on the server, see
  * {@link DiscRegistry}.
  */
@@ -32,6 +34,18 @@ public final class ThrowingDisc {
         return decorate(ItemBuilder.from(upgraded), DiscTier.NETHERITE).build();
     }
 
+    /**
+     * Converts a disc made when the base item was still a hoe into the current base item, keeping its
+     * durability, enchantments and everything else. Anything that is already current (or is not a
+     * disc) is returned unchanged.
+     */
+    public static ItemStack migrate(JavaPlugin plugin, ItemStack item) {
+        if (!isDisc(plugin, item)) return item;
+        DiscTier tier = DiscTier.of(item.getType());
+        if (tier == null || !tier.isLegacy(item.getType())) return item;
+        return decorate(ItemBuilder.from(item.withType(tier.material())), tier).build();
+    }
+
     private static ItemBuilder decorate(ItemBuilder builder, DiscTier tier) {
         return builder.name(
                         net.kyori.adventure.text.Component.text(tier.displayName(), tier.colour()))
@@ -43,6 +57,9 @@ public final class ThrowingDisc {
                         "&7and flies back to you.",
                         "&7Damage: &c" + (int) tier.damage())
                 .itemModel(tier.model())
+                // The sword's melee damage and attack speed would turn the disc into a better sword
+                // than it is a disc, so the item carries no attributes at all.
+                .edit(meta -> meta.setAttributeModifiers(ImmutableMultimap.of()))
                 .flags(ItemFlag.HIDE_ATTRIBUTES);
     }
 

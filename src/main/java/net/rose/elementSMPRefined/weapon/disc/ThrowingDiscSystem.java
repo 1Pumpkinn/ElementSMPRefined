@@ -68,6 +68,7 @@ public final class ThrowingDiscSystem {
 
         // Anyone online during a /reload still gets a disc that was waiting for them.
         for (Player player : plugin.getServer().getOnlinePlayers()) {
+            migrateInventory(player);
             deliverPending(player);
         }
     }
@@ -128,7 +129,7 @@ public final class ThrowingDiscSystem {
         DiscTier tier = ThrowingDisc.tierOf(plugin, held);
         if (tier == null || isFlying(player.getUniqueId())) return;
 
-        ItemStack thrown = held.clone();
+        ItemStack thrown = ThrowingDisc.migrate(plugin, held).clone();
         thrown.setAmount(1);
         ThrownDisc.wear(thrown);
 
@@ -146,7 +147,8 @@ public final class ThrowingDiscSystem {
 
     /** Hands a disc to a player, dropping it at their feet if their inventory is full. */
     void give(Player player, ItemStack disc) {
-        for (ItemStack leftover : player.getInventory().addItem(disc).values()) {
+        for (ItemStack leftover :
+                player.getInventory().addItem(ThrowingDisc.migrate(plugin, disc)).values()) {
             player.getWorld()
                     .dropItem(
                             player.getLocation(),
@@ -155,6 +157,16 @@ public final class ThrowingDiscSystem {
                                 item.setVelocity(new Vector());
                                 MythicBookProtection.protect(item);
                             });
+        }
+    }
+
+    /** Turns a disc from before the hoe -> sword change into the current item, wherever the player carries it. */
+    void migrateInventory(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            ItemStack migrated = ThrowingDisc.migrate(plugin, item);
+            if (migrated != item) inventory.setItem(slot, migrated);
         }
     }
 

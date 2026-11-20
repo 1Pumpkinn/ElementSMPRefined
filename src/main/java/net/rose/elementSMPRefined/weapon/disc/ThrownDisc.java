@@ -79,8 +79,8 @@ final class ThrownDisc {
     private static final double CATCH_DISTANCE = 1.4;
     private static final double HIT_MARGIN = 0.3;
     private static final int HIT_COOLDOWN_TICKS = 10;
-    /** Safety net: max ticks spent flying home. Time spent on the way out never counts towards it. */
-    private static final int MAX_LIFETIME_TICKS = 200;
+    /** Hard backstop: max ticks spent flying home (60s). Time spent on the way out never counts towards it. */
+    private static final int MAX_LIFETIME_TICKS = 1200;
     private static final double KNOCKBACK = 0.4;
     private static final double FLIGHT_DIR_SMOOTHING = 0.5;
     /** Ticks without real movement on the way home before the disc is snapped back to a free cell. */
@@ -93,8 +93,13 @@ final class ThrownDisc {
     /** How many waypoints ahead the disc looks when cutting corners. */
     private static final int PATH_LOOKAHEAD = 8;
     private static final double WAYPOINT_REACHED_SQ = 0.5 * 0.5;
-    /** If no route home exists for this long, the disc gives up and drops on the ground where it is. */
-    private static final int MAX_NO_PATH_TICKS = 30;
+    /**
+     * If the disc makes no progress towards the owner for this long (10s) it gives up and drops on the
+     * ground where it is. A disc that is still actively getting closer never drops, however long the detour.
+     */
+    private static final int NO_PROGRESS_DROP_TICKS = 200;
+    /** The remaining route has to shrink by at least this much (blocks) to count as progress. */
+    private static final double PROGRESS_EPSILON = 0.25;
 
     private static final float SPIN_RADIANS_PER_TICK = (float) Math.toRadians(70.0);
     private static final double MAX_FLIGHT_PITCH = 75.0;
@@ -139,7 +144,8 @@ final class ThrownDisc {
                     Material.BROWN_STAINED_GLASS_PANE,
                     Material.GREEN_STAINED_GLASS_PANE,
                     Material.RED_STAINED_GLASS_PANE,
-                    Material.BLACK_STAINED_GLASS_PANE);
+                    Material.BLACK_STAINED_GLASS_PANE,
+                    Material.SUGAR_CANE);
 
     /** Break sounds that replace the block's own break sound (the pot shatters instead of just breaking). */
     private static final Map<Material, Sound> BREAK_SOUNDS =
@@ -182,7 +188,8 @@ final class ThrownDisc {
     private List<Vector> path = List.of();
     private int pathIndex;
     private int ticksSinceRepath;
-    private int noPathTicks;
+    private int noProgressTicks;
+    private double bestRemaining = Double.MAX_VALUE;
     private int stuckTicks;
 
     private ThrownDisc(
@@ -393,7 +400,8 @@ final class ThrownDisc {
         stuckTicks = 0;
         path = List.of();
         pathIndex = 0;
-        noPathTicks = 0;
+        noProgressTicks = 0;
+        bestRemaining = Double.MAX_VALUE;
         ticksSinceRepath = REPATH_INTERVAL;
         lastHitTick.clear();
         world.playSound(
@@ -402,7 +410,7 @@ final class ThrownDisc {
 
     private void tickReturn(Player owner) {
         Vector from = pos.clone();
-        if (!DiscPathfinder.isFree(world, from)) {
+        if (DiscPathfinder.pointBlocked(world, from)) {
             // Ended up inside a block (ricochet at a corner, etc.): put the disc back in open space first.
             Vector snapped = DiscPathfinder.freeCentre(world, from);
             if (snapped != null) {
@@ -429,7 +437,6 @@ final class ThrownDisc {
         if (clearToOwner) {
             aim = target;
             path = List.of();
-            noPathTicks = 0;
             // The moment line of sight breaks, plan a route immediately.
             ticksSinceRepath = REPATH_INTERVAL;
         } else {
@@ -442,7 +449,7 @@ final class ThrownDisc {
             if (path.isEmpty()) {
                 // No route right now: hold position, and give up (the item drops where the disc is) if it stays that way.
                 velocity = new Vector();
-                if (++noPathTicks > MAX_NO_PATH_TICKS) dropInPlace();
+                trackProgress(from.distance(target));
                 return;
             }
             // Cut corners: skip ahead to the furthest upcoming waypoint the disc can fly to directly.
@@ -459,6 +466,9 @@ final class ThrownDisc {
             }
             aim = path.get(pathIndex);
         }
+
+        // Only give up when the disc is genuinely stuck: any real progress towards the owner resets the timer.
+        if (trackProgress(aim == target ? distance : pathRemaining(from, target))) return;
 
         Vector toAim = aim.clone().subtract(from);
         double aimDistance = toAim.length();
@@ -516,7 +526,34 @@ final class ThrownDisc {
         }
         path = found;
         pathIndex = 0;
-        noPathTicks = 0;
+    }
+
+    /** Estimated distance still to fly: to the next waypoint, along the rest of the route, then to the owner. */
+    private double pathRemaining(Vector from, Vector target) {
+        Vector last = from;
+        double total = 0.0;
+        for (int i = pathIndex; i < path.size(); i++) {
+            total += last.distance(path.get(i));
+            last = path.get(i);
+        }
+        return total + last.distance(target);
+    }
+
+    /**
+     * Records whether the disc got closer to the owner. Returns true (and drops the item where the disc
+     * is) once it has gone {@link #NO_PROGRESS_DROP_TICKS} without improving on its best distance.
+     */
+    private boolean trackProgress(double remaining) {
+        if (remaining < bestRemaining - PROGRESS_EPSILON) {
+            bestRemaining = remaining;
+            noProgressTicks = 0;
+            return false;
+        }
+        if (++noProgressTicks > NO_PROGRESS_DROP_TICKS) {
+            dropInPlace();
+            return true;
+        }
+        return false;
     }
 
     private void hitEntitiesAlong(Player owner, Vector from, Vector to) {
@@ -619,7 +656,7 @@ final class ThrownDisc {
         finish(false);
     }
 
-    /** Can't get home (e.g. sealed off): the disc drops where it stopped instead of teleporting to the owner. */
+    /** Stuck for good (e.g. sealed off): the disc drops where it stopped instead of teleporting to the owner. */
     private void dropInPlace() {
         finish(true);
     }

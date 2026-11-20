@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
@@ -37,6 +38,14 @@ final class DiscPathfinder {
         {HALF_WIDTH, HALF_WIDTH}, {HALF_WIDTH, -HALF_WIDTH},
         {-HALF_WIDTH, HALF_WIDTH}, {-HALF_WIDTH, -HALF_WIDTH}
     };
+    /** The disc's real size (0.6 x 0.2 x 0.6); used for exact collision tests against block shapes. */
+    private static final double BOX_HALF_WIDTH = 0.3;
+    private static final double BOX_HALF_HEIGHT = 0.1;
+    /** Boxes are shrunk by this much so resting exactly against a surface doesn't count as a collision. */
+    private static final double BOX_SHRINK = 1.0E-3;
+    /** How far (in cells) to look for a free cell when the start, goal or disc is inside geometry. */
+    private static final int FREE_SEARCH_RADIUS = 2;
+
     private static final int[][] DIRS = {
         {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}
     };
@@ -66,15 +75,70 @@ final class DiscPathfinder {
 
     private record Entry(Cell cell, double f) {}
 
-    /** True if the disc can occupy this cell: inside the world, loaded, and nothing solid in it. */
+    /** True if a disc centred in the cell around {@code pos} fits without touching any collision shape. */
     static boolean isFree(World world, Vector pos) {
         return isFree(world, Cell.of(pos));
     }
 
     private static boolean isFree(World world, Cell cell) {
-        if (cell.y() < world.getMinHeight() || cell.y() >= world.getMaxHeight()) return false;
-        if (!world.isChunkLoaded(cell.x() >> 4, cell.z() >> 4)) return false;
-        return world.getBlockAt(cell.x(), cell.y(), cell.z()).isPassable();
+        return !collides(world, boxAt(cell.centre()));
+    }
+
+    /** True if the disc can fly straight from the centre of one cell to the centre of an adjacent one. */
+    private static boolean canMove(World world, Cell from, Cell to) {
+        BoundingBox swept = boxAt(from.centre()).union(boxAt(to.centre()));
+        return !collides(world, swept);
+    }
+
+    private static BoundingBox boxAt(Vector centre) {
+        return new BoundingBox(
+                centre.getX() - BOX_HALF_WIDTH, centre.getY() - BOX_HALF_HEIGHT, centre.getZ() - BOX_HALF_WIDTH,
+                centre.getX() + BOX_HALF_WIDTH, centre.getY() + BOX_HALF_HEIGHT, centre.getZ() + BOX_HALF_WIDTH);
+    }
+
+    private static boolean isLoaded(World world, int x, int y, int z) {
+        if (y < world.getMinHeight() || y >= world.getMaxHeight()) return false;
+        return world.isChunkLoaded(x >> 4, z >> 4);
+    }
+
+    /**
+     * True if the box overlaps any block collision shape (or leaves the loaded world). This tests the
+     * real shapes, so an open door, trapdoor, ladder, carpet or the gap beside a fence post is not
+     * treated as a whole solid block.
+     */
+    private static boolean collides(World world, BoundingBox box) {
+        double s = BOX_SHRINK;
+        BoundingBox b =
+                new BoundingBox(
+                        box.getMinX() + s, box.getMinY() + s, box.getMinZ() + s,
+                        box.getMaxX() - s, box.getMaxY() - s, box.getMaxZ() - s);
+        for (int x = (int) Math.floor(b.getMinX()); x <= (int) Math.floor(b.getMaxX()); x++) {
+            for (int y = (int) Math.floor(b.getMinY()); y <= (int) Math.floor(b.getMaxY()); y++) {
+                for (int z = (int) Math.floor(b.getMinZ()); z <= (int) Math.floor(b.getMaxZ()); z++) {
+                    if (!isLoaded(world, x, y, z)) return true;
+                    Block block = world.getBlockAt(x, y, z);
+                    if (block.isPassable()) continue;
+                    for (BoundingBox part : block.getCollisionShape().getBoundingBoxes()) {
+                        if (part.shift(x, y, z).overlaps(b)) return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /** True if the point itself lies inside a block's collision shape (or outside the loaded world). */
+    static boolean pointBlocked(World world, Vector point) {
+        int x = (int) Math.floor(point.getX());
+        int y = (int) Math.floor(point.getY());
+        int z = (int) Math.floor(point.getZ());
+        if (!isLoaded(world, x, y, z)) return true;
+        Block block = world.getBlockAt(x, y, z);
+        if (block.isPassable()) return false;
+        for (BoundingBox part : block.getCollisionShape().getBoundingBoxes()) {
+            if (part.shift(x, y, z).contains(point.getX(), point.getY(), point.getZ())) return true;
+        }
+        return false;
     }
 
     /**
@@ -88,7 +152,7 @@ final class DiscPathfinder {
         for (double[] corner : CORNERS) {
             Vector offset = new Vector(corner[0], 0.0, corner[1]);
             Vector start = from.clone().add(offset);
-            if (!isFree(world, start)) {
+            if (pointBlocked(world, start)) {
                 // This corner is already touching a block (we just slid or bounced off it); don't let it pin us.
                 continue;
             }
@@ -145,11 +209,22 @@ final class DiscPathfinder {
 
     private static Cell nearestFree(World world, Cell cell) {
         if (isFree(world, cell)) return cell;
-        for (int[] d : DIRS) {
-            Cell next = cell.offset(d[0], d[1], d[2]);
-            if (isFree(world, next)) return next;
+        Cell best = null;
+        int bestDist = Integer.MAX_VALUE;
+        for (int dx = -FREE_SEARCH_RADIUS; dx <= FREE_SEARCH_RADIUS; dx++) {
+            for (int dy = -FREE_SEARCH_RADIUS; dy <= FREE_SEARCH_RADIUS; dy++) {
+                for (int dz = -FREE_SEARCH_RADIUS; dz <= FREE_SEARCH_RADIUS; dz++) {
+                    int dist = dx * dx + dy * dy + dz * dz;
+                    if (dist == 0 || dist >= bestDist) continue;
+                    Cell next = cell.offset(dx, dy, dz);
+                    if (isFree(world, next)) {
+                        best = next;
+                        bestDist = dist;
+                    }
+                }
+            }
         }
-        return null;
+        return best;
     }
 
     /**
@@ -198,7 +273,7 @@ final class DiscPathfinder {
                         || Math.abs(next.z() - start.z()) > MAX_RADIUS) {
                     continue;
                 }
-                if (!isFree(world, next)) continue;
+                if (!canMove(world, current, next)) continue;
                 double ng = g + 1.0;
                 Double old = gScore.get(next);
                 if (old != null && old <= ng) continue;

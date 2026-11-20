@@ -54,7 +54,7 @@ final class DiscListener implements Listener {
                 && event.getClickedBlock().getType().isInteractable()) {
             return;
         }
-        // A hoe would till the ground on right-click, so the click is always consumed.
+        // Always consume the click so nothing else (placing, use animations) reacts to the disc.
         event.setCancelled(true);
         if (player.getGameMode() == GameMode.SPECTATOR) return;
         system.throwDisc(player, hand);
@@ -69,7 +69,13 @@ final class DiscListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        plugin.getTaskScheduler().runLater(() -> system.deliverPending(player), 1L);
+        plugin.getTaskScheduler()
+                .runLater(
+                        () -> {
+                            system.migrateInventory(player);
+                            system.deliverPending(player);
+                        },
+                        1L);
     }
 
     private boolean isDiscRecipe(Recipe recipe) {
@@ -119,7 +125,7 @@ final class DiscListener implements Listener {
 
     /**
      * Diamond disc + netherite upgrade template + netherite ingot gives the netherite disc. The
-     * vanilla recipe would hand back a plain netherite hoe that still wears the diamond model, so
+     * vanilla recipe would hand back a plain netherite sword that still wears the diamond model, so
      * the result is replaced with the proper upgraded disc (same durability, same enchantments).
      */
     @EventHandler(priority = EventPriority.HIGH)

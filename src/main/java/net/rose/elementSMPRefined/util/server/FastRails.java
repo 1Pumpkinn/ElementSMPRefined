@@ -49,6 +49,12 @@ public class FastRails implements Listener {
     /** Same, on a slope, where a cart that is still creeping up should be kept going. */
     private static final double SLOPE_MIN_PUSH_SPEED = 0.02;
 
+    /** How far ahead (in blocks) a fast cart looks for a slope so it can slow down in time. */
+    private static final int SLOPE_LOOKAHEAD_BLOCKS = 6;
+
+    /** Extra speed allowed per block of distance from the foot of a slope (braking ramp). */
+    private static final double SLOPE_BRAKE_STEP = 0.2;
+
     /** Debug lines per cart are at most this many ticks apart. */
     private static final long DEBUG_INTERVAL_TICKS = 10L;
 
@@ -96,11 +102,16 @@ public class FastRails implements Listener {
         boosted.add(cart.getUniqueId());
 
         Vector uphill = uphillDirection(rail);
+        double slopeMax = Math.min(maxSpeed, Math.max(0.1, config.getFastRailsSlopeMaxSpeed()));
         if (uphill != null) {
-            double floor = Math.min(maxSpeed, config.getFastRailsSlopeMinSpeed());
-            climb(cart, maxSpeed, config.getFastRailsAcceleration(), floor, uphill);
+            double floor = Math.min(slopeMax, config.getFastRailsSlopeMinSpeed());
+            climb(cart, slopeMax, config.getFastRailsAcceleration(), floor, uphill);
         } else {
-            accelerate(cart, maxSpeed, config.getFastRailsAcceleration());
+            // A cart going too fast hits the first step of a slope and stalls, so slow it down
+            // on the way in, then let it speed up again as normal.
+            double limit = Math.min(maxSpeed, approachLimit(rail, cart.getVelocity(), slopeMax));
+            limitSpeed(cart, limit);
+            accelerate(cart, limit, config.getFastRailsAcceleration());
         }
         debug(cart, event.getTo(), "fast rail " + rail.getBlockData().getAsString()
                 + (uphill != null ? " (slope)" : ""));
@@ -112,10 +123,18 @@ public class FastRails implements Listener {
         lastDebugTick.remove(event.getVehicle().getUniqueId());
     }
 
-    /** The rail block at {@code at} if it has {@code required} copper blocks right under it, else null. */
+    /**
+     * The rail the cart is on if it has {@code required} copper blocks right under it, else null.
+     * <p>
+     * A cart on an ascending rail rides up to a full block above the rail's own y (plus the
+     * vanilla 0.0625 rail offset), so near the top of each slope block its position is in the
+     * block ABOVE the rail. Looking only at {@code at.getBlock()} misses the rail there, treats
+     * the cart as off the copper and drops its speed cap to vanilla for that tick, which stalls
+     * it on climbs. So the block below the cart is checked too.
+     */
     private static Block fastRailAt(Location at, int required) {
-        Block rail = at.getBlock();
-        if (!Tag.RAILS.isTagged(rail.getType())) return null;
+        Block rail = railAt(at);
+        if (rail == null) return null;
 
         Block below = rail;
         for (int i = 0; i < required; i++) {
@@ -123,6 +142,14 @@ public class FastRails implements Listener {
             if (!COPPER_BLOCKS.contains(below.getType())) return null;
         }
         return rail;
+    }
+
+    /** The rail block the cart is on: the block at its position, or the one right under it. */
+    private static Block railAt(Location at) {
+        Block block = at.getBlock();
+        if (Tag.RAILS.isTagged(block.getType())) return block;
+        Block under = block.getRelative(BlockFace.DOWN);
+        return Tag.RAILS.isTagged(under.getType()) ? under : null;
     }
 
     /** Horizontal direction that is uphill on an ascending rail, or null if the rail is not a slope. */
@@ -151,23 +178,67 @@ public class FastRails implements Listener {
     }
 
     /**
-     * On an ascending rail: speeds a cart that is heading uphill up to at least {@code floor}
-     * (never past {@code maxSpeed}). A cart that is stopped or rolling downhill is left alone.
+     * On an ascending rail: a cart heading uphill is kept between {@code floor} and
+     * {@code slopeMax}. Too slow and it stalls on the climb; too fast and it hits the next step
+     * of the slope and stops dead. A cart that is stopped or rolling downhill is left alone.
      */
     private static void climb(
-            Minecart cart, double maxSpeed, double acceleration, double floor, Vector uphill) {
+            Minecart cart, double slopeMax, double acceleration, double floor, Vector uphill) {
         Vector velocity = cart.getVelocity();
         double speed = Math.hypot(velocity.getX(), velocity.getZ());
-        if (speed < SLOPE_MIN_PUSH_SPEED || speed >= maxSpeed) return;
+        if (speed < SLOPE_MIN_PUSH_SPEED) return;
 
         double alongUphill = velocity.getX() * uphill.getX() + velocity.getZ() * uphill.getZ();
         if (alongUphill <= 0) return; // rolling back down, don't push it
 
-        double target = Math.min(maxSpeed, Math.max(speed * (1.0 + Math.max(0.0, acceleration)), floor));
+        double target =
+                speed > slopeMax
+                        ? slopeMax
+                        : Math.min(
+                        slopeMax,
+                        Math.max(speed * (1.0 + Math.max(0.0, acceleration)), floor));
         double factor = target / speed;
-        if (factor <= 1.0) return;
+        if (Math.abs(factor - 1.0) < 1.0E-6) return;
         // y is scaled too, so the cart keeps following the incline instead of being pulled off it
         cart.setVelocity(velocity.clone().multiply(factor));
+    }
+
+    /**
+     * The fastest a cart on a flat rail may go right now: unlimited unless a slope that rises in
+     * its direction of travel is coming up within {@link #SLOPE_LOOKAHEAD_BLOCKS}, in which case
+     * the limit ramps down to {@code slopeMax} at the foot of the slope.
+     */
+    private static double approachLimit(Block rail, Vector velocity, double slopeMax) {
+        double speed = Math.hypot(velocity.getX(), velocity.getZ());
+        if (speed < MIN_PUSH_SPEED) return Double.MAX_VALUE;
+
+        int dx = 0;
+        int dz = 0;
+        if (Math.abs(velocity.getX()) >= Math.abs(velocity.getZ())) {
+            dx = velocity.getX() > 0 ? 1 : -1;
+        } else {
+            dz = velocity.getZ() > 0 ? 1 : -1;
+        }
+
+        for (int i = 1; i <= SLOPE_LOOKAHEAD_BLOCKS; i++) {
+            for (int dy = 0; dy <= 1; dy++) {
+                Block ahead = rail.getRelative(dx * i, dy, dz * i);
+                Vector uphill = uphillDirection(ahead);
+                if (uphill != null && uphill.getX() * dx + uphill.getZ() * dz > 0) {
+                    return slopeMax + (i - 1) * SLOPE_BRAKE_STEP;
+                }
+            }
+        }
+        return Double.MAX_VALUE;
+    }
+
+    /** Scales a cart's horizontal velocity down to {@code limit} if it is faster than that. */
+    private static void limitSpeed(Minecart cart, double limit) {
+        Vector velocity = cart.getVelocity();
+        double speed = Math.hypot(velocity.getX(), velocity.getZ());
+        if (speed <= limit || speed < 1.0E-6) return;
+        double factor = limit / speed;
+        cart.setVelocity(new Vector(velocity.getX() * factor, velocity.getY(), velocity.getZ() * factor));
     }
 
     private void restore(Minecart cart) {

@@ -285,6 +285,14 @@ public class ConfigManager {
         return getBooleanSafe("fast_rails.debug", false);
     }
 
+    /**
+     * Fastest a cart may go up an ascending fast rail, in blocks per tick. Faster carts hit the
+     * next step of the slope and stall, so carts also slow down on the approach.
+     */
+    public double getFastRailsSlopeMaxSpeed() {
+        return Math.max(0.1, getDoubleSafe("fast_rails.slope_max_speed", 0.4));
+    }
+
     /** Speed a moving cart is held at on an ascending fast rail so it can't stall on slopes. */
     public double getFastRailsSlopeMinSpeed() {
         return Math.max(0.0, getDoubleSafe("fast_rails.slope_min_speed", 0.4));

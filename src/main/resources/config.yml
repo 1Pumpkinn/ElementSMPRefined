@@ -67,24 +67,10 @@ fast_rails:
   # carts on every slope block, so without this they stall at the bottom. Raise it for steeper or
   # longer climbs; 0 turns it off. Every rail on the slope needs the copper underneath too.
   slope_min_speed: 0.4
-
-# Fast Rails
-# CivMC-style railways: a minecart on a rail with copper blocks directly under it goes faster.
-# Any copper block counts (plain, exposed, weathered, oxidized and every waxed form). Leaving the
-# copper section puts the cart back to normal speed.
-fast_rails:
-  enabled: true
-  # How many copper blocks must be stacked directly under the rail (1-4)
-  copper_blocks_required: 2
-  # Minecart speed cap on a fast rail, in blocks per tick (vanilla is 0.4, so 1.0 is 20 blocks/s)
-  max_speed: 1.0
-  # Speed added per tick while on a fast rail, as a fraction of current speed. Carts speed up on
-  # their own without powered rails; 0 means only powered rails accelerate them.
-  acceleration: 0.03
-  # Minimum speed (blocks per tick) a moving cart is held at on an ascending rail. Vanilla slows
-  # carts on every slope block, so without this they stall at the bottom. Raise it for steeper or
-  # longer climbs; 0 turns it off. Every rail on the slope needs the copper underneath too.
-  slope_min_speed: 0.4
+  # Fastest a cart may go UP an ascending rail, in blocks per tick. Carts faster than about this
+  # hit the next step of the slope and stall, so they also brake on the 6 blocks leading up to it.
+  # Raise it carefully (e.g. 0.5, 0.6) and watch with debug on; 0.4 is the vanilla speed.
+  slope_max_speed: 0.4
   # Print what the fast-rail code sees for each moving minecart to the console (about twice a
   # second per cart). Turn on with /element config while riding a cart that misbehaves.
   debug: false

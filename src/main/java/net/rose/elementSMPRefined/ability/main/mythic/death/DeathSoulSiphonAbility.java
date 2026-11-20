@@ -21,15 +21,15 @@ import org.bukkit.util.RayTraceResult;
 /**
  * Death ability 2 - Soul Siphon.
  * <p>
- * Drains the player the caster is looking at: their element abilities are disabled for two
- * minutes, and for the same two minutes the caster casts that player's abilities in place of
+ * Drains the player the caster is looking at: their element abilities are disabled for one
+ * minute, and for the same minute the caster casts that player's abilities in place of
  * their own.
  * The drained player sees a countdown boss bar, and sneaking while casting ability 2 ends it early.
  */
 public class DeathSoulSiphonAbility extends BaseAbility {
     private static final double RANGE = 20.0;
     private static final double RAY_SIZE = 0.6;
-    private static final int DURATION_SECONDS = 120;
+    private static final int DURATION_SECONDS = 60;
     private static final int DURATION_TICKS = DURATION_SECONDS * 20;
 
     public static final String ID = "death_soul_siphon";
@@ -134,7 +134,7 @@ public class DeathSoulSiphonAbility extends BaseAbility {
 
     @Override
     public String getDescription() {
-        return "Drain the player you're looking at: their abilities are disabled for 2 minutes,"
+        return "Drain the player you're looking at: their abilities are disabled for 1 minute,"
                 + " and you wield them instead of your own. Sneak and cast ability 2 to end it early.";
     }
 }

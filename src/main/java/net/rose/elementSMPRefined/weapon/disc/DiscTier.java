@@ -24,14 +24,14 @@ public enum DiscTier {
             "diamond_throwing_disc",
             "Diamond Throwing Disc",
             NamedTextColor.AQUA,
-            6.0),
+            8.0),
     NETHERITE(
             Material.NETHERITE_SWORD,
             Material.NETHERITE_HOE,
             "netherite_throwing_disc",
             "Netherite Throwing Disc",
             NamedTextColor.DARK_PURPLE,
-            7.0);
+            10.0);
 
     private final Material material;
     private final Material legacyMaterial;

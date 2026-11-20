@@ -76,7 +76,7 @@ public class ConfigManager {
                 plugin.getLogger()
                         .info(
                                 "Added new options to config.yml (existing values were left"
-                                    + " untouched).");
+                                        + " untouched).");
             }
         } catch (Exception e) {
             plugin.getLogger()
@@ -257,6 +257,37 @@ public class ConfigManager {
     public void setEndDisabled(boolean disabled) {
         config.set("dimensions.end_disabled", disabled);
         plugin.saveConfig();
+    }
+
+    // Fast rails - a minecart on a rail with copper blocks underneath it goes faster.
+    // Read live, so /element config changes apply immediately.
+    public boolean isFastRailsEnabled() {
+        return getBooleanSafe("fast_rails.enabled", true);
+    }
+
+    /** Copper blocks that must sit directly under the rail (1 to 4). */
+    public int getFastRailsCopperBlocksRequired() {
+        return Math.max(1, Math.min(4, getIntSafe("fast_rails.copper_blocks_required", 2)));
+    }
+
+    /** Minecart speed cap on a fast rail, in blocks per tick (vanilla is 0.4). */
+    public double getFastRailsMaxSpeed() {
+        return getDoubleSafe("fast_rails.max_speed", 1.0);
+    }
+
+    /** Fraction of speed added per tick while on a fast rail (0 = only powered rails accelerate). */
+    public double getFastRailsAcceleration() {
+        return Math.max(0.0, getDoubleSafe("fast_rails.acceleration", 0.03));
+    }
+
+    /** Logs what the fast-rail listener sees for moving minecarts (for tracking down problems). */
+    public boolean isFastRailsDebug() {
+        return getBooleanSafe("fast_rails.debug", false);
+    }
+
+    /** Speed a moving cart is held at on an ascending fast rail so it can't stall on slopes. */
+    public double getFastRailsSlopeMinSpeed() {
+        return Math.max(0.0, getDoubleSafe("fast_rails.slope_min_speed", 0.4));
     }
 
     // Grace period settings - config-driven defaults; the grace period itself

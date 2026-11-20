@@ -94,7 +94,7 @@ public final class Lang {
 
     public static Component deathSoulSiphonVictim(Object casterName) {
         return text(String.valueOf(casterName), WHITE)
-                .append(red(" drained your abilities for 2 minutes."));
+                .append(red(" drained your abilities for 1 minute."));
     }
 
     public static final Component EARTH_TUNNEL_TUNNELING_CANCELLED = yellow("Tunneling cancelled");

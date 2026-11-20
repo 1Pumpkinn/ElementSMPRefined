@@ -23,6 +23,7 @@ import net.rose.elementSMPRefined.listeners.player.PlayerLifecycle;
 import net.rose.elementSMPRefined.listeners.status.StatusEffectListener;
 import net.rose.elementSMPRefined.util.damage.VillagerAbilityProtection;
 import net.rose.elementSMPRefined.util.server.DimensionDisable;
+import net.rose.elementSMPRefined.util.server.FastRails;
 import net.rose.elementSMPRefined.util.server.GracePeriod;
 import net.rose.elementSMPRefined.util.server.MaceCooldown;
 import net.rose.elementSMPRefined.util.visual.ElementSmpTablist;
@@ -75,6 +76,7 @@ public class ListenerInitializer {
 
         pluginManager.registerEvents(new DimensionDisable(plugin.getConfigManager()), plugin);
         pluginManager.registerEvents(new MaceCooldown(plugin), plugin);
+        pluginManager.registerEvents(new FastRails(plugin.getConfigManager()), plugin);
 
         this.gracePeriod =
                 new GracePeriod(plugin, plugin.getConfigManager(), plugin.getTaskScheduler());

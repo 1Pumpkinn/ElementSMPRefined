@@ -65,7 +65,7 @@ final class ThrownDisc {
     private static final double THROW_SPEED = 1.6;
     private static final double SPAWN_FORWARD = 0.5;
     /** Blocks the disc flies on the way out before it turns around. */
-    private static final double BASE_RANGE = 5.0;
+    private static final double BASE_RANGE = 6.0;
     /** Extra blocks of range added on every ricochet (stacks with whatever range is left). */
     private static final double RICOCHET_RANGE_BONUS = 5.0;
     private static final int MAX_RICOCHETS = 50;

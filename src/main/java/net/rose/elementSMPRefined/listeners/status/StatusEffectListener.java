@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.util.Vector;
 
 public class StatusEffectListener implements Listener {
 
@@ -62,6 +63,14 @@ public class StatusEffectListener implements Listener {
                 return;
             }
 
+            // Airborne: setTo would teleport them and snap their camera back every tick, so they
+            // couldn't look around until they landed. Hold them still through velocity instead,
+            // which leaves the event (and their camera) alone.
+            if (!player.isOnGround()) {
+                holdStillInAir(player, event);
+                return;
+            }
+
             // Stun / Root / Freeze: they can't move but may still look around. Slowness 7 + the
             // jump lock make
             // voluntary movement impossible, so this only fires for knockback/velocity -
@@ -82,6 +91,19 @@ public class StatusEffectListener implements Listener {
             }
             event.setTo(locked);
         }
+    }
+
+    /**
+     * Stops sideways drift and any rise by velocity, keeping the fall speed so gravity still pulls
+     * them down. A pure fall needs no change at all.
+     */
+    private static void holdStillInAir(Player player, PlayerMoveEvent event) {
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        double dy = to.getY() - from.getY();
+        boolean drifting = from.getX() != to.getX() || from.getZ() != to.getZ();
+        if (!drifting && dy <= 0) return;
+        player.setVelocity(new Vector(0, Math.min(dy, 0), 0));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

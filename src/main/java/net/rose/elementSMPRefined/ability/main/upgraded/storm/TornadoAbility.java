@@ -10,6 +10,7 @@ import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
+import net.rose.elementSMPRefined.util.scan.SpaceCheck;
 import net.rose.elementSMPRefined.util.visual.model.TornadoVisual;
 
 import org.bukkit.ChatColor;
@@ -45,6 +46,8 @@ public class TornadoAbility extends BaseAbility {
     private static final int GROW_TICKS = 15;
     private static final int FADE_TICKS = 15;
     private static final double CAST_RANGE = 22.0;
+    private static final double ROOM_RADIUS = 1.5; // clear space needed where the funnel forms
+    private static final double ROOM_STEP = 1.0; // ledge height ignored, the tornado climbs those
     private static final double CAST_GROUND_SEARCH = 40.0;
 
     private static final double SPEED = 0.17;
@@ -127,6 +130,13 @@ public class TornadoAbility extends BaseAbility {
                     Component.text(
                             "There's no ground there to summon a tornado on.",
                             NamedTextColor.GRAY));
+            return false;
+        }
+        if (!SpaceCheck.hasRoom(
+                start.clone().add(0, ROOM_STEP, 0),
+                ROOM_RADIUS,
+                TornadoVisual.HEIGHT - ROOM_STEP)) {
+            SpaceCheck.deny(caster, "a tornado");
             return false;
         }
 

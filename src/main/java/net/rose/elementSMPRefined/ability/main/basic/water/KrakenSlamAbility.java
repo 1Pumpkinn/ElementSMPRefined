@@ -10,6 +10,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.particles.element.WaterParticles;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
+import net.rose.elementSMPRefined.util.scan.SpaceCheck;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 
 import org.bukkit.ChatColor;
@@ -49,6 +50,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class KrakenSlamAbility extends BaseAbility implements Listener {
 
     private static final double RANGE = 25.0;
+    private static final double ROOM_RADIUS = 1.0; // clear space needed around the impact point
+    private static final double ROOM_HEIGHT = 6.0; // clear height needed above the impact point
     private static final double RAY_SIZE = 0.5;
 
     public static final double HIT_RADIUS = 3.5;
@@ -118,6 +121,10 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
         Location impact = findImpact(player, context);
         if (impact == null) return false;
+        if (!SpaceCheck.hasRoom(impact, ROOM_RADIUS, ROOM_HEIGHT)) {
+            SpaceCheck.deny(player, "Kraken Slam");
+            return false;
+        }
 
         World world = impact.getWorld();
 

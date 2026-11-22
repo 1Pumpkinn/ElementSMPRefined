@@ -8,6 +8,7 @@ import net.rose.elementSMPRefined.core.Constants;
 import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.AbilityTargets;
+import net.rose.elementSMPRefined.util.scan.SpaceCheck;
 import net.rose.elementSMPRefined.util.sound.SoundUtils;
 import net.rose.elementSMPRefined.util.visual.model.MagnetarVisual;
 
@@ -44,6 +45,12 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double HOVER =
             1.2; // how far off the surface it floats (about chest height off the floor)
     private static final int DURATION_TICKS = 5 * 20;
+    private static final double ROOM_RADIUS = 1.0; // clear space needed around the core
+    private static final double BODY_HEIGHT = 1.8; // a held player's height, centred on the core
+    private static final double BODY_HALF_HEIGHT = BODY_HEIGHT / 2.0;
+    private static final double LOWER_STEP = 0.1; // how far the core drops per try under a low roof
+    private static final double MAX_LOWER =
+            HOVER - BODY_HALF_HEIGHT; // lowest it goes: a held player's feet touch the floor
 
     private static final double PULL_RADIUS =
             16.0; // pull range in every direction when the core sits on a surface
@@ -54,27 +61,23 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final double PULL_SPEED_FAR = 0.30; // blocks/tick at the edge of the field...
     private static final double PULL_SPEED_NEAR = 0.80; // ...and right next to the core
     private static final double MAX_SPEED = 0.9;
-    private static final double ORBIT_RADIUS =
-            2.0; // captured entities circle the core on a ring this wide (blocks)
-    private static final double ORBIT_SPEED =
-            0.15; // blocks/tick along the ring (halved: it no longer does damage, so it needn't
-                  // whip them round)
-    private static final double ORBIT_RADIAL_GAIN =
-            0.3; // fraction of the radial / vertical error corrected per tick
     private static final double CAPTURE_RADIUS =
-            ORBIT_RADIUS + 0.5; // "in" the core: close enough to be swept onto the ring
+            1.0; // "in" the core: close enough to be held at its centre
     private static final double APPROACH_FLOOR =
             0.12; // the pull eases off near the core: speed <= FLOOR + EASE * distance left,
     private static final double APPROACH_EASE =
-            0.30; // so they arrive slowly instead of shooting through the core (client lag turns
-                  // that into an orbit)
-    private static final double ORBIT_MAX_SPEED = 0.6; // blocks/tick cap on the orbit velocity
+            0.30; // so they arrive slowly instead of shooting through the core
+    private static final double HOLD_GAIN =
+            0.5; // fraction of the remaining distance to the centre closed per tick once captured
+    private static final double HOLD_MAX_SPEED = 0.6; // blocks/tick cap on the hold velocity
+    private static final double HOLD_DEADZONE =
+            0.05; // within this of the centre they are simply held still
     private static final double LEASH =
-            1.5; // captured entities further than this from their spot on the ring are snapped back
-                 // onto it
+            1.5; // captured entities further than this from the centre are snapped back onto it
     private static final int SETTLE_TICKS =
             8; // grace after capture before the leash applies, so they glide in rather than
                // teleport in
+    private static final double STREAM_OUTER_RADIUS = 3.5; // how far the inflow streams reach
 
     // Magnetar visuals: a glowing core wrapped in dipole magnetic field loops (they bunch together
     // at the two
@@ -84,7 +87,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     // beam.
     private static final double[] LOOP_RADIUS = {
         1.6, 2.2, 2.8
-    }; // how far each loop bulges out at the equator (blocks), kept around the orbit ring
+    }; // how far each loop bulges out at the equator (blocks),
     private static final int LOOPS_PER_SHELL = 6; // field lines spread evenly around the axis
     private static final int LOOP_POINTS = 4; // particles per field line per tick
     private static final double LOOP_FLOW =
@@ -101,8 +104,7 @@ public class MetalMagnetarAbility extends BaseAbility {
     private static final int STREAMS = 6;
     private static final int STREAM_POINTS = 2; // particles per stream per tick
     private static final double STREAM_MIN_RADIUS = 1.8;
-    private static final double STREAM_MAX_RADIUS =
-            ORBIT_RADIUS + 1.5; // streams only reach a little past the orbit ring
+    private static final double STREAM_MAX_RADIUS = STREAM_OUTER_RADIUS;
     private static final double STREAM_CURL = 0.30; // radians of swirl per block of radius
     private static final double STREAM_SWIRL_WIDTH =
             0.20; // how far a stream bows off its straight line (fraction of its radius)
@@ -179,10 +181,15 @@ public class MetalMagnetarAbility extends BaseAbility {
         Player caster = context.getPlayer();
         if (caster == null) return false;
 
+        Placement placement = findPlacement(caster);
+        Location centre = fitToRoom(placement.location());
+        if (centre == null) {
+            SpaceCheck.deny(caster, "Magnetar");
+            return false;
+        }
+
         end(caster.getUniqueId(), false); // one core per caster
 
-        Placement placement = findPlacement(caster);
-        Location centre = placement.location();
         boolean air = placement.airborne();
         Core core =
                 new Core(
@@ -223,6 +230,20 @@ public class MetalMagnetarAbility extends BaseAbility {
                 };
         core.task.runTaskTimer(plugin, 0L, 1L);
         return true;
+    }
+
+    /**
+     * The wanted spot, or the nearest spot below it where a standing player fits around the core
+     * (so a 2-block-high room works: the core sinks until their head clears the ceiling), or null
+     * if there is no room even then.
+     */
+    private static Location fitToRoom(Location wanted) {
+        for (double lower = 0.0; lower <= MAX_LOWER + 1.0E-6; lower += LOWER_STEP) {
+            Location at = wanted.clone().subtract(0, lower, 0);
+            Location feet = at.clone().subtract(0, BODY_HALF_HEIGHT, 0);
+            if (SpaceCheck.hasRoom(feet, ROOM_RADIUS, BODY_HEIGHT)) return at;
+        }
+        return null;
     }
 
     private Placement findPlacement(Player caster) {
@@ -349,38 +370,22 @@ public class MetalMagnetarAbility extends BaseAbility {
 
     private void capture(
             Core core, Player caster, LivingEntity target, Vector toCore, int capturedAt) {
-        // No damage: the Magnetar only controls. The orbit is stateless: it is worked out from
-        // where they are right now, so lag can't desync it.
-        Vector offset = toCore.clone().multiply(-1); // core -> target
-        double vertical = toCore.getY(); // how far the core is above their body centre
-        offset.setY(0);
-        double radius = offset.length();
-        Vector outward =
-                radius > 1.0E-4 ? offset.clone().multiply(1.0 / radius) : new Vector(1, 0, 0);
-
+        // No damage: the Magnetar only controls. Everything is worked out from where the target is
+        // right now, so lag can't desync it.
+        double distance = toCore.length();
         boolean settled = core.ticks - capturedAt >= SETTLE_TICKS;
-        // Walking, knockback or a bounce pushed them well off the ring? Put them straight back on
-        // it.
-        Vector toRing = outward.clone().multiply(ORBIT_RADIUS - radius).setY(vertical);
-        boolean snapped = settled && toRing.length() > LEASH && snapToCore(target, toRing);
+        boolean snapped = settled && distance > LEASH && snapToCore(target, toCore);
 
         if (!snapped) {
-            Vector tangent =
-                    new Vector(
-                            -outward.getZ(),
-                            0,
-                            outward.getX()); // counter-clockwise seen from above
-            Vector velocity =
-                    tangent.multiply(ORBIT_SPEED)
-                            .add(outward.multiply((ORBIT_RADIUS - radius) * ORBIT_RADIAL_GAIN))
-                            .add(new Vector(0, vertical * ORBIT_RADIAL_GAIN, 0));
-            if (velocity.lengthSquared() > ORBIT_MAX_SPEED * ORBIT_MAX_SPEED) {
-                velocity.normalize().multiply(ORBIT_MAX_SPEED);
+            Vector velocity = new Vector();
+            if (distance > HOLD_DEADZONE) {
+                velocity = toCore.clone().multiply(HOLD_GAIN);
+                if (velocity.lengthSquared() > HOLD_MAX_SPEED * HOLD_MAX_SPEED) {
+                    velocity.normalize().multiply(HOLD_MAX_SPEED);
+                }
             }
             if (isInCobweb(target)) {
-                pullOutOfWeb(
-                        target,
-                        velocity); // velocity is zeroed by the web, so move them by position
+                pullOutOfWeb(target, velocity);
             } else {
                 target.setVelocity(velocity);
             }
@@ -592,6 +597,6 @@ public class MetalMagnetarAbility extends BaseAbility {
     @Override
     public String getDescription() {
         return "Places a core that pulls in nearby players and mobs (even through cobwebs, which it"
-                   + " drags them out of), then spins them around it in orbit until it collapses.";
+                   + " drags them out of), then holds them at its centre until it collapses.";
     }
 }

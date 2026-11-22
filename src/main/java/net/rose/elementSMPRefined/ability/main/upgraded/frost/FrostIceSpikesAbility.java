@@ -9,6 +9,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
 import net.rose.elementSMPRefined.util.scan.GroundScan;
+import net.rose.elementSMPRefined.util.scan.SpaceCheck;
 import net.rose.elementSMPRefined.util.visual.model.IceSpikeVisual;
 
 import org.bukkit.ChatColor;
@@ -40,6 +41,8 @@ public class FrostIceSpikesAbility extends BaseAbility {
 
     // Wind-up before the stomp (caster does not leave the ground)
     private static final int WINDUP_TICKS = 10;
+    private static final double ROOM_STEP = 1.0; // ground unevenness ignored under the spikes
+    private static final double ROOM_HEIGHT = 1.0; // clear air needed above that, around the caster
     private static final double WINDUP_RADIUS = 2.5;
 
     // Rings of spikes: radius and spike count per ring, nearest ring first
@@ -94,7 +97,13 @@ public class FrostIceSpikesAbility extends BaseAbility {
         TeamManager team = context.getTeamManager();
         UUID casterId = caster.getUniqueId();
 
-        if (!activeCasters.add(casterId)) return false;
+        if (activeCasters.contains(casterId)) return false;
+        if (!SpaceCheck.hasRoom(
+                caster.getLocation().add(0, ROOM_STEP, 0), RING_RADII[0], ROOM_HEIGHT)) {
+            SpaceCheck.deny(caster, "Ice Spikes");
+            return false;
+        }
+        activeCasters.add(casterId);
 
         World world = caster.getWorld();
         world.playSound(caster.getLocation(), Sound.BLOCK_POWDER_SNOW_BREAK, 1.2f, 0.6f);

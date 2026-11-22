@@ -64,7 +64,7 @@ public class SporeBlossomAbility extends BaseAbility {
     private static final float[] SIZE = {2.2f, 1.3f, 0.75f}; // display scale in blocks
     private static final double[] RADIUS = {3.5, 2.4, 1.6}; // burst radius
     private static final double[] DAMAGE = {
-        8.0, 5.0, 3.0
+        8.0, 4.0, 2.0
     }; // true damage per burst (1.0 = half a heart)
     private static final int[] POISON_TICKS = {180, 120, 60}; // poison length per burst
     private static final int[] SPLIT_INTO = {4, 8, 0}; // children a burst throws out

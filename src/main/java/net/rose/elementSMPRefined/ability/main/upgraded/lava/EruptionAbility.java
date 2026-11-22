@@ -11,6 +11,7 @@ import net.rose.elementSMPRefined.managers.ConfigManager;
 import net.rose.elementSMPRefined.managers.TeamManager;
 import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.damage.TrueDamage;
+import net.rose.elementSMPRefined.util.scan.SpaceCheck;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -53,6 +54,9 @@ public class EruptionAbility extends BaseAbility {
     private static final double CORE_RADIUS = 1.5;
     private static final double LAUNCH_VELOCITY = 1.0;
     private static final int BURN_TICKS = 80;
+    private static final double ROOM_RADIUS = 1.0; // clear space needed around the centre
+    private static final double ROOM_HEIGHT = 4.0; // clear height needed above the centre
+    private static final double ROOM_STEP_UP = 1.0; // uneven ground the sides may rise by
 
     private static final Component NO_TARGET =
             Component.text("No target in sight!", NamedTextColor.RED);
@@ -85,7 +89,15 @@ public class EruptionAbility extends BaseAbility {
             return false; // failed cast stays free (no cooldown)
         }
 
-        startEruption(player, team, groundBelow(target.getLocation()), target.getUniqueId());
+        Location center = groundBelow(target.getLocation());
+        // The centre sits a hair above the floor; check from the floor itself.
+        if (!SpaceCheck.hasGroundRoom(
+                center.clone().subtract(0, 0.05, 0), ROOM_RADIUS, ROOM_HEIGHT, ROOM_STEP_UP)) {
+            SpaceCheck.deny(player, "Eruption");
+            return false; // failed cast stays free (no cooldown)
+        }
+
+        startEruption(player, team, center, target.getUniqueId());
         return true;
     }
 

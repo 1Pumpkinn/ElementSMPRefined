@@ -25,8 +25,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class IceFreezeListener implements Listener {
 
-    private static final double CHANCE = 100; // 3% (keep IceElement's info text in sync)
-    private static final int CHANCE_PERCENT = 100;
+    private static final double CHANCE = 0.03; // 3% (keep FrostElement's info text in sync)
+    private static final int CHANCE_PERCENT = 3;
     private static final int FREEZE_TICKS = 40; // 2.0 seconds
 
     private final ElementSMPRefined plugin;

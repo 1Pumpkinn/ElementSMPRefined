@@ -63,33 +63,13 @@ public class StatusEffectListener implements Listener {
                 return;
             }
 
-            // Airborne: setTo would teleport them and snap their camera back every tick, so they
-            // couldn't look around until they landed. Hold them still through velocity instead,
-            // which leaves the event (and their camera) alone.
-            if (!player.isOnGround()) {
-                holdStillInAir(player, event);
-                return;
-            }
-
             // Stun / Root / Freeze: they can't move but may still look around. Slowness 7 + the
-            // jump lock make
-            // voluntary movement impossible, so this only fires for knockback/velocity -
-            // rotation-only events
-            // never reach here, which is what keeps free look working. Cancelling the event would
-            // also snap their camera back (the rollback restores the old yaw/pitch), so instead
-            // keep the
-            // old position and carry over the new rotation.
-            Location locked = event.getFrom().clone();
-            locked.setYaw(event.getTo().getYaw());
-            locked.setPitch(event.getTo().getPitch());
-            // X/Z stay locked, but downward movement is allowed so gravity still works (e.g. a
-            // player
-            // frozen mid-air falls to the ground instead of hanging there). Upward movement stays
-            // locked.
-            if (event.getTo().getY() < event.getFrom().getY()) {
-                locked.setY(event.getTo().getY());
-            }
-            event.setTo(locked);
+            // jump lock make voluntary movement impossible, so this only fires for knockback or
+            // falling. Cancelling the event or calling setTo would teleport them, and the
+            // teleport carries the camera angle from the moment their packet was sent, so any
+            // turning done since (their ping) snaps back. Hold them by velocity instead, which
+            // never touches the event or their camera.
+            holdStill(player, event);
         }
     }
 
@@ -97,7 +77,7 @@ public class StatusEffectListener implements Listener {
      * Stops sideways drift and any rise by velocity, keeping the fall speed so gravity still pulls
      * them down. A pure fall needs no change at all.
      */
-    private static void holdStillInAir(Player player, PlayerMoveEvent event) {
+    private static void holdStill(Player player, PlayerMoveEvent event) {
         Location from = event.getFrom();
         Location to = event.getTo();
         double dy = to.getY() - from.getY();

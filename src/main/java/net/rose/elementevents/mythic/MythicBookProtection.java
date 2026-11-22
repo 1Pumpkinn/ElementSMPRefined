@@ -15,14 +15,22 @@ import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.enchantment.EnchantItemEvent;
+import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.MerchantInventory;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
@@ -43,8 +51,10 @@ import java.util.UUID;
  *       solid ground.</li>
  *   <li><b>Anything else that still removes it</b> (death, despawn, explosion, out of world): the
  *       book is dropped again, protected, at a safe spot where it was.</li>
- *   <li>Mobs can't pick it up, and it can't be used as a crafting ingredient (the other way a
- *       book could be consumed).</li>
+ *   <li>Mobs can't pick it up, it can't be used as a crafting ingredient and it can't go through
+ *       an enchanting table (which would turn it into an enchanted book).</li>
+ *   <li>It can't be sold to or taken from a villager or wandering trader: it can't be put in a
+ *       trade window and a trade can't be completed while one is in it or in its result.</li>
  * </ul>
  * Picking it up, hoppers, containers, portals and so on are untouched - it stays a normal item.
  */
@@ -156,6 +166,61 @@ public class MythicBookProtection implements Listener {
                             if (voided) announceVoid(kind, spot);
                         },
                         1L);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPrepareEnchant(PrepareItemEnchantEvent e) {
+        if (MythicBook.kindOf(plugin, e.getItem()) != null) e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onEnchant(EnchantItemEvent e) {
+        if (MythicBook.kindOf(plugin, e.getItem()) != null) e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onMerchantClick(InventoryClickEvent e) {
+        if (!(e.getView().getTopInventory() instanceof MerchantInventory merchant)) return;
+        boolean onTop = e.getClickedInventory() == merchant;
+        boolean block = false;
+        if (onTop && isBook(e.getCursor())) block = true;
+        if (isBook(e.getCurrentItem())
+                && (onTop || e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
+            block = true;
+        }
+        if (onTop && e.getClick() == ClickType.NUMBER_KEY && e.getHotbarButton() >= 0) {
+            block |= isBook(e.getWhoClicked().getInventory().getItem(e.getHotbarButton()));
+        }
+        if (onTop && e.getClick() == ClickType.SWAP_OFFHAND) {
+            block |= isBook(e.getWhoClicked().getInventory().getItemInOffHand());
+        }
+        if (onTop && e.getSlotType() == InventoryType.SlotType.RESULT) {
+            block |= isBook(merchant.getItem(0)) || isBook(merchant.getItem(1));
+        }
+        if (!block) return;
+        e.setCancelled(true);
+        e.getWhoClicked()
+                .sendMessage(
+                        Component.text(
+                                "Mythic books can't be traded with villagers.",
+                                NamedTextColor.RED));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onMerchantDrag(InventoryDragEvent e) {
+        if (!(e.getView().getTopInventory() instanceof MerchantInventory merchant)) return;
+        if (!isBook(e.getOldCursor())) return;
+        int topSize = merchant.getSize();
+        for (int slot : e.getRawSlots()) {
+            if (slot < topSize) {
+                e.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    private boolean isBook(ItemStack stack) {
+        return MythicBook.kindOf(plugin, stack) != null;
     }
 
     /** A book can't be burned up as a crafting ingredient (bookshelves, etc). */

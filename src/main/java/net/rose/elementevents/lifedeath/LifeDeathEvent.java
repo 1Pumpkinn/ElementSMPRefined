@@ -24,10 +24,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -91,6 +93,7 @@ public class LifeDeathEvent extends AbstractTimedEvent {
     protected void onEnd() {
         List<String> lines = new ArrayList<>();
         UUID[] winners = pickWinners();
+        Set<Kind> claimed = EnumSet.noneOf(Kind.class);
         // A mythic element can only be held by one player: don't hand out a book for one that is
         // already claimed.
         for (Kind kind : Kind.values()) {
@@ -102,16 +105,33 @@ public class LifeDeathEvent extends AbstractTimedEvent {
                                         + kind.elementName()
                                         + " is already claimed - no book awarded.");
                 winners[kind.ordinal()] = null;
+                claimed.add(kind);
             }
         }
 
         for (Kind kind : Kind.values()) {
             UUID winner = winners[kind.ordinal()];
             if (winner == null) {
-                lines.add(kind.id() + ": nobody scored");
+                lines.add(
+                        kind.id()
+                                + (claimed.contains(kind)
+                                        ? ": element already claimed"
+                                        : ": nobody scored"));
                 continue;
             }
-            award(winner, kind);
+            try {
+                award(winner, kind);
+            } catch (RuntimeException e) {
+                plugin.getLogger()
+                        .log(
+                                Level.SEVERE,
+                                "Could not award the "
+                                        + kind.id()
+                                        + " book to "
+                                        + winner
+                                        + " - give it manually!",
+                                e);
+            }
             lines.add(kind.id() + ": " + nameOf(winner));
         }
         Bukkit.broadcast(Component.text("The event has ended!", NamedTextColor.GREEN));
@@ -120,7 +140,7 @@ public class LifeDeathEvent extends AbstractTimedEvent {
             UUID winner = winners[kind.ordinal()];
             winnerNames.put(kind, winner == null ? null : nameOf(winner));
         }
-        Dialog results = LifeDeathDialogs.results(allStandings(), winnerNames);
+        Dialog results = LifeDeathDialogs.results(allStandings(), winnerNames, claimed);
         Bukkit.getOnlinePlayers().forEach(p -> p.showDialog(results));
         plugin.getLogger().info("Life & Death event ended - " + String.join(", ", lines));
         scores.clear();
@@ -261,12 +281,12 @@ public class LifeDeathEvent extends AbstractTimedEvent {
         if (MythicBook.giveOrDrop(plugin, player, kind)) {
             player.sendMessage(
                     Component.text(
-                            "Your inventory is full - the " + bookName(kind) + " was dropped at your feet.",
+                            "Your inventory is full - the " + bookName(kind) + " was dropped below you.",
                             NamedTextColor.YELLOW));
         }
         player.sendMessage(
                 Component.text(
-                        "You received the " + capitalise(kind) + " Element!",
+                        "You received the " + bookName(kind) + "!",
                         NamedTextColor.GOLD));
     }
 

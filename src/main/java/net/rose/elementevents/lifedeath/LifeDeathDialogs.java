@@ -16,6 +16,7 @@ import net.rose.elementevents.mythic.MythicBook.Kind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** Builds the dialogs that show the Life &amp; Death scoring: live standings and final results. */
 final class LifeDeathDialogs {
@@ -40,14 +41,24 @@ final class LifeDeathDialogs {
         return dialog(body);
     }
 
-    /** The final results; {@code winners} holds the winner's name per kind, or null for none. */
-    static Dialog results(Map<Kind, Map<String, Integer>> standings, Map<Kind, String> winners) {
+    /**
+     * The final results; {@code winners} holds the winner's name per kind, or null for none, and
+     * {@code claimed} the kinds whose element was already held so no book was awarded.
+     */
+    static Dialog results(
+            Map<Kind, Map<String, Integer>> standings,
+            Map<Kind, String> winners,
+            Set<Kind> claimed) {
         List<DialogBody> body = new ArrayList<>();
         for (Kind kind : Kind.values()) {
             String winner = winners.get(kind);
             Component summary =
                     winner == null
-                            ? Component.text("No winner", NamedTextColor.GRAY)
+                            ? Component.text(
+                                    claimed.contains(kind)
+                                            ? "Already claimed - no book awarded"
+                                            : "No winner",
+                                    NamedTextColor.GRAY)
                             : Component.text(
                                     "Winner: "
                                             + winner

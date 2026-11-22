@@ -198,7 +198,7 @@ public final class Lang {
     }
 
     public static final Component ENCHANTABLE_MACE_INVENTORY_FULL =
-            yellow("Inventory was full, the mace was dropped at your feet.");
+            yellow("Inventory was full, the mace was dropped below you.");
 
     // /element config
 

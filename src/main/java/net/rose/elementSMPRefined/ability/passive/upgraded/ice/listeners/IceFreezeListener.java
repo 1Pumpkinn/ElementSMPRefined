@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 
@@ -69,6 +70,15 @@ public class IceFreezeListener implements Listener {
         if (teamManager.isFriendly(attacker.getUniqueId(), victim.getUniqueId())) return;
 
         freeze(attacker, victim);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onFall(EntityDamageEvent event) {
+        // The ice cushions the landing: no fall damage while still encased.
+        if (event.getCause() != DamageCause.FALL) return;
+        if (event.getEntity() instanceof Player victim && frozen.contains(victim.getUniqueId())) {
+            event.setCancelled(true);
+        }
     }
 
     private void freeze(Player attacker, Player victim) {

@@ -1,7 +1,5 @@
 package net.rose.elementSMPRefined.util.visual.model;
 
-import net.rose.elementSMPRefined.util.visual.PingCompensation;
-
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -9,7 +7,6 @@ import org.bukkit.World;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
@@ -24,7 +21,10 @@ import java.util.Set;
 public final class FreezeEffectVisual {
 
     private static final double PADDING = 0.3;
-    private static final int MAX_SMOOTHING_TICKS = 2;
+    private static final double VERTICAL_SLACK =
+            0.4; // extra box above and below, so a falling target stays inside it
+    private static final int FOLLOW_TICKS =
+            3; // matches how long other players' models take to glide to a new position
 
     private static final Set<FreezeEffectVisual> ACTIVE = new HashSet<>();
 
@@ -32,23 +32,23 @@ public final class FreezeEffectVisual {
     private final BlockDisplay inside;
     private final LivingEntity target;
     private boolean removed = false;
-    private int smoothing = 1;
 
     private FreezeEffectVisual(JavaPlugin plugin, LivingEntity target, int ticks) {
         this.target = target;
 
         BoundingBox box = target.getBoundingBox();
         float width = (float) (Math.max(box.getWidthX(), box.getWidthZ()) + PADDING);
-        float height = (float) (box.getHeight() + PADDING);
+        float height = (float) (box.getHeight() + PADDING + 2.0 * VERTICAL_SLACK);
+        float bottom = (float) (PADDING / 2.0 + VERTICAL_SLACK); // how far it reaches below the feet
 
         Location feet = fixedRotation(target.getLocation());
         // A block display's origin is the block's corner, so shift it back by half its width to
-        // centre it on the target, and down by half the padding so it surrounds the feet too.
+        // centre it on the target, and down so it surrounds the feet too.
         this.display =
                 spawnBox(
                         feet,
                         new Transformation(
-                                new Vector3f(-width / 2f, (float) (-PADDING / 2.0), -width / 2f),
+                                new Vector3f(-width / 2f, -bottom, -width / 2f),
                                 new Quaternionf(),
                                 new Vector3f(width, height, width),
                                 new Quaternionf()));
@@ -68,7 +68,7 @@ public final class FreezeEffectVisual {
                         new Transformation(
                                 new Vector3f(
                                         innerWidth / 2f,
-                                        innerHeight - (float) (PADDING / 2.0) + 0.01f,
+                                        innerHeight - bottom + 0.01f,
                                         innerWidth / 2f),
                                 new Quaternionf(),
                                 new Vector3f(-innerWidth, -innerHeight, -innerWidth),
@@ -91,15 +91,6 @@ public final class FreezeEffectVisual {
                     cancel();
                     return;
                 }
-                // The frozen player is the one who sees the box ride along as they fall, so their ping
-                // decides the smoothing (mobs have no ping and keep the 1-tick window).
-                int wanted = PingCompensation.smoothingTicks(
-                        target instanceof Player player ? player : null, MAX_SMOOTHING_TICKS);
-                if (wanted != smoothing) {
-                    smoothing = wanted;
-                    display.setTeleportDuration(wanted);
-                    inside.setTeleportDuration(wanted);
-                }
                 Location at = fixedRotation(target.getLocation());
                 display.teleport(at);
                 inside.teleport(at);
@@ -118,7 +109,7 @@ public final class FreezeEffectVisual {
                             d.setBrightness(new Display.Brightness(15, 15));
                             d.setTransformation(transformation);
                             d.setBillboard(Display.Billboard.FIXED);
-                            d.setTeleportDuration(1);
+                            d.setTeleportDuration(FOLLOW_TICKS);
                             d.setPersistent(false);
                             d.setInvulnerable(true);
                         });

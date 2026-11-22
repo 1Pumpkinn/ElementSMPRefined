@@ -51,7 +51,9 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
     private static final double RANGE = 25.0;
     private static final double ROOM_RADIUS = 1.0; // clear space needed around the impact point
-    private static final double ROOM_HEIGHT = 6.0; // clear height needed above the impact point
+    private static final double ROOM_HEIGHT = 4.0; // clear height needed above the impact point
+    private static final double ROOM_STEP_UP = 1.0; // uneven ground the sides may rise by
+    private static final double SURFACE_EPS = 1.0E-3;
     private static final double RAY_SIZE = 0.5;
 
     public static final double HIT_RADIUS = 3.5;
@@ -121,7 +123,7 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
 
         Location impact = findImpact(player, context);
         if (impact == null) return false;
-        if (!SpaceCheck.hasRoom(impact, ROOM_RADIUS, ROOM_HEIGHT)) {
+        if (!hasRoom(impact)) {
             SpaceCheck.deny(player, "Kraken Slam");
             return false;
         }
@@ -214,20 +216,62 @@ public class KrakenSlamAbility extends BaseAbility implements Listener {
         }
 
         Vector hit = result.getHitPosition();
-        if (result.getHitBlockFace() == BlockFace.UP) {
+        BlockFace face = result.getHitBlockFace();
+        if (face == BlockFace.UP) {
             return new Location(world, hit.getX(), hit.getY(), hit.getZ());
         }
-        // Wall or ceiling: drop down to the floor below that spot.
+
+        // Wall or ceiling: the hit point sits exactly on the block's surface, so step it out into
+        // the open air first, otherwise the wall itself is inside the slam area.
+        double x = hit.getX();
+        double z = hit.getZ();
+        if (face != null && face != BlockFace.DOWN) {
+            x += face.getModX() * ROOM_RADIUS;
+            z += face.getModZ() * ROOM_RADIUS;
+        }
+        int startY = (int) Math.floor(hit.getY() - (face == BlockFace.DOWN ? 1.0 : 0.0));
         Block ground =
                 GroundScan.findGround(
-                        world,
-                        (int) Math.floor(hit.getX()),
-                        (int) Math.floor(hit.getZ()),
-                        (int) Math.floor(hit.getY()),
-                        2,
-                        10);
+                        world, (int) Math.floor(x), (int) Math.floor(z), startY, 2, 10);
         if (ground == null) return null;
-        return new Location(world, hit.getX(), ground.getY() + 1.0, hit.getZ());
+        return new Location(world, x, ground.getY() + 1.0, z);
+    }
+
+    /**
+     * True if the slam has room to play out at {@code impact}. The column straight above the
+     * impact point must be clear for the full height, and the ring around it too, except for the
+     * bottom {@link #ROOM_STEP_UP} blocks so bumpy ground, slopes and the edge of a step don't
+     * count as obstructions.
+     */
+    private boolean hasRoom(Location impact) {
+        World world = impact.getWorld();
+        int minX = (int) Math.floor(impact.getX() - ROOM_RADIUS + SURFACE_EPS);
+        int maxX = (int) Math.floor(impact.getX() + ROOM_RADIUS - SURFACE_EPS);
+        int minZ = (int) Math.floor(impact.getZ() - ROOM_RADIUS + SURFACE_EPS);
+        int maxZ = (int) Math.floor(impact.getZ() + ROOM_RADIUS - SURFACE_EPS);
+        int centerX = impact.getBlockX();
+        int centerZ = impact.getBlockZ();
+
+        // Standing on a slab, carpet or snow puts the impact point inside that block, so start at
+        // the first block that is actually above the surface.
+        int surfaceY = (int) Math.ceil(impact.getY() - SURFACE_EPS);
+        int topY =
+                Math.min(
+                        world.getMaxHeight() - 1,
+                        (int) Math.floor(impact.getY() + ROOM_HEIGHT - SURFACE_EPS));
+        int ringStartY = surfaceY + (int) Math.ceil(ROOM_STEP_UP);
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                if (!world.isChunkLoaded(x >> 4, z >> 4)) return false;
+                boolean center = x == centerX && z == centerZ;
+                int fromY = center ? surfaceY : ringStartY;
+                for (int y = Math.max(world.getMinHeight(), fromY); y <= topY; y++) {
+                    if (!world.getBlockAt(x, y, z).isPassable()) return false;
+                }
+            }
+        }
+        return true;
     }
 
     private boolean tick(SlamState state) {

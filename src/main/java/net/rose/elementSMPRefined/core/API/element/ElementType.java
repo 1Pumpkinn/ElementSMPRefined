@@ -19,7 +19,7 @@ public enum ElementType {
     EARTH(Tier.BASIC),
 
     METAL(Tier.FORGED),
-    FROST(Tier.FORGED),
+    ICE(Tier.FORGED),
     LAVA(Tier.FORGED),
     STORM(Tier.FORGED),
 
@@ -32,7 +32,7 @@ public enum ElementType {
     public enum Tier {
         /** Rolled on first join and by the basic reroller. */
         BASIC(true),
-        /** Reached by reforging a basic element (Lava, Metal, Frost, Storm). */
+        /** Reached by reforging a basic element (Lava, Metal, Ice, Storm). */
         FORGED(true),
         /**
          * Only one player on the whole server can hold each; claimed through a mythic book
@@ -115,8 +115,12 @@ public enum ElementType {
         if (value == null) {
             return Optional.empty();
         }
+        String name = value.trim().toUpperCase(Locale.ROOT);
+        if (name.equals("FROST")) {
+            return Optional.of(ICE); // Ice was called Frost: keeps old saves and configs loading
+        }
         try {
-            return Optional.of(valueOf(value.trim().toUpperCase(Locale.ROOT)));
+            return Optional.of(valueOf(name));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }

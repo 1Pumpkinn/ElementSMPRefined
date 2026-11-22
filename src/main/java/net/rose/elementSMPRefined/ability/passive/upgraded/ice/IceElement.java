@@ -1,9 +1,9 @@
-package net.rose.elementSMPRefined.ability.passive.upgraded.frost;
+package net.rose.elementSMPRefined.ability.passive.upgraded.ice;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
-import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIceSpikesAbility;
-import net.rose.elementSMPRefined.ability.main.upgraded.frost.FrostIcicleBarrageAbility;
-import net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners.FrostFreezeListener;
+import net.rose.elementSMPRefined.ability.main.upgraded.ice.IceSpikesAbility;
+import net.rose.elementSMPRefined.ability.main.upgraded.ice.IcicleBarrageAbility;
+import net.rose.elementSMPRefined.ability.passive.upgraded.ice.listeners.IceFreezeListener;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
 import net.rose.elementSMPRefined.core.API.element.ElementType;
 import net.rose.elementSMPRefined.core.API.element.ListenerProvider;
@@ -19,13 +19,13 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
 
-public class FrostElement extends BaseElement implements ListenerProvider {
-    public FrostElement(JavaPlugin plugin, ConfigManager configManager) {
+public class IceElement extends BaseElement implements ListenerProvider {
+    public IceElement(JavaPlugin plugin, ConfigManager configManager) {
         super(
                 plugin,
-                ElementType.FROST,
-                new FrostIcicleBarrageAbility(plugin, configManager),
-                new FrostIceSpikesAbility(plugin, configManager));
+                ElementType.ICE,
+                new IcicleBarrageAbility(plugin, configManager),
+                new IceSpikesAbility(plugin, configManager));
     }
 
     @Override
@@ -43,7 +43,7 @@ public class FrostElement extends BaseElement implements ListenerProvider {
     public List<Listener> getListeners(JavaPlugin plugin) {
         ElementSMPRefined main = (ElementSMPRefined) plugin;
         return List.of(
-                new FrostFreezeListener(main, main.getElementManager(), main.getTeamManager()));
+                new IceFreezeListener(main, main.getElementManager(), main.getTeamManager()));
     }
 
     @Override
@@ -54,7 +54,7 @@ public class FrostElement extends BaseElement implements ListenerProvider {
 
     @Override
     public String getDisplayName() {
-        return ChatColor.AQUA + "Frost";
+        return ChatColor.AQUA + "Ice";
     }
 
     @Override

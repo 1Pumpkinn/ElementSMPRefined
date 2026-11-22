@@ -14,7 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * The Forged Upgrader. Not craftable - it only comes from the Reforge Altar.
  * Replaces the old Advanced Reroller: instead of rolling a random advanced
  * element it reforges the player's basic element into its advanced form
- * (Fire -> Lava, Earth -> Metal, Water -> Frost, Air -> Storm).
+ * (Fire -> Lava, Earth -> Metal, Water -> Ice, Air -> Storm).
  */
 public final class ForgedUpgraderItem {
     public static final TextColor COLOR = TextColor.color(0xAD1457);

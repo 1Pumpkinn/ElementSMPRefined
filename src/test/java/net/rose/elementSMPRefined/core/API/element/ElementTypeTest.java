@@ -90,7 +90,7 @@ class ElementTypeTest {
                         net.rose.elementSMPRefined.core.API.element.ElementType.FIRE,
                         net.rose.elementSMPRefined.core.API.element.ElementType.EARTH,
                         net.rose.elementSMPRefined.core.API.element.ElementType.METAL,
-                        net.rose.elementSMPRefined.core.API.element.ElementType.FROST,
+                        net.rose.elementSMPRefined.core.API.element.ElementType.ICE,
                         net.rose.elementSMPRefined.core.API.element.ElementType.LIFE,
                         net.rose.elementSMPRefined.core.API.element.ElementType.DEATH);
         assertTrue(

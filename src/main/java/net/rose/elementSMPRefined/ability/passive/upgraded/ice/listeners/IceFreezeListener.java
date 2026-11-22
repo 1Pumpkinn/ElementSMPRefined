@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.passive.upgraded.frost.listeners;
+package net.rose.elementSMPRefined.ability.passive.upgraded.ice.listeners;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.element.BaseElement;
@@ -22,9 +22,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class FrostFreezeListener implements Listener {
+public class IceFreezeListener implements Listener {
 
-    private static final double CHANCE = 0.03; // 3% (keep FrostElement's info text in sync)
+    private static final double CHANCE = 0.03; // 3% (keep IceElement's info text in sync)
     private static final int CHANCE_PERCENT = 3;
     private static final int FREEZE_TICKS = 40; // 2.0 seconds
 
@@ -33,7 +33,7 @@ public class FrostFreezeListener implements Listener {
     private final TeamManager teamManager;
     private final Set<UUID> frozen = new HashSet<>();
 
-    public FrostFreezeListener(
+    public IceFreezeListener(
             ElementSMPRefined plugin, ElementManager elementManager, TeamManager teamManager) {
         this.plugin = plugin;
         this.elementManager = elementManager;
@@ -53,8 +53,8 @@ public class FrostFreezeListener implements Listener {
         if (ThreadLocalRandom.current().nextDouble() >= CHANCE) return;
 
         var data = elementManager.data(attacker.getUniqueId());
-        if (data == null || data.getCurrentElement() != ElementType.FROST) return;
-        if (data.getUpgradeLevel(ElementType.FROST) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
+        if (data == null || data.getCurrentElement() != ElementType.ICE) return;
+        if (data.getUpgradeLevel(ElementType.ICE) < BaseElement.PASSIVE_2_UPGRADE_LEVEL) return;
 
         // A raised shield stops the freeze. Checked both ways: isBlocking() covers the common case,
         // and the

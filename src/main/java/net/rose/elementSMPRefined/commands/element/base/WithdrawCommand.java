@@ -47,7 +47,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * back an Upgrader I (level 0).
  * <p>
  * <b>forged</b>: the reverse of the Forged Upgrader (Lava -&gt; Fire, Metal -&gt; Earth,
- * Frost -&gt; Water, Storm -&gt; Air). Your upgrade level is kept, exactly as it is when
+ * Ice -&gt; Water, Storm -&gt; Air). Your upgrade level is kept, exactly as it is when
  * a Forged Upgrader is used.
  * <p>
  * <b>mythic</b>: gives the Life/Death book back and frees that mythic element so anyone can

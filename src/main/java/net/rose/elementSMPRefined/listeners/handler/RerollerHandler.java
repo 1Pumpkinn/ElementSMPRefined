@@ -54,7 +54,7 @@ public class RerollerHandler implements Listener {
         if (!elementManager.beginRolling(player)) return;
 
         ElementType newElement = determineNewElement(player);
-        // A forged element (Lava/Metal/Frost/Storm) being rerolled away gives the Forged Upgrader
+        // A forged element (Lava/Metal/Ice/Storm) being rerolled away gives the Forged Upgrader
         // back.
         ElementType before = elementManager.getPlayerElement(player);
         boolean wasForged = before != null && ForgeRecipe.forTarget(before).isPresent();

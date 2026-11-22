@@ -8,7 +8,7 @@ import net.rose.elementSMPRefined.ability.passive.basic.fire.FireElement;
 import net.rose.elementSMPRefined.ability.passive.basic.water.WaterElement;
 import net.rose.elementSMPRefined.ability.passive.mythic.death.DeathElement;
 import net.rose.elementSMPRefined.ability.passive.mythic.life.LifeElement;
-import net.rose.elementSMPRefined.ability.passive.upgraded.frost.FrostElement;
+import net.rose.elementSMPRefined.ability.passive.upgraded.ice.IceElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.lava.LavaElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.metal.MetalElement;
 import net.rose.elementSMPRefined.ability.passive.upgraded.storm.StormElement;
@@ -97,7 +97,7 @@ public class ElementManager {
         elementRegistry.register(new LifeElement(plugin, configManager));
         elementRegistry.register(new DeathElement(plugin, configManager));
         elementRegistry.register(new MetalElement(plugin, configManager));
-        elementRegistry.register(new FrostElement(plugin, configManager));
+        elementRegistry.register(new IceElement(plugin, configManager));
         elementRegistry.register(new LavaElement(plugin, configManager));
         elementRegistry.register(new StormElement(plugin, configManager));
 

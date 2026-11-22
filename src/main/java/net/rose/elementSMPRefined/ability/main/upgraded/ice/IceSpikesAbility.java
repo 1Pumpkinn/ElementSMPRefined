@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.upgraded.frost;
+package net.rose.elementSMPRefined.ability.main.upgraded.ice;
 
 import net.rose.elementSMPRefined.ElementSMPRefined;
 import net.rose.elementSMPRefined.core.API.ability.BaseAbility;
@@ -37,7 +37,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class FrostIceSpikesAbility extends BaseAbility {
+public class IceSpikesAbility extends BaseAbility {
 
     // Wind-up before the stomp (caster does not leave the ground)
     private static final int WINDUP_TICKS = 10;
@@ -80,10 +80,10 @@ public class FrostIceSpikesAbility extends BaseAbility {
     private final ElementSMPRefined plugin;
     private final Set<UUID> activeCasters = new HashSet<>();
 
-    public FrostIceSpikesAbility(JavaPlugin plugin, ConfigManager configManager) {
+    public IceSpikesAbility(JavaPlugin plugin, ConfigManager configManager) {
         super(
-                "frost_ice_spikes",
-                ElementType.FROST,
+                "ice_spikes",
+                ElementType.ICE,
                 2,
                 Constants.Cooldown.ABILITY_2_SECONDS,
                 2,
@@ -123,7 +123,7 @@ public class FrostIceSpikesAbility extends BaseAbility {
                 Location feet = caster.getLocation();
 
                 if (ticks < WINDUP_TICKS) {
-                    // Frost gathers inward toward the caster's feet.
+                    // Ice gathers inward toward the caster's feet.
                     double shrink = 1.0 - (double) ticks / WINDUP_TICKS;
                     double r = WINDUP_RADIUS * shrink + 0.3;
                     scratch.setWorld(feet.getWorld());

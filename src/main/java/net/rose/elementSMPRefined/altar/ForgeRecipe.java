@@ -10,15 +10,15 @@ import java.util.Optional;
 /**
  * One Reforge Altar recipe, tied to the basic element it reforges. The altar
  * asks each player for the recipe of THEIR element (Fire -> Lava recipe, Water
- * -> Frost recipe, Air -> Storm recipe, Earth -> Metal recipe), so two players
+ * -> Ice recipe, Air -> Storm recipe, Earth -> Metal recipe), so two players
  * at the same altar see - and must hand in - different ingredients. The
  * Forged Upgrader it hands out then does the matching reforge
  * (see {@link #forBase(ElementType)}).
  */
 public enum ForgeRecipe {
-    FROST(
+    ICE(
             ElementType.WATER,
-            ElementType.FROST,
+            ElementType.ICE,
             new Ingredient(Material.BLUE_ICE, 128, "Blue Ice"),
             new Ingredient(Material.POWDER_SNOW_BUCKET, 4, "Powdered Snow Bucket"),
             new Ingredient(Material.HEART_OF_THE_SEA, 1, "Heart of the Sea")),

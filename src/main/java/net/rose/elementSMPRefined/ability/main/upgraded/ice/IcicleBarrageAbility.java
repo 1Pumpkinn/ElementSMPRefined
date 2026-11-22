@@ -1,4 +1,4 @@
-package net.rose.elementSMPRefined.ability.main.upgraded.frost;
+package net.rose.elementSMPRefined.ability.main.upgraded.ice;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class FrostIcicleBarrageAbility extends BaseAbility {
+public class IcicleBarrageAbility extends BaseAbility {
 
     private static final NamespacedKey ICICLE_MODEL =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:icicle_tip"));
@@ -130,10 +130,10 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
 
     private final ElementSMPRefined plugin;
 
-    public FrostIcicleBarrageAbility(JavaPlugin plugin, ConfigManager configManager) {
+    public IcicleBarrageAbility(JavaPlugin plugin, ConfigManager configManager) {
         super(
-                "frost_icicle_barrage",
-                ElementType.FROST,
+                "icicle_barrage",
+                ElementType.ICE,
                 1,
                 Constants.Cooldown.ABILITY_1_SECONDS,
                 1,
@@ -464,7 +464,7 @@ public class FrostIcicleBarrageAbility extends BaseAbility {
             return false;
         }
 
-        /** Frost left behind along the path the icicle just flew (it moves several blocks a tick, so fill the gap). */
+        /** Ice left behind along the path the icicle just flew (it moves several blocks a tick, so fill the gap). */
         private void trail(Location from, Vector step) {
             double length = step.length();
             int points = Math.max(1, (int) Math.ceil(length / TRAIL_SPACING));

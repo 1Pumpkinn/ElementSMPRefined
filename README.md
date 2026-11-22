@@ -7,7 +7,7 @@ Season One element plugin for Paper, being refined.
 | Tier | Elements |
 |------|----------|
 | Basic | Air, Earth, Fire, Water |
-| Upgraded | Metal, Frost, Lava, Storm |
+| Upgraded | Metal, Ice, Lava, Storm |
 | Mythic | Life, Death |
 
 Each element has two abilities plus passives. Players are given a random basic element, ability 1

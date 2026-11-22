@@ -25,7 +25,7 @@ import org.bukkit.inventory.ItemStack;
  * element becomes the mythic one. Only one player can hold each mythic element
  * ({@link MythicElements}); if someone already does, the book is kept and nothing happens.
  * <ul>
- *   <li>If the player's old element was forged (Lava/Metal/Frost/Storm) they get the Forged
+ *   <li>If the player's old element was forged (Lava/Metal/Ice/Storm) they get the Forged
  *       Upgrader back, like a reroll does.</li>
  *   <li>If it was a different mythic element, that element is freed and its book is given back, so
  *       a mythic element is never lost by swapping.</li>

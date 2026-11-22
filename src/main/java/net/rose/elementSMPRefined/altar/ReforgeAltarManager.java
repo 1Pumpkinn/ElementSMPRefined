@@ -888,7 +888,7 @@ public final class ReforgeAltarManager {
      * and the actual hand-in, so the two can never disagree:
      * <ul>
      *   <li>basic element (Fire, Earth, Water, Air): the recipe for the element it upgrades into</li>
-     *   <li>upgraded element (Lava, Metal, Frost, Storm): the recipe of the basic element it came from
+     *   <li>upgraded element (Lava, Metal, Ice, Storm): the recipe of the basic element it came from
      *       (Lava shows the Fire recipe, and so on)</li>
      *   <li>anything else (Life, Death, ...): a random recipe, rolled once per altar</li>
      * </ul>

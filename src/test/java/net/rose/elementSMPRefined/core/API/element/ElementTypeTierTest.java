@@ -25,7 +25,7 @@ class ElementTypeTierTest {
         assertEquals(
                 EnumSet.of(
                         ElementType.METAL,
-                        ElementType.FROST,
+                        ElementType.ICE,
                         ElementType.LAVA,
                         ElementType.STORM),
                 ElementType.ofTier(Tier.FORGED));

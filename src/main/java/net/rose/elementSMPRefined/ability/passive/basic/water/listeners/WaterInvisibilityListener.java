@@ -94,7 +94,7 @@ public class WaterInvisibilityListener implements Listener {
                                         if (hasPassive(player)) {
                                             tick(player);
                                         } else if (trulyInvisible.contains(player.getUniqueId())) {
-                                            // No longer Water/Frost (reroll/admin set) - tick()
+                                            // No longer Water/Ice (reroll/admin set) - tick()
                                             // never runs for them again, so reveal here.
                                             idleChecks.remove(player.getUniqueId());
                                             lastLocation.remove(player.getUniqueId());
@@ -130,7 +130,7 @@ public class WaterInvisibilityListener implements Listener {
 
     private boolean hasPassive(Player player) {
         ElementType type = elementManager.getPlayerElement(player);
-        if (type != ElementType.WATER && type != ElementType.FROST) return false;
+        if (type != ElementType.WATER && type != ElementType.ICE) return false;
 
         var data = elementManager.data(player.getUniqueId());
         return data != null && data.getUpgradeLevel(type) >= BaseElement.PASSIVE_2_UPGRADE_LEVEL;
@@ -223,7 +223,7 @@ public class WaterInvisibilityListener implements Listener {
      * Clears invisibility this passive left behind in an earlier run (server stop/crash, plugin reload
      * or hot-swap) - nothing tracks it any more, so without this it would last forever. Recognised by
      * the persistent marker, or - for players stuck from before the marker existed - by the exact
-     * signature of this passive's effect on a Water/Frost player.
+     * signature of this passive's effect on a Water/Ice player.
      */
     private void clearStaleInvisibility(Player player) {
         if (!player.isOnline() || trulyInvisible.contains(player.getUniqueId())) return;
@@ -235,7 +235,7 @@ public class WaterInvisibilityListener implements Listener {
             ElementType type = elementManager.getPlayerElement(player);
             PotionEffect effect = player.getPotionEffect(PotionEffectType.INVISIBILITY);
             legacy =
-                    (type == ElementType.WATER || type == ElementType.FROST)
+                    (type == ElementType.WATER || type == ElementType.ICE)
                             && effect != null
                             && effect.getDuration() == PotionEffect.INFINITE_DURATION
                             && !effect.isAmbient()

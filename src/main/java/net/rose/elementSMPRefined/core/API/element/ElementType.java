@@ -25,6 +25,7 @@ public enum ElementType {
 
     LIFE(Tier.MYTHIC),
     DEATH(Tier.MYTHIC),
+    TIME(Tier.MYTHIC),
 
     EXAMPLE(Tier.TEMPLATE);
 

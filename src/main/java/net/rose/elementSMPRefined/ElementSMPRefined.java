@@ -4,6 +4,7 @@ import net.rose.elementSMPRefined.ability.main.basic.earth.ShockwaveAbility;
 import net.rose.elementSMPRefined.ability.main.basic.fire.StarFallAbility;
 import net.rose.elementSMPRefined.ability.main.basic.water.KrakenSlamAbility;
 import net.rose.elementSMPRefined.ability.main.mythic.life.LifeTotemAbility;
+import net.rose.elementSMPRefined.ability.main.mythic.time.TimeRingAbility;
 import net.rose.elementSMPRefined.ability.main.mythic.life.SporeBlossomAbility;
 import net.rose.elementSMPRefined.ability.main.upgraded.ice.IcicleBarrageAbility;
 import net.rose.elementSMPRefined.ability.main.upgraded.lava.EruptionAbility;
@@ -73,6 +74,7 @@ public final class ElementSMPRefined extends AbstractElementPlugin {
         sweep("LifeTotem", LifeTotemAbility::removeAll);
         sweep("Shockwave", ShockwaveAbility::removeAll);
         sweep("KrakenSlam", KrakenSlamAbility::removeAll);
+        sweep("TimeRing", TimeRingAbility::removeAll);
         getLogger().info("ElementSMPRefined disabled successfully!");
     }
 

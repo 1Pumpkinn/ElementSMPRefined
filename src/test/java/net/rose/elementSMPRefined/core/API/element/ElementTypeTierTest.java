@@ -32,9 +32,10 @@ class ElementTypeTierTest {
     }
 
     @Test
-    void mythicElementsAreLifeAndDeath() {
+    void mythicElementsAreLifeDeathAndTime() {
         assertEquals(
-                EnumSet.of(ElementType.LIFE, ElementType.DEATH), ElementType.ofTier(Tier.MYTHIC));
+                EnumSet.of(ElementType.LIFE, ElementType.DEATH, ElementType.TIME),
+                ElementType.ofTier(Tier.MYTHIC));
     }
 
     @Test

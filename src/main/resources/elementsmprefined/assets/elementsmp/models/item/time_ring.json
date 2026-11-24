@@ -4,8 +4,7 @@
     32
   ],
   "textures": {
-    "0": "elementsmp:item/time_ring",
-    "particle": "elementsmp:item/time_ring"
+    "0": "elementsmp:item/time_ring"
   },
   "elements": [
     {
@@ -197,10 +196,10 @@
       "faces": {
         "up": {
           "uv": [
-            8,
-            4,
-            9,
-            4.5
+            2,
+            3.5,
+            3,
+            4
           ],
           "texture": "#0"
         }
@@ -230,10 +229,10 @@
       "faces": {
         "up": {
           "uv": [
-            7,
             8,
-            8,
-            8.5
+            4,
+            9,
+            4.5
           ],
           "texture": "#0"
         }
@@ -263,10 +262,10 @@
       "faces": {
         "up": {
           "uv": [
-            2,
-            3.5,
-            3,
-            4
+            7,
+            8,
+            8,
+            8.5
           ],
           "texture": "#0"
         }
@@ -3196,28 +3195,6 @@
       ],
       "scope": 0,
       "color": 0,
-      "children": []
-    },
-    {
-      "name": "octagon",
-      "origin": [
-        8,
-        8,
-        8
-      ],
-      "scope": 0,
-      "color": 0,
-      "children": []
-    },
-    {
-      "name": "hexadecagon",
-      "origin": [
-        8,
-        8,
-        8
-      ],
-      "scope": 0,
-      "color": 0,
       "children": [
         0,
         1,
@@ -3264,17 +3241,6 @@
         30,
         31
       ]
-    },
-    {
-      "name": "hexadecagon",
-      "origin": [
-        8,
-        8,
-        8
-      ],
-      "scope": 0,
-      "color": 0,
-      "children": []
     },
     {
       "name": "hexadecagon",

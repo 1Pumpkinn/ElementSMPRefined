@@ -20,7 +20,8 @@ import java.util.Set;
 /**
  * The flat ground decal of the Time Ring: a single item display wearing the
  * {@code elementsmp:time_ring} model (six concentric hoops lying in the model's y = 0 plane),
- * turning slowly around its centre.
+ * turning slowly around its centre, plus a second display with the {@code elementsmp:time_hand}
+ * model that sweeps round on top of it like the second hand of a clock.
  * <p>
  * The model's outermost hoop ends 15/16 of a block from the centre at scale 1, so the display is
  * scaled by {@code radius / (15/16)} to make that edge land exactly on {@code radius}.
@@ -30,6 +31,9 @@ public final class TimeRingVisual {
     public static final NamespacedKey TIME_RING =
             Objects.requireNonNull(NamespacedKey.fromString("elementsmp:time_ring"));
 
+    public static final NamespacedKey TIME_HAND =
+            Objects.requireNonNull(NamespacedKey.fromString("elementsmp:time_hand"));
+
     /** Distance from the model's centre to the outer edge of its outer hoop, in blocks at scale 1. */
     private static final double MODEL_RADIUS = 15.0 / 16.0;
 
@@ -37,6 +41,7 @@ public final class TimeRingVisual {
     private static final double LIFT = 0.05;
 
     private static final float SPIN_DEGREES_PER_TICK = 0.9f;
+    private static final float HAND_DEGREES_PER_TICK = 360f / (6 * 20); // 6s a turn
     private static final int STEP_TICKS = 2;
     private static final int INTERPOLATION_TICKS = 3;
     private static final double MIN_GROWTH = 0.02;
@@ -44,6 +49,7 @@ public final class TimeRingVisual {
     private static final Set<TimeRingVisual> ACTIVE = new HashSet<>();
 
     private final ItemDisplay display;
+    private final ItemDisplay hand;
     private final float scale;
 
     /**
@@ -52,7 +58,9 @@ public final class TimeRingVisual {
      */
     public TimeRingVisual(Location ground, double radius) {
         this.scale = (float) (radius / MODEL_RADIUS);
-        this.display = spawn(centre(ground));
+        Location origin = centre(ground);
+        this.display = spawn(origin, TIME_RING);
+        this.hand = spawn(origin, TIME_HAND);
         ACTIVE.add(this);
     }
 
@@ -83,10 +91,23 @@ public final class TimeRingVisual {
                         new Vector3f(scale * g),
                         new Quaternionf()));
         display.setInterpolationDelay(0);
+
+        if (hand.isValid()) {
+            Quaternionf sweep =
+                    new Quaternionf().rotateY((float) Math.toRadians(target * HAND_DEGREES_PER_TICK));
+            hand.setTransformation(
+                    new Transformation(
+                            new Vector3f(0f, drop, 0f),
+                            sweep,
+                            new Vector3f(scale * g),
+                            new Quaternionf()));
+            hand.setInterpolationDelay(0);
+        }
     }
 
     public void remove() {
         if (display.isValid()) display.remove();
+        if (hand.isValid()) hand.remove();
         ACTIVE.remove(this);
     }
 
@@ -96,9 +117,9 @@ public final class TimeRingVisual {
         }
     }
 
-    private ItemDisplay spawn(Location at) {
+    private ItemDisplay spawn(Location at, NamespacedKey model) {
         // The base material is irrelevant - the item_model component replaces its model entirely.
-        ItemStack modelItem = ModelItems.of(TIME_RING);
+        ItemStack modelItem = ModelItems.of(model);
         World world = at.getWorld();
 
         return world.spawn(

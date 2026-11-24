@@ -13,10 +13,8 @@ import net.rose.elementSMPRefined.util.damage.AbilityTargets;
 import net.rose.elementSMPRefined.util.visual.model.TimeRingVisual;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -62,14 +60,6 @@ public class TimeRingAbility extends BaseAbility {
 
     private static final double ARROW_GRAVITY = 0.05; // blocks/tick^2, vanilla
     private static final double THROWN_GRAVITY = 0.03;
-
-    private static final double HAND_LENGTH = 0.92; // of the radius
-    private static final double HAND_STEP = 0.5; // blocks between particles on the hand
-    private static final double HAND_RADIANS_PER_TICK = Math.PI * 2.0 / (6 * 20); // 6s a turn
-    private static final Particle.DustOptions HAND_DUST =
-            new Particle.DustOptions(Color.fromRGB(127, 227, 220), 1.1f);
-    private static final Particle.DustOptions TIP_DUST =
-            new Particle.DustOptions(Color.fromRGB(236, 197, 102), 1.4f);
 
     private static final Map<UUID, Ring> RINGS = new HashMap<>();
 
@@ -253,7 +243,7 @@ public class TimeRingAbility extends BaseAbility {
         double radius = RADIUS * growth; // the zone grows and shrinks with the decal
         slowCreatures(ring, caster, radius);
         slowProjectiles(ring, caster, radius);
-        ambience(ring, radius);
+        ambience(ring);
     }
 
     private static double growth(int ticks) {
@@ -369,33 +359,8 @@ public class TimeRingAbility extends BaseAbility {
 
     // ---- looks and sounds ---------------------------------------------------------------------
 
-    private void ambience(Ring ring, double radius) {
+    private void ambience(Ring ring) {
         World world = ring.world;
-
-        // A clock hand sweeping round the ring, with a gold tip.
-        if (ring.ticks % 2 == 0) {
-            double angle = ring.ticks * HAND_RADIANS_PER_TICK;
-            double dirX = Math.cos(angle);
-            double dirZ = Math.sin(angle);
-            double length = radius * HAND_LENGTH;
-            double y = ring.centre.getY() + 0.12;
-            for (double d = HAND_STEP; d < length; d += HAND_STEP) {
-                Location at =
-                        new Location(
-                                world,
-                                ring.centre.getX() + dirX * d,
-                                y,
-                                ring.centre.getZ() + dirZ * d);
-                world.spawnParticle(Particle.DUST, at, 1, 0.02, 0.0, 0.02, 0.0, HAND_DUST, true);
-            }
-            Location tip =
-                    new Location(
-                            world,
-                            ring.centre.getX() + dirX * length,
-                            y,
-                            ring.centre.getZ() + dirZ * length);
-            world.spawnParticle(Particle.DUST, tip, 2, 0.05, 0.0, 0.05, 0.0, TIP_DUST, true);
-        }
 
         // Tick, tock.
         if (ring.ticks % 10 == 0 && ring.ticks < DURATION_TICKS - FADE_TICKS) {
